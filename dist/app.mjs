@@ -496,7 +496,7 @@ function setOptionControl(id,value){
 function applyMapOption(option,type){
   if(type==='layout'){
     for(const id of ['method','arrangement','lon','lat','roll','bias','height','clearance','gridRotation','mode'])if(option.state[id]!==undefined){if(['method','arrangement','mode'].includes(id))state[id]=option.state[id];else setOptionRange(id,option.state[id]);}
-    for(const id of ['interpolation','optimize','fractalgrid','subgrid','dotgrid'])if(option.controls[id]!==undefined)setOptionControl(id,option.controls[id]);
+    for(const id of ['interpolation','optimize'])if(option.controls[id]!==undefined)setOptionControl(id,option.controls[id]);
     if(option.mode)mode(option.mode);else mode(state.mode);
     state.layout=0;document.querySelectorAll('.method').forEach(el=>el.classList.toggle('active',el.dataset.method===state.method));
     rebuild();resize();if(option.viewOffset){state.panX=option.viewOffset[0]*scale;state.panY=option.viewOffset[1]*scale;draw();}updateRelief();
