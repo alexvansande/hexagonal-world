@@ -337,7 +337,9 @@ function cursorSphere(e){
 }
 canvas.onpointerdown=e=>{
  canvas.setPointerCapture(e.pointerId);pointers.set(e.pointerId,[e.clientX,e.clientY]);dragging={x:e.clientX,y:e.clientY};
- const sample=state.mode==='rotate'?cursorSphere(e):null;grabbed=sample?geographicPoint(state,sample):null;
+ const sample=state.mode==='rotate'?cursorSphere(e):null;
+ if(pointers.size===1&&state.mode==='rotate'&&!sample)mode('pan');
+ grabbed=sample?geographicPoint(state,sample):null;
  if(pointers.size===2){grabbed=null;const p=[...pointers.values()];pinchDistance=Math.hypot(p[0][0]-p[1][0],p[0][1]-p[1][1]);}
 };
 canvas.onpointermove=e=>{
