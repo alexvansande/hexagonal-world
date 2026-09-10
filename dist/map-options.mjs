@@ -406,8 +406,8 @@ export const styleOptions=[
       "ocean-classes": 3,
       "graticule": false,
       "subgrid": false,
-      "fractalgrid": false,
-      "dotgrid": true,
+      "fractalgrid": true,
+      "dotgrid": false,
       "palette": "atlas",
       "construction": false,
       "labels": false,
@@ -415,7 +415,7 @@ export const styleOptions=[
       "indicatrix": "4x49",
       "background-color": "#eff4f5",
       "border-color": "#376472",
-      "hex-grid-color": "#315865",
+      "hex-grid-color": "#e32400",
       "graticule-color": "#4f8796"
     },
     "thumbnail": "maps/styles/distortion-analysis.png"
