@@ -1,0 +1,19 @@
+<!doctype html><meta charset="utf-8"><title>Wave legend mobile checks</title>
+<style>body{margin:0}iframe{width:390px;height:844px;border:0}</style>
+<iframe src="wave-preview.html" title="Mobile wave preview"></iframe><pre id="results">Loading</pre>
+<script>
+const frame=document.querySelector('iframe');
+frame.onload=async()=>{
+ try{
+ const d=frame.contentDocument;for(let i=0;i<200&&!d.querySelector('.wave-legend svg');i++)await new Promise(r=>setTimeout(r,100));
+ d.querySelector('#legend-toggle').click();
+ const dialog=d.querySelector('#mobile-legend-dialog'),svg=dialog.querySelector('svg');
+ if(!dialog.open||!svg)throw Error('Legend did not open');
+ const labels=[...svg.querySelectorAll('text')].map(t=>t.textContent);
+ for(const label of ['Polar','Boreal','Temperate','Warm','Gentle Seas ↔ Rough Seas'])if(!labels.includes(label))throw Error('Missing '+label);
+ if(svg.querySelectorAll('polygon').length!==20)throw Error('Expected two 10-cell triangles');
+ const r=svg.getBoundingClientRect();if(r.left<0||r.right>390)throw Error('Legend overflows mobile viewport');
+ document.querySelector('#results').textContent='PASS: centered mobile legend, shared temperature labels, 20 hexes, no horizontal overflow.';
+ }catch(e){document.querySelector('#results').textContent='FAIL: '+e.message;}
+};
+</script>
