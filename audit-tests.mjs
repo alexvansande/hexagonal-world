@@ -13,7 +13,7 @@ assert.equal(styleOptions.find(s=>s.source==='continents').controls['relief-trea
 const rgb=hex=>[1,3,5].map(i=>parseInt(hex.slice(i,i+2),16));
 for(const count of [3,6,10,15]){
  const samples=[];for(let raw=0;raw<256;raw++)samples.push(raw,0,0,255);
- for(let depth=0;depth<7;depth++)for(let thermal=0;thermal<6;thermal++)samples.push(0,depth,thermal,255);
+ for(let depth=0;depth<7;depth++)for(let thermal=0;thermal<256;thermal++)samples.push(0,depth,thermal,255);
  const actual=paintEcology(new Uint8ClampedArray(samples),count,count),land=landLegends[count],ocean=oceanLegend(count);
  for(let i=0;i<samples.length;i+=4){const raw=samples[i],entry=raw?land[landClass(raw,count)]:ocean[oceanClass(samples[i+1],samples[i+2],count)];assert.deepEqual([...actual.slice(i,i+4)],[...rgb((entry||missing).color),255]);}
 }

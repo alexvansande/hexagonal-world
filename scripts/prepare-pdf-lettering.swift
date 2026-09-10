@@ -20,7 +20,7 @@ for (key, name, text) in specifications {
  let actual = CTFontCopyPostScriptName(font) as String
  guard actual == name else { fatalError("Expected \(name), got \(actual)") }
  var glyphs: [String: Any] = [:]
- let extra = key == "title" ? "Polar Boreal Temperate Warm Cold Mild/warm Arid Humid Shallow Deep Forest Climate zones Subtropical Tropical" : key == "credit" ? "Land Ocean" : ""
+ let extra = key == "title" ? "Polar Boreal Temperate Warm Cold Mild/warm Arid Humid Shallow Deep Forest Climate zones Subtropical Tropical Abyssal Shelf Slope Lower slope Upper slope" : key == "credit" ? "Land Ocean" : ""
  for char in Set((text + extra).utf16).sorted() {
   var code = char, glyph: CGGlyph = 0, advance = CGSize.zero
   guard CTFontGetGlyphsForCharacters(font, &code, &glyph, 1) else { fatalError("Missing character \(char)") }

@@ -26,6 +26,7 @@ const {lifezoneRows,addLifezonesLegend,pdfColor}=await import('./dist/print-lege
 const {landLegends,oceanLegend}=await import('./dist/map-layers.mjs');
 for(const landCount of [3,6,10,15])for(const oceanCount of [3,6,10,15]){
  const rows=lifezoneRows(landCount,oceanCount);
+ for(const side of ['land','ocean'])assert.deepEqual(rows[side].map(r=>r.cells.length),rows[side].map((_,i)=>i+1),'Print rows must form a complete triangle');
  assert.deepEqual(rows.land.flatMap(r=>r.cells.map(c=>c.name)).sort(),landLegends[landCount].map(c=>c.name).sort());
  assert.deepEqual(rows.ocean.flatMap(r=>r.cells.map(c=>c.name)).sort(),oceanLegend(oceanCount).map(c=>c.name).sort());
  const commands=addLifezonesLegend({landCount,oceanCount,lettering,pageWidth:841.89,pageHeight:1190.551,ink:pdfColor('#193c49')});

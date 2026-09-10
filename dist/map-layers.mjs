@@ -1,37 +1,68 @@
-const entries=rows=>rows.map(([name,color,detail])=>({name,color,detail}));
-export const landLegends={
- 15:entries([
- ['Ice & polar desert','#e3e9e8','Holdridge 1–2'],['Tundra','#a8b3a0','Holdridge 3–6'],['Boreal desert & scrub','#b3b48a','Holdridge 7–8'],['Boreal forest','#557d72','Holdridge 9–11'],['Temperate desert','#d1b989','Holdridge 12–13, 18–19'],['Temperate steppe','#b6b965','Holdridge 14, 20'],['Cool moist forest','#789b54','Holdridge 15'],['Cool wet forest','#377b5d','Holdridge 16–17'],['Warm temperate forest','#5f9345','Holdridge 21–24'],['Hot desert & scrub','#e3a75d','Holdridge 25–27, 32–34'],['Subtropical dry forest','#a4b24d','Holdridge 28'],['Subtropical humid forest','#2d9b63','Holdridge 29–31'],['Tropical very dry forest','#cdbe50','Holdridge 35'],['Tropical dry forest','#8ab546','Holdridge 36'],['Tropical humid forest','#126948','Holdridge 37–39']]),
- 10:entries([
- ['Polar zones & tundra','#cbd5ce','Holdridge 1–6'],['Boreal zones','#66867b','Holdridge 7–11'],['Temperate desert & steppe','#c9ba7c','Holdridge 12–14, 18–20'],['Cool temperate forest','#548556','Holdridge 15–17'],['Warm temperate forest','#5f9345','Holdridge 21–24'],['Hot desert & scrub','#e3a75d','Holdridge 25–27, 32–34'],['Subtropical dry forest','#a4b24d','Holdridge 28'],['Subtropical humid forest','#2d9b63','Holdridge 29–31'],['Tropical dry forest','#b0b84b','Holdridge 35–36'],['Tropical humid forest','#126948','Holdridge 37–39']]),
- 3:entries([['Polar & boreal zones','#8aa49e','Holdridge 1–11; unclassified polar land'],['Desert, scrub & steppe','#d6b46b','Holdridge 12–14, 18–20, 25–27, 32–34'],['Temperate & warm forests','#398958','Remaining forest classes']]),
- 6:entries([
- ['Polar & tundra','#d9e4df','Holdridge 1–6; unclassified polar land'],['Boreal zones','#66867b','Holdridge 7–11'],
- ['Temperate desert, steppe & forest','#c9ba7c','Holdridge 12–20'],['Warm temperate forest','#5f9345','Holdridge 21–24'],
- ['Subtropical zones','#65a95d','Holdridge 25–31'],['Tropical zones','#b18b4a','Holdridge 32–39']])
+// Custom triangular aggregations of the source's 39 Holdridge classes.
+// Each successive climate row adds one moisture distinction.
+const group=(name,color,raw)=>({name,color,raw,detail:'Holdridge '+raw.join(', ')});
+const polar=()=>group('Polar zones & tundra','#d9e4df',[1,2,3,4,5,6]);
+const boreal=()=>[
+ group('Boreal desert & scrub','#a5ad79',[7,8]),group('Boreal forest','#66867b',[9,10,11])];
+const temperate=()=>[
+ group('Temperate desert & steppe','#d7c485',[12,13,14,18,19,20]),
+ group('Temperate dry & moist forest','#7e9e60',[15,21,22]),group('Temperate wet & rain forest','#377b5d',[16,17,23,24])];
+const warm=()=>[
+ group('Warm desert & scrub','#e3a75d',[25,26,27,32,33,34]),group('Warm dry forest','#b0bf50',[28,35,36]),
+ group('Warm moist forest','#59a542',[29,37]),group('Warm wet & rain forest','#126948',[30,31,38,39])];
+const landBands={
+ 3:[['Cold',[group('Polar & boreal zones','#8aa49e',[1,2,3,4,5,6,7,8,9,10,11])]],
+ ['Warm',[group('Desert, scrub & steppe','#d6b46b',[12,13,14,18,19,20,25,26,27,32,33,34]),group('Temperate & warm forests','#398958',[15,16,17,21,22,23,24,28,29,30,31,35,36,37,38,39])]]],
+ 6:[['Cold',[group('Polar & boreal zones','#d9e4df',[1,2,3,4,5,6,7,8,9,10,11])]],
+ ['Temperate',[group('Temperate desert & steppe','#c9ba7c',[12,13,14,18,19,20]),group('Temperate forests','#548556',[15,16,17,21,22,23,24])]],
+ ['Warm',[group('Warm desert & scrub','#e3a75d',[25,26,27,32,33,34]),group('Warm dry & moist forest','#91af4c',[28,29,35,36,37]),group('Warm wet & rain forest','#126948',[30,31,38,39])]]],
+ 10:[['Polar',[polar()]],['Boreal',boreal()],['Temperate',temperate()],['Warm',warm()]],
+ 15:[['Polar',[polar()]],['Boreal',boreal()],['Temperate',temperate()],
+ ['Subtropical',[
+ group('Subtropical desert & scrub','#e3b15d',[25,26,27]),group('Subtropical dry forest','#b7c858',[28]),
+ group('Subtropical moist forest','#68a54b',[29]),group('Subtropical wet & rain forest','#2d9163',[30,31])]],
+ ['Tropical',[
+ group('Tropical desert & scrub','#edbe56',[32,33,34]),group('Tropical very dry forest','#c6d44b',[35]),
+ group('Tropical dry forest','#8ab546',[36]),group('Tropical moist forest','#3ca454',[37]),group('Tropical wet & rain forest','#126948',[38,39])]]]
 };
-const groups15=[[1,2],[3,4,5,6],[7,8],[9,10,11],[12,13,18,19],[14,20],[15],[16,17],[21,22,23,24],[25,26,27,32,33,34],[28],[29,30,31],[35],[36],[37,38,39]];
-const map10=[0,0,1,1,2,2,3,3,4,5,6,7,8,8,9];
+export const landLegends=Object.fromEntries(Object.entries(landBands).map(([n,bands])=>[n,bands.flatMap(([,cells])=>cells)]));
+const landLookup=Object.fromEntries(Object.entries(landLegends).map(([n,cells])=>[n,Object.fromEntries(cells.flatMap((c,i)=>c.raw.map(raw=>[raw,i])))]));
 export function landClass(raw,count){
- if(raw===254)return 0;
- if(raw<1||raw>39)return -1;
- const fine=groups15.findIndex(a=>a.includes(raw));
- if(count===15)return fine;if(count===10)return map10[fine];
- if(count===6)return raw<=6?0:raw<=11?1:raw<=20?2:raw<=24?3:raw<=31?4:5;
- if(count===3)return raw<=11?0:[4,5,9].includes(fine)?1:2;
- throw Error('Invalid land class count');
+ if(!landLookup[count])throw Error('Invalid land class count');
+ return raw===254?0:landLookup[count][raw]??-1;
 }
-const depths=['Shelf · <200 m','Upper slope · 200–1,000 m','Lower slope · 1,000–2,000 m','Deep · 2,000–4,000 m','Abyssal · ≥4,000 m'];
-const temps=['Cold','Temperate','Warm'];
-const tempDetails=['Annual surface temperature <10°C','Annual surface temperature 10–20°C','Annual surface temperature ≥20°C'];
-const oceanColors=[['#80dce5','#48b9cc','#2794b1','#196985','#104459'],['#8dc4f3','#5c9bdf','#3b73c0','#285095','#1a3267'],['#b4b6fa','#898bea','#6363ce','#4746a5','#302d73']];
-export function oceanLegend(count){
- if(count===3)return entries([['Cold waters · all depths','#48b9cc',tempDetails[0]],['Mild/warm shelf','#9ca8f4','Surface ≥10°C; depth <200 m'],['Mild/warm offshore','#3d499e','Surface ≥10°C; depth ≥200 m']]);
- if(count===10)return ['Cold','Temperate & warm'].flatMap((t,i)=>[0,1,2,3,4].map(d=>({name:`${t} ${depths[d].split(' · ')[0].toLowerCase()}`,color:oceanColors[i][d],detail:`${i===0?tempDetails[0]:'Surface temperature ≥10°C'}; ${depths[d].split(' · ')[1]}`})));
- if(![6,15].includes(count))throw Error('Invalid ocean class count');
- return temps.flatMap((t,i)=>(count===6?[0,1]:[0,1,2,3,4]).map(d=>({name:`${t} ${count===6?(d===0?'shelf':'offshore'):depths[d].split(' · ')[0].toLowerCase()}`,color:oceanColors[i][count===6?(d===0?0:3):d],detail:`${tempDetails[i]}; ${count===6?(d===0?'depth <200 m':'depth ≥200 m'):depths[d].split(' · ')[1]}`})));
+export function landRows(count){return landBands[count].map(([label,cells])=>({label,cells}));}
+
+// Blue-channel v2: 0 = missing SST, otherwise 1 + round((°C + 5) * 4).
+// Bathymetry is seafloor depth. These are custom depth/surface-climate groups,
+// not measured temperatures at depth or scientific Holdridge marine zones.
+export const oceanTemperature=encoded=>encoded>0?(encoded-1)/4-5:null;
+const thermalCuts={1:[],2:[15],3:[10,20],4:[5,15,25],5:[0,10,20,25]};
+const thermalNames={1:['All climates'],2:['Cooler','Warmer'],3:['Cold','Temperate','Warm'],4:['Cold','Cool','Mild','Warm'],5:['Polar','Cold','Temperate','Subtropical','Tropical']};
+const oceanBands={
+ 3:[['Deep','≥200 m',[1,2,3,4]],['Shelf','<200 m',[0]]],
+ 6:[['Deep','≥1,000 m',[2,3,4]],['Slope','200–1,000 m',[1]],['Shelf','<200 m',[0]]],
+ 10:[['Deep','≥2,000 m',[3,4]],['Lower slope','1,000–2,000 m',[2]],['Upper slope','200–1,000 m',[1]],['Shelf','<200 m',[0]]],
+ 15:[['Abyssal','≥4,000 m',[4]],['Deep','2,000–4,000 m',[3]],['Lower slope','1,000–2,000 m',[2]],['Upper slope','200–1,000 m',[1]],['Shelf','<200 m',[0]]]
+};
+const oceanPalette=[['#253c67'],['#346587','#514f8a'],['#419bb6','#527abc','#7770c5'],['#60becf','#69a6db','#8194e8','#9991e8'],['#98dfe4','#78cbdc','#82b8ee','#a2adf2','#b8a7ed']];
+export function oceanRows(count){
+ if(!oceanBands[count])throw Error('Invalid ocean class count');
+ return oceanBands[count].map(([label,depth],row)=>({label,cells:Array.from({length:row+1},(_,column)=>{
+  const cuts=thermalCuts[row+1],lo=cuts[column-1],hi=cuts[column];
+  const range=lo===undefined?`<${hi}°C`:hi===undefined?`≥${lo}°C`:`${lo}–${hi}°C`;
+  return {name:row===0?`${label} · all surface climates`:`${thermalNames[row+1][column]} ${label.toLowerCase()}`,color:oceanPalette[row][column],detail:`Seafloor ${depth}; ${row===0?'surface temperature merged':'annual surface temperature '+range}`};
+ })}));
 }
-export function oceanClass(depth,thermal,count){if(thermal<1||thermal>3||depth<0||depth>4)return -1;if(count===3)return thermal===1?0:depth===0?1:2;if(count===6)return (thermal-1)*2+(depth===0?0:1);if(count===10)return (thermal===1?0:5)+depth;if(count===15)return (thermal-1)*5+depth;throw Error('Invalid ocean class count');}
+export function oceanLegend(count){return oceanRows(count).flatMap(row=>row.cells);}
+export function oceanClass(depth,thermal,count){
+ const bands=oceanBands[count];if(!bands)throw Error('Invalid ocean class count');
+ const row=bands.findIndex(([, ,depths])=>depths.includes(depth));if(row<0)return -1;
+ if(row===0)return 0; // Deepest group does not need surface-temperature data.
+ if(!Number.isInteger(thermal)||thermal<1||thermal>255)return -1;
+ const temperature=oceanTemperature(thermal),column=thermalCuts[row+1].filter(cut=>temperature>=cut).length;
+ return row*(row+1)/2+column;
+}
 export const missing={name:'No source data',color:'#999ca3',detail:'Unmapped land or unavailable marine data; not a life-zone class'};
 const rgb=hex=>[1,3,5].map(i=>parseInt(hex.slice(i,i+2),16));
 export function paintEcology(pixels,landCount,oceanCount){
@@ -39,7 +70,7 @@ export function paintEcology(pixels,landCount,oceanCount){
  // Classify each possible source value once instead of searching class groups
  // for every pixel in the multi-megapixel source image.
  const landColors=Array.from({length:256},(_,raw)=>land[landClass(raw,landCount)]||unknown);
- const oceanColors=Array.from({length:5},(_,depth)=>Array.from({length:4},(_,thermal)=>ocean[oceanClass(depth,thermal,oceanCount)]||unknown));
+ const oceanColors=Array.from({length:5},(_,depth)=>Array.from({length:256},(_,thermal)=>ocean[oceanClass(depth,thermal,oceanCount)]||unknown));
  for(let i=0;i<pixels.length;i+=4){const raw=pixels[i],color=raw===0?(oceanColors[pixels[i+1]]?.[pixels[i+2]]||unknown):landColors[raw];out[i]=color[0];out[i+1]=color[1];out[i+2]=color[2];out[i+3]=255;}
  return out;
 }
@@ -61,7 +92,7 @@ export async function riverMask(levels=6,widthScale=1){
 }
 export async function mapSource(type,landCount=10,oceanCount=6){
  if(type!=='ecology')return loadImage(type==='terrain'?'maps/topography.jpg':type==='marble'?'maps/bluemarble-high.jpg':type==='countries'?'maps/countries.png':'continents.png');
- const img=await loadImage('maps/ecology-data.png'),canvas=document.createElement('canvas');canvas.width=img.width;canvas.height=img.height;const context=canvas.getContext('2d');
+ const img=await loadImage('maps/ecology-data-v2.png'),canvas=document.createElement('canvas');canvas.width=img.width;canvas.height=img.height;const context=canvas.getContext('2d');
  if(!ecologyPixels){context.drawImage(img,0,0);ecologyPixels=context.getImageData(0,0,img.width,img.height).data;}
  context.putImageData(new ImageData(paintEcology(ecologyPixels,landCount,oceanCount),img.width,img.height),0,0);
  return canvas;

@@ -1,5 +1,5 @@
-import {addLifezonesLegend,pdfColor} from './print-legend.mjs';
-import {loadPrintLettering,addPrintLettering} from './pdf-lettering.mjs?v=print-legend-2';
+import {addLifezonesLegend,pdfColor} from './print-legend.mjs?v=triangular-1';
+import {loadPrintLettering,addPrintLettering} from './pdf-lettering.mjs?v=triangular-1';
 // Encode rows incrementally: the final PNG is never held in one giant canvas.
 const utf8=new TextEncoder();
 const crcTable=Uint32Array.from({length:256},(_,n)=>{for(let k=0;k<8;k++)n=n&1?0xedb88320^(n>>>1):n>>>1;return n>>>0;});

@@ -32,9 +32,9 @@ with Dataset(ROOT/'data/sst.nc') as nc:
  # NOAA starts at 0.5E; output starts at 179.875W. North-to-south latitude.
  xi=((np.arange(W)+.5)*360/W-180)%360;yi=(np.arange(H)+.5)*180/H
  temperatures=annual[np.minimum(179,yi.astype(int))[:,None],np.minimum(359,xi.astype(int))[None,:]]
- thermal=np.where(np.isnan(temperatures),0,np.where(temperatures<10,1,np.where(temperatures<20,2,3))).astype('uint8')
+ thermal=np.where(np.isnan(temperatures),0,1+np.rint((np.clip(np.nan_to_num(temperatures),-5,58.5)+5)*4)).astype('uint8')
 packed=np.stack([hold,bathy,thermal],axis=-1)
-Image.fromarray(packed).save(OUT/'ecology-data.png')
+Image.fromarray(packed).save(OUT/'ecology-data-v2.png')
 # Country map: detailed source polygons, coherent color groups and explicit borders.
 CW,CH=4320,2160
 palette=['#d8dfbb','#d8bca6','#c2d8d0','#dccb91','#b9cce0','#c5b9d2','#d3d7b1','#a8c5bd','#dec5c9']
@@ -55,12 +55,14 @@ labels={int(rec['zone']):rec['desc_'] for rec in shapefile.Reader(str(hold_path)
 metadata={
  'ecologySize':[W,H], 'countrySize':[CW,CH], 'holdridgeClasses':labels,
  'land':{'name':'Leemans / Holdridge life zones','publication':1992,'climatePeriod':'1931–1960','nativeResolution':'0.5°','source':'https://data-gis.unep-wcmc.org/portal/home/item.html?id=31d5e80482834f6ba6ee51a2813b82e7','download':'https://datadownload-production.s3.dualstack.us-east-1.amazonaws.com/Holdridge_Life_Zones.zip','documentation':'https://www.ngdc.noaa.gov/ecosys/cdroms/AVHRR97_d2/document/ncillary/lhold/aareadme.htm'},
- 'temperature':{'name':'NOAA OISST v2','period':'1991–2020','nativeResolution':'1°','aggregation':'Days-weighted mean of 12 monthly normals','binsC':[10,20],'download':'https://downloads.psl.noaa.gov/Datasets/noaa.oisst.v2/sst.ltm.1991-2020.nc'},
+ 'temperature':{'name':'NOAA OISST v2','period':'1991–2020','nativeResolution':'1°','aggregation':'Days-weighted mean of 12 monthly normals','encodingResolutionC':0.25,'download':'https://downloads.psl.noaa.gov/Datasets/noaa.oisst.v2/sst.ltm.1991-2020.nc'},
  'depth':{'name':'Natural Earth bathymetry / SRTM Plus','binsM':[200,1000,2000,4000],'source':'https://www.naturalearthdata.com/downloads/10m-physical-vectors/10m-bathymetry/','download':'https://naturalearth.s3.amazonaws.com/10m_physical/ne_10m_bathymetry_all.zip'},
  'countries':{'name':'Natural Earth Admin 0','version':'5.1.1','scale':'1:50 million','boundaries':'de facto','source':'https://www.naturalearthdata.com/downloads/50m-cultural-vectors/50m-admin-0-countries-2/'},
- 'blueMarble':{'name':'NASA Blue Marble Next Generation','period':'July 2004','size':[5400,2700],'download':'https://eoimages.gsfc.nasa.gov/images/imagerecords/74000/74092/world.200407.3x5400x2700.jpg'},
- 'encoding':'RGB: Holdridge class (0 ocean, 254 land with no data); bathymetry bin 0–4; thermal bin (0 unavailable,1 <10C,2 10–20C,3 >=20C). No interpolation between classes.',
- 'notes':'Holdridge is potential climate-defined vegetation, not observed contemporary cover. Marine classes are custom seafloor-depth × surface-temperature groups, not Holdridge or measured deep-water biomes. Gray indicates missing source data. Display presets are custom aggregations.'}
-(OUT/'sources.json').write_text(json.dumps(metadata,indent=2))
+ 'encoding':'RGB: Holdridge class (0 ocean, 254 unclassified polar land); bathymetry bin 0–4; SST v2 (0 unavailable; otherwise 1 + round((Celsius + 5) * 4)). No interpolation between classes.',
+ 'notes':'Holdridge is potential climate-defined vegetation, not observed contemporary cover. Marine classes are custom triangular seafloor-depth × surface-temperature groups: progressively fewer temperature divisions at greater depth. They are not Holdridge or measured deep-water biomes. Gray indicates missing source data. Source value 254 is displayed as polar land. Each preset has 3, 6, 10 or 15 classes arranged as rows of 1 through 2, 3, 4 or 5.'}
+# Preserve metadata owned by the separate relief, imagery and river preparation steps.
+existing=json.loads((OUT/'sources.json').read_text()) if (OUT/'sources.json').exists() else {}
+metadata={**existing,**metadata,'ecologyFile':'ecology-data-v2.png'}
+(OUT/'sources.json').write_text(json.dumps(metadata,indent=2)+'\n')
 print('Class values',np.unique(hold),'marine depth',np.unique(bathy),'temperature',np.unique(thermal))
 print('Missing land cells',np.sum(hold==254),'ocean without SST',np.sum((hold==0)&(thermal==0)))

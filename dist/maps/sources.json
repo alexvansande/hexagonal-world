@@ -62,10 +62,7 @@
     "period": "1991\u20132020",
     "nativeResolution": "1\u00b0",
     "aggregation": "Days-weighted mean of 12 monthly normals",
-    "binsC": [
-      10,
-      20
-    ],
+    "encodingResolutionC": 0.25,
     "download": "https://downloads.psl.noaa.gov/Datasets/noaa.oisst.v2/sst.ltm.1991-2020.nc"
   },
   "depth": {
@@ -95,8 +92,8 @@
     ],
     "description": "Preferred Blue Marble image with brighter oceans and seafloor detail. Replaces the previously downloaded July 2004 image."
   },
-  "encoding": "RGB: Holdridge class (0 ocean, 254 unclassified polar land); bathymetry bin 0\u20134; thermal bin (0 unavailable,1 <10C,2 10\u201320C,3 >=20C). No interpolation between classes.",
-  "notes": "Holdridge is potential climate-defined vegetation, not observed contemporary cover. Marine classes are custom seafloor-depth \u00d7 surface-temperature groups, not Holdridge or measured deep-water biomes. Source value 254 is unclassified polar land and is displayed as polar rather than missing; gray indicates other missing source data. Display presets are custom aggregations with 3, 6, 10 and 15 options for both land and ocean.",
+  "encoding": "RGB: Holdridge class (0 ocean, 254 unclassified polar land); bathymetry bin 0\u20134; SST v2 (0 unavailable; otherwise 1 + round((Celsius + 5) * 4)). No interpolation between classes.",
+  "notes": "Holdridge is potential climate-defined vegetation, not observed contemporary cover. Marine classes are custom triangular seafloor-depth \u00d7 surface-temperature groups: progressively fewer temperature divisions at greater depth. They are not Holdridge or measured deep-water biomes. Gray indicates missing source data. Display presets are custom aggregations. Source value 254 is displayed as polar land. Each preset has 3, 6, 10 or 15 classes arranged as rows of 1 through 2, 3, 4 or 5.",
   "terrain": {
     "file": "topography.jpg",
     "source": "User source folder: Equirectangular-projection-topographic-world.jpg",
@@ -123,5 +120,6 @@
     "nativeLandDegrees": 0.5,
     "nativeOceanTemperatureDegrees": 1,
     "limitation": "Changes the display pixel shape; does not add geographic information or increase native source resolution. Relief and rivers retain their original sampling."
-  }
+  },
+  "ecologyFile": "ecology-data-v2.png"
 }

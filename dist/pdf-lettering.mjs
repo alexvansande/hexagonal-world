@@ -2,7 +2,7 @@
 // ToUnicode maps preserve selectable, searchable text in the finished document.
 let fontPromise;
 export function loadPrintLettering(){
- if(!fontPromise)fontPromise=fetch(new URL('./pdf-lettering.json?v=print-legend-1',import.meta.url)).then(response=>{if(!response.ok)throw Error('Print lettering could not load');return response.json();}).catch(error=>{fontPromise=null;throw error;});
+ if(!fontPromise)fontPromise=fetch(new URL('./pdf-lettering.json?v=triangular-1',import.meta.url)).then(response=>{if(!response.ok)throw Error('Print lettering could not load');return response.json();}).catch(error=>{fontPromise=null;throw error;});
  return fontPromise;
 }
 const literal=text=>'('+text.replaceAll('\\','\\\\').replaceAll('(','\\(').replaceAll(')','\\)')+')';
