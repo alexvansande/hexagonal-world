@@ -4,7 +4,7 @@ import {ProjectedLighting,lightingSettings,lightingKey} from './projected-lighti
 import {compactDevice,mobileFitRect} from './device-profile.mjs';
 import {readSharePath,sharePair,inferSharePair,presetSettings} from './share-routes.mjs?v=lifezones-bg-1';
 import {initAnalytics,trackEvent} from './analytics.mjs';
-import {pngFromTiles,printPDF} from './map-export.mjs?v=earth-title-1';
+import {pngFromTiles,printPDF} from './map-export.mjs?v=pdf-resolution-1';
 import {fractalRegion,fractalOpacities,edgeKey} from './fractal-grid.mjs';
 import {pointInLoops} from './gosper-fractal.mjs';
 import {circularMode} from './circular-projections.mjs';
@@ -360,7 +360,7 @@ $('reset').onclick=()=>{for(const [id,value] of Object.entries({lon:0,lat:0,roll
 $('research').onclick=()=>$('research-dialog').showModal();$('close-dialog').onclick=()=>$('research-dialog').close();$('research-dialog').onclick=e=>{if(e.target===$('research-dialog')){const r=e.target.getBoundingClientRect();if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)e.target.close();}};
 async function exportMap(){
  if(exporting||!ready||!gl||!program)return;
- const button=$('export'),format=$('export-scale').value,isPDF=format==='pdf',factor=isPDF?null:Number(format),saved={w,h,dpr,panX:state.panX,panY:state.panY};
+ const button=$('export'),format=$('export-scale').value,isPDF=format.startsWith('pdf-'),factor=Number(isPDF?format.slice(4):format),saved={w,h,dpr,panX:state.panX,panY:state.panY};
  const crop={x:0,y:0,width:saved.w,height:saved.h};
  const control=new AbortController(),dialog=$('export-progress'),progress=$('export-progress-text'),main=document.querySelector('main');
  const out=document.createElement('canvas'),context=out.getContext('2d',{willReadFrequently:true});
@@ -388,10 +388,10 @@ async function exportMap(){
    context.drawImage(canvas,-bleed,-bleed);context.drawImage(overlay,-bleed,-bleed);
    return context.getImageData(0,0,width,height).data;
   };
-  const onProgress=value=>progress.textContent=`Rendering ${isPDF?'PDF':`PNG ${factor}×`} · ${Math.round(value*100)}%`;
-  const blob=isPDF?await printPDF({width:crop.width,height:crop.height,mapInsetTop:crop.topInset||0,renderTile,signal:control.signal,onProgress,background:$('background-color').value,lifezones:displayedSource==='ecology'?{colorFade:legendFade(),landCount:classCount('land-classes'),oceanCount:classCount('ocean-classes')}:null}):await pngFromTiles({width:Math.round(saved.w*factor),height:Math.round(saved.h*factor),renderTile,signal:control.signal,onProgress});
+  const onProgress=value=>progress.textContent=`Rendering ${isPDF?'PDF':'PNG'} ${factor}× · ${Math.round(value*100)}%`;
+  const blob=isPDF?await printPDF({rasterScale:factor,width:crop.width,height:crop.height,mapInsetTop:crop.topInset||0,renderTile,signal:control.signal,onProgress,background:$('background-color').value,lifezones:displayedSource==='ecology'?{colorFade:legendFade(),landCount:classCount('land-classes'),oceanCount:classCount('ocean-classes')}:null}):await pngFromTiles({width:Math.round(saved.w*factor),height:Math.round(saved.h*factor),renderTile,signal:control.signal,onProgress});
   control.signal.throwIfAborted();
-  const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=`hexagonal-world-${state.method}-${isPDF?'print.pdf':factor+'x.png'}`;a.click();trackEvent('download',isPDF?'pdf':factor+'x-png');setTimeout(()=>URL.revokeObjectURL(url),60000);
+  const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=`hexagonal-world-${state.method}-${factor}x.${isPDF?'pdf':'png'}`;a.click();trackEvent('download',factor+'x-'+(isPDF?'pdf':'png'));setTimeout(()=>URL.revokeObjectURL(url),60000);
  }catch(error){if(error.name!=='AbortError'){console.warn('Map export:',error);$('relief-status').textContent='Export failed: '+error.message;}}
  finally{w=saved.w;h=saved.h;dpr=saved.dpr;state.panX=saved.panX;state.panY=saved.panY;out.width=out.height=1;relief?.releaseDetail();exporting=false;main.inert=false;dialog.close();button.disabled=false;meshSignature=null;resize();}
 }

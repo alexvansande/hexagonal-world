@@ -37,3 +37,21 @@ for(const landCount of [3,6,10,15])for(const oceanCount of [3,6,10,15]){
 console.log('Print legend: every selected land/ocean class represented once, vector swatches and complete text for all 16 class combinations pass.');
 
 assert.equal(fonts.title.name,'Baskerville');assert.equal(fonts.legend.name,'Baskerville-Italic');assert(lettering.commands.some(c=>c.includes('/Fsubtitle 13 Tf')));
+
+// Verify PDF raster scale independently of paper fit, including partial edge tiles.
+const {printPDF}=await import('./dist/map-export.mjs');
+const originalGlobals={fetch:globalThis.fetch,document:globalThis.document,ImageData:globalThis.ImageData};
+try{
+ globalThis.fetch=async()=>({ok:true,json:async()=>fonts});
+ globalThis.ImageData=class{constructor(data,width,height){Object.assign(this,{data,width,height});}};
+ globalThis.document={createElement:()=>({getContext:()=>({putImageData(){}}),toBlob:callback=>callback(new Blob(['test image']))})};
+ for(const rasterScale of [2,10]){
+  const w=205.3,h=119.7,tiles=[];
+  const pdf=await printPDF({width:w,height:h,rasterScale,renderTile:async(x,y,width,height,ratio)=>{assert.equal(ratio,rasterScale);assert(width<=1024&&height<=1024);tiles.push({x,y,width,height});return new Uint8ClampedArray(width*height*4);}});
+  assert.equal(Math.max(...tiles.map(t=>t.x+t.width)),Math.round(w*rasterScale));
+  assert.equal(Math.max(...tiles.map(t=>t.y+t.height)),Math.round(h*rasterScale));
+  assert.equal(tiles.reduce((sum,t)=>sum+t.width*t.height,0),Math.round(w*rasterScale)*Math.round(h*rasterScale));
+  const text=await pdf.text();assert.equal((text.match(/\/Subtype \/Image/g)||[]).length,tiles.length);assert.equal((text.match(/\/Subtype \/Type3/g)||[]).length,4);
+ }
+}finally{Object.assign(globalThis,originalGlobals);}
+console.log('PDF 2x and 10x: exact map raster scale, bounded tiles, complete pixel coverage and vector lettering pass.');

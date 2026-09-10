@@ -7,18 +7,18 @@ try{
  const params=new URLSearchParams(location.search);
  doc.querySelector('[data-arrangement="'+(params.get('format')||'gosper')+'"]').click();doc.querySelector('[data-style="'+(params.get('style')||'topographic')+'"]').click();await until(()=>!$('map-loading').textContent,'terrain');await delay(1000);
  if(params.has('background')){$('background-color').value='#'+params.get('background');$('background-color').dispatchEvent(new win.Event('input',{bubbles:true}));await delay(500);}
- assert([...$('export-scale').options].map(o=>o.textContent).join('|')==='PNG 2x|PNG 10x|PDF (print)','Export choices wrong');
+ assert([...$('export-scale').options].map(o=>o.textContent).join('|')==='PNG 2x|PNG 10x|PDF 2x|PDF 10x','Export choices wrong');
  const before=win.location.hash,size=[$('map').width,$('map').height];let captured;
  const create=win.URL.createObjectURL,click=win.HTMLAnchorElement.prototype.click;
  win.URL.createObjectURL=b=>{captured=b;return create.call(win.URL,b);};win.HTMLAnchorElement.prototype.click=function(){};
  const only=new URLSearchParams(location.search).get('only');
- for(const value of ['2','10','pdf'].filter(value=>!only||value===only)){
+ for(const value of ['2','10','pdf-2','pdf-10'].filter(value=>!only||value===only)){
   result.textContent='Exporting '+value+'…';captured=null;$('export-scale').value=value;$('export').click();
   await until(()=>captured&&!$('export').disabled,'export '+value);
   assert(win.location.hash===before,'Export changed saved map state');assert($('map').width===size[0]&&$('map').height===size[1],'Export did not restore live canvas');assert(!doc.querySelector('main').inert,'Controls remain locked');assert(!errors.length,errors.join('\n'));
-  if(value!=='pdf'){const bitmap=await createImageBitmap(captured);assert(bitmap.width===800*+value&&bitmap.height===560*+value,'Export dimensions capped');bitmap.close();pass('PNG '+value+'x exact size, live view and URL restored');}
-  else{assert(captured.type==='application/pdf','Wrong PDF type');pass('Print PDF generated and live view restored');}
-  if(new URLSearchParams(location.search).has('save')){const response=await fetch('http://127.0.0.1:4175/'+(value==='pdf'?'print.pdf':value+'x.png'),{method:'POST',body:captured});assert(response.ok,'Could not save export artifact');}
+  if(!value.startsWith('pdf-')){const bitmap=await createImageBitmap(captured);assert(bitmap.width===800*+value&&bitmap.height===560*+value,'Export dimensions capped');bitmap.close();pass('PNG '+value+'x exact size, live view and URL restored');}
+  else{assert(captured.type==='application/pdf','Wrong PDF type');pass(value+' generated and live view restored');}
+  if(new URLSearchParams(location.search).has('save')){const response=await fetch('http://127.0.0.1:4175/'+(value.startsWith('pdf-')?value+'.pdf':value+'x.png'),{method:'POST',body:captured});assert(response.ok,'Could not save export artifact');}
  }
  captured=null;$('export-scale').value='10';$('export').click();await delay(100);$('export-cancel').click();await until(()=>!$('export').disabled,'cancel');assert(!captured,'Cancelled export downloaded');assert(win.location.hash===before&&!doc.querySelector('main').inert,'Cancel did not restore state');pass('Cancel restores the map without downloading');
  win.URL.createObjectURL=create;win.HTMLAnchorElement.prototype.click=click;result.textContent='PASS · '+checks.children.length+' checks';

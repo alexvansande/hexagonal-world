@@ -31,9 +31,10 @@ export function printLayout(width,height){
  return {pageWidth,pageHeight,map:{x:(pageWidth-width*scale)/2,y:top,width:width*scale,height:height*scale},margin};
 }
 function pdfString(s){return '('+s.replaceAll('\\','\\\\').replaceAll('(','\\(').replaceAll(')','\\)')+')';}
-export async function printPDF({width,height,renderTile,signal,onProgress=()=>{},background='#ffffff',lifezones=null,mapInsetTop=0}){
+export async function printPDF({width,height,rasterScale=2,renderTile,signal,onProgress=()=>{},background='#ffffff',lifezones=null,mapInsetTop=0}){
  const fonts=await loadPrintLettering();signal?.throwIfAborted();
- const layout=printLayout(width,height),dpi=300,factor=layout.map.width/width*dpi/72,pxWidth=Math.round(width*factor),pxHeight=Math.round(height*factor);
+ // Match PNG pixels per canvas unit; paper size only controls placement.
+ const layout=printLayout(width,height),factor=rasterScale,pxWidth=Math.round(width*factor),pxHeight=Math.round(height*factor);
  const objects=[],add=data=>{objects.push(data);return objects.length;},bytes=s=>utf8.encode(s);
  const catalog=add(null),pages=add(null),page=add(null),resources=[],commands=[`${pdfColor(background)} rg 0 0 ${layout.pageWidth} ${layout.pageHeight} re f`];
  const streamObject=(header,data)=>new Blob([bytes('<< '+header+' /Length '+data.size+' >>\nstream\n'),data,bytes('\nendstream')]);
