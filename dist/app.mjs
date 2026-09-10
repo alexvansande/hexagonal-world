@@ -1,8 +1,9 @@
+import {fadedLegendColor} from './legend-colors.mjs';
 import {bakedStyle,bakedStrength,bakedTints,loadBakedLayer} from './baked-relief.mjs';
 import {compactDevice,mobileShadows,mobileFitRect} from './device-profile.mjs';
 import {readSharePath,sharePair,inferSharePair,presetSettings} from './share-routes.mjs';
 import {initAnalytics,trackEvent} from './analytics.mjs';
-import {pngFromTiles,printPDF} from './map-export.mjs?v=triangular-1';
+import {pngFromTiles,printPDF} from './map-export.mjs?v=legend-fade-1';
 import {fractalRegion,fractalOpacities,edgeKey} from './fractal-grid.mjs';
 import {pointInLoops} from './gosper-fractal.mjs';
 import {circularMode} from './circular-projections.mjs';
@@ -281,6 +282,7 @@ async function prepareBakedLighting(selection){
 }
 function updateRelief(){
  const previous=bakedSelection;bakedSelection=bakedStyle(state,{source:$('map-source').value,treatment:$('relief-treatment').value,tone:$('relief-tone').value},compactDevice,shareSelection.style.id);
+ updateLegendFade();
  if(previous?.id!==bakedSelection?.id){++bakedRequest;bakedPendingKey='';if(bakedSelection)relief?.releaseDetail();}
  if(bakedSelection){
   if($('relief-enabled').checked||['ivory','elevation'].includes($('map-source').value))prepareBakedLighting(bakedSelection);
@@ -371,7 +373,7 @@ async function exportMap(){
    return context.getImageData(0,0,width,height).data;
   };
   const onProgress=value=>progress.textContent=`Rendering ${isPDF?'PDF':`PNG ${factor}×`} · ${Math.round(value*100)}%`;
-  const blob=isPDF?await printPDF({width:crop.width,height:crop.height,mapInsetTop:crop.topInset||0,renderTile,signal:control.signal,onProgress,background:$('background-color').value,lifezones:displayedSource==='ecology'?{landCount:classCount('land-classes'),oceanCount:classCount('ocean-classes')}:null}):await pngFromTiles({width:Math.round(saved.w*factor),height:Math.round(saved.h*factor),renderTile,signal:control.signal,onProgress});
+  const blob=isPDF?await printPDF({width:crop.width,height:crop.height,mapInsetTop:crop.topInset||0,renderTile,signal:control.signal,onProgress,background:$('background-color').value,lifezones:displayedSource==='ecology'?{colorFade:legendFade(),landCount:classCount('land-classes'),oceanCount:classCount('ocean-classes')}:null}):await pngFromTiles({width:Math.round(saved.w*factor),height:Math.round(saved.h*factor),renderTile,signal:control.signal,onProgress});
   control.signal.throwIfAborted();
   const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=`hexagonal-world-${state.method}-${isPDF?'print.pdf':factor+'x.png'}`;a.click();trackEvent('download',isPDF?'pdf':factor+'x-png');setTimeout(()=>URL.revokeObjectURL(url),60000);
  }catch(error){if(error.name!=='AbortError'){console.warn('Map export:',error);$('relief-status').textContent='Export failed: '+error.message;}}
@@ -463,7 +465,7 @@ function updateDistortionLegend(){
 }
 
 function hexLegend(container,items){
- $(container).replaceChildren(...items.map(item=>{const row=document.createElement('div');row.className='hex-legend-item';row.title=item.detail;const swatch=document.createElement('span');swatch.className='hex-swatch';swatch.style.backgroundColor=item.color;swatch.setAttribute('aria-hidden','true');const label=document.createElement('span');label.textContent=item.name;row.append(swatch,label);return row;}));
+ $(container).replaceChildren(...items.map(item=>{const row=document.createElement('div');row.className='hex-legend-item';row.title=item.detail;const swatch=document.createElement('span');swatch.className='hex-swatch';swatch.style.backgroundColor=item.color;swatch.dataset.legendColor=item.color;swatch.setAttribute('aria-hidden','true');const label=document.createElement('span');label.textContent=item.name;row.append(swatch,label);return row;}));
 }
 function floatingLegend(container,rows,axis){
  const ns='http://www.w3.org/2000/svg',svg=document.createElementNS(ns,'svg');
@@ -476,7 +478,7 @@ function floatingLegend(container,rows,axis){
   row.cells.forEach((item,col)=>{
    const cx=center+(col-i/2)*dx,polygon=document.createElementNS(ns,'polygon');
    polygon.setAttribute('points',Array.from({length:6},(_,i)=>{const angle=(i*60-90)*Math.PI/180;return `${cx+Math.cos(angle)*(r-1)},${cy+Math.sin(angle)*(r-1)}`;}).join(' '));
-   polygon.setAttribute('fill',item.color);polygon.setAttribute('tabindex','0');polygon.setAttribute('aria-label',item.name);polygon.setAttribute('role','img');
+   polygon.setAttribute('fill',item.color);polygon.dataset.legendColor=item.color;polygon.setAttribute('tabindex','0');polygon.setAttribute('aria-label',item.name);polygon.setAttribute('role','img');
    const title=document.createElementNS(ns,'title');title.textContent=item.name+' — '+item.detail;polygon.append(title);
    const show=()=>{$('floating-legend-tip').textContent=item.name;$('floating-legend-tip').hidden=false;};
    const hide=()=>{$('floating-legend-tip').hidden=true;};
@@ -495,6 +497,15 @@ async function updateRiverLayer(){
  catch(error){console.warn('River layer:',error);$('status').textContent='River data could not load; the map remains available.';}
 }
 for(const id of ['riverWidth','riverLevels'])$(id).addEventListener('input',()=>{++riverRequest;clearTimeout(riverTimer);riverTimer=setTimeout(updateRiverLayer,100);});$('rivers-visible').addEventListener('change',()=>{updateRiverLayer();draw();});
+function legendFade(){return $('relief-enabled').checked?(bakedSelection?.state.reliefColorFade??state.reliefColorFade):0;}
+function updateLegendFade(){
+ const amount=legendFade();
+ for(const swatch of document.querySelectorAll('#floating-legend [data-legend-color],#ecology-controls [data-legend-color]')){
+  const color=fadedLegendColor(swatch.dataset.legendColor,amount);
+  if(swatch.tagName.toLowerCase()==='polygon')swatch.setAttribute('fill',color);else swatch.style.backgroundColor=color;
+ }
+ syncMobileLegend();
+}
 function syncMobileLegend(){
  $('legend-toggle').hidden=!compactDevice||$('map-source').value!=='ecology';
  if($('mobile-legend-dialog').open){const content=$('floating-legend').querySelector('.floating-legend-clusters').cloneNode(true);for(const el of content.querySelectorAll('[id],[tabindex]')){el.removeAttribute('id');el.removeAttribute('tabindex');}$('mobile-legend-content').replaceChildren(content);}
@@ -506,7 +517,7 @@ $('mobile-shadow').onchange=()=>{$('relief-enabled').checked=$('mobile-shadow').
 function updateMapUI(){
  const type=$('map-source').value;$('floating-legend').hidden=type!=='ecology';$('floating-legend-tip').hidden=true;$('ecology-controls').hidden=type!=='ecology';$('palette').closest('label').hidden=!['continents'].includes(type);
  if(type==='ecology'){const landCount=classCount('land-classes'),oceanCount=classCount('ocean-classes');syncClassControl('land-classes',landCount);syncClassControl('ocean-classes',oceanCount);floatingLegend('floating-land',landRows(landCount),['Arid','Humid']);floatingLegend('floating-ocean',oceanRows(oceanCount),['Cold','Warm']);hexLegend('land-legend',landLegends[landCount]);hexLegend('ocean-legend',oceanLegend(oceanCount));hexLegend('missing-legend',[missing]);}
- syncMobileLegend();
+ updateLegendFade();
  const credits={terrain:'Supplied shaded topographic map · baked-in terrain and seafloor relief; lighting is fixed.',ivory:'Generated sculpted-paper finish from the supplied heightfield.',elevation:'Generated earth-and-sea finish from the supplied heightfield.',continents:'Supplied silhouette. Cut-search mask is shared across all layers.',marble:'Supplied Blue Marble · brighter oceans and visible seafloor detail.',countries:'Natural Earth · 1:50m · de facto country boundaries.',ecology:'Leemans / UNEP-WCMC Holdridge (1992); NOAA OISST 1991–2020; Natural Earth bathymetry. Natural Earth 1:10m rivers. Hover swatches for class definitions.'};
  $('map-credit').textContent=credits[type];
  $('relief-source-note').hidden=!$('relief-enabled').checked||!['terrain','marble'].includes(type);

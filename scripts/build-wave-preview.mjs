@@ -13,7 +13,7 @@ initial.state.sidebarExpanded=false;
 initial.view={scale:0,zoom:1,panX:0,panY:0};initial.details={};
 const initialHash='m='+encodeMapState(initial);
 const setup='<style>.floating-legend-clusters.wave-legend{display:block;width:440px;max-width:100%;box-sizing:border-box}#mobile-legend-content .wave-legend svg{width:100%}</style><script>if(!location.hash)history.replaceState(null,"","#"+'+JSON.stringify(initialHash)+');</script>';
-const importMap={imports:{['/'+layerImport]:'/tests/wave-layers.mjs','/print-legend.mjs?v=triangular-1':'/tests/wave-print-legend.mjs'}};
+const importMap={imports:{['/'+layerImport]:'/tests/wave-layers.mjs','/print-legend.mjs?v=legend-fade-1':'/tests/wave-print-legend.mjs'}};
 const banner='<div style="position:fixed;top:0;left:0;right:0;z-index:9999;background:#234b59;color:white;text-align:center;padding:5px 12px;font:12px system-ui;pointer-events:none">OCEAN PREVIEW · Wave exposure × temperature · 2015–2024 sample · Within each temperature row: darker = more often above 2 m · Gray = no data</div>';
 fs.writeFileSync(root+'dist/tests/wave-preview.html',source.replace('<head>','<head><script type="importmap">'+JSON.stringify(importMap)+'</script>'+setup).replace('<body>','<body>'+banner).replace('src="'+appSrc+'"','src="tests/wave-app.mjs"'));
 let app=fs.readFileSync(root+'dist/app.mjs','utf8').replaceAll("from './","from '../").replaceAll("new URL('./","new URL('../");

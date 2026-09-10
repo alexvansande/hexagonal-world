@@ -1,3 +1,4 @@
+import {fadedLegendColor} from './legend-colors.mjs';
 import {landRows,oceanRows} from './map-layers.mjs?v=baked-1';
 
 export const pdfColor=hex=>[1,3,5].map(i=>(parseInt(hex.slice(i,i+2),16)/255).toFixed(6)).join(' ');
@@ -7,7 +8,7 @@ export function lifezoneRows(landCount,oceanCount){
  return {land:landRows(landCount),ocean:oceanRows(oceanCount)};
 }
 
-export function addLifezonesLegend({landCount,oceanCount,lettering,pageWidth,pageHeight,ink}){
+export function addLifezonesLegend({landCount,oceanCount,colorFade=0,lettering,pageWidth,pageHeight,ink}){
  const {land,ocean}=lifezoneRows(landCount,oceanCount),commands=[],{text,measure}=lettering;
  const label=(value,size,x,y,key='title',align='left')=>commands.push(text(key,value,size,x-(align==='center'?measure(key,value,size)/2:align==='right'?measure(key,value,size):0),y));
  function diagram(title,rows,x,axis){
@@ -19,7 +20,7 @@ export function addLifezonesLegend({landCount,oceanCount,lettering,pageWidth,pag
    row.cells.forEach((cell,j)=>{
     const cx=center+(j-(row.cells.length-1)/2)*step;
     const vertices=Array.from({length:6},(_,k)=>{const angle=(30+k*60)*Math.PI/180;return `${cx+radius*Math.cos(angle)} ${y+radius*Math.sin(angle)}`;});
-    commands.push(`${pdfColor(cell.color)} rg ${vertices[0]} m ${vertices.slice(1).map(p=>p+' l').join(' ')} h f`);
+    commands.push(`${pdfColor(fadedLegendColor(cell.color,colorFade))} rg ${vertices[0]} m ${vertices.slice(1).map(p=>p+' l').join(' ')} h f`);
    });
   });
   if(axis){

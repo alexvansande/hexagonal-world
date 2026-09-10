@@ -18,7 +18,7 @@ export function renderWaveLegend(container,landCount,oceanCount){
  const layout=waveLegendLayout(landCount,oceanCount),ns='http://www.w3.org/2000/svg';
  const svg=document.createElementNS(ns,'svg');svg.setAttribute('viewBox',`0 0 ${layout.width} ${layout.height}`);svg.setAttribute('role','group');svg.setAttribute('aria-label','Land and ocean: shared temperature axis, cold above warm');
  svg.style.cssText='width:100%;height:auto;display:block';
- for(const h of layout.hexes){const p=document.createElementNS(ns,'polygon');p.setAttribute('points',Array.from({length:6},(_,k)=>{const a=(k*60-90)*Math.PI/180;return `${h.x+Math.cos(a)*h.r},${h.y+Math.sin(a)*h.r}`;}).join(' '));p.setAttribute('fill',h.color);p.setAttribute('aria-label',h.name);p.setAttribute('tabindex','0');const title=document.createElementNS(ns,'title');title.textContent=h.name+' — '+h.detail;p.append(title);svg.append(p);}
+ for(const h of layout.hexes){const p=document.createElementNS(ns,'polygon');p.setAttribute('points',Array.from({length:6},(_,k)=>{const a=(k*60-90)*Math.PI/180;return `${h.x+Math.cos(a)*h.r},${h.y+Math.sin(a)*h.r}`;}).join(' '));p.setAttribute('fill',h.color);p.dataset.legendColor=h.color;p.setAttribute('aria-label',h.name);p.setAttribute('tabindex','0');const title=document.createElementNS(ns,'title');title.textContent=h.name+' — '+h.detail;p.append(title);svg.append(p);}
  for(const t of layout.texts){const el=document.createElementNS(ns,'text');el.setAttribute('x',t.x);el.setAttribute('y',t.y);el.setAttribute('text-anchor','middle');el.setAttribute('fill','#173d48');el.style.font=`${t.italic?'italic ':''}${t.size}px Baskerville,Georgia,serif`;el.textContent=t.value;svg.append(el);}
  container.replaceChildren(svg);container.classList.add('wave-legend');
 }
