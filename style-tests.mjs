@@ -14,6 +14,7 @@ const byId=Object.fromEntries(styleOptions.map(s=>[s.id,s]));
 assert.equal(byId.elevation.state.reliefSeaLevel,105);
 assert.equal(byId.satellite.state.reliefSeaLevel,116);
 assert.equal(byId['gray-neutral'].state.reliefShadows,.05);
+assert.equal(byId['gray-neutral'].state.line,0);assert.equal(byId['gray-neutral'].controls.dotgrid,true);assert.equal(byId['gray-neutral'].controls['background-color'],'#a2bac1');
 assert.equal(byId['gray-neutral'].controls['relief-treatment'],'land');
 assert.equal(byId.political.controls.graticule,false);assert.equal(byId.political.controls.dotgrid,false);assert.equal(byId.political.controls['background-color'],'#2b4b5f');
 assert.equal(byId.political.controls['relief-enabled'],false);

@@ -1,5 +1,5 @@
 import {decodeMapState} from '../map-state.mjs';
-import {layoutOptions,styleOptions} from '../map-options.mjs?v=compact-1';
+import {layoutOptions,styleOptions} from '../map-options.mjs?v=gray-neutral-1';
 const frame=document.querySelector('iframe'),list=document.querySelector('#checks'),result=document.querySelector('#result');
 const errors=[];let checks=0;
 const delay=ms=>new Promise(resolve=>setTimeout(resolve,ms));
@@ -60,6 +60,7 @@ try{
  doc.querySelector('[data-source="elevation"]').click();await settle();assert(+$('reliefSeaLevel').value===105,'Elevation sea level did not reset');pass('Political and Elevation corrections apply');
  doc.querySelector('[data-source="continents"]').click();await settle();
  assert($('relief-treatment').value==='land','Gray neutral treatment is wrong');
+ assert(+$('line').value===0&&$('dotgrid').checked&&$('background-color').value==='#a2bac1','Gray neutral saved look did not apply');
  doc.querySelector('[data-source="ivory"]').click();await settle();assert($('relief-treatment').value==='atlas','Land cutout leaked into Ivory');
  pass('Styles restore their own surface treatment');
  for(const source of ['marble','ecology','countries','continents'])doc.querySelector(`[data-source="${source}"]`).click();
@@ -69,7 +70,7 @@ try{
 
  const change=(id,value)=>{const el=$(id);if(el.type==='checkbox')el.checked=value;else el.value=value;el.dispatchEvent(new win.Event(['range','color'].includes(el.type)?'input':'change',{bubbles:true}));};
  const overlayInk=()=>{const c=$('overlay'),rgba=c.getContext('2d').getImageData(0,0,c.width,c.height).data;for(let i=3;i<rgba.length;i+=4)if(rgba[i])return true;return false;};
- change('line',0);await settle();assert(!overlayInk(),'Zero border weight still draws normal or red borders');pass('Zero border weight removes normal and red edges');
+ change('dotgrid',false);change('line',0);await settle();assert(!overlayInk(),'Zero border weight still draws normal or red borders');pass('Zero border weight removes normal and red edges');
  change('line',.8);await settle();assert(overlayInk(),'Borders do not return after increasing weight');pass('Increasing border weight restores edges');
  change('relief-enabled',false);await settle();const plain=$('map').toDataURL();
  assert($('distortion').type==='checkbox','Distortion is not a toggle');change('distortionOpacity',0);change('distortion',true);await settle();

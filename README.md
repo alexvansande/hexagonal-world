@@ -108,7 +108,7 @@ To refresh thumbnails, run `python3 scripts/save-style-thumbnails.py` alongside 
 
 Runtime assets are included under `dist/`. The original downloaded inputs under `data/` are retained locally and ignored by Git; the offline preparation scripts use them to regenerate the derived assets. Source attribution and processing details are recorded in `dist/maps/sources.json` and `dist/maps/height/manifest.json`.
 
-The **Background color** picker in **Map source & colors** sets the full map workspace and the ground beneath relief shadows. It persists in shared URLs and PNG exports, and remains independent of format selections. Styles can explicitly include a background color; Political uses #2b4b5f.
+The **Background color** picker in **Map source & colors** sets the full map workspace and the ground beneath relief shadows. It persists in shared URLs and PNG exports, and remains independent of format selections. Styles can explicitly include a background color; Political uses #2b4b5f. Gray neutral uses #a2bac1, a white dot grid, and zero border weight.
 
 New maps start with **Lifezones + Spaceship Earth**. Formats are ordered Spaceship Earth, Felv, Flower World, 4Hexes, Infinite Honeycomb; styles are ordered Lifezones, Satellite, Elevation, Political, Gray neutral, Ivory. Saved URLs retain their chosen settings.
 

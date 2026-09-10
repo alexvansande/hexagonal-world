@@ -207,7 +207,7 @@ export const styleOptions=[
       "reliefOcean": 0.45,
       "reliefRiverDepth": 0.5,
       "reliefSeaLevel": 105,
-      "line": 0.1,
+      "line": 0,
       "grid": 30,
       "distortionOpacity": 0.75,
       "riverWidth": 1,
@@ -223,12 +223,13 @@ export const styleOptions=[
       "ocean-classes": 3,
       "graticule": false,
       "subgrid": false,
-      "dotgrid": false,
+      "dotgrid": true,
       "palette": "atlas",
       "construction": false,
       "labels": false,
       "distortion": false,
-      "indicatrix": "off"
+      "indicatrix": "off",
+      "background-color": "#a2bac1"
     },
     "thumbnail": "maps/styles/gray-neutral.png"
   },
