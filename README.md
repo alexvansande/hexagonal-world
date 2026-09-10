@@ -107,3 +107,5 @@ Lifezones' 1,440 × 720 encoded image contains land classifications from a 0.5°
 To refresh thumbnails, run `python3 scripts/save-style-thumbnails.py` alongside the app and open `/tests/style-thumbnails.html?save=1`. It renders all six styles with a common map view and saves 480 × 272 PNGs locally. Stop the thumbnail writer afterward.
 
 Runtime assets are included under `dist/`. The original downloaded inputs under `data/` are retained locally and ignored by Git; the offline preparation scripts use them to regenerate the derived assets. Source attribution and processing details are recorded in `dist/maps/sources.json` and `dist/maps/height/manifest.json`.
+
+The **Background color** picker in **Map source & colors** sets the full map workspace and the ground beneath relief shadows. It persists in shared URLs and PNG exports, and remains independent of style and format selections.

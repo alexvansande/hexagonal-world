@@ -1,4 +1,4 @@
-import {ReliefRenderer,reliefDefaults} from '../relief.mjs';
+import {ReliefRenderer,reliefDefaults} from '../relief.mjs?v=background-1';
 
 const results=document.querySelector('#results'),images=document.querySelector('#images');
 const lines=[];let failures=0;
@@ -26,7 +26,7 @@ try{
  const rect={left:130,right:350,bottom:103,top:257};
  function render(overrides={},label){
   const s={...state,...overrides};const start=performance.now();
-  r.render({width:480,height:360,dpr:1,unit:110,state:s,blend:0,clip:null,material:'ivory',treatment:'atlas',tone:'warm',signature:JSON.stringify([s.panX,s.panY]),seams:[],refined:true,
+  r.render({width:480,height:360,dpr:1,unit:110,state:s,blend:0,clip:null,material:'ivory',treatment:'atlas',tone:'warm',background:s.background,signature:JSON.stringify([s.panX,s.panY]),seams:[],refined:true,
     drawColor:(w,h)=>{gl.useProgram(cp);gl.uniform2f(gl.getUniformLocation(cp,'size'),w,h);gl.uniform3f(gl.getUniformLocation(cp,'view'),110,s.panX,s.panY);gl.uniform1f(gl.getUniformLocation(cp,'gridRotation'),0);draw(cp);},drawGeometry:draw});
   const data=new Uint8Array(480*360*4);gl.readPixels(0,0,480,360,gl.RGBA,gl.UNSIGNED_BYTE,data);
   check(gl.getError()===gl.NO_ERROR,`${label}: no GPU errors`);
@@ -48,6 +48,10 @@ try{
  const pan=render({reliefHeight:1.7,reliefShadows:.85,panX:25},'Translated ridge');
  let shiftError=0,count=0;for(let y=120;y<240;y++)for(let x=145;x<315;x++){const i=(y*480+x)*4,j=(y*480+x+25)*4;for(let c=0;c<3;c++){shiftError+=Math.abs(shaded[i+c]-pan[j+c]);count++;}}
  check(shiftError/count<3,'Panning translates terrain and shadows together');
+ const colored=render({reliefHeight:0,reliefThickness:1.5,background:'#123456'},'Custom background');
+ check([18,52,86].every((value,i)=>Math.abs(colored[i]-value)<=1),'Background color reaches the relief canvas');
+ const coloredFlat=render({reliefHeight:0,reliefThickness:0,background:'#123456'},'Custom background without shadow');
+ check(difference(coloredFlat,colored,[354,125,375,235])>2,'Exterior shadows retain the chosen background color');
  const img=new Image();img.src=canvas.toDataURL('image/png');await img.decode();check(img.width===480&&img.height===360,'Rendered relief can be exported to PNG');
  lines.push(`\n${failures?`${failures} FAILURES`:'ALL GPU CHECKS PASSED'}`);results.textContent=lines.join('\n');document.title=failures?'FAIL — Relief checks':'PASS — Relief checks';
 }catch(error){results.textContent+='\nERROR: '+error.stack;document.title='FAIL — Relief checks';console.error(error);}

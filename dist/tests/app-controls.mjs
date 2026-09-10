@@ -59,7 +59,7 @@ try{
  $('zoom-out').click();await settle();assert($('zoom-value').textContent==='80%','Zoom did not update');
  pass('Infinite mode remains rendered after zoom');
 
- const change=(id,value)=>{const el=$(id);if(el.type==='checkbox')el.checked=value;else el.value=value;el.dispatchEvent(new win.Event(el.type==='range'?'input':'change',{bubbles:true}));};
+ const change=(id,value)=>{const el=$(id);if(el.type==='checkbox')el.checked=value;else el.value=value;el.dispatchEvent(new win.Event(['range','color'].includes(el.type)?'input':'change',{bubbles:true}));};
  const overlayInk=()=>{const c=$('overlay'),rgba=c.getContext('2d').getImageData(0,0,c.width,c.height).data;for(let i=3;i<rgba.length;i+=4)if(rgba[i])return true;return false;};
  change('line',0);await settle();assert(!overlayInk(),'Zero border weight still draws normal or red borders');pass('Zero border weight removes normal and red edges');
  change('line',.8);await settle();assert(overlayInk(),'Borders do not return after increasing weight');pass('Increasing border weight restores edges');
@@ -72,6 +72,8 @@ try{
  await until(()=>$('indicatrix-status').textContent===''&&overlayInk(),'projected Tissot circles');await settle();
  pass('Projected Tissot circles render at the subhex centers');
  change('indicatrix','off');await settle();assert(!overlayInk(),'Tissot outlines remain after disabling');pass('Tissot toggle clears its projected outlines');
+ change('background-color','#123456');await settle();
+ assert(win.getComputedStyle(doc.querySelector('.workspace')).backgroundColor==='rgb(18, 52, 86)','Background picker does not update the workspace');
  // URL persistence must restore final panel ordering, including the dynamically installed source panel.
  $('relief-panel').open=true;$('map-source-panel').open=true;
  await delay(300);
@@ -80,9 +82,19 @@ try{
  win.addEventListener('error',event=>errors.push(event.message));
  win.addEventListener('unhandledrejection',event=>errors.push(String(event.reason)));
  await until(()=>$('status').textContent.startsWith('Infinite ·'),'restored render');
+ assert($('background-color').value==='#123456','Background color was not restored');pass('Background picker updates the workspace and survives reload');
  assert($('relief-panel').open&&$('map-source-panel').open,'Expanded panels were not restored');pass('Shared URL restores expanded panels');
  frame.style.width='390px';frame.style.height='844px';await delay(200);$('fit').click();await settle();
  assert(doc.querySelector('aside').getBoundingClientRect().bottom<844*.5,'Mobile controls cover the map');pass('Mobile view leaves space for map interaction');
  assert($('map').toDataURL('image/png').startsWith('data:image/png;base64,'),'Canvas PNG encoding failed');pass('Rendered map can be encoded as PNG');
+ doc.querySelector('[data-arrangement="bighex"]').click();await settle();
+ assert($('background-color').value==='#123456','Format reset the background');
+ let exported;const originalURL=win.URL.createObjectURL,originalClick=win.HTMLAnchorElement.prototype.click;
+ try{
+  win.URL.createObjectURL=blob=>{exported=blob;return originalURL.call(win.URL,blob);};win.HTMLAnchorElement.prototype.click=function(){};
+  $('export').click();await until(()=>exported&&!$('export').disabled,'PNG background export');
+  const bitmap=await createImageBitmap(exported),out=document.createElement('canvas');out.width=bitmap.width;out.height=bitmap.height;const context=out.getContext('2d');context.drawImage(bitmap,0,0);bitmap.close();
+  const pixel=context.getImageData(0,0,1,1).data;assert([18,52,86,255].every((v,i)=>pixel[i]===v),'PNG does not contain the selected background');pass('PNG export includes the chosen background color');
+ }finally{win.URL.createObjectURL=originalURL;win.HTMLAnchorElement.prototype.click=originalClick;}
  result.textContent=`PASS · ${checks} checks`;result.dataset.status='passed';
 }catch(error){result.textContent='FAIL · '+error.message;result.className='fail';result.dataset.status='failed';console.error(error);}

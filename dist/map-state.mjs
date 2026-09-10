@@ -3,7 +3,7 @@ import {reliefRanges} from './relief.mjs';
 // The URL payload is positional and URL-safe so a complete map can be shared
 // without exposing implementation names in a long query string.
 const stateKeys=['method','arrangement','lon','lat','roll','bias','height','gridRotation','grid','line','clearance','distortionOpacity','mode',...reliefRanges.map(s=>s[0]),'riverWidth','riverLevels'];
-const controlKeys=['map-source','land-classes','ocean-classes','interpolation','graticule','subgrid','dotgrid','construction','labels','distortion','palette','indicatrix','terrain','quality','optimize','ecology-rivers','relief-enabled','relief-material','relief-treatment','relief-tone','rivers-visible'];
+const controlKeys=['map-source','land-classes','ocean-classes','interpolation','graticule','subgrid','dotgrid','construction','labels','distortion','palette','indicatrix','terrain','quality','optimize','ecology-rivers','relief-enabled','relief-material','relief-treatment','relief-tone','rivers-visible','background-color'];
 
 export const distortionEnabled=value=>value===true||['area','angle','both'].includes(value);
 

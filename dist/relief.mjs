@@ -82,7 +82,7 @@ uniform vec2 fieldSize;uniform vec2 outputSize;uniform vec2 offset;
 uniform vec3 light;uniform float unit;uniform float depth;uniform float sea;uniform float ocean;
 uniform float base;uniform float maximum;
 uniform float contrast;uniform float highlights;uniform float ambient;uniform float strength;
-uniform float softness;uniform float cavity;uniform float colorFade;uniform int material;uniform int treatment;uniform int tone;
+uniform float softness;uniform float cavity;uniform float colorFade;uniform int material;uniform int treatment;uniform int tone;uniform vec3 background;
 float rawHeight(vec4 f){return f.r+f.g/255.;}
 float coverage(vec4 f){return f.a* (treatment==1?smoothstep(sea-.002,sea+.002,rawHeight(f)):1.);}
 float heightAt(vec4 f){float r=rawHeight(f)-sea;return coverage(f)>.5 ? base+depth*(r<0.?r*ocean:r):0.;}
@@ -94,7 +94,7 @@ float occlusion(vec2 p,float z,vec2 direction,float radius){
 }
 void main(){
   vec2 p=offset+uv*outputSize;vec4 f=sampleField(p);float mask=coverage(f);float z=heightAt(f);
-  vec3 paper=tone==1?vec3(.89,.92,.93):tone==2?vec3(.77,.83,.88):vec3(.94,.92,.89);
+  vec3 paper=background;
   vec3 shadowTint=tone==1?vec3(.38,.44,.49):tone==2?vec3(.22,.32,.49):vec3(.40,.34,.49);
   vec3 sunlight=tone==1?vec3(1.):tone==2?vec3(.86,.94,1.06):vec3(1.08,1.015,.90);
   vec3 ground=paper;
@@ -152,7 +152,7 @@ void main(){
 }`;
 const blitFragment=`precision highp float;varying vec2 uv;
 uniform sampler2D image;uniform sampler2D field;uniform vec2 fieldSize;uniform vec2 outputSize;uniform vec2 offset;uniform vec2 texel;
-uniform float blur;uniform float sea;uniform int treatment;uniform int tone;
+uniform float blur;uniform float sea;uniform int treatment;uniform int tone;uniform vec3 background;
 void main(){
   vec4 f=texture2D(field,(offset+uv*outputSize)/fieldSize);
   float mask=f.a*(treatment==1?smoothstep(sea-.002,sea+.002,f.r+f.g/255.):1.);
@@ -163,7 +163,7 @@ void main(){
       vec2 d=vec2(float(x),float(y));float weight=exp(-dot(d,d)*.65);
       shadow+=texture2D(image,uv+d*texel*blur).a*weight;total+=weight;
     }
-    vec3 paper=tone==1?vec3(.89,.92,.93):tone==2?vec3(.77,.83,.88):vec3(.94,.92,.89);
+    vec3 paper=background;
     vec3 tint=tone==1?vec3(.38,.44,.49):tone==2?vec3(.22,.32,.49):vec3(.40,.34,.49);
     color=mix(mix(paper,paper*tint,shadow/total),color,mask);
   }
@@ -277,7 +277,7 @@ export class ReliefRenderer {
     }
     this.horizonKey=horizonKey;this.horizonRefined=refined;this.horizonTexture=buffers[current].texture;return this.horizonTexture;
   }
-  render({width,height,dpr,unit,state,blend,clip,material,treatment,tone,signature,drawColor,drawGeometry,seams,riverTexture=null,riverVisible=false,riverDepth=0,pixelBudget=3000000,refined=false}){
+  render({width,height,dpr,unit,state,blend,clip,material,treatment,tone,background=null,signature,drawColor,drawGeometry,seams,riverTexture=null,riverVisible=false,riverDepth=0,pixelBudget=3000000,refined=false}){
     const gl=this.gl,pad=this.padding(state,unit),cssWidth=width+pad*2,cssHeight=height+pad*2;
     const max=gl.getParameter(gl.MAX_TEXTURE_SIZE);
     const ratio=Math.min(dpr,Math.sqrt(pixelBudget/(cssWidth*cssHeight)),max/cssWidth,max/cssHeight);
@@ -312,7 +312,8 @@ export class ReliefRenderer {
     }
     const dimensions=reliefDimensions(state),pixelUnit=unit*ratio,reach=Math.min(shadowReach(state)*unit,pad-8)*ratio;
     const horizon=state.reliefShadows>.001?this.buildHorizon(field,dimensions,pixelUnit,state,treatment,reach,cacheKey,refined):field.texture;
-    const p=this.lightProgram;gl.bindFramebuffer(gl.FRAMEBUFFER,output.fbo);gl.viewport(0,0,ow,oh);gl.useProgram(p);
+    const backgroundRGB=/^#[0-9a-f]{6}$/i.test(background||'')?[1,3,5].map(i=>parseInt(background.slice(i,i+2),16)/255):tone==='neutral'?[.89,.92,.93]:tone==='cool'?[.77,.83,.88]:[.94,.92,.89];
+    const p=this.lightProgram;gl.bindFramebuffer(gl.FRAMEBUFFER,output.fbo);gl.viewport(0,0,ow,oh);gl.useProgram(p);this.v3(p,'background',...backgroundRGB);
     this.bindTexture(color.texture,0);this.i(p,'colorMap',0);this.bindTexture(field.texture,1);this.i(p,'field',1);
     this.bindTexture(horizon,2);this.i(p,'horizon',2);
     this.v2(p,'fieldSize',fw,fh);this.v2(p,'outputSize',width/cssWidth*fw,height/cssHeight*fh);this.v2(p,'offset',pad/cssWidth*fw,pad/cssHeight*fh);
@@ -324,7 +325,7 @@ export class ReliefRenderer {
     this.i(p,'material',['source','ivory','elevation'].indexOf(material));this.i(p,'treatment',treatment==='land'?1:0);this.i(p,'tone',['warm','neutral','cool'].indexOf(tone));
     this.drawQuad(p);
     gl.bindFramebuffer(gl.FRAMEBUFFER,null);gl.viewport(0,0,gl.canvas.width,gl.canvas.height);gl.useProgram(this.blitProgram);
-    const bp=this.blitProgram;this.bindTexture(output.texture,0);this.i(bp,'image',0);this.bindTexture(field.texture,1);this.i(bp,'field',1);
+    const bp=this.blitProgram;this.v3(bp,'background',...backgroundRGB);this.bindTexture(output.texture,0);this.i(bp,'image',0);this.bindTexture(field.texture,1);this.i(bp,'field',1);
     this.v2(bp,'fieldSize',fw,fh);this.v2(bp,'outputSize',width/cssWidth*fw,height/cssHeight*fh);this.v2(bp,'offset',pad/cssWidth*fw,pad/cssHeight*fh);this.v2(bp,'texel',1/ow,1/oh);
     this.f(bp,'blur',state.reliefSoftness*(2+pixelUnit*.055));this.f(bp,'sea',dimensions.sea);this.i(bp,'treatment',treatment==='land'?1:0);this.i(bp,'tone',['warm','neutral','cool'].indexOf(tone));
     this.drawQuad(bp);gl.activeTexture(gl.TEXTURE0);
