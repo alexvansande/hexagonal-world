@@ -1,25 +1,4 @@
-// Builds a local-only app preview. Production source and thumbnails are untouched.
 import fs from 'node:fs';
-import {presetSettings,sharePair} from '../dist/share-routes.mjs';
-import {encodeMapState} from '../dist/map-state.mjs';
-import {fileURLToPath} from 'node:url';
-const root=fileURLToPath(new URL('../',import.meta.url));
-const source=fs.readFileSync(root+'dist/index.html','utf8').replace(/<p>Marine classes[\s\S]*?<\/p>/, '<p>This local preview replaces ocean depth with the sampled frequency of significant wave height above 2 metres. Copernicus WAVERYS, 2015–2024, sampled every 7 days 3 hours at 0.8°. Classification boundaries are 10%, 25%, 50% and 75%. Wave-exposure distinctions merge toward colder water as a design choice. Hue indicates temperature; within a temperature row, darker colours indicate greater wave exposure. Shared climate labels describe illustrative sea-surface-temperature bands, not marine Holdridge zones. Gray marks unavailable data; known cold water is grouped even when wave data is missing. This is not a navigation safety rating.</p>');
-const appSrc=source.match(/src="(app\.mjs[^\"]*)"/)[1];
-const layerImport=fs.readFileSync(root+'dist/app.mjs','utf8').match(/from '\.\/(map-layers\.mjs[^']*)'/)[1];
-const initial=presetSettings(sharePair('lifezones','dymaxion'));
-initial.controls['ocean-classes']=10;
-initial.state.sidebarExpanded=false;
-initial.view={scale:0,zoom:1,panX:0,panY:0};initial.details={};
-const initialHash='m='+encodeMapState(initial);
-const setup='<style>.floating-legend-clusters.wave-legend{display:block;width:440px;max-width:100%;box-sizing:border-box}#mobile-legend-content .wave-legend svg{width:100%}</style><script>if(!location.hash)history.replaceState(null,"","#"+'+JSON.stringify(initialHash)+');</script>';
-const importMap={imports:{['/'+layerImport]:'/tests/wave-layers.mjs?v=reference-colors-2','/print-legend.mjs?v=legend-fade-1':'/tests/wave-print-legend.mjs?v=reference-colors-2'}};
-const banner='<div style="position:fixed;top:0;left:0;right:0;z-index:9999;background:#234b59;color:white;text-align:center;padding:5px 12px;font:12px system-ui;pointer-events:none">OCEAN PREVIEW · Wave exposure × temperature · 2015–2024 sample · Hue = temperature · Darker within each row = rougher · Gray = no data</div>';
-fs.writeFileSync(root+'dist/tests/wave-preview.html',source.replace('<head>','<head><script type="importmap">'+JSON.stringify(importMap)+'</script>'+setup).replace('<body>','<body>'+banner).replace('src="'+appSrc+'"','src="tests/wave-app.mjs?v=reference-colors-2&'+(appSrc.includes('?')?appSrc.split('?')[1]:'')+'"'));
-let app=fs.readFileSync(root+'dist/app.mjs','utf8').replaceAll("from './","from '../").replaceAll("new URL('./","new URL('../");
-app="import {renderWaveLegend} from './wave-legend.mjs?v=reference-colors-2';\n"+app;
-app=app.replace("floatingLegend('floating-land',landRows(landCount),['Arid','Humid']);floatingLegend('floating-ocean',oceanRows(oceanCount),['Cold','Warm']);","renderWaveLegend($('floating-legend').querySelector('.floating-legend-clusters'),landCount,oceanCount);");
-app=app.replace('NOAA OISST 1991–2020; Natural Earth bathymetry.','NOAA OISST 1991–2020; Copernicus wave reanalysis (preview).');
-app=app.replace('0.5° land · 1° ocean temperature · hexagonal cells','Wave exposure preview · waves >2 m · wave distinctions merged in colder water');
-fs.writeFileSync(root+'dist/tests/wave-app.mjs',app);
-console.log('Local preview: http://127.0.0.1:4173/tests/wave-preview.html');
+const source=fs.readFileSync(new URL('../dist/index.html',import.meta.url),'utf8');
+fs.writeFileSync(new URL('../dist/tests/wave-preview.html',import.meta.url),source.replace('<head>','<head><base href="/">'));
+console.log('Wave preview now uses the production Lifezones app.');

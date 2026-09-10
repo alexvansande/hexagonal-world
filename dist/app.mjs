@@ -1,9 +1,10 @@
+import {renderLifezonesLegend} from './lifezones-legend.mjs?v=waves-1';
 import {fadedLegendColor} from './legend-colors.mjs';
 import {ProjectedLighting,lightingSettings,lightingKey} from './projected-lighting.mjs?v=layers-4';
 import {compactDevice,mobileFitRect} from './device-profile.mjs';
-import {readSharePath,sharePair,inferSharePair,presetSettings} from './share-routes.mjs?v=felv-position-2';
+import {readSharePath,sharePair,inferSharePair,presetSettings} from './share-routes.mjs?v=waves-1';
 import {initAnalytics,trackEvent} from './analytics.mjs';
-import {pngFromTiles,printPDF} from './map-export.mjs?v=legend-fade-1';
+import {pngFromTiles,printPDF} from './map-export.mjs?v=waves-1';
 import {fractalRegion,fractalOpacities,edgeKey} from './fractal-grid.mjs';
 import {pointInLoops} from './gosper-fractal.mjs';
 import {circularMode} from './circular-projections.mjs';
@@ -13,13 +14,13 @@ import {gosperScale,rotateLocal,subgridLevels} from './subgrid.mjs';
 import {decodeMapState,encodeMapState,distortionEnabled,restorePanelStates} from './map-state.mjs?v=layers-1';
 import {sphereAt,followPoint,geographicPoint} from './globe-drag.mjs?v=circular-2';
 import {makeArrangement,arrangementNames} from './arrangements.mjs?v=gosper-1';
-import {mapSource,landLegends,landRows,oceanLegend,oceanRows,missing,riverMask} from './map-layers.mjs?v=baked-1';
+import {mapSource,landLegends,oceanLegend,missing,riverMask} from './map-layers.mjs?v=waves-1';
 import {searchPresets} from './search-presets.mjs?v=rus-search-1';
 import {visibleTiles} from './tiling.mjs';
 import {makeGeometry,layouts,matching,canvasWorld,hex,world} from './geometry.mjs?v=circular-2';
 import {projectionGLSL} from './projection-shader.mjs?v=circular-2';
 import {ReliefRenderer,reliefRanges,reliefDefaults,reliefLooks} from './relief.mjs?v=layers-4';
-import {layoutOptions,styleOptions,layoutIcon} from './map-options.mjs?v=felv-position-2';
+import {layoutOptions,styleOptions,layoutIcon} from './map-options.mjs?v=waves-1';
 const $=id=>document.getElementById(id), canvas=$('map'),overlay=$('overlay'),ctx=overlay.getContext('2d');
 const classOptions=[3,6,10,15];
 const classCount=id=>classOptions[Math.max(0,Math.min(3,Math.round(+$(id).value)))];
@@ -481,28 +482,6 @@ function updateDistortionLegend(){
 function hexLegend(container,items){
  $(container).replaceChildren(...items.map(item=>{const row=document.createElement('div');row.className='hex-legend-item';row.title=item.detail;const swatch=document.createElement('span');swatch.className='hex-swatch';swatch.style.backgroundColor=item.color;swatch.dataset.legendColor=item.color;swatch.setAttribute('aria-hidden','true');const label=document.createElement('span');label.textContent=item.name;row.append(swatch,label);return row;}));
 }
-function floatingLegend(container,rows,axis){
- const ns='http://www.w3.org/2000/svg',svg=document.createElementNS(ns,'svg');
- const r=11,dx=Math.sqrt(3)*r,center=140,width=198,lastY=15+(rows.length-1)*1.5*r,height=lastY+r+25;
- svg.setAttribute('viewBox',`0 0 ${width} ${height}`);svg.setAttribute('width',width);svg.setAttribute('height',height);svg.setAttribute('role','group');
- const label=(value,x,y,anchor='end')=>{const text=document.createElementNS(ns,'text');text.textContent=value;text.setAttribute('x',x);text.setAttribute('y',y);text.setAttribute('text-anchor',anchor);text.setAttribute('class','lifezone-axis-label');svg.append(text);};
- rows.forEach((row,i)=>{
-  const cy=15+i*1.5*r;
-  label(row.label,86,cy+4);
-  row.cells.forEach((item,col)=>{
-   const cx=center+(col-i/2)*dx,polygon=document.createElementNS(ns,'polygon');
-   polygon.setAttribute('points',Array.from({length:6},(_,i)=>{const angle=(i*60-90)*Math.PI/180;return `${cx+Math.cos(angle)*(r-1)},${cy+Math.sin(angle)*(r-1)}`;}).join(' '));
-   polygon.setAttribute('fill',item.color);polygon.dataset.legendColor=item.color;polygon.setAttribute('tabindex','0');polygon.setAttribute('aria-label',item.name);polygon.setAttribute('role','img');
-   const title=document.createElementNS(ns,'title');title.textContent=item.name+' — '+item.detail;polygon.append(title);
-   const show=()=>{$('floating-legend-tip').textContent=item.name;$('floating-legend-tip').hidden=false;};
-   const hide=()=>{$('floating-legend-tip').hidden=true;};
-   polygon.addEventListener('pointerenter',show);polygon.addEventListener('pointerleave',hide);polygon.addEventListener('focus',show);polygon.addEventListener('blur',hide);polygon.addEventListener('click',show);
-   svg.append(polygon);
-  });
- });
- label(axis[0],center-16,height-6);label('⟷',center,height-6,'middle');label(axis[1],center+16,height-6,'start');
- $(container).replaceChildren(svg);
-}
 async function updateRiverLayer(){
  if(!gl||!riverTexture)return;const request=++riverRequest;
  if(!$('rivers-visible').checked)return;
@@ -530,9 +509,9 @@ $('mobile-legend-dialog').onclick=e=>{if(e.target===$('mobile-legend-dialog')){c
 
 function updateMapUI(){
  const type=$('map-source').value;$('floating-legend').hidden=type!=='ecology';$('floating-legend-tip').hidden=true;$('ecology-controls').hidden=type!=='ecology';$('palette').closest('label').hidden=!['continents'].includes(type);
- if(type==='ecology'){const landCount=classCount('land-classes'),oceanCount=classCount('ocean-classes');syncClassControl('land-classes',landCount);syncClassControl('ocean-classes',oceanCount);floatingLegend('floating-land',landRows(landCount),['Arid','Humid']);floatingLegend('floating-ocean',oceanRows(oceanCount),['Cold','Warm']);hexLegend('land-legend',landLegends[landCount]);hexLegend('ocean-legend',oceanLegend(oceanCount));hexLegend('missing-legend',[missing]);}
+ if(type==='ecology'){const landCount=classCount('land-classes'),oceanCount=classCount('ocean-classes');syncClassControl('land-classes',landCount);syncClassControl('ocean-classes',oceanCount);renderLifezonesLegend($('floating-legend').querySelector('.floating-legend-clusters'),landCount,oceanCount);hexLegend('land-legend',landLegends[landCount]);hexLegend('ocean-legend',oceanLegend(oceanCount));hexLegend('missing-legend',[missing]);}
  updateLegendFade();
- const credits={terrain:'Supplied shaded topographic map · baked-in terrain and seafloor relief; lighting is fixed.',ivory:'Generated sculpted-paper finish from the supplied heightfield.',elevation:'Generated earth-and-sea finish from the supplied heightfield.',continents:'Supplied silhouette. Cut-search mask is shared across all layers.',marble:'Supplied Blue Marble · brighter oceans and visible seafloor detail.',countries:'Natural Earth · 1:50m · de facto country boundaries.',ecology:'Leemans / UNEP-WCMC Holdridge (1992); NOAA OISST 1991–2020; Natural Earth bathymetry. Natural Earth 1:10m rivers. Hover swatches for class definitions.'};
+ const credits={terrain:'Supplied shaded topographic map · baked-in terrain and seafloor relief; lighting is fixed.',ivory:'Generated sculpted-paper finish from the supplied heightfield.',elevation:'Generated earth-and-sea finish from the supplied heightfield.',continents:'Supplied silhouette. Cut-search mask is shared across all layers.',marble:'Supplied Blue Marble · brighter oceans and visible seafloor detail.',countries:'Natural Earth · 1:50m · de facto country boundaries.',ecology:'Leemans / UNEP-WCMC Holdridge (1992); NOAA OISST 1991–2020; Copernicus WAVERYS 2015–2024. Natural Earth 1:10m rivers. Hover swatches for class definitions.'};
  $('map-credit').textContent=credits[type];
  $('relief-source-note').hidden=!$('relief-enabled').checked||!['terrain','marble'].includes(type);
 }
@@ -544,7 +523,7 @@ async function updateMapSource(){
   const originalWidth=source.width,originalHeight=source.height,max=gl.getParameter(gl.MAX_TEXTURE_SIZE);
   if(source.width>max){const resized=document.createElement('canvas');resized.width=max;resized.height=Math.round(source.height*max/source.width);const c=resized.getContext('2d');c.imageSmoothingEnabled=type!=='ecology';c.drawImage(source,0,0,resized.width,resized.height);source=resized;}
   gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,texture);const filter=type==='ecology'?gl.NEAREST:gl.LINEAR;gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,filter);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,filter);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,source);
-  displayedSource=type;$('map-loading').textContent='';$('source-name').textContent={continents:'continents.png',marble:'Blue Marble · bluemarble-high.jpg',countries:'Natural Earth · 1:50m · de facto country boundaries.',terrain:'Shaded topographic map',ivory:'Ivory · sculpted paper',elevation:'Elevation · earth & sea',ecology:'Holdridge + marine zones'}[type];$('source-detail').textContent=type==='ecology'?'0.5° land · 1° ocean temperature · hexagonal cells':['ivory','elevation'].includes(type)?'Derived from supplied heightfield':`${originalWidth.toLocaleString()} × ${originalHeight.toLocaleString()} · equirectangular`;
+  displayedSource=type;$('map-loading').textContent='';$('source-name').textContent={continents:'continents.png',marble:'Blue Marble · bluemarble-high.jpg',countries:'Natural Earth · 1:50m · de facto country boundaries.',terrain:'Shaded topographic map',ivory:'Ivory · sculpted paper',elevation:'Elevation · earth & sea',ecology:'Holdridge + marine zones'}[type];$('source-detail').textContent=type==='ecology'?'0.5° land · 1° ocean temperature · 0.8° wave exposure':['ivory','elevation'].includes(type)?'Derived from supplied heightfield':`${originalWidth.toLocaleString()} × ${originalHeight.toLocaleString()} · equirectangular`;
   draw();
  }catch(error){if(request!==mapRequest)return;$('map-source').value=displayedSource;updateMapUI();updateRelief();$('map-loading').textContent='Map could not load. Previous layer retained; select again to retry.';scheduleSave();}
 }

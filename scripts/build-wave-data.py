@@ -1,4 +1,4 @@
-"""Local preview from Copernicus WAVERYS; no changes to released ecology data.
+"""Lifezones ocean exposure from Copernicus WAVERYS.
 Samples every 57 three-hour steps (7 days 3 hours) over 2015–2024.
 Uses the public spatially downsampled 0.8° field; threshold is Hm0 > 2 m.
 """
@@ -44,10 +44,10 @@ packed=np.array(Image.open(ROOT/'dist/maps/ecology-data-v2.png').convert('RGB'))
 lat=90-(np.arange(h)+.5)*180/h;lon=-180+(np.arange(w)+.5)*360/w
 row=np.clip(np.rint((lat+89.8)/.8).astype(int),0,224);col=np.rint((lon+180)/.8).astype(int)%450
 packed[:,:,1]=band[row[:,None],col[None,:]]
-Image.fromarray(packed).save(ROOT/'dist/tests/ecology-waves.png')
+Image.fromarray(packed).save(ROOT/'dist/maps/ecology-waves.png')
 np.savez_compressed(CACHE/'frequency.npz',frequency=frequency,count=count)
-meta={'source':'Copernicus Marine WAVERYS global wave reanalysis','dataset':'cmems_mod_glo_wav_my_0.2deg_PT3H-i_202411','url':'https://doi.org/10.48670/moi-00022','data':BASE,'period':'2015–2024','samples':len(indices),'intervalHours':171,'resolutionDegrees':.8,'thresholdMetres':2,'bandCutsPercent':[10,25,50,75],'minimumCoverage':.9,'encoding':'R=existing Holdridge, G=wave exposure 0–4 (255 missing), B=existing NOAA annual SST','caveat':'Sampled reanalysis preview, not hourly climatology or a navigation safety rating. SST is a separate 1991–2020 normal. Missing/ice-covered water is not classified as calm.'}
-(ROOT/'dist/tests/wave-sources.json').write_text(json.dumps(meta,indent=2)+'\n')
+meta={'source':'Copernicus Marine WAVERYS global wave reanalysis','dataset':'cmems_mod_glo_wav_my_0.2deg_PT3H-i_202411','url':'https://doi.org/10.48670/moi-00022','data':BASE,'period':'2015–2024','samples':len(indices),'intervalHours':171,'resolutionDegrees':.8,'thresholdMetres':2,'bandCutsPercent':[10,25,50,75],'minimumCoverage':.9,'encoding':'R=existing Holdridge, G=wave exposure 0–4 (255 missing), B=existing NOAA annual SST','caveat':'Sampled reanalysis, not hourly climatology or a navigation safety rating. SST is a separate 1991–2020 normal. Missing/ice-covered water is not classified as calm.'}
+(ROOT/'dist/maps/wave-sources.json').write_text(json.dumps(meta,indent=2)+'\n')
 for name,y,x in [('Mediterranean',36,15),('Atlantic',36,-30),('Caribbean',17,-70),('Arabian Sea',15,65)]:
  print(name,round(float(frequency[round((y+89.8)/.8),round((x+180)/.8)])*100,1),'%',flush=True)
 print('Complete:',len(indices),'samples; known sea cells',int(np.sum((packed[:,:,0]==0)&(packed[:,:,1]!=255))),flush=True)

@@ -1,4 +1,4 @@
-import {addLifezonesLegend,pdfColor} from './print-legend.mjs?v=legend-fade-1';
+import {addLifezonesLegend,pdfColor} from './print-legend.mjs?v=waves-1';
 import {loadPrintLettering,addPrintLettering} from './pdf-lettering.mjs?v=triangular-1';
 // Encode rows incrementally: the final PNG is never held in one giant canvas.
 const utf8=new TextEncoder();

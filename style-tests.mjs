@@ -31,3 +31,5 @@ for(let i=0;i<2000;i++){
  assert.deepEqual(ecologyCellCenter(c),c,'Cell centers must remain fixed when resampled');
 }
 console.log('Styles: eight render thumbnails, geography-independent settings, requested corrections, and Gosper-aligned ecology cells pass.');
+
+assert.equal(byId.lifezones.state.reliefColorFade,.1,'Lifezones defaults to 10% colour fade');

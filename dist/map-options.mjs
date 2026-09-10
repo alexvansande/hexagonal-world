@@ -28,7 +28,7 @@ export const styleOptions=[
       "reliefShadows": 0.4,
       "reliefSoftness": 0.75,
       "reliefAO": 0.45,
-      "reliefColorFade": 0.3,
+      "reliefColorFade": 0.1,
       "reliefThickness": 0.7,
       "reliefOcean": 0.4,
       "reliefRiverDepth": 0.25,

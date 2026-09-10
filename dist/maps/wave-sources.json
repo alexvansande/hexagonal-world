@@ -1,0 +1,20 @@
+{
+  "source": "Copernicus Marine WAVERYS global wave reanalysis",
+  "dataset": "cmems_mod_glo_wav_my_0.2deg_PT3H-i_202411",
+  "url": "https://doi.org/10.48670/moi-00022",
+  "data": "https://s3.waw3-1.cloudferro.com/mdl-arco-time-032/arco/GLOBAL_MULTIYEAR_WAV_001_032/cmems_mod_glo_wav_my_0.2deg_PT3H-i_202411/downsampled4.zarr",
+  "period": "2015\u20132024",
+  "samples": 513,
+  "intervalHours": 171,
+  "resolutionDegrees": 0.8,
+  "thresholdMetres": 2,
+  "bandCutsPercent": [
+    10,
+    25,
+    50,
+    75
+  ],
+  "minimumCoverage": 0.9,
+  "encoding": "R=existing Holdridge, G=wave exposure 0\u20134 (255 missing), B=existing NOAA annual SST",
+  "caveat": "Sampled reanalysis preview, not hourly climatology or a navigation safety rating. SST is a separate 1991\u20132020 normal. Missing/ice-covered water is not classified as calm."
+}
