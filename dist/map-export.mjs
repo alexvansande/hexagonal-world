@@ -1,3 +1,4 @@
+import {loadPrintLettering,addPrintLettering} from './pdf-lettering.mjs';
 // Encode rows incrementally: the final PNG is never held in one giant canvas.
 const utf8=new TextEncoder();
 const crcTable=Uint32Array.from({length:256},(_,n)=>{for(let k=0;k<8;k++)n=n&1?0xedb88320^(n>>>1):n>>>1;return n>>>0;});
@@ -30,6 +31,7 @@ export function printLayout(width,height){
 }
 function pdfString(s){return '('+s.replaceAll('\\','\\\\').replaceAll('(','\\(').replaceAll(')','\\)')+')';}
 export async function printPDF({width,height,renderTile,signal,onProgress=()=>{}}){
+ const fonts=await loadPrintLettering();signal?.throwIfAborted();
  const layout=printLayout(width,height),dpi=300,factor=layout.map.width/width*dpi/72,pxWidth=Math.round(width*factor),pxHeight=Math.round(height*factor);
  const objects=[],add=data=>{objects.push(data);return objects.length;},bytes=s=>utf8.encode(s);
  const catalog=add(null),pages=add(null),page=add(null),resources=[],commands=[];
@@ -41,15 +43,9 @@ export async function printPDF({width,height,renderTile,signal,onProgress=()=>{}
   const blob=await new Promise((resolve,reject)=>tile.toBlob(b=>b?resolve(b):reject(Error('PDF image encoding failed')),'image/jpeg',.98));
   addImage(blob,tw,th,{x:layout.map.x+x/pxWidth*layout.map.width,y:layout.map.y+y/pxHeight*layout.map.height,width:tw/pxWidth*layout.map.width,height:th/pxHeight*layout.map.height});onProgress(++done/total);await new Promise(resolve=>setTimeout(resolve,0));
  }
- await document.fonts.ready;
- // Rasterize only the lettering at 600 dpi so locally available Baskerville
- // travels with the PDF without redistributing a proprietary font file.
- async function lettering(text,font,rect){const resolution=600/72;tile.width=Math.ceil(rect.width*resolution);tile.height=Math.ceil(rect.height*resolution);ctx.fillStyle='#fff';ctx.fillRect(0,0,tile.width,tile.height);ctx.scale(resolution,resolution);ctx.fillStyle='#193c49';ctx.font=font;ctx.textBaseline='middle';ctx.fillText(text,0,rect.height/2,rect.width);const blob=await new Promise(resolve=>tile.toBlob(resolve,'image/jpeg',1));addImage(blob,tile.width,tile.height,rect);}
- await lettering('Hexagonal World','italic 44px Baskerville, "Baskerville Old Face", "Times New Roman", serif',{x:36,y:26,width:layout.pageWidth-72,height:55});
- await lettering('A COLLECTION OF HEXAGON BASED MAPS.','bold 10px Gotham, "Avenir Next", Arial, sans-serif',{x:38,y:82,width:layout.pageWidth-76,height:17});
- await lettering('By Alex Van de Sande - hexagonal.earth','18px Baskerville, "Baskerville Old Face", "Times New Roman", serif',{x:36,y:layout.pageHeight-39,width:layout.pageWidth-72,height:25});
+ const lettering=addPrintLettering({fonts,add,streamObject,pageHeight:layout.pageHeight});commands.push(...lettering.commands);
  const content=add(streamObject('',new Blob([commands.join('\n')]))),info=add(bytes('<< /Title '+pdfString('Hexagonal World')+' /Author '+pdfString('Alex Van de Sande')+' /Subject '+pdfString('A collection of hexagon based maps. | By Alex Van de Sande - hexagonal.earth')+' >>'));
- objects[catalog-1]=bytes(`<< /Type /Catalog /Pages ${pages} 0 R >>`);objects[pages-1]=bytes(`<< /Type /Pages /Kids [${page} 0 R] /Count 1 >>`);objects[page-1]=bytes(`<< /Type /Page /Parent ${pages} 0 R /MediaBox [0 0 ${layout.pageWidth} ${layout.pageHeight}] /Resources << /XObject << ${resources.join(' ')} >> >> /Contents ${content} 0 R >>`);
+ objects[catalog-1]=bytes(`<< /Type /Catalog /Pages ${pages} 0 R >>`);objects[pages-1]=bytes(`<< /Type /Pages /Kids [${page} 0 R] /Count 1 >>`);objects[page-1]=bytes(`<< /Type /Page /Parent ${pages} 0 R /MediaBox [0 0 ${layout.pageWidth} ${layout.pageHeight}] /Resources << /Font << ${lettering.resources} >> /XObject << ${resources.join(' ')} >> >> /Contents ${content} 0 R >>`);
  const output=[bytes('%PDF-1.4\n%\xE2\xE3\xCF\xD3\n')],offsets=[0];let offset=output[0].length;
  objects.forEach((object,i)=>{offsets.push(offset);const entry=new Blob([`${i+1} 0 obj\n`,object,'\nendobj\n']);output.push(entry);offset+=entry.size;});
  const xref=offset;output.push(bytes(`xref\n0 ${objects.length+1}\n0000000000 65535 f \n`+offsets.slice(1).map(n=>String(n).padStart(10,'0')+' 00000 n \n').join('')+`trailer\n<< /Size ${objects.length+1} /Root ${catalog} 0 R /Info ${info} 0 R >>\nstartxref\n${xref}\n%%EOF\n`));

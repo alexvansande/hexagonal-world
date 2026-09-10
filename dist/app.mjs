@@ -1,4 +1,4 @@
-import {pngFromTiles,printPDF} from './map-export.mjs?v=export-1';
+import {pngFromTiles,printPDF} from './map-export.mjs?v=vector-type-1';
 import {fractalRegion,fractalOpacities,edgeKey} from './fractal-grid.mjs';
 import {pointInLoops} from './gosper-fractal.mjs';
 import {circularMode} from './circular-projections.mjs';

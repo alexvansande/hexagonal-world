@@ -9,7 +9,8 @@ try{
  const before=win.location.hash,size=[$('map').width,$('map').height];let captured;
  const create=win.URL.createObjectURL,click=win.HTMLAnchorElement.prototype.click;
  win.URL.createObjectURL=b=>{captured=b;return create.call(win.URL,b);};win.HTMLAnchorElement.prototype.click=function(){};
- for(const value of ['2','10','pdf']){
+ const only=new URLSearchParams(location.search).get('only');
+ for(const value of ['2','10','pdf'].filter(value=>!only||value===only)){
   result.textContent='Exporting '+value+'…';captured=null;$('export-scale').value=value;$('export').click();
   await until(()=>captured&&!$('export').disabled,'export '+value);
   assert(win.location.hash===before,'Export changed saved map state');assert($('map').width===size[0]&&$('map').height===size[1],'Export did not restore live canvas');assert(!doc.querySelector('main').inert,'Controls remain locked');assert(!errors.length,errors.join('\n'));
