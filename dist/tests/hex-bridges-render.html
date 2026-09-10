@@ -1,17 +1,17 @@
 <!doctype html><meta charset="utf-8"><title>Hex bridge checks</title><p id="result">Running…</p><canvas width="128" height="128"></canvas><script type="module">
-import {ecologyBridgeGLSL,ecologyHexRadius as r} from '../ecology-grid.mjs?v=bridges-1';
+import {ecologyBridgeGLSL,ecologyHexRadius as r} from '../ecology-grid.mjs?v=bridges-3';
 const result=document.querySelector('p'),gl=document.querySelector('canvas').getContext('webgl',{preserveDrawingBuffer:true});
 const assert=(v,m)=>{if(!v)throw Error(m);};
 try{
  const compile=(type,source)=>{const s=gl.createShader(type);gl.shaderSource(s,source);gl.compileShader(s);assert(gl.getShaderParameter(s,gl.COMPILE_STATUS),gl.getShaderInfoLog(s));return s;};
  const vs='attribute vec2 position;varying vec2 point;void main(){point=position;gl_Position=vec4(position,0.,1.);}';
- const fs=`precision highp float;varying vec2 point;uniform sampler2D map;uniform vec3 angles;uniform int circularMode;
+ const fs=`precision highp float;varying vec2 point;uniform sampler2D map;uniform vec3 angles;uniform int circularMode;uniform int ecologyBridges;
  vec2 hexCorner(float index){float a=index*1.047197551197;return vec2(cos(a),sin(a));}
  vec3 ecologySphere(vec2 p){return vec3(p/${r},0.);}
  vec2 geographicUV(vec3 p,vec3 angles){return (p.xy+3.)/6.;}
  ${ecologyBridgeGLSL}
  void main(){gl_FragColor=vec4(ecologyBridgedColor(point*${r},vec2(0.),vec3(1.,0.,0.)),1.);}`;
- const program=gl.createProgram();gl.attachShader(program,compile(gl.VERTEX_SHADER,vs));gl.attachShader(program,compile(gl.FRAGMENT_SHADER,fs));gl.linkProgram(program);assert(gl.getProgramParameter(program,gl.LINK_STATUS),gl.getProgramInfoLog(program));gl.useProgram(program);
+ const program=gl.createProgram();gl.attachShader(program,compile(gl.VERTEX_SHADER,vs));gl.attachShader(program,compile(gl.FRAGMENT_SHADER,fs));gl.linkProgram(program);assert(gl.getProgramParameter(program,gl.LINK_STATUS),gl.getProgramInfoLog(program));gl.useProgram(program);gl.uniform1i(gl.getUniformLocation(program,'ecologyBridges'),1);
  gl.bindBuffer(gl.ARRAY_BUFFER,gl.createBuffer());gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,1,-1,-1,1,1,1]),gl.STATIC_DRAW);const attr=gl.getAttribLocation(program,'position');gl.enableVertexAttribArray(attr);gl.vertexAttribPointer(attr,2,gl.FLOAT,false,0,0);
  gl.bindTexture(gl.TEXTURE_2D,gl.createTexture());for(const setting of [gl.TEXTURE_MIN_FILTER,gl.TEXTURE_MAG_FILTER])gl.texParameteri(gl.TEXTURE_2D,setting,gl.NEAREST);for(const setting of [gl.TEXTURE_WRAP_S,gl.TEXTURE_WRAP_T])gl.texParameteri(gl.TEXTURE_2D,setting,gl.CLAMP_TO_EDGE);
  for(let direction=0;direction<6;direction++)for(const matching of [false,true]){
@@ -34,6 +34,47 @@ try{
    if(Math.hypot(...p)<.5)assert(pixels[(y*128+x)*4]===255,'Bridge changed cell center');
   }
  }
- assert(gl.getError()===gl.NO_ERROR,'WebGL error');result.textContent='PASS · Six bridge directions match explicit rectangles; different colors stay separate; centers unchanged.';
+
+ gl.uniform1i(gl.getUniformLocation(program,'ecologyBridges'),2);
+ const red=[255,0,0,255],green=[0,255,0,255],blue=[0,0,255,255];
+ const neighborDirs=Array.from({length:6},(_,i)=>[Math.cos((i+.5)*Math.PI/3),Math.sin((i+.5)*Math.PI/3)]);
+ const cases=[{name:'three consecutive, connected center',ring:[green,green,green,blue,red,blue]},
+ {name:'isolated with three consecutive',ring:[green,green,green,blue,blue,blue]},
+ {name:'fully surrounded island',ring:Array(6).fill(green)},
+ {name:'no triple, no circle',ring:[green,blue,green,blue,green,blue]},
+ {name:'uniform field',ring:Array(6).fill(red)}];
+ for(const test of cases)for(let rotation=0;rotation<6;rotation++){
+  const ring=test.ring.map((_,i)=>test.ring[(i+rotation)%6]),texture=new Uint8Array(64*64*4);
+  for(let y=0;y<64;y++)for(let x=0;x<64;x++){
+   const p=[(x+.5)/64*6-3,(y+.5)/64*6-3];let color=red;
+   for(let i=0;i<6;i++)if(Math.hypot(p[0]-Math.sqrt(3)*neighborDirs[i][0],p[1]-Math.sqrt(3)*neighborDirs[i][1])<.2)color=ring[i];
+   texture.set(color,(y*64+x)*4);
+  }
+  gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,64,64,0,gl.RGBA,gl.UNSIGNED_BYTE,texture);gl.drawArrays(gl.TRIANGLE_STRIP,0,4);
+  const pixels=new Uint8Array(128*128*4);gl.readPixels(0,0,128,128,gl.RGBA,gl.UNSIGNED_BYTE,pixels);
+  const triples=ring.map((c,i)=>c!==red&&c===ring[(i+1)%6]&&c===ring[(i+2)%6]?i:-1).filter(i=>i>=0),circle=triples.length&&!ring.includes(red);
+  for(let y=0;y<128;y+=2)for(let x=0;x<128;x+=2){
+   const p=[(x+.5)/64-1,(y+.5)/64-1],dot=d=>p[0]*d[0]+p[1]*d[1];
+   if(Math.abs(p[1])>Math.sqrt(3)/2||Math.sqrt(3)/2*Math.abs(p[0])+.5*Math.abs(p[1])>Math.sqrt(3)/2)continue;
+   let expected=red;
+   // Pair rectangle intersection with this hex.
+   for(let i=0;i<6;i++)if(dot([Math.cos(i*Math.PI/3),Math.sin(i*Math.PI/3)])>.75&&ring[(i+5)%6]===ring[i])expected=ring[i];
+   let best=100;
+   const neighborCenters=neighborDirs.map(d=>d.map(v=>v*Math.sqrt(3))),colorAt=p=>{const i=neighborCenters.findIndex(c=>Math.hypot(c[0]-p[0],c[1]-p[1])<.01);return i<0?red:ring[i];};
+   for(const origin of [[0,0],...neighborCenters])for(let i=0;i<6;i++){
+    const cs=[i,(i+1)%6,(i+2)%6].map(j=>colorAt(origin.map((n,k)=>n+neighborCenters[j][k])));
+    if(cs[0]===colorAt(origin)||cs[0]!==cs[1]||cs[0]!==cs[2])continue;
+    const normal=neighborDirs[(i+1)%6],delta=p.map((n,k)=>n-origin[k]),along=delta[0]*normal[0]+delta[1]*normal[1],across=-delta[0]*normal[1]+delta[1]*normal[0];
+    const distance=(delta[0]-Math.sqrt(3)*normal[0])**2+(delta[1]-Math.sqrt(3)*normal[1])**2;
+    if(along>=0&&along<=Math.sqrt(3)&&Math.abs(across)<=1&&distance<best-1e-10){expected=cs[0];best=distance;}
+   }
+   if(circle){let near=-2;expected=red;if(dot(p)>.75)for(let i=0;i<6;i++){const side=dot(neighborDirs[i]);if(side>near){near=side;expected=ring[i];}}}
+   // Exact boundaries may choose either touching class after float rounding.
+   if(neighborDirs.some(d=>Math.abs(dot(d))<.0001)||Math.abs(dot(p)-.75)<.0001)continue;
+   const actual=pixels.slice((y*128+x)*4,(y*128+x)*4+3);
+   assert(actual.every((c,i)=>c===expected[i]),test.name+' rotation '+rotation+' at '+p);
+  }
+ }
+ assert(gl.getError()===gl.NO_ERROR,'WebGL error');result.textContent='PASS · Pair rectangles plus 30 rotated half-fill/island fixtures pass: isolated circles survive, connected cells and unpatched islands retain their shape.';
 }catch(error){result.textContent='FAIL · '+error.message;console.error(error);}
 </script>

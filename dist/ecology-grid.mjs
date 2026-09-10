@@ -61,16 +61,46 @@ vec3 ecologySphere(vec2 p){
 }
 `;
 
-// A bridge between two touching hexes is sqrt(3)*r long and 1.5*r wide.
-// Inside a third hex it covers only the corner beyond 0.75*r. At most one
-// such corner contains a point, so only two extra source samples are needed.
-export const ecologyBridgeGLSL=`
-bool ecologyInside(vec2 p){
- p=abs(p);
- return p.y<=sqrt(3.)*.5&&sqrt(3.)*.5*p.x+.5*p.y<=sqrt(3.)*.5;
+// Generate constant array indices for WebGL 1. A complete rectangle can enter
+// an adjacent cell, so consider patch origins in its first ring and read the
+// original colors out to ring two (19 shared samples, never recursive fills).
+const directions=[[1,0],[0,1],[-1,1],[-1,0],[0,-1],[1,-1]];
+const cells=[];for(let q=-2;q<=2;q++)for(let r=-2;r<=2;r++)if(Math.max(Math.abs(q),Math.abs(r),Math.abs(q+r))<=2)cells.push([q,r]);
+const cellIndex=([q,r])=>cells.findIndex(c=>c[0]===q&&c[1]===r);
+const point=([q,r])=>[1.5*q,Math.sqrt(3)*(r+q/2)];
+const vec=([x,y])=>`vec2(${x.toFixed(12)},${y.toFixed(12)})`;
+const neighbors=directions.map(cellIndex);
+const originIndex=cellIndex([0,0]);
+const sampleCell=(c,i)=>i===originIndex?`colors[${i}]=original;valid[${i}]=true;`:`location=center+radius*${vec(point(c))};valid[${i}]=ecologyInside(location);colors[${i}]=valid[${i}]?ecologySample(location):original;`;
+const sampleCode=cells.map((c,i)=>neighbors.includes(i)||i===originIndex?sampleCell(c,i):'').join('\n');
+const outerSamples=cells.map((c,i)=>neighbors.includes(i)||i===originIndex?'':sampleCell(c,i)).join('\n');
+const hexVertices=Array.from({length:6},(_,i)=>[Math.cos(i*Math.PI/3),Math.sin(i*Math.PI/3)]);
+function overlapsCell(origin,normal){
+ const tangent=[-normal[1],normal[0]],rect=[0,Math.sqrt(3)].flatMap(along=>[-1,1].map(across=>origin.map((v,k)=>v+along*normal[k]+across*tangent[k])));
+ return [normal,tangent,...directions.map(d=>point(d))].every(axis=>{
+  const a=hexVertices.map(p=>p[0]*axis[0]+p[1]*axis[1]),b=rect.map(p=>p[0]*axis[0]+p[1]*axis[1]);
+  return Math.min(Math.max(...a),Math.max(...b))-Math.max(Math.min(...a),Math.min(...b))>1e-9;
+ });
 }
+const rectangles=[[0,0],...directions].flatMap(origin=>directions.map((_,i)=>{
+ const ids=[i,(i+1)%6,(i+2)%6].map(j=>cellIndex(origin.map((n,k)=>n+directions[j][k]))),a=ids[0],b=ids[1],c=ids[2],o=cellIndex(origin),normal=point(directions[(i+1)%6]).map(n=>n/Math.sqrt(3));
+ if(!overlapsCell(point(origin),normal))return '';
+ return `if(valid[${o}]&&valid[${a}]&&valid[${b}]&&valid[${c}]&&!ecologySame(colors[${o}],colors[${a}])&&ecologySame(colors[${a}],colors[${b}])&&ecologySame(colors[${a}],colors[${c}])){
+ if(!ecologySame(colors[${a}],original))hasPatch=true;
+ delta=offset-${vec(point(origin))};normal=${vec(normal)};
+ along=dot(delta,normal);across=dot(delta,vec2(-normal.y,normal.x));
+ if(along>=0.&&along<=sqrt(3.)&&abs(across)<=1.){
+  distance=dot(delta-sqrt(3.)*normal,delta-sqrt(3.)*normal);
+  if(distance<best){best=distance;patched=colors[${a}];}
+ }
+ }`;
+})).join('\n');
+
+export const ecologyBridgeGLSL=`
+bool ecologyInside(vec2 p){p=abs(p);return p.y<=sqrt(3.)*.5&&sqrt(3.)*.5*p.x+.5*p.y<=sqrt(3.)*.5;}
+bool ecologySame(vec3 a,vec3 b){return all(lessThan(abs(a-b),vec3(.5/255.)));}
 vec3 ecologySample(vec2 center){return texture2D(map,geographicUV(ecologySphere(center),angles)).rgb;}
-vec3 ecologyBridgedColor(vec2 p,vec2 center,vec3 original){
+vec3 ecologyPairColor(vec2 p,vec2 center,vec3 original){
  float radius=${ecologyHexRadius.toFixed(12)}/(circularMode>0?7.:1.);
  vec2 offset=(p-center)/radius;
  for(int corner=0;corner<6;corner++){
@@ -79,12 +109,29 @@ vec3 ecologyBridgedColor(vec2 p,vec2 center,vec3 original){
    vec2 tangent=vec2(-outward.y,outward.x);
    vec2 first=center+radius*(1.5*outward+sqrt(3.)*.5*tangent);
    vec2 second=center+radius*(1.5*outward-sqrt(3.)*.5*tangent);
-   // Do not extrapolate a class across a cut between projection regions.
    if(!ecologyInside(first)||!ecologyInside(second))return original;
    vec3 a=ecologySample(first),b=ecologySample(second);
-   return all(lessThan(abs(a-b),vec3(.5/255.)))?a:original;
+   return ecologySame(a,b)?a:original;
   }
  }
  return original;
+}
+vec3 ecologyBridgedColor(vec2 p,vec2 center,vec3 original){
+ if(ecologyBridges<2)return ecologyPairColor(p,center,original);
+ float radius=${ecologyHexRadius.toFixed(12)}/(circularMode>0?7.:1.);
+ vec2 offset=(p-center)/radius,location;
+ vec3 colors[19];bool valid[19];
+ ${sampleCode}
+ if(${neighbors.map(n=>`valid[${n}]&&ecologySame(colors[${n}],original)`).join('&&')})return original;
+ ${outerSamples}
+ vec3 patched=original,nearestColor=original;bool isolated=true,complete=true;
+ float nearest=-2.;
+ ${neighbors.map((n,i)=>`complete=complete&&valid[${n}];if(valid[${n}]&&ecologySame(colors[${n}],original))isolated=false;
+ if(valid[${n}]&&dot(offset,hexCorner(${(i+.5).toFixed(1)}))>nearest){nearest=dot(offset,hexCorner(${(i+.5).toFixed(1)}));nearestColor=colors[${n}];}`).join('\n')}
+ ${neighbors.map((n,i)=>{const other=neighbors[(i+5)%6];return `if(dot(offset,hexCorner(${i.toFixed(1)}))>.75&&valid[${n}]&&valid[${other}]&&ecologySame(colors[${n}],colors[${other}]))patched=colors[${n}];`;}).join('\n')}
+ bool hasPatch=false;float best=100.,along,across,distance;vec2 delta,normal;
+ ${rectangles}
+ if(hasPatch&&isolated&&complete)return dot(offset,offset)<=.75?original:nearestColor;
+ return patched;
 }
 `;

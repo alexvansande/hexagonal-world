@@ -9,7 +9,7 @@ import {fractalRegion,fractalOpacities,edgeKey} from './fractal-grid.mjs';
 import {pointInLoops} from './gosper-fractal.mjs';
 import {circularMode} from './circular-projections.mjs';
 import {polygonOverlapsRect} from './interface-layout.mjs';
-import {ecologyGridGLSL,ecologyBridgeGLSL} from './ecology-grid.mjs?v=bridges-1';
+import {ecologyGridGLSL,ecologyBridgeGLSL} from './ecology-grid.mjs?v=bridges-3';
 import {gosperScale,rotateLocal,subgridLevels} from './subgrid.mjs';
 import {decodeMapState,encodeMapState,distortionEnabled,restorePanelStates} from './map-state.mjs?v=layers-1';
 import {sphereAt,followPoint,geographicPoint} from './globe-drag.mjs?v=circular-2';
@@ -50,7 +50,8 @@ for(const spec of reliefRanges){const id=spec[0];range(id==='reliefColorFade'?'l
 range('lighting-opacity-controls','shadowOpacity','Dark opacity',0,1,.01,1);
 range('lighting-opacity-controls','lightOpacity','Light opacity',0,1,.01,1);
 const customOption=$('lighting-preset').querySelector('[value=custom]');if(compactDevice)customOption.remove();
-const hexBridgesEnabled=new URLSearchParams(location.search).get('hex-bridges')!=='0';
+const hexBridgeMode=new URLSearchParams(location.search).get('hex-bridges');
+const hexBridgesEnabled=hexBridgeMode==='0'?0:hexBridgeMode==='2'?2:1;
 const gl=canvas.getContext('webgl',{antialias:true,alpha:true,preserveDrawingBuffer:true});
 function fail(message){$('error').hidden=false;$('error').textContent=message;$('status').textContent='Rendering unavailable';}
 const vs=`attribute vec2 regionPosition;attribute float region;varying vec2 localPosition;varying float regionIndex;varying vec2 flatPosition;attribute float opacity;varying float tileAlpha;attribute vec2 position;attribute vec3 bary;attribute vec3 va;attribute vec3 vb;attribute vec3 vc;uniform vec2 size;uniform vec3 view;uniform float gridRotation;varying vec3 weights;varying vec3 a;varying vec3 b;varying vec3 c;void main(){localPosition=regionPosition;regionIndex=region;flatPosition=position;float cr=cos(gridRotation),sr=sin(gridRotation);vec2 rotated=vec2(cr*position.x-sr*position.y,sr*position.x+cr*position.y);vec2 p=(rotated*view.x+view.yz)/size*2.0;gl_Position=vec4(p.x,-p.y,0.,1.);tileAlpha=opacity;weights=bary;a=va;b=vb;c=vc;}`;
@@ -76,7 +77,7 @@ void main(){if(felvClip==1){float fy=-flatPosition.y;float fx=flatPosition.x-sqr
  vec2 uv=geographicUV(p,angles);float lon=(uv.x-.5)*2.*PI;float lat=(.5-uv.y)*PI;
  vec2 sourceUV=ecologyHex==1?geographicUV(ecologySphere(ecologyCenter(localPosition)),angles):uv;
  vec3 source=texture2D(map,sourceUV).rgb;
- if(ecologyHex==1&&ecologyBridges==1)source=ecologyBridgedColor(localPosition,ecologyCenter(localPosition),source);
+ if(ecologyHex==1&&ecologyBridges>0)source=ecologyBridgedColor(localPosition,ecologyCenter(localPosition),source);
  float sea=smoothstep(.17,.8,source.r);vec3 color=source;
  if(palette==0)color=mix(vec3(.14,.30,.35),vec3(.75,.86,.89),sea);
  if(palette==2)color=mix(vec3(.30,.64,.72),vec3(.075,.14,.20),sea);
@@ -238,7 +239,7 @@ function drawIndicatrixes(){
 }
 function materialMode(){return displayedSource==='ivory'?'ivory':displayedSource==='elevation'?'elevation':'source';}
 function bindMaterialUniforms(){
- gl.uniform1i(uniforms.circularMode,circularMode(state.method));gl.uniform1i(uniforms.ecologyHex,displayedSource==='ecology'?1:0);gl.uniform1i(uniforms.ecologyBridges,hexBridgesEnabled?1:0);gl.uniform1i(uniforms.ecologyOcta,state.method==='octa'?1:0);gl.uniform3fv(uniforms['ecologyVertices[0]'],ecologyVertices);
+ gl.uniform1i(uniforms.circularMode,circularMode(state.method));gl.uniform1i(uniforms.ecologyHex,displayedSource==='ecology'?1:0);gl.uniform1i(uniforms.ecologyBridges,hexBridgesEnabled);gl.uniform1i(uniforms.ecologyOcta,state.method==='octa'?1:0);gl.uniform3fv(uniforms['ecologyVertices[0]'],ecologyVertices);
  gl.uniform1f(uniforms.colorFade,legendFade());gl.uniform1i(uniforms.landCutout,$('relief-enabled').checked&&lightingControls().treatment==='land'&&relief?.ready?1:0);
  gl.uniform3fv(uniforms.background,[1,3,5].map(i=>parseInt($('background-color').value.slice(i,i+2),16)/255));
  gl.uniform1i(uniforms.material,['source','ivory','elevation'].indexOf(relief?.ready?materialMode():'source'));gl.uniform1f(uniforms.materialSea,appliedLighting().reliefSeaLevel/255);gl.activeTexture(gl.TEXTURE3);gl.bindTexture(gl.TEXTURE_2D,heightTexture);gl.uniform1i(uniforms.heightMap,3);gl.activeTexture(gl.TEXTURE0);
