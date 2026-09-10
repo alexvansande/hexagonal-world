@@ -1,4 +1,4 @@
-import {landRows,oceanRows} from './map-layers.mjs?v=mobile-2';
+import {landRows,oceanRows} from './map-layers.mjs?v=baked-1';
 
 export const pdfColor=hex=>[1,3,5].map(i=>(parseInt(hex.slice(i,i+2),16)/255).toFixed(6)).join(' ');
 

@@ -37,6 +37,26 @@ See [AUDIT.md](AUDIT.md) for the September 2026 diagnosis, repairs, performance 
 
 The supplied name “rhombic icosahedron” is interpreted as **rhombic dodecahedron** because the requested solid has 12 rhombic faces.
 
+## Precomputed lighting
+
+Standard styles use an image lookup for multiply shadows and screen highlights,
+including mobile and exports. `scripts/build-lighting.py` (Python, Pillow, NumPy,
+and Node) bakes the layers from the elevation overview and `styleOptions`.
+Rebuild them whenever a style's lighting parameters change. The checked-in
+manifest records the baked settings. The RGB JPEG stores shadow opacity,
+highlight opacity, and an approximate display height in its three channels;
+it is a visual asset, not a scientific elevation dataset. Desktop layers are
+4096 × 2048; phone layers are 1920 × 960. Only the active style loads, with a
+two-image decoded cache and one reusable GPU texture.
+
+Light is fixed to geographic coordinates and follows globe rotation. Panel
+outlines use a lightweight 2D drop shadow; the bake does not reproduce displaced
+terrain silhouettes or projection-specific cast shadows. Custom desktop lighting
+controls retain the live relief renderer. Returning to a standard style releases
+its intermediate render targets. Mobile always uses baked lighting, with style,
+gentle, sculpted, dramatic, and off choices. Browser regression checks are at
+`/tests/baked-lighting-checks.html` and `?desktop=1`.
+
 ## Geometry and limitations
 
 For the polyhedral methods, all four regions collectively cover the sphere exactly once. Hexagons remain flat. Exposed boundaries are cuts, and matching lowercase labels identify their paired edges. Every physically joined edge matches. The display now extends the selected net into an infinite repeating honeycomb. All tiles are fully opaque, and only mismatched edges are red. This does not claim a seamless infinite honeycomb. Degree-two spherical junctions prevent all degree-three planar honeycomb vertices from preserving the boundary identifications.

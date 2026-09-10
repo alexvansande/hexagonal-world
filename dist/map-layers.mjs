@@ -91,12 +91,10 @@ export async function riverMask(levels=6,widthScale=1){
  for(const [rank,points] of paths){if(rank>levels)continue;context.globalAlpha=1;context.strokeStyle=`rgba(255,255,255,${rank<=3?1:rank<=6?.82:.62})`;context.lineWidth=widthScale*(width/4320)*(rank<=3?2.4:rank<=6?1.55:.95);context.beginPath();points.forEach(([lon,lat],i)=>{const x=(lon+180)/360*width,y=(90-lat)/180*height;i?context.lineTo(x,y):context.moveTo(x,y);});context.stroke();}
  riverMaskKey=key;return canvas;
 }
-export async function mapSource(type,landCount=10,oceanCount=6,shadow='gentle'){
+export async function mapSource(type,landCount=10,oceanCount=6){
  if(compactDevice){
   const source=type==='ecology'?await ecologySource(landCount,oceanCount):await loadImage('maps/mobile/'+({terrain:'terrain.jpg',marble:'satellite.jpg',countries:'countries.png',ivory:'ivory.png',elevation:'elevation.png'}[type]||'continents.png'));
-  if(shadow==='off'||['terrain','marble','countries','continents'].includes(type))return source;
-  const shade=await loadImage('maps/mobile/shade.jpg'),canvas=document.createElement('canvas');canvas.width=source.width;canvas.height=source.height;
-  const c=canvas.getContext('2d');c.drawImage(source,0,0);c.globalCompositeOperation='multiply';c.globalAlpha={gentle:.35,sculpted:.65,dramatic:1}[shadow]??.35;c.drawImage(shade,0,0,canvas.width,canvas.height);return canvas;
+  return source;
  }
  return desktopSource(type,landCount,oceanCount);
 }
