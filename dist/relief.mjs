@@ -212,8 +212,8 @@ export class ReliefRenderer {
   v2(p,name,x,y){this.gl.uniform2f(this.loc(p,name),x,y);}
   v3(p,name,x,y,z){this.gl.uniform3f(this.loc(p,name),x,y,z);}
   bindTexture(texture,slot){const gl=this.gl;gl.activeTexture(gl.TEXTURE0+slot);gl.bindTexture(gl.TEXTURE_2D,texture);}
-  async upload(url,slot){
-    const response=await fetch(url);if(!response.ok)throw Error('Elevation image could not load');
+  async upload(url,slot,signal){
+    const response=await fetch(url,{signal});if(!response.ok)throw Error('Elevation image could not load');
     const bitmap=await createImageBitmap(await response.blob(),{colorSpaceConversion:'none',premultiplyAlpha:'none'});
     try{
       const gl=this.gl,max=gl.getParameter(gl.MAX_TEXTURE_SIZE);let source=bitmap;
@@ -227,19 +227,31 @@ export class ReliefRenderer {
       const error=gl.getError();if(error!==gl.NO_ERROR)throw Error('Elevation exceeds available graphics memory');
     }finally{bitmap.close();}
   }
-  async load(){
-    if(this.loading)return;this.loading=true;this.onStatus('Loading elevation…');
-    try{
-      await this.upload('maps/height/overview.png',0);this.ready=true;this.generation++;this.onChange();
-      for(let row=0;row<2;row++)for(let col=0;col<3;col++){
-        this.onStatus(`Refining elevation · ${row*3+col+1} / 6`);
-        await this.upload(`maps/height/${row}-${col}.png`,1+row*3+col);
-      }
-      this.detailed=true;this.generation++;this.onStatus(this.reduced?'Elevation ready · adapted to this device':'Elevation ready · 21,600 × 10,800');this.onChange();
-    }catch(error){
-      this.onStatus(this.ready?'Overview elevation active · fine detail could not load':'Elevation unavailable · turn relief off and on to retry');
-      this.loading=false;console.warn('Relief elevation:',error.message);this.onChange();
-    }
+  async load(detailed=false,signal){
+    if(this.loadPromise){await this.loadPromise;if(detailed&&!this.detailed&&this.ready)return this.load(true,signal);return;}
+    if(this.ready&&(!detailed||this.detailed))return;
+    this.loading=true;
+    this.loadPromise=(async()=>{
+      try{
+        if(!this.ready){this.onStatus('Loading elevation…');await this.upload('maps/height/overview.png',0,signal);this.ready=true;this.generation++;this.onChange();}
+        if(detailed){
+          for(let row=0;row<2;row++)for(let col=0;col<3;col++){
+            this.onStatus(`Preparing export elevation · ${row*3+col+1} / 6`);
+            await this.upload(`maps/height/${row}-${col}.png`,1+row*3+col,signal);
+          }
+          this.detailed=true;this.generation++;
+        }
+        this.onStatus(detailed?'Elevation ready · export detail':'Elevation ready · overview');this.onChange();
+      }catch(error){if(error.name==='AbortError')throw error;this.onStatus(this.ready?'Overview elevation active · fine detail could not load':'Elevation unavailable · turn relief off and on to retry');console.warn('Relief elevation:',error.message);this.onChange();}
+      finally{this.loading=false;this.loadPromise=null;}
+    })();
+    await this.loadPromise;
+  }
+  releaseDetail(){
+    const gl=this.gl;
+    for(let i=1;i<7;i++){this.bindTexture(this.heightTextures[i],i);gl.texImage2D(gl.TEXTURE_2D,0,gl.LUMINANCE,1,1,0,gl.LUMINANCE,gl.UNSIGNED_BYTE,new Uint8Array([105]));}
+    for(const target of this.targets){if(target){gl.deleteFramebuffer(target.fbo);gl.deleteTexture(target.texture);}}
+    this.targets=[];this.detailed=false;this.generation++;gl.activeTexture(gl.TEXTURE0);
   }
   padding(state,unit){return Math.min(650,Math.ceil(shadowReach(state)*unit+12));}
   target(index,w,h){

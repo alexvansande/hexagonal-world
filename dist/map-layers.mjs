@@ -1,3 +1,4 @@
+import {compactDevice} from './device-profile.mjs';
 // Custom triangular aggregations of the source's 39 Holdridge classes.
 // Each successive climate row adds one moisture distinction.
 const group=(name,color,raw)=>({name,color,raw,detail:'Holdridge '+raw.join(', ')});
@@ -75,7 +76,7 @@ export function paintEcology(pixels,landCount,oceanCount){
  return out;
 }
 const images=new Map();
-function loadImage(path){if(!images.has(path))images.set(path,new Promise((resolve,reject)=>{const image=new Image();image.onload=()=>resolve(image);image.onerror=()=>{images.delete(path);reject(Error('Could not load '+path));};image.src=path;}));return images.get(path);}
+function loadImage(path){if(!images.has(path)){if(images.size>=3)images.delete(images.keys().next().value);images.set(path,new Promise((resolve,reject)=>{const image=new Image();image.onload=()=>resolve(image);image.onerror=()=>{images.delete(path);reject(Error('Could not load '+path));};image.src=path;}));}return images.get(path);}
 let ecologyPixels,riverPaths,riverCanvas,riverMaskKey;
 async function loadRivers(){
  if(!riverPaths)riverPaths=(async()=>{const response=await fetch('maps/river-lines.json');if(!response.ok)throw Error('River data could not load');return response.json();})().catch(error=>{riverPaths=null;throw error;});
@@ -84,14 +85,26 @@ async function loadRivers(){
 export async function riverMask(levels=6,widthScale=1){
  const key=`${Math.round(levels)}/${Number(widthScale).toFixed(2)}`;
  const paths=await loadRivers();if(key===riverMaskKey)return riverCanvas;
- const width=4320,height=2160;
+ const width=compactDevice?1440:4320,height=width/2;
  if(!riverCanvas){riverCanvas=document.createElement('canvas');riverCanvas.width=width;riverCanvas.height=height;}
  const canvas=riverCanvas,context=canvas.getContext('2d');context.clearRect(0,0,width,height);context.lineJoin='round';context.lineCap='round';
- for(const [rank,points] of paths){if(rank>levels)continue;context.globalAlpha=1;context.strokeStyle=`rgba(255,255,255,${rank<=3?1:rank<=6?.82:.62})`;context.lineWidth=widthScale*(rank<=3?2.4:rank<=6?1.55:.95);context.beginPath();points.forEach(([lon,lat],i)=>{const x=(lon+180)/360*width,y=(90-lat)/180*height;i?context.lineTo(x,y):context.moveTo(x,y);});context.stroke();}
+ for(const [rank,points] of paths){if(rank>levels)continue;context.globalAlpha=1;context.strokeStyle=`rgba(255,255,255,${rank<=3?1:rank<=6?.82:.62})`;context.lineWidth=widthScale*(width/4320)*(rank<=3?2.4:rank<=6?1.55:.95);context.beginPath();points.forEach(([lon,lat],i)=>{const x=(lon+180)/360*width,y=(90-lat)/180*height;i?context.lineTo(x,y):context.moveTo(x,y);});context.stroke();}
  riverMaskKey=key;return canvas;
 }
-export async function mapSource(type,landCount=10,oceanCount=6){
+export async function mapSource(type,landCount=10,oceanCount=6,shadow='gentle'){
+ if(compactDevice){
+  const source=type==='ecology'?await ecologySource(landCount,oceanCount):await loadImage('maps/mobile/'+({terrain:'terrain.jpg',marble:'satellite.jpg',countries:'countries.png',ivory:'ivory.png',elevation:'elevation.png'}[type]||'continents.png'));
+  if(shadow==='off'||['terrain','marble','countries','continents'].includes(type))return source;
+  const shade=await loadImage('maps/mobile/shade.jpg'),canvas=document.createElement('canvas');canvas.width=source.width;canvas.height=source.height;
+  const c=canvas.getContext('2d');c.drawImage(source,0,0);c.globalCompositeOperation='multiply';c.globalAlpha={gentle:.35,sculpted:.65,dramatic:1}[shadow]??.35;c.drawImage(shade,0,0,canvas.width,canvas.height);return canvas;
+ }
+ return desktopSource(type,landCount,oceanCount);
+}
+async function desktopSource(type,landCount,oceanCount){
  if(type!=='ecology')return loadImage(type==='terrain'?'maps/topography.jpg':type==='marble'?'maps/bluemarble-high.jpg':type==='countries'?'maps/countries.png':'continents.png');
+ return ecologySource(landCount,oceanCount);
+}
+async function ecologySource(landCount,oceanCount){
  const img=await loadImage('maps/ecology-data-v2.png'),canvas=document.createElement('canvas');canvas.width=img.width;canvas.height=img.height;const context=canvas.getContext('2d');
  if(!ecologyPixels){context.drawImage(img,0,0);ecologyPixels=context.getImageData(0,0,img.width,img.height).data;}
  context.putImageData(new ImageData(paintEcology(ecologyPixels,landCount,oceanCount),img.width,img.height),0,0);

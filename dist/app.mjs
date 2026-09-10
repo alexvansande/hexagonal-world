@@ -1,3 +1,4 @@
+import {compactDevice,mobileShadows,mobileFitRect} from './device-profile.mjs';
 import {readSharePath,sharePair,inferSharePair,presetSettings} from './share-routes.mjs';
 import {initAnalytics,trackEvent} from './analytics.mjs';
 import {pngFromTiles,printPDF} from './map-export.mjs?v=triangular-1';
@@ -10,12 +11,12 @@ import {gosperScale,rotateLocal,subgridLevels} from './subgrid.mjs';
 import {decodeMapState,encodeMapState,distortionEnabled,restorePanelStates} from './map-state.mjs?v=gosper-1';
 import {sphereAt,followPoint,geographicPoint} from './globe-drag.mjs?v=circular-2';
 import {makeArrangement,arrangementNames} from './arrangements.mjs?v=gosper-1';
-import {mapSource,landLegends,landRows,oceanLegend,oceanRows,missing,riverMask} from './map-layers.mjs?v=triangular-1';
+import {mapSource,landLegends,landRows,oceanLegend,oceanRows,missing,riverMask} from './map-layers.mjs?v=mobile-2';
 import {searchPresets} from './search-presets.mjs?v=rus-search-1';
 import {visibleTiles} from './tiling.mjs';
 import {makeGeometry,layouts,matching,canvasWorld,hex,world} from './geometry.mjs?v=circular-2';
 import {projectionGLSL} from './projection-shader.mjs?v=circular-2';
-import {ReliefRenderer,reliefRanges,reliefDefaults,reliefLooks} from './relief.mjs?v=export-2';
+import {ReliefRenderer,reliefRanges,reliefDefaults,reliefLooks} from './relief.mjs?v=mobile-2';
 import {layoutOptions,styleOptions,layoutIcon} from './map-options.mjs?v=topographic-1';
 const $=id=>document.getElementById(id), canvas=$('map'),overlay=$('overlay'),ctx=overlay.getContext('2d');
 const classOptions=[3,6,10,15];
@@ -133,14 +134,15 @@ function bounds(){const all=arrangement.outline?arrangement.outline.flat().map((
 function fitView(){
  const b=bounds(),panel=document.querySelector('aside').getBoundingClientRect();
  const wide=w>700||w>h;
- const left=wide?Math.min(w-100,panel.right+28):24;
- const top=state.sidebarExpanded&&!wide?Math.min(h-100,panel.bottom+20):!state.sidebarExpanded&&wide?24:Math.min(h*.25,156);
- const right=w-24,bottom=state.sidebarExpanded||wide?h-84:Math.max(top+80,panel.top-24);
+ let left=wide?Math.min(w-100,panel.right+28):24;
+ let top=state.sidebarExpanded&&!wide?Math.min(h-100,panel.bottom+20):!state.sidebarExpanded&&wide?24:Math.min(h*.25,156);
+ let right=w-24,bottom=state.sidebarExpanded||wide?h-84:Math.max(top+80,panel.top-24);
+ if(compactDevice&&!state.sidebarExpanded){({left,right,top,bottom}=mobileFitRect(w,h,$('map-heading').getBoundingClientRect().bottom,panel.top,panel.right));}
  scale=Math.max(1,Math.min(Math.max(40,right-left)/(b[2]-b[0]),Math.max(40,bottom-top)/(b[3]-b[1])));
  state.zoom=1;state.panX=(left+right-w)/2-(b[0]+b[2])/2*scale;state.panY=(top+bottom-h)/2+(b[1]+b[3])/2*scale;draw();
 }
-function resize(){if(exporting)return;headingBounds=null;const rect=$('stage').getBoundingClientRect();w=rect.width;h=rect.height;dpr=Math.min(window.devicePixelRatio||1,+$('quality').value);canvas.width=Math.round(w*dpr);canvas.height=Math.round(h*dpr);overlay.width=canvas.width;overlay.height=canvas.height;
- if(!persistenceReady){if(restoredView){scale=restoredView.scale;state.zoom=restoredView.zoom;state.panX=restoredView.panX;state.panY=restoredView.panY;}else{fitView();const offset=shareSelection.layout.viewOffset;if(offset){state.panX=offset[0]*scale;state.panY=offset[1]*scale;}}persistenceReady=true;}draw();}
+function resize(){if(exporting)return;headingBounds=null;const rect=$('stage').getBoundingClientRect(),rotated=compactDevice&&persistenceReady&&(w>h)!==(rect.width>rect.height);w=rect.width;h=rect.height;dpr=Math.min(window.devicePixelRatio||1,+$('quality').value,compactDevice?1.5:3);const pixelWidth=Math.round(w*dpr),pixelHeight=Math.round(h*dpr);if(canvas.width!==pixelWidth||canvas.height!==pixelHeight){canvas.width=pixelWidth;canvas.height=pixelHeight;overlay.width=pixelWidth;overlay.height=pixelHeight;}
+ if(!persistenceReady){if(restoredView&&!compactDevice){scale=restoredView.scale;state.zoom=restoredView.zoom;state.panX=restoredView.panX;state.panY=restoredView.panY;}else{fitView();const offset=shareSelection.layout.viewOffset;if(offset&&!compactDevice){state.panX=offset[0]*scale;state.panY=offset[1]*scale;}}persistenceReady=true;}else if(rotated&&!state.sidebarExpanded)fitView();draw();}
 function point(p,t){const v=rotateScreen(canvasWorld(p,t));return [w/2+v[0]*scale*state.zoom+state.panX,h/2+v[1]*scale*state.zoom+state.panY];}
 function draw(){if(exporting)return;scheduleSave();if(queued)return;queued=true;requestAnimationFrame(render);}
 let fractalGridKey=null,fractalPaths=[];
@@ -221,11 +223,11 @@ function drawIndicatrixes(){
  }
 }
 function materialMode(){return displayedSource==='ivory'?'ivory':displayedSource==='elevation'?'elevation':'source';}
-function bindMaterialUniforms(){gl.uniform1i(uniforms.circularMode,circularMode(state.method));gl.uniform1i(uniforms.ecologyHex,displayedSource==='ecology'?1:0);gl.uniform1i(uniforms.ecologyOcta,state.method==='octa'?1:0);gl.uniform3fv(uniforms['ecologyVertices[0]'],ecologyVertices);const mode=materialMode();gl.uniform1i(uniforms.material,['source','ivory','elevation'].indexOf(mode));gl.uniform1f(uniforms.materialSea,state.reliefSeaLevel/255);gl.activeTexture(gl.TEXTURE3);gl.bindTexture(gl.TEXTURE_2D,heightTexture||relief?.heightTextures[0]);gl.uniform1i(uniforms.heightMap,3);gl.activeTexture(gl.TEXTURE0);}
+function bindMaterialUniforms(){gl.uniform1i(uniforms.circularMode,circularMode(state.method));gl.uniform1i(uniforms.ecologyHex,displayedSource==='ecology'?1:0);gl.uniform1i(uniforms.ecologyOcta,state.method==='octa'?1:0);gl.uniform3fv(uniforms['ecologyVertices[0]'],ecologyVertices);const mode=compactDevice?'source':materialMode();gl.uniform1i(uniforms.material,['source','ivory','elevation'].indexOf(mode));gl.uniform1f(uniforms.materialSea,state.reliefSeaLevel/255);gl.activeTexture(gl.TEXTURE3);gl.bindTexture(gl.TEXTURE_2D,heightTexture||relief?.heightTextures[0]);gl.uniform1i(uniforms.heightMap,3);gl.activeTexture(gl.TEXTURE0);}
 function bindRiverUniforms(){gl.uniform1i(uniforms.riversVisible,$('rivers-visible').checked?1:0);gl.activeTexture(gl.TEXTURE1);gl.bindTexture(gl.TEXTURE_2D,riverTexture);gl.uniform1i(uniforms.riverMap,1);gl.activeTexture(gl.TEXTURE0);}
 function render(refined=false,exportMode=false){if(exporting&&!exportMode)return;queued=false;document.documentElement.style.setProperty('--map-background',$('background-color').value);const background=$('background-color').value,brightness=[1,3,5].reduce((sum,i,k)=>sum+parseInt(background.slice(i,i+2),16)*[.299,.587,.114][k],0);document.documentElement.style.setProperty('--heading-ink',brightness>145?'#193c49':'#f6f4ed');for(const id of ['background-color','border-color','hex-grid-color','graticule-color'])$(id+'-value').value=$(id).value;syncOptionCards();updateDistortionLegend();refined=refined===true;clearTimeout(reliefRefineTimer);$('zoom-value').textContent=Math.round(state.zoom*100)+'%';if(!ready||!gl||!program)return;updateVisibleMesh();if(!exportMode)updateHeadingVisibility();gl.bindFramebuffer(gl.FRAMEBUFFER,null);gl.viewport(0,0,canvas.width,canvas.height);gl.clearColor(0,0,0,0);gl.clear(gl.COLOR_BUFFER_BIT);gl.useProgram(program);gl.uniform1f(uniforms.gridRotation,state.gridRotation*Math.PI/180);gl.uniform2f(uniforms.size,w,h);gl.uniform3f(uniforms.view,scale*state.zoom,state.panX,state.panY);gl.uniform3f(uniforms.angles,state.lon*Math.PI/180,state.lat*Math.PI/180,state.roll*Math.PI/180);gl.uniform1f(uniforms.bias,state.bias);gl.uniform1f(uniforms.blend,+$('interpolation').value);gl.uniform1f(uniforms.grid,$('graticule').checked?state.grid*Math.PI/180:0);gl.uniform1f(uniforms.gridWidth,.6*state.graticuleWidth/(scale*state.zoom));gl.uniform3fv(uniforms.gridColor,[1,3,5].map(i=>parseInt($('graticule-color').value.slice(i,i+2),16)/255));gl.uniform1i(uniforms.palette,displayedSource==='continents'?['atlas','original','night'].indexOf($('palette').value):1);gl.uniform1i(uniforms.distortion,derivativeSupport?($('distortion').checked?3:0):0);gl.uniform1f(uniforms.distortionOpacity,state.distortionOpacity);gl.uniform1f(uniforms.pixelScale,scale*state.zoom*dpr);gl.uniform1i(uniforms.map,0);gl.uniform1i(uniforms.felvClip,arrangement.clip?1:0);
  const drawColor=(width=w,height=h,baseOnly=false)=>{gl.useProgram(program);gl.uniform1i(uniforms.overlayOnly,0);gl.uniform1f(uniforms.grid,!baseOnly&&$('graticule').checked?state.grid*Math.PI/180:0);gl.uniform1i(uniforms.distortion,!baseOnly&&derivativeSupport?($('distortion').checked?3:0):0);gl.uniform2f(uniforms.size,width,height);bindMaterialUniforms();bindRiverUniforms();gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,texture);drawGeometry(program);};
- if(relief?.ready&&$('relief-enabled').checked){
+ if(!compactDevice&&relief?.ready&&$('relief-enabled').checked){
   const seams=[];for(const t of visible)for(let e=0;e<6;e++)if(t.bad[e]){const local=(e-t.r+6)%6;seams.push([canvasWorld(hex[local],t),canvasWorld(hex[(local+1)%6],t)]);}
   for(const edge of arrangement.seams||[])if(edge.error>1e-6)seams.push([[edge.a[0],-edge.a[1]],[edge.b[0],-edge.b[1]]]);
   const signature=JSON.stringify([state.method,meshSignature,colorGeneration,riverGeneration,$('rivers-visible').checked,state.reliefSeaLevel,state.reliefOcean,state.reliefRiverDepth,state.lon,state.lat,state.roll,state.bias,state.gridRotation,scale,state.zoom,state.panX,state.panY,state.height,$('interpolation').value,$('graticule').checked,state.grid,$('palette').value,$('distortion').checked,state.distortionOpacity]);
@@ -262,8 +264,9 @@ for(const b of document.querySelectorAll('.method'))b.onclick=()=>{state.method=
 $('layout').onchange=()=>{state.arrangement=$('layout').value;rebuild();if($('optimize').checked)applySearch();};for(const id of ['interpolation','graticule','construction','subgrid','dotgrid','fractalgrid','labels','palette','distortion','indicatrix'])$(id).onchange=draw;$('quality').onchange=resize;
 $('fractalgrid').addEventListener('change',()=>{if($('fractalgrid').checked){$('subgrid').checked=false;$('dotgrid').checked=false;}draw();});
 for(const id of ['subgrid','dotgrid'])$(id).addEventListener('change',()=>{if($(id).checked)$('fractalgrid').checked=false;draw();});
-function ensureRelief(){if(!gl||!program)return;if(!relief){relief=new ReliefRenderer(gl,vs,draw,message=>$('relief-status').textContent=message);heightTexture=relief.heightTextures[0];}relief.load();}
+function ensureRelief(){if(compactDevice||!gl||!program)return;if(!relief){relief=new ReliefRenderer(gl,vs,draw,message=>$('relief-status').textContent=message);heightTexture=relief.heightTextures[0];}relief.load();}
 function updateRelief(){
+ if(compactDevice){if(!$('relief-enabled').checked)$('mobile-shadow').value='off';else if($('mobile-shadow').value==='off')$('mobile-shadow').value='gentle';canvas.style.filter=mobileShadows[$('mobile-shadow').value];$('relief-status').textContent='Lightweight terrain shading and panel shadows';draw();return;}
  const enabled=$('relief-enabled').checked,materialSource=['ivory','elevation'].includes($('map-source').value);$('relief-options').hidden=!enabled;
  if((enabled||materialSource)&&gl&&program){try{ensureRelief();}catch(error){$('relief-status').textContent='Relief is unavailable on this device; the flat map is still available.';if(enabled)$('relief-enabled').checked=false;console.warn('Relief initialization:',error);}}
  $('relief-source-note').hidden=!enabled||!['terrain','marble'].includes($('map-source').value);
@@ -323,12 +326,13 @@ async function exportMap(){
  updateMapUrl();clearTimeout(saveTimer);clearTimeout(reliefRefineTimer);exporting=true;button.disabled=true;main.inert=true;dialog.showModal();progress.textContent='Preparing…';
  try{
   const deadline=performance.now()+120000;
+  if(!compactDevice&&relief&&$('relief-enabled').checked)await relief.load(true,control.signal);
   while($('map-loading').textContent==='Loading map…'||($('relief-enabled').checked&&relief?.loading&&!relief.detailed)||$('indicatrix-status').textContent==='Preparing circles…'){control.signal.throwIfAborted();if(performance.now()>deadline)throw Error('Map assets are still loading; please retry when they finish');await new Promise(resolve=>setTimeout(resolve,100));}
  if(isPDF&&!tiling){const b=bounds(),unit=scale*state.zoom,pad=($('relief-enabled').checked&&relief?.ready?relief.padding(state,unit):0)+12;crop.x=saved.w/2+saved.panX+b[0]*unit-pad;crop.y=saved.h/2+saved.panY-b[3]*unit-pad;crop.topInset=pad;crop.width=(b[2]-b[0])*unit+2*pad;crop.height=(b[3]-b[1])*unit+2*pad;}
   const renderTile=async(x,y,width,height,ratio=factor)=>{
    control.signal.throwIfAborted();
    // Overlap tiles enough to include antialiasing and the relief shadow blur.
-   const bleed=Math.ceil(($('relief-enabled').checked?(4+scale*state.zoom*.11)*state.reliefSoftness:0)*ratio)+4;
+   const bleed=compactDevice?Math.ceil(30*ratio)+4:Math.ceil(($('relief-enabled').checked?(4+scale*state.zoom*.11)*state.reliefSoftness:0)*ratio)+4;
    const maxDimension=Math.min(gl.getParameter(gl.MAX_TEXTURE_SIZE),gl.getParameter(gl.MAX_RENDERBUFFER_SIZE));
    if(Math.max(width,height)+2*bleed>maxDimension)throw Error('Shadow softness at this zoom exceeds the device tile limit; reduce zoom or softness and retry');
    w=(width+2*bleed)/ratio;h=(height+2*bleed)/ratio;dpr=ratio;
@@ -337,7 +341,7 @@ async function exportMap(){
    if(gl.drawingBufferWidth!==canvas.width||gl.drawingBufferHeight!==canvas.height)throw Error('This device could not allocate an export tile');
    render(true,true);
    out.width=width;out.height=height;context.fillStyle=$('background-color').value;context.fillRect(0,0,width,height);
-   for(const source of [canvas,overlay])context.drawImage(source,bleed,bleed,width,height,0,0,width,height);
+   context.save();if(compactDevice){const preset=$('relief-enabled').checked?$('mobile-shadow').value:'off';const values={off:[0,0,0,0],gentle:[0,3,3,.19],sculpted:[1,6,4,.31],dramatic:[3,10,5,.44]}[preset];context.shadowOffsetX=values[0]*ratio;context.shadowOffsetY=values[1]*ratio;context.shadowBlur=values[2]*ratio;context.shadowColor=`rgba(22,52,66,${values[3]})`;}context.drawImage(canvas,-bleed,-bleed);context.restore();context.drawImage(overlay,-bleed,-bleed);
    return context.getImageData(0,0,width,height).data;
   };
   const onProgress=value=>progress.textContent=`Rendering ${isPDF?'PDF':`PNG ${factor}×`} · ${Math.round(value*100)}%`;
@@ -345,11 +349,11 @@ async function exportMap(){
   control.signal.throwIfAborted();
   const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=`hexagonal-world-${state.method}-${isPDF?'print.pdf':factor+'x.png'}`;a.click();trackEvent('download',isPDF?'pdf':factor+'x-png');setTimeout(()=>URL.revokeObjectURL(url),60000);
  }catch(error){if(error.name!=='AbortError'){console.warn('Map export:',error);$('relief-status').textContent='Export failed: '+error.message;}}
- finally{w=saved.w;h=saved.h;dpr=saved.dpr;state.panX=saved.panX;state.panY=saved.panY;out.width=out.height=1;exporting=false;main.inert=false;dialog.close();button.disabled=false;meshSignature=null;resize();}
+ finally{w=saved.w;h=saved.h;dpr=saved.dpr;state.panX=saved.panX;state.panY=saved.panY;out.width=out.height=1;relief?.releaseDetail();exporting=false;main.inert=false;dialog.close();button.disabled=false;meshSignature=null;resize();}
 }
 $('export').onclick=exportMap;
-const img=new Image();img.onload=()=>{if(!gl||!program)return;texture=gl.createTexture();gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,texture);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);let source=img;const max=gl.getParameter(gl.MAX_TEXTURE_SIZE);if(img.width>max){source=document.createElement('canvas');source.width=max;source.height=Math.round(img.height*max/img.width);source.getContext('2d').drawImage(img,0,0,source.width,source.height);}gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,source);ready=true;updateOptimizerUI();if($('optimize').checked)applySearch();updateRiverLayer();updateMapSource();draw();};img.onerror=()=>fail('The continent texture could not be loaded. Reload the app to try again.');img.src='continents.png';
-canvas.addEventListener('webglcontextlost',e=>{e.preventDefault();ready=false;fail('The graphics context was interrupted. Reload to restore the map.');});
+const img=new Image();img.onload=()=>{if(!gl||!program)return;texture=gl.createTexture();gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,texture);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);let source=img;const max=gl.getParameter(gl.MAX_TEXTURE_SIZE);if(img.width>max){source=document.createElement('canvas');source.width=max;source.height=Math.round(img.height*max/img.width);source.getContext('2d').drawImage(img,0,0,source.width,source.height);}gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,source);ready=true;updateOptimizerUI();if($('optimize').checked)applySearch();updateRiverLayer();updateMapSource();draw();};img.onerror=()=>fail('The continent texture could not be loaded. Reload the app to try again.');img.src=compactDevice?'maps/mobile/continents.png':'continents.png';
+canvas.addEventListener('webglcontextlost',e=>{e.preventDefault();ready=false;fail('Graphics were interrupted. Your map settings are saved.');const retry=document.createElement('button');retry.textContent='Restore map';retry.onclick=()=>location.reload();$('error').append(retry);});
 
 function setRotation(angles){for(const id of ['lon','lat','roll']){state[id]=angles[id];$(id).value=angles[id];$(id+'-value').value=angles[id].toFixed(2)+'°';}draw();}
 function updateOptimizerUI(){
@@ -465,21 +469,31 @@ async function updateRiverLayer(){
  catch(error){console.warn('River layer:',error);$('status').textContent='River data could not load; the map remains available.';}
 }
 for(const id of ['riverWidth','riverLevels'])$(id).addEventListener('input',()=>{++riverRequest;clearTimeout(riverTimer);riverTimer=setTimeout(updateRiverLayer,100);});$('rivers-visible').addEventListener('change',()=>{updateRiverLayer();draw();});
+function syncMobileLegend(){
+ $('legend-toggle').hidden=!compactDevice||$('map-source').value!=='ecology';
+ if($('mobile-legend-dialog').open){const content=$('floating-legend').querySelector('.floating-legend-clusters').cloneNode(true);for(const el of content.querySelectorAll('[id],[tabindex]')){el.removeAttribute('id');el.removeAttribute('tabindex');}$('mobile-legend-content').replaceChildren(content);}
+}
+$('legend-toggle').onclick=()=>{$('mobile-legend-dialog').showModal();syncMobileLegend();};
+$('close-legend').onclick=()=>$('mobile-legend-dialog').close();
+$('mobile-legend-dialog').onclick=e=>{if(e.target===$('mobile-legend-dialog')){const r=e.target.getBoundingClientRect();if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)e.target.close();}};
+$('mobile-shadow').onchange=()=>{$('relief-enabled').checked=$('mobile-shadow').value!=='off';updateRelief();updateMapSource();};
 function updateMapUI(){
  const type=$('map-source').value;$('floating-legend').hidden=type!=='ecology';$('floating-legend-tip').hidden=true;$('ecology-controls').hidden=type!=='ecology';$('palette').closest('label').hidden=!['continents'].includes(type);
  if(type==='ecology'){const landCount=classCount('land-classes'),oceanCount=classCount('ocean-classes');syncClassControl('land-classes',landCount);syncClassControl('ocean-classes',oceanCount);floatingLegend('floating-land',landRows(landCount),['Arid','Humid']);floatingLegend('floating-ocean',oceanRows(oceanCount),['Cold','Warm']);hexLegend('land-legend',landLegends[landCount]);hexLegend('ocean-legend',oceanLegend(oceanCount));hexLegend('missing-legend',[missing]);}
+ syncMobileLegend();
  const credits={terrain:'Supplied shaded topographic map · baked-in terrain and seafloor relief; lighting is fixed.',ivory:'Generated sculpted-paper finish from the supplied heightfield.',elevation:'Generated earth-and-sea finish from the supplied heightfield.',continents:'Supplied silhouette. Cut-search mask is shared across all layers.',marble:'Supplied Blue Marble · brighter oceans and visible seafloor detail.',countries:'Natural Earth · 1:50m · de facto country boundaries.',ecology:'Leemans / UNEP-WCMC Holdridge (1992); NOAA OISST 1991–2020; Natural Earth bathymetry. Natural Earth 1:10m rivers. Hover swatches for class definitions.'};
  $('map-credit').textContent=credits[type];
  $('relief-source-note').hidden=!$('relief-enabled').checked||!['terrain','marble'].includes(type);
 }
 async function updateMapSource(){
+ if(compactDevice)updateRelief();
  updateMapUI();scheduleSave();if(!ready)return;
  const request=++mapRequest,type=$('map-source').value;$('map-loading').textContent='Loading map…';
- try{let source=await mapSource(type,classCount('land-classes'),classCount('ocean-classes'));if(request!==mapRequest)return;
+ try{let source=await mapSource(type,classCount('land-classes'),classCount('ocean-classes'),$('relief-enabled').checked?$('mobile-shadow').value:'off');if(request!==mapRequest)return;
   const originalWidth=source.width,originalHeight=source.height,max=gl.getParameter(gl.MAX_TEXTURE_SIZE);
   if(source.width>max){const resized=document.createElement('canvas');resized.width=max;resized.height=Math.round(source.height*max/source.width);const c=resized.getContext('2d');c.imageSmoothingEnabled=type!=='ecology';c.drawImage(source,0,0,resized.width,resized.height);source=resized;}
   gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,texture);const filter=type==='ecology'?gl.NEAREST:gl.LINEAR;gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,filter);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,filter);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,source);colorGeneration++;
-  displayedSource=type;$('map-loading').textContent='';$('source-name').textContent={continents:'continents.png',marble:'Blue Marble · bluemarble-high.jpg',countries:'Natural Earth · 1:50m · de facto country boundaries.',terrain:'Shaded topographic map',ivory:'Ivory · sculpted paper',elevation:'Elevation · earth & sea',ecology:'Holdridge + marine zones'}[type];$('source-detail').textContent=type==='ecology'?'0.5° land · 1° ocean temperature · hexagonal cells':['ivory','elevation'].includes(type)?'Derived from supplied heightfield · 5,400 × 2,700 overview':`${originalWidth.toLocaleString()} × ${originalHeight.toLocaleString()} · equirectangular`;
+  displayedSource=type;$('map-loading').textContent='';$('source-name').textContent={continents:'continents.png',marble:'Blue Marble · bluemarble-high.jpg',countries:'Natural Earth · 1:50m · de facto country boundaries.',terrain:'Shaded topographic map',ivory:'Ivory · sculpted paper',elevation:'Elevation · earth & sea',ecology:'Holdridge + marine zones'}[type];$('source-detail').textContent=type==='ecology'?'0.5° land · 1° ocean temperature · hexagonal cells':['ivory','elevation'].includes(type)?(compactDevice?'Precomputed terrain shading · 1,920 × 960':'Derived from supplied heightfield · 5,400 × 2,700 overview'):`${originalWidth.toLocaleString()} × ${originalHeight.toLocaleString()} · equirectangular`;
   draw();
  }catch(error){if(request!==mapRequest)return;$('map-source').value=displayedSource;updateMapUI();updateRelief();$('map-loading').textContent='Map could not load. Previous layer retained; select again to retry.';scheduleSave();}
 }
@@ -509,7 +523,7 @@ function applyMapOption(option,type){
     for(const id of ['method','arrangement','lon','lat','roll','bias','height','clearance','gridRotation'])if(option.state[id]!==undefined){if(['method','arrangement'].includes(id))state[id]=option.state[id];else setOptionRange(id,option.state[id]);}
     for(const id of ['interpolation','optimize'])if(option.controls[id]!==undefined)setOptionControl(id,option.controls[id]);
     state.layout=0;document.querySelectorAll('.method').forEach(el=>el.classList.toggle('active',el.dataset.method===state.method));
-    rebuild();resize();if(option.viewOffset){state.panX=option.viewOffset[0]*scale;state.panY=option.viewOffset[1]*scale;draw();}updateRelief();
+    rebuild();resize();if(option.viewOffset&&!compactDevice){state.panX=option.viewOffset[0]*scale;state.panY=option.viewOffset[1]*scale;draw();}updateRelief();
   }else{
     for(const [id,value] of Object.entries(option.state))setOptionRange(id,value);
     for(const [id,value] of Object.entries(option.controls))setOptionControl(id,value);
@@ -567,6 +581,8 @@ function updateHeadingVisibility(){
  const fractalOverlap=arrangement?.leaves&&bounds&&polygonOverlapsRect([[bounds.left,bounds.bottom],[bounds.right,bounds.bottom],[bounds.right,bounds.top],[bounds.left,bounds.top]].map(p=>point(p,origin)),r)&&arrangement.leaves.some(poly=>polygonOverlapsRect(poly.map(p=>point(p,origin)),r));
  const overlaps=!unavailable&&(tiling||(arrangement?.leaves?fractalOverlap:visible.some(tile=>polygonOverlapsRect((tile.polygon||hex).map(p=>point(p,tile)),r))));
  const obscured=Boolean(unavailable||overlaps);
+ if(compactDevice&&tiling&&!state.sidebarExpanded){title.dataset.obscured='false';title.setAttribute('aria-hidden','false');title.classList.add('over-infinite');$('sidebar-title').hidden=true;return;}
+ title.classList.remove('over-infinite');
  title.dataset.obscured=String(obscured);title.setAttribute('aria-hidden',String(obscured));
  $('sidebar-title').hidden=!state.sidebarExpanded||!obscured;
 }

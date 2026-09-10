@@ -1,0 +1,36 @@
+<!doctype html><meta charset="utf-8"><title>Mobile checks</title><style>body{margin:0;font:14px system-ui;background:#e9f0f2}iframe{border:0;display:block}#result{padding:12px;white-space:pre-wrap}</style><div id="result">Starting…</div><iframe width="390" height="844" title="Phone preview"></iframe><script type="module">
+const frame=document.querySelector('iframe'),result=document.querySelector('#result'),logs=[];
+const delay=ms=>new Promise(r=>setTimeout(r,ms));
+function check(ok,label){if(!ok)throw Error(label);logs.push('PASS '+label);result.textContent=logs.join('\n');}
+async function until(fn){for(let i=0;i<300;i++){if(fn())return;await delay(100);}throw Error('Timed out');}
+try{
+ frame.src='../index.html';await until(()=>frame.contentDocument?.querySelector('[data-style="lifezones"]'));
+ const doc=frame.contentDocument,win=frame.contentWindow,$=id=>doc.getElementById(id);
+ await until(()=>$('map-loading').textContent===''&&$('floating-ocean').childElementCount);await delay(500);
+ check(win.getComputedStyle(doc.querySelector('.view-tools')).display==='none','Phone toolbar hidden');
+ check($('map-heading').dataset.obscured==='false','Initial title visible');
+ check($('map').width<=585,'Canvas pixel budget bounded');
+ $('legend-toggle').click();check($('mobile-legend-dialog').open,'Legend opens');
+ const rect=$('mobile-legend-dialog').getBoundingClientRect();check(rect.left>=0&&rect.right<=390&&rect.top>=0&&rect.bottom<=844,'Legend fits screen');
+ check(Math.abs(rect.top+rect.height/2-422)<3,'Legend centered');
+ check($('mobile-legend-content').textContent.includes('Cold'),'Legend labels included');
+ check(!doc.querySelector('#mobile-legend-content [id]'),'Legend has no duplicate IDs');
+ if(new URLSearchParams(location.search).has('legend')){result.dataset.status='passed';}else{
+ $('close-legend').click();check(!$('mobile-legend-dialog').open,'Legend closes');
+ for(const card of doc.querySelectorAll('[data-style]')){card.click();await until(()=>$('map-loading').textContent==='');await delay(100);check(!$('error').textContent,card.dataset.style+' switches');}
+ doc.querySelector('[data-style="lifezones"]').click();await until(()=>$('map-loading').textContent==='');
+ for(const card of doc.querySelectorAll('[data-arrangement]')){card.click();await delay(160);check($('map-heading').dataset.obscured==='false',card.dataset.arrangement+' preserves initial title');}
+ $('customize').click();$('relief-panel').open=true;
+ check(win.getComputedStyle($('mobile-shadow').parentElement).display!=='none','Mobile shadow dropdown available');
+ for(const value of ['off','dramatic','gentle']){$('mobile-shadow').value=value;$('mobile-shadow').dispatchEvent(new Event('change'));await until(()=>$('map-loading').textContent==='');check($('map').style.filter.includes(value==='off'?'none':'drop-shadow'),'Shadow '+value);}
+ $('collapse-customize').click();
+ const resources=win.performance.getEntriesByType('resource').map(r=>r.name);
+ check(!resources.some(n=>n.includes('/maps/height/')||n.includes('bluemarble-high.jpg')),'No heavyweight elevation or satellite downloads');
+ doc.querySelector('[data-arrangement="dymaxion"]').click();await delay(200);
+ frame.width=844;frame.height=390;await delay(500);
+ check($('map-heading').dataset.obscured==='false','Landscape keeps title visible');
+ check($('map').width<=1266,'Landscape canvas remains bounded');
+ result.dataset.status='passed';result.textContent+='\nAll mobile checks passed';
+ }
+}catch(e){result.dataset.status='failed';result.textContent+='\nFAIL '+e.message;}
+</script>

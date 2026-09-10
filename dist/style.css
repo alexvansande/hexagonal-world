@@ -142,3 +142,24 @@ aside{overscroll-behavior:contain}
  .view-tools{left:auto;right:calc(12px + env(safe-area-inset-right))}
  .view-tools button{min-height:44px}
 }
+
+/* Phones use a compact legend and inexpensive composited panel shadows. */
+.mobile-shadow-control,#legend-toggle{display:none}
+#mobile-legend-dialog{padding:48px 12px 20px;width:min(460px,calc(100vw - 24px));overflow:auto}
+#close-legend{position:absolute;right:8px;top:4px;min-width:44px;min-height:44px;border:0;font-size:28px}
+#mobile-legend-content .floating-legend-clusters{flex-wrap:wrap;justify-content:center;box-shadow:none;border:0;background:transparent;backdrop-filter:none}
+#mobile-legend-content .floating-legend-clusters>div{width:198px}
+#mobile-legend-content .floating-legend-clusters polygon{pointer-events:none}
+#mobile-legend-content .floating-legend-clusters svg{width:198px}
+@media(max-width:700px),(max-width:1000px) and (max-height:500px){
+ .view-tools{display:none}
+ #floating-legend{display:none!important}
+ #legend-toggle:not([hidden]){display:block;position:absolute;right:12px;top:calc(114px + env(safe-area-inset-top));z-index:7;min-height:44px;background:#f8fcfbe8;backdrop-filter:none}
+ body:not(.customizing) aside{bottom:calc(12px + env(safe-area-inset-bottom))}
+ #relief-panel .relief-switch,#relief-options,#relief-panel .relief-tag{display:none!important}
+ .mobile-shadow-control{display:block}
+ .map-heading.over-infinite{background:var(--map-background,#e9f0f2);padding:8px 12px;border-radius:10px}
+ .floating-legend-clusters,body:not(.customizing) aside{backdrop-filter:none}
+ #error button{display:block;margin-top:12px}
+}
+@media(max-width:700px),(max-width:1000px) and (max-height:500px){.customizing #legend-toggle{display:none}}
