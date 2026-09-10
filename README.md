@@ -1,8 +1,19 @@
-# Hex Atlas
+# Hexagonal World
 
 A dependency-free WebGL app using the supplied 4320 × 2160 equirectangular continent texture.
 
 Run `npm start`, then open http://localhost:4173. Run `npm test` for geometry and regression validation.
+
+## Publishing
+
+GitHub Pages publishes the app automatically after a push to `main`, once the
+regression tests pass. The workflow in `.github/workflows/pages.yml` uploads
+`dist/`, excluding the local browser test pages. No build or external runtime
+service is required. In the repository's **Settings → Pages**, the publishing
+source must be **GitHub Actions**. Custom domains are configured there as well.
+
+The `.openai/hosting.json` file is legacy local hosting metadata; GitHub Pages
+does not use it or include it in the published website.
 
 See [AUDIT.md](AUDIT.md) for the September 2026 diagnosis, repairs, performance measurements, and remaining debt. Browser interaction checks are available at `/tests/app-controls.html`; relief GPU checks are at `/tests/relief-render.html`.
 
