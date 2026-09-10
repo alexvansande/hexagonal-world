@@ -17,6 +17,7 @@ export function ecologyCellCenter([x,y]){
 
 export const ecologyGridGLSL=`
 uniform int ecologyHex;
+uniform int ecologyBridges;
 uniform int ecologyOcta;
 uniform vec3 ecologyVertices[28];
 varying vec2 localPosition;
@@ -57,5 +58,33 @@ vec3 ecologySphere(vec2 p){
   }
  }
  return atlasSphere(weights,a,b,c,bias,blend);
+}
+`;
+
+// A bridge between two touching hexes is sqrt(3)*r long and 1.5*r wide.
+// Inside a third hex it covers only the corner beyond 0.75*r. At most one
+// such corner contains a point, so only two extra source samples are needed.
+export const ecologyBridgeGLSL=`
+bool ecologyInside(vec2 p){
+ p=abs(p);
+ return p.y<=sqrt(3.)*.5&&sqrt(3.)*.5*p.x+.5*p.y<=sqrt(3.)*.5;
+}
+vec3 ecologySample(vec2 center){return texture2D(map,geographicUV(ecologySphere(center),angles)).rgb;}
+vec3 ecologyBridgedColor(vec2 p,vec2 center,vec3 original){
+ float radius=${ecologyHexRadius.toFixed(12)}/(circularMode>0?7.:1.);
+ vec2 offset=(p-center)/radius;
+ for(int corner=0;corner<6;corner++){
+  vec2 outward=hexCorner(float(corner));
+  if(dot(offset,outward)>.75){
+   vec2 tangent=vec2(-outward.y,outward.x);
+   vec2 first=center+radius*(1.5*outward+sqrt(3.)*.5*tangent);
+   vec2 second=center+radius*(1.5*outward-sqrt(3.)*.5*tangent);
+   // Do not extrapolate a class across a cut between projection regions.
+   if(!ecologyInside(first)||!ecologyInside(second))return original;
+   vec3 a=ecologySample(first),b=ecologySample(second);
+   return all(lessThan(abs(a-b),vec3(.5/255.)))?a:original;
+  }
+ }
+ return original;
 }
 `;

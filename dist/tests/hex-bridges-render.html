@@ -1,0 +1,39 @@
+<!doctype html><meta charset="utf-8"><title>Hex bridge checks</title><p id="result">Running…</p><canvas width="128" height="128"></canvas><script type="module">
+import {ecologyBridgeGLSL,ecologyHexRadius as r} from '../ecology-grid.mjs?v=bridges-1';
+const result=document.querySelector('p'),gl=document.querySelector('canvas').getContext('webgl',{preserveDrawingBuffer:true});
+const assert=(v,m)=>{if(!v)throw Error(m);};
+try{
+ const compile=(type,source)=>{const s=gl.createShader(type);gl.shaderSource(s,source);gl.compileShader(s);assert(gl.getShaderParameter(s,gl.COMPILE_STATUS),gl.getShaderInfoLog(s));return s;};
+ const vs='attribute vec2 position;varying vec2 point;void main(){point=position;gl_Position=vec4(position,0.,1.);}';
+ const fs=`precision highp float;varying vec2 point;uniform sampler2D map;uniform vec3 angles;uniform int circularMode;
+ vec2 hexCorner(float index){float a=index*1.047197551197;return vec2(cos(a),sin(a));}
+ vec3 ecologySphere(vec2 p){return vec3(p/${r},0.);}
+ vec2 geographicUV(vec3 p,vec3 angles){return (p.xy+3.)/6.;}
+ ${ecologyBridgeGLSL}
+ void main(){gl_FragColor=vec4(ecologyBridgedColor(point*${r},vec2(0.),vec3(1.,0.,0.)),1.);}`;
+ const program=gl.createProgram();gl.attachShader(program,compile(gl.VERTEX_SHADER,vs));gl.attachShader(program,compile(gl.FRAGMENT_SHADER,fs));gl.linkProgram(program);assert(gl.getProgramParameter(program,gl.LINK_STATUS),gl.getProgramInfoLog(program));gl.useProgram(program);
+ gl.bindBuffer(gl.ARRAY_BUFFER,gl.createBuffer());gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,1,-1,-1,1,1,1]),gl.STATIC_DRAW);const attr=gl.getAttribLocation(program,'position');gl.enableVertexAttribArray(attr);gl.vertexAttribPointer(attr,2,gl.FLOAT,false,0,0);
+ gl.bindTexture(gl.TEXTURE_2D,gl.createTexture());for(const setting of [gl.TEXTURE_MIN_FILTER,gl.TEXTURE_MAG_FILTER])gl.texParameteri(gl.TEXTURE_2D,setting,gl.NEAREST);for(const setting of [gl.TEXTURE_WRAP_S,gl.TEXTURE_WRAP_T])gl.texParameteri(gl.TEXTURE_2D,setting,gl.CLAMP_TO_EDGE);
+ for(let direction=0;direction<6;direction++)for(const matching of [false,true]){
+  const a=direction*Math.PI/3,u=[Math.cos(a),Math.sin(a)],v=[-u[1],u[0]],centers=[1,-1].map(sign=>u.map((x,i)=>1.5*x+sign*Math.sqrt(3)/2*v[i]));
+  const texture=new Uint8Array(64*64*4);
+  for(let y=0;y<64;y++)for(let x=0;x<64;x++){
+   const p=[(x+.5)/64*6-3,(y+.5)/64*6-3],green=centers.some((c,i)=>(matching||i===0)&&Math.hypot(p[0]-c[0],p[1]-c[1])<.2);
+   texture.set(green?[0,255,0,255]:[0,0,255,255],(y*64+x)*4);
+  }
+  gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,64,64,0,gl.RGBA,gl.UNSIGNED_BYTE,texture);gl.drawArrays(gl.TRIANGLE_STRIP,0,4);
+  const pixels=new Uint8Array(128*128*4);gl.readPixels(0,0,128,128,gl.RGBA,gl.UNSIGNED_BYTE,pixels);
+  for(let y=0;y<128;y++)for(let x=0;x<128;x++){
+   const p=[(x+.5)/64-1,(y+.5)/64-1];if(Math.abs(p[1])>Math.sqrt(3)/2||Math.sqrt(3)/2*Math.abs(p[0])+.5*Math.abs(p[1])>Math.sqrt(3)/2)continue;
+   // Explicit center-to-center rectangle from the user's diagram.
+   const mid=u.map(n=>1.5*n),d=p.map((n,i)=>n-mid[i]);
+   const inside=Math.abs(d[0]*v[0]+d[1]*v[1])<Math.sqrt(3)/2&&Math.abs(d[0]*u[0]+d[1]*u[1])<.75;
+   const green=pixels[(y*128+x)*4+1]===255;
+   // Blue neighbors elsewhere can agree; only test the selected corner wedge.
+   if(p[0]*u[0]+p[1]*u[1]>.75)assert(green===(matching&&inside),'Rectangle or color mismatch at direction '+direction);
+   if(Math.hypot(...p)<.5)assert(pixels[(y*128+x)*4]===255,'Bridge changed cell center');
+  }
+ }
+ assert(gl.getError()===gl.NO_ERROR,'WebGL error');result.textContent='PASS · Six bridge directions match explicit rectangles; different colors stay separate; centers unchanged.';
+}catch(error){result.textContent='FAIL · '+error.message;console.error(error);}
+</script>
