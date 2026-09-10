@@ -1,4 +1,4 @@
-import {ReliefRenderer,reliefDefaults} from '../relief.mjs?v=circular-2';
+import {ReliefRenderer,reliefDefaults} from '../relief.mjs?v=export-2';
 
 const results=document.querySelector('#results'),images=document.querySelector('#images');
 const lines=[];let failures=0;

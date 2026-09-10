@@ -96,3 +96,6 @@ body:not(.customizing) #customize:hover{background:#dfeaed}
 @media(prefers-reduced-motion:reduce){.map-heading{transition:none}}
 
 .grid-settings{padding-top:4px;margin-top:18px;border-top:1px solid #e1e9eb}.grid-settings .color-control{margin:14px 0}.grid-settings .color-control span{max-width:145px}.grid-settings .range{margin-bottom:20px}
+
+.export-split{grid-template-columns:minmax(0,1fr) 122px}
+#export-progress{width:320px;max-width:calc(100vw - 40px);padding:28px;border:1px solid #d7e1e3;border-radius:12px;text-align:center}#export-progress::backdrop{background:rgba(233,240,242,.94)}#export-progress-text{margin:0 0 20px;font-weight:600}#export-cancel{min-width:100px}

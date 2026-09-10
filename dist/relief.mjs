@@ -79,7 +79,7 @@ void main(){
 }`;
 const lightingFragment=`precision highp float;
 varying vec2 uv;uniform sampler2D colorMap;uniform sampler2D field;uniform sampler2D horizon;
-uniform vec2 fieldSize;uniform vec2 outputSize;uniform vec2 offset;
+uniform vec2 fieldSize;uniform vec2 outputSize;uniform vec2 offset;uniform int localColor;
 uniform vec3 light;uniform float unit;uniform float depth;uniform float sea;uniform float ocean;
 uniform float base;uniform float maximum;
 uniform float contrast;uniform float highlights;uniform float ambient;uniform float strength;
@@ -125,7 +125,7 @@ void main(){
       ao+=occlusion(p,z,dir,r)*.075+occlusion(p,z,dir,r*3.)*.05;
     }
   }
-  vec3 source=texture2D(colorMap,p/fieldSize).rgb;
+  vec3 source=texture2D(colorMap,localColor==1?uv:p/fieldSize).rgb;
   float sourceLuma=dot(source,vec3(.299,.587,.114));
   vec3 subdued=mix(vec3(sourceLuma),vec3(.78,.77,.72),.55);
   source=mix(source,subdued,colorFade);
@@ -278,19 +278,19 @@ export class ReliefRenderer {
     }
     this.horizonKey=horizonKey;this.horizonRefined=refined;this.horizonTexture=buffers[current].texture;return this.horizonTexture;
   }
-  render({width,height,dpr,unit,state,blend,clip,material,treatment,tone,background=null,signature,drawColor,drawGeometry,seams,riverTexture=null,riverVisible=false,riverDepth=0,pixelBudget=3000000,refined=false}){
+  render({width,height,dpr,unit,state,blend,clip,material,treatment,tone,background=null,signature,drawColor,drawGeometry,seams,riverTexture=null,riverVisible=false,riverDepth=0,pixelBudget=3000000,refined=false,highResolution=false}){
     const gl=this.gl,pad=this.padding(state,unit),cssWidth=width+pad*2,cssHeight=height+pad*2;
     const max=gl.getParameter(gl.MAX_TEXTURE_SIZE);
     const ratio=Math.min(dpr,Math.sqrt(pixelBudget/(cssWidth*cssHeight)),max/cssWidth,max/cssHeight);
-    const fw=Math.ceil(cssWidth*ratio),fh=Math.ceil(cssHeight*ratio),ow=Math.ceil(width*ratio),oh=Math.ceil(height*ratio);
-    const color=this.target(0,fw,fh),field=this.target(1,fw,fh),output=this.target(2,ow,oh);
+    const fw=Math.ceil(cssWidth*ratio),fh=Math.ceil(cssHeight*ratio),ow=highResolution?Math.round(width*dpr):Math.ceil(width*ratio),oh=highResolution?Math.round(height*dpr):Math.ceil(height*ratio);
+    const color=this.target(0,highResolution?ow:fw,highResolution?oh:fh),field=this.target(1,fw,fh),output=this.target(2,ow,oh);
     this.lastFrame={fw,fh,mapWidth:width/cssWidth*fw,mapHeight:height/cssHeight*fh,ox:pad/cssWidth*fw,oy:pad/cssHeight*fh,land:treatment==='land',sea:state.reliefSeaLevel/255};
-    const cacheKey=signature+`/${fw}/${fh}/${pad}/${this.generation}`;
+    const cacheKey=signature+`/${fw}/${fh}/${ow}/${oh}/${highResolution}/${pad}/${this.generation}`;
     gl.disable(gl.BLEND);gl.disable(gl.DEPTH_TEST);gl.colorMask(true,true,true,true);
     if(this.cacheKey!==cacheKey){
-      gl.bindFramebuffer(gl.FRAMEBUFFER,color.fbo);gl.viewport(0,0,fw,fh);gl.clearColor(0,0,0,0);gl.clear(gl.COLOR_BUFFER_BIT);
-      drawColor(cssWidth,cssHeight);
-      gl.bindFramebuffer(gl.FRAMEBUFFER,field.fbo);gl.clear(gl.COLOR_BUFFER_BIT);
+      gl.bindFramebuffer(gl.FRAMEBUFFER,color.fbo);gl.viewport(0,0,color.width,color.height);gl.clearColor(0,0,0,0);gl.clear(gl.COLOR_BUFFER_BIT);
+      drawColor(highResolution?width:cssWidth,highResolution?height:cssHeight);
+      gl.bindFramebuffer(gl.FRAMEBUFFER,field.fbo);gl.viewport(0,0,fw,fh);gl.clear(gl.COLOR_BUFFER_BIT);
       const hp=this.heightProgram;gl.useProgram(hp);
       this.v2(hp,'size',cssWidth,cssHeight);this.v3(hp,'view',unit,state.panX,state.panY);
       this.f(hp,'gridRotation',state.gridRotation*Math.PI/180);this.v3(hp,'angles',state.lon*Math.PI/180,state.lat*Math.PI/180,state.roll*Math.PI/180);
@@ -315,7 +315,7 @@ export class ReliefRenderer {
     const horizon=state.reliefShadows>.001?this.buildHorizon(field,dimensions,pixelUnit,state,treatment,reach,cacheKey,refined):field.texture;
     const backgroundRGB=/^#[0-9a-f]{6}$/i.test(background||'')?[1,3,5].map(i=>parseInt(background.slice(i,i+2),16)/255):tone==='neutral'?[.89,.92,.93]:tone==='cool'?[.77,.83,.88]:[.94,.92,.89];
     const p=this.lightProgram;gl.bindFramebuffer(gl.FRAMEBUFFER,output.fbo);gl.viewport(0,0,ow,oh);gl.useProgram(p);this.v3(p,'background',...backgroundRGB);
-    this.bindTexture(color.texture,0);this.i(p,'colorMap',0);this.bindTexture(field.texture,1);this.i(p,'field',1);
+    this.bindTexture(color.texture,0);this.i(p,'colorMap',0);this.i(p,'localColor',highResolution?1:0);this.bindTexture(field.texture,1);this.i(p,'field',1);
     this.bindTexture(horizon,2);this.i(p,'horizon',2);
     this.v2(p,'fieldSize',fw,fh);this.v2(p,'outputSize',width/cssWidth*fw,height/cssHeight*fh);this.v2(p,'offset',pad/cssWidth*fw,pad/cssHeight*fh);
     const elevation=state.reliefAltitude*Math.PI/180,azimuth=state.reliefAzimuth*Math.PI/180;
@@ -328,7 +328,7 @@ export class ReliefRenderer {
     gl.bindFramebuffer(gl.FRAMEBUFFER,null);gl.viewport(0,0,gl.canvas.width,gl.canvas.height);gl.useProgram(this.blitProgram);
     const bp=this.blitProgram;this.v3(bp,'background',...backgroundRGB);this.bindTexture(output.texture,0);this.i(bp,'image',0);this.bindTexture(field.texture,1);this.i(bp,'field',1);
     this.v2(bp,'fieldSize',fw,fh);this.v2(bp,'outputSize',width/cssWidth*fw,height/cssHeight*fh);this.v2(bp,'offset',pad/cssWidth*fw,pad/cssHeight*fh);this.v2(bp,'texel',1/ow,1/oh);
-    this.f(bp,'blur',state.reliefSoftness*(2+pixelUnit*.055));this.f(bp,'sea',dimensions.sea);this.i(bp,'treatment',treatment==='land'?1:0);this.i(bp,'tone',['warm','neutral','cool'].indexOf(tone));
+    this.f(bp,'blur',state.reliefSoftness*(2+pixelUnit*.055)*(highResolution?dpr/ratio:1));this.f(bp,'sea',dimensions.sea);this.i(bp,'treatment',treatment==='land'?1:0);this.i(bp,'tone',['warm','neutral','cool'].indexOf(tone));
     this.drawQuad(bp);gl.activeTexture(gl.TEXTURE0);
   }
 }

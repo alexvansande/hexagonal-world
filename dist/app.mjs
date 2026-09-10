@@ -1,3 +1,4 @@
+import {pngFromTiles,printPDF} from './map-export.mjs?v=export-1';
 import {fractalRegion,fractalOpacities,edgeKey} from './fractal-grid.mjs';
 import {pointInLoops} from './gosper-fractal.mjs';
 import {circularMode} from './circular-projections.mjs';
@@ -12,7 +13,7 @@ import {searchPresets} from './search-presets.mjs?v=rus-search-1';
 import {visibleTiles} from './tiling.mjs';
 import {makeGeometry,layouts,matching,canvasWorld,hex,world} from './geometry.mjs?v=circular-2';
 import {projectionGLSL} from './projection-shader.mjs?v=circular-2';
-import {ReliefRenderer,reliefRanges,reliefDefaults,reliefLooks} from './relief.mjs?v=circular-2';
+import {ReliefRenderer,reliefRanges,reliefDefaults,reliefLooks} from './relief.mjs?v=export-2';
 import {layoutOptions,styleOptions,layoutIcon} from './map-options.mjs?v=topographic-1';
 const $=id=>document.getElementById(id), canvas=$('map'),overlay=$('overlay'),ctx=overlay.getContext('2d');
 const classOptions=[3,6,10,15];
@@ -20,13 +21,14 @@ const classCount=id=>classOptions[Math.max(0,Math.min(3,Math.round(+$(id).value)
 function syncClassControl(id,count){const el=$(id);if(!el)return;const index=classOptions.indexOf(+count);if(index>=0)el.value=index;$(id+'-value').value=classOptions[+el.value];}
 const rangeSuffixes={riverWidth:'×',subgridWidth:'×',graticuleWidth:'×'};
 const state={method:'tetra',lon:0,lat:0,roll:0,bias:1,height:1.5,grid:30,line:0.8,subgridWidth:1,graticuleWidth:1,distortionOpacity:.7,clearance:0,riverWidth:1,riverLevels:6,layout:0,gridRotation:0,zoom:1,panX:0,panY:0,mode:'pan',arrangement:'infinite',sidebarExpanded:false,interpolation:0,...reliefDefaults};
+let exporting=false;
 let persistenceReady=false,saveTimer=null,restoredView=null,headingBounds=null;
 let displayedSource='continents',mapRequest=0;
 let arrangement,tiling,visible=[],meshSignature=null,geometryKey=null,edgeLabels=[];
 const arrangementCache=new Map();
 let ecologyVertices,tiles,nets,net,scale=1,w=1,h=1,dpr=1,ready=false,queued=false,buffer,count=0,texture,heightTexture,riverTexture;
 let relief=null,reliefRefineTimer=null,colorGeneration=0,riverGeneration=0,riverRequest=0,riverTimer=null,uploadedRiverKey=null;
-const INTERACTIVE_RELIEF_PIXELS=3000000,EXPORT_RELIEF_PIXELS=12000000,EXPORT_OUTPUT_PIXELS=12000000;
+const INTERACTIVE_RELIEF_PIXELS=3000000,EXPORT_RELIEF_PIXELS=12000000;
 const notes={'lambert-one':'The whole world in one equal-area hexagon: a Lambert disk reshaped without changing area. The entire perimeter is the opposite pole. Inspired by Rus’s minimal hexagonal maps; this is not his triangular fold.', 'lambert-two':'Two equal-area hemispheres, each reshaped from a Lambert disk into a hexagon. All six boundary edges have matching counterparts. Rotate the globe to move the hemispheres.',tetra:'Four spherical triangles, each expanded into a six-sided region. Alternating corners preserve the original vertices and edge midpoints.',octa:'Four intact octants. Four divided octants. Each hexagon combines one central triangle with three neighboring pieces.',rhombic:'Twelve rhombi become four groups of three. Each diamond is stretched into a pair of equilateral triangles.',tetrakis:'Six pyramids on a cube create 24 triangles. Six triangles meet inside each hexagon; adjust the pyramid tips below.'};
 function range(parent,id,label,min,max,step,value,suffix=''){
  const el=document.createElement('label');el.className='range';el.innerHTML=`<span class="range-head"><span>${label}</span><output id="${id}-value">${value}${suffix}</output></span><input id="${id}" aria-label="${label}" type="range" min="${min}" max="${max}" step="${step}" value="${value}">`;$(parent).append(el);$(id).addEventListener('input',()=>{if(id==='gridRotation'){const a=(+$(id).value-state[id])*Math.PI/180,c=Math.cos(a),sn=Math.sin(a);[state.panX,state.panY]=[c*state.panX-sn*state.panY,sn*state.panX+c*state.panY];}state[id]=+$(id).value;$(id+'-value').value=Number(state[id].toFixed(2))+suffix;if(id==='height')rebuild(false);draw();});
@@ -134,10 +136,10 @@ function fitView(){
  scale=Math.max(1,Math.min(Math.max(40,right-left)/(b[2]-b[0]),Math.max(40,bottom-top)/(b[3]-b[1])));
  state.zoom=1;state.panX=(left+right-w)/2-(b[0]+b[2])/2*scale;state.panY=(top+bottom-h)/2+(b[1]+b[3])/2*scale;draw();
 }
-function resize(){headingBounds=null;const rect=$('stage').getBoundingClientRect();w=rect.width;h=rect.height;dpr=Math.min(window.devicePixelRatio||1,+$('quality').value);canvas.width=Math.round(w*dpr);canvas.height=Math.round(h*dpr);overlay.width=canvas.width;overlay.height=canvas.height;
+function resize(){if(exporting)return;headingBounds=null;const rect=$('stage').getBoundingClientRect();w=rect.width;h=rect.height;dpr=Math.min(window.devicePixelRatio||1,+$('quality').value);canvas.width=Math.round(w*dpr);canvas.height=Math.round(h*dpr);overlay.width=canvas.width;overlay.height=canvas.height;
  if(!persistenceReady){if(restoredView){scale=restoredView.scale;state.zoom=restoredView.zoom;state.panX=restoredView.panX;state.panY=restoredView.panY;}else fitView();persistenceReady=true;}draw();}
 function point(p,t){const v=rotateScreen(canvasWorld(p,t));return [w/2+v[0]*scale*state.zoom+state.panX,h/2+v[1]*scale*state.zoom+state.panY];}
-function draw(){scheduleSave();if(queued)return;queued=true;requestAnimationFrame(render);}
+function draw(){if(exporting)return;scheduleSave();if(queued)return;queued=true;requestAnimationFrame(render);}
 let fractalGridKey=null,fractalPaths=[];
 function drawFractalGrid(){
  if(!$('fractalgrid').checked||state.subgridWidth<=0)return;
@@ -218,13 +220,13 @@ function drawIndicatrixes(){
 function materialMode(){return displayedSource==='ivory'?'ivory':displayedSource==='elevation'?'elevation':'source';}
 function bindMaterialUniforms(){gl.uniform1i(uniforms.circularMode,circularMode(state.method));gl.uniform1i(uniforms.ecologyHex,displayedSource==='ecology'?1:0);gl.uniform1i(uniforms.ecologyOcta,state.method==='octa'?1:0);gl.uniform3fv(uniforms['ecologyVertices[0]'],ecologyVertices);const mode=materialMode();gl.uniform1i(uniforms.material,['source','ivory','elevation'].indexOf(mode));gl.uniform1f(uniforms.materialSea,state.reliefSeaLevel/255);gl.activeTexture(gl.TEXTURE3);gl.bindTexture(gl.TEXTURE_2D,heightTexture||relief?.heightTextures[0]);gl.uniform1i(uniforms.heightMap,3);gl.activeTexture(gl.TEXTURE0);}
 function bindRiverUniforms(){gl.uniform1i(uniforms.riversVisible,$('rivers-visible').checked?1:0);gl.activeTexture(gl.TEXTURE1);gl.bindTexture(gl.TEXTURE_2D,riverTexture);gl.uniform1i(uniforms.riverMap,1);gl.activeTexture(gl.TEXTURE0);}
-function render(refined=false,exportMode=false){queued=false;document.documentElement.style.setProperty('--map-background',$('background-color').value);const background=$('background-color').value,brightness=[1,3,5].reduce((sum,i,k)=>sum+parseInt(background.slice(i,i+2),16)*[.299,.587,.114][k],0);document.documentElement.style.setProperty('--heading-ink',brightness>145?'#193c49':'#f6f4ed');for(const id of ['background-color','border-color','hex-grid-color','graticule-color'])$(id+'-value').value=$(id).value;syncOptionCards();updateDistortionLegend();refined=refined===true;clearTimeout(reliefRefineTimer);$('zoom-value').textContent=Math.round(state.zoom*100)+'%';if(!ready||!gl||!program)return;updateVisibleMesh();updateHeadingVisibility();gl.bindFramebuffer(gl.FRAMEBUFFER,null);gl.viewport(0,0,canvas.width,canvas.height);gl.clearColor(0,0,0,0);gl.clear(gl.COLOR_BUFFER_BIT);gl.useProgram(program);gl.uniform1f(uniforms.gridRotation,state.gridRotation*Math.PI/180);gl.uniform2f(uniforms.size,w,h);gl.uniform3f(uniforms.view,scale*state.zoom,state.panX,state.panY);gl.uniform3f(uniforms.angles,state.lon*Math.PI/180,state.lat*Math.PI/180,state.roll*Math.PI/180);gl.uniform1f(uniforms.bias,state.bias);gl.uniform1f(uniforms.blend,+$('interpolation').value);gl.uniform1f(uniforms.grid,$('graticule').checked?state.grid*Math.PI/180:0);gl.uniform1f(uniforms.gridWidth,.6*state.graticuleWidth/(scale*state.zoom));gl.uniform3fv(uniforms.gridColor,[1,3,5].map(i=>parseInt($('graticule-color').value.slice(i,i+2),16)/255));gl.uniform1i(uniforms.palette,displayedSource==='continents'?['atlas','original','night'].indexOf($('palette').value):1);gl.uniform1i(uniforms.distortion,derivativeSupport?($('distortion').checked?3:0):0);gl.uniform1f(uniforms.distortionOpacity,state.distortionOpacity);gl.uniform1f(uniforms.pixelScale,scale*state.zoom*dpr);gl.uniform1i(uniforms.map,0);gl.uniform1i(uniforms.felvClip,arrangement.clip?1:0);
+function render(refined=false,exportMode=false){if(exporting&&!exportMode)return;queued=false;document.documentElement.style.setProperty('--map-background',$('background-color').value);const background=$('background-color').value,brightness=[1,3,5].reduce((sum,i,k)=>sum+parseInt(background.slice(i,i+2),16)*[.299,.587,.114][k],0);document.documentElement.style.setProperty('--heading-ink',brightness>145?'#193c49':'#f6f4ed');for(const id of ['background-color','border-color','hex-grid-color','graticule-color'])$(id+'-value').value=$(id).value;syncOptionCards();updateDistortionLegend();refined=refined===true;clearTimeout(reliefRefineTimer);$('zoom-value').textContent=Math.round(state.zoom*100)+'%';if(!ready||!gl||!program)return;updateVisibleMesh();if(!exportMode)updateHeadingVisibility();gl.bindFramebuffer(gl.FRAMEBUFFER,null);gl.viewport(0,0,canvas.width,canvas.height);gl.clearColor(0,0,0,0);gl.clear(gl.COLOR_BUFFER_BIT);gl.useProgram(program);gl.uniform1f(uniforms.gridRotation,state.gridRotation*Math.PI/180);gl.uniform2f(uniforms.size,w,h);gl.uniform3f(uniforms.view,scale*state.zoom,state.panX,state.panY);gl.uniform3f(uniforms.angles,state.lon*Math.PI/180,state.lat*Math.PI/180,state.roll*Math.PI/180);gl.uniform1f(uniforms.bias,state.bias);gl.uniform1f(uniforms.blend,+$('interpolation').value);gl.uniform1f(uniforms.grid,$('graticule').checked?state.grid*Math.PI/180:0);gl.uniform1f(uniforms.gridWidth,.6*state.graticuleWidth/(scale*state.zoom));gl.uniform3fv(uniforms.gridColor,[1,3,5].map(i=>parseInt($('graticule-color').value.slice(i,i+2),16)/255));gl.uniform1i(uniforms.palette,displayedSource==='continents'?['atlas','original','night'].indexOf($('palette').value):1);gl.uniform1i(uniforms.distortion,derivativeSupport?($('distortion').checked?3:0):0);gl.uniform1f(uniforms.distortionOpacity,state.distortionOpacity);gl.uniform1f(uniforms.pixelScale,scale*state.zoom*dpr);gl.uniform1i(uniforms.map,0);gl.uniform1i(uniforms.felvClip,arrangement.clip?1:0);
  const drawColor=(width=w,height=h,baseOnly=false)=>{gl.useProgram(program);gl.uniform1i(uniforms.overlayOnly,0);gl.uniform1f(uniforms.grid,!baseOnly&&$('graticule').checked?state.grid*Math.PI/180:0);gl.uniform1i(uniforms.distortion,!baseOnly&&derivativeSupport?($('distortion').checked?3:0):0);gl.uniform2f(uniforms.size,width,height);bindMaterialUniforms();bindRiverUniforms();gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,texture);drawGeometry(program);};
  if(relief?.ready&&$('relief-enabled').checked){
   const seams=[];for(const t of visible)for(let e=0;e<6;e++)if(t.bad[e]){const local=(e-t.r+6)%6;seams.push([canvasWorld(hex[local],t),canvasWorld(hex[(local+1)%6],t)]);}
   for(const edge of arrangement.seams||[])if(edge.error>1e-6)seams.push([[edge.a[0],-edge.a[1]],[edge.b[0],-edge.b[1]]]);
   const signature=JSON.stringify([state.method,meshSignature,colorGeneration,riverGeneration,$('rivers-visible').checked,state.reliefSeaLevel,state.reliefOcean,state.reliefRiverDepth,state.lon,state.lat,state.roll,state.bias,state.gridRotation,scale,state.zoom,state.panX,state.panY,state.height,$('interpolation').value,$('graticule').checked,state.grid,$('palette').value,$('distortion').checked,state.distortionOpacity]);
-  try{relief.render({width:w,height:h,dpr,unit:scale*state.zoom,state,blend:+$('interpolation').value,clip:arrangement.clip,material:materialMode(),treatment:$('relief-treatment').value,tone:$('relief-tone').value,background:$('background-color').value,signature,drawColor:(width,height)=>drawColor(width,height,true),drawGeometry,seams,riverTexture,riverVisible:$('rivers-visible').checked,riverDepth:state.reliefRiverDepth,pixelBudget:exportMode?EXPORT_RELIEF_PIXELS:INTERACTIVE_RELIEF_PIXELS,refined});
+  try{relief.render({width:w,height:h,dpr,unit:scale*state.zoom,state,blend:+$('interpolation').value,clip:arrangement.clip,material:materialMode(),treatment:$('relief-treatment').value,tone:$('relief-tone').value,background:$('background-color').value,signature,drawColor:(width,height)=>drawColor(width,height,true),drawGeometry,seams,riverTexture,riverVisible:$('rivers-visible').checked,riverDepth:state.reliefRiverDepth,pixelBudget:exportMode?EXPORT_RELIEF_PIXELS:INTERACTIVE_RELIEF_PIXELS,refined,highResolution:exportMode});
    if($('graticule').checked||$('distortion').checked){
     gl.useProgram(program);gl.uniform2f(uniforms.size,w,h);gl.uniform1i(uniforms.overlayOnly,1);
     gl.uniform1f(uniforms.grid,$('graticule').checked?state.grid*Math.PI/180:0);gl.uniform1i(uniforms.distortion,derivativeSupport?($('distortion').checked?3:0):0);
@@ -232,7 +234,7 @@ function render(refined=false,exportMode=false){queued=false;document.documentEl
     gl.enable(gl.BLEND);gl.blendFuncSeparate(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA,gl.ONE,gl.ONE_MINUS_SRC_ALPHA);drawGeometry(program);gl.disable(gl.BLEND);gl.uniform1i(uniforms.overlayOnly,0);gl.activeTexture(gl.TEXTURE0);
    }
    if(!refined)reliefRefineTimer=setTimeout(()=>render(true),180);
-  }catch(error){console.warn('Relief renderer:',error);$('relief-enabled').checked=false;$('relief-status').textContent='Relief could not render on this device. The flat map is still available.';gl.colorMask(true,true,true,true);gl.bindFramebuffer(gl.FRAMEBUFFER,null);gl.viewport(0,0,canvas.width,canvas.height);drawColor();}
+  }catch(error){if(exportMode)throw error;console.warn('Relief renderer:',error);$('relief-enabled').checked=false;$('relief-status').textContent='Relief could not render on this device. The flat map is still available.';gl.colorMask(true,true,true,true);gl.bindFramebuffer(gl.FRAMEBUFFER,null);gl.viewport(0,0,canvas.width,canvas.height);drawColor();}
  }else drawColor();
  ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,w,h);ctx.lineJoin='round';
  ctx.save();
@@ -307,9 +309,42 @@ canvas.onpointerup=end;canvas.onpointercancel=end;
 
 $('reset').onclick=()=>{for(const [id,value] of Object.entries({lon:0,lat:0,roll:0,bias:1,height:1.5})){state[id]=value;$(id).value=value;$(id+'-value').value=value+(['lon','lat','roll'].includes(id)?'°':'');}$('interpolation').value='0';rebuild();};
 $('research').onclick=()=>$('research-dialog').showModal();$('close-dialog').onclick=()=>$('research-dialog').close();$('research-dialog').onclick=e=>{if(e.target===$('research-dialog')){const r=e.target.getBoundingClientRect();if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)e.target.close();}};
-function exportScale(){const requested=Math.max(2,Number($('export-scale').value)||2),maxTexture=gl.getParameter(gl.MAX_TEXTURE_SIZE),maxRenderbuffer=gl.getParameter(gl.MAX_RENDERBUFFER_SIZE),maxDimension=Math.min(maxTexture,maxRenderbuffer),maxPixels=Math.min(EXPORT_OUTPUT_PIXELS,maxDimension*maxDimension),scaleLimit=Math.min(Math.sqrt(maxPixels/Math.max(1,w*h)),maxDimension/Math.max(1,w),maxDimension/Math.max(1,h));return {requested,actual:Math.min(requested,scaleLimit)};}
-async function exportPNG(){if(!ready||!gl||!program)return;const button=$('export'),label=button.textContent,{requested,actual}=exportScale(),saved={dpr,canvasWidth:canvas.width,canvasHeight:canvas.height,overlayWidth:overlay.width,overlayHeight:overlay.height};let restored=false;const restore=()=>{if(restored)return;restored=true;dpr=saved.dpr;canvas.width=saved.canvasWidth;canvas.height=saved.canvasHeight;overlay.width=saved.overlayWidth;overlay.height=saved.overlayHeight;draw();};button.disabled=true;button.textContent=`Rendering PNG · ${actual.toFixed(1)}×…`;try{dpr=actual;canvas.width=Math.max(1,Math.round(w*dpr));canvas.height=Math.max(1,Math.round(h*dpr));overlay.width=canvas.width;overlay.height=canvas.height;render(true,true);const out=document.createElement('canvas');out.width=canvas.width;out.height=canvas.height;const c=out.getContext('2d');c.fillStyle=$('background-color').value;c.fillRect(0,0,out.width,out.height);c.drawImage(canvas,0,0);c.drawImage(overlay,0,0);restore();const blob=await new Promise((resolve,reject)=>out.toBlob(value=>value?resolve(value):reject(Error('PNG encoding failed')),'image/png'));const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=`hex-atlas-${state.method}-${Math.round(actual*100)/100}x.png`;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);if(actual<requested)$('status').textContent=`Export capped at ${Math.round(actual*100)/100}× to fit this device's ${Math.round(out.width*out.height/1000000*10)/10} MP limit.`;}catch(error){restore();$('status').textContent='PNG export failed; the live map is still available.';console.warn('PNG export:',error);}finally{button.disabled=false;button.textContent=label;}}
-$('export').onclick=exportPNG;
+async function exportMap(){
+ if(exporting||!ready||!gl||!program)return;
+ const button=$('export'),format=$('export-scale').value,isPDF=format==='pdf',factor=isPDF?null:Number(format),saved={w,h,dpr,panX:state.panX,panY:state.panY};
+ const crop={x:0,y:0,width:saved.w,height:saved.h};
+ const control=new AbortController(),dialog=$('export-progress'),progress=$('export-progress-text'),main=document.querySelector('main');
+ const out=document.createElement('canvas'),context=out.getContext('2d',{willReadFrequently:true});
+ const cancel=()=>control.abort(new DOMException('Export cancelled','AbortError'));
+ $('export-cancel').onclick=cancel;dialog.oncancel=event=>{event.preventDefault();cancel();};
+ updateMapUrl();clearTimeout(saveTimer);clearTimeout(reliefRefineTimer);exporting=true;button.disabled=true;main.inert=true;dialog.showModal();progress.textContent='Preparing…';
+ try{
+  const deadline=performance.now()+120000;
+  while($('map-loading').textContent==='Loading map…'||($('relief-enabled').checked&&relief?.loading&&!relief.detailed)||$('indicatrix-status').textContent==='Preparing circles…'){control.signal.throwIfAborted();if(performance.now()>deadline)throw Error('Map assets are still loading; please retry when they finish');await new Promise(resolve=>setTimeout(resolve,100));}
+ if(isPDF&&!tiling){const b=bounds(),unit=scale*state.zoom,pad=($('relief-enabled').checked&&relief?.ready?relief.padding(state,unit):0)+12;crop.x=saved.w/2+saved.panX+b[0]*unit-pad;crop.y=saved.h/2+saved.panY-b[3]*unit-pad;crop.width=(b[2]-b[0])*unit+2*pad;crop.height=(b[3]-b[1])*unit+2*pad;}
+  const renderTile=async(x,y,width,height,ratio=factor)=>{
+   control.signal.throwIfAborted();
+   // Overlap tiles enough to include antialiasing and the relief shadow blur.
+   const bleed=Math.ceil(($('relief-enabled').checked?(4+scale*state.zoom*.11)*state.reliefSoftness:0)*ratio)+4;
+   const maxDimension=Math.min(gl.getParameter(gl.MAX_TEXTURE_SIZE),gl.getParameter(gl.MAX_RENDERBUFFER_SIZE));
+   if(Math.max(width,height)+2*bleed>maxDimension)throw Error('Shadow softness at this zoom exceeds the device tile limit; reduce zoom or softness and retry');
+   w=(width+2*bleed)/ratio;h=(height+2*bleed)/ratio;dpr=ratio;
+   state.panX=saved.w/2+saved.panX-crop.x-(x-bleed)/ratio-w/2;state.panY=saved.h/2+saved.panY-crop.y-(y-bleed)/ratio-h/2;
+   canvas.width=width+2*bleed;canvas.height=height+2*bleed;overlay.width=canvas.width;overlay.height=canvas.height;
+   if(gl.drawingBufferWidth!==canvas.width||gl.drawingBufferHeight!==canvas.height)throw Error('This device could not allocate an export tile');
+   render(true,true);
+   out.width=width;out.height=height;context.fillStyle=$('background-color').value;context.fillRect(0,0,width,height);
+   for(const source of [canvas,overlay])context.drawImage(source,bleed,bleed,width,height,0,0,width,height);
+   return context.getImageData(0,0,width,height).data;
+  };
+  const onProgress=value=>progress.textContent=`Rendering ${isPDF?'PDF':`PNG ${factor}×`} · ${Math.round(value*100)}%`;
+  const blob=isPDF?await printPDF({width:crop.width,height:crop.height,renderTile,signal:control.signal,onProgress}):await pngFromTiles({width:Math.round(saved.w*factor),height:Math.round(saved.h*factor),renderTile,signal:control.signal,onProgress});
+  control.signal.throwIfAborted();
+  const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=`hexagonal-world-${state.method}-${isPDF?'print.pdf':factor+'x.png'}`;a.click();setTimeout(()=>URL.revokeObjectURL(url),60000);
+ }catch(error){if(error.name!=='AbortError'){console.warn('Map export:',error);$('relief-status').textContent='Export failed: '+error.message;}}
+ finally{w=saved.w;h=saved.h;dpr=saved.dpr;state.panX=saved.panX;state.panY=saved.panY;out.width=out.height=1;exporting=false;main.inert=false;dialog.close();button.disabled=false;meshSignature=null;resize();}
+}
+$('export').onclick=exportMap;
 const img=new Image();img.onload=()=>{if(!gl||!program)return;texture=gl.createTexture();gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,texture);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);let source=img;const max=gl.getParameter(gl.MAX_TEXTURE_SIZE);if(img.width>max){source=document.createElement('canvas');source.width=max;source.height=Math.round(img.height*max/img.width);source.getContext('2d').drawImage(img,0,0,source.width,source.height);}gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,source);ready=true;updateOptimizerUI();if($('optimize').checked)applySearch();updateRiverLayer();updateMapSource();draw();};img.onerror=()=>fail('The continent texture could not be loaded. Reload the app to try again.');img.src='continents.png';
 canvas.addEventListener('webglcontextlost',e=>{e.preventDefault();ready=false;fail('The graphics context was interrupted. Reload to restore the map.');});
 
@@ -378,7 +413,7 @@ function captureSettings(){
  return {version:1,state:{...state},controls,view:{scale,zoom:state.zoom,panX:state.panX,panY:state.panY},details:Object.fromEntries([...document.querySelectorAll('aside > details')].map(el=>[el.id,el.open]))};
 }
 function readMapStateFromUrl(){const hash=location.hash;if(!hash.startsWith('#m=')&&!hash.startsWith('#p='))return null;try{return decodeMapState(hash.slice(3));}catch{return null;}}
-function updateMapUrl(){if(!persistenceReady)return;clearTimeout(saveTimer);try{const url=new URL(location.href);url.hash='m='+encodeMapState(captureSettings());history.replaceState(null,'',url);}catch{}}
+function updateMapUrl(){if(!persistenceReady||exporting)return;clearTimeout(saveTimer);try{const url=new URL(location.href);url.hash='m='+encodeMapState(captureSettings());history.replaceState(null,'',url);}catch{}}
 function scheduleSave(){if(!persistenceReady)return;clearTimeout(saveTimer);saveTimer=setTimeout(updateMapUrl,180);}
 document.addEventListener('input',scheduleSave);document.addEventListener('change',scheduleSave);
 
