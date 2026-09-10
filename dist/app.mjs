@@ -290,7 +290,7 @@ function cursorSphere(e){
 }
 canvas.onpointerdown=e=>{
  canvas.setPointerCapture(e.pointerId);pointers.set(e.pointerId,[e.clientX,e.clientY]);dragging={x:e.clientX,y:e.clientY};
- const sample=cursorSphere(e);grabbed=(state.mode==='rotate'||e.shiftKey)&&sample?geographicPoint(state,sample):null;
+ const sample=state.mode==='rotate'?cursorSphere(e):null;grabbed=sample?geographicPoint(state,sample):null;
  if(pointers.size===2){grabbed=null;const p=[...pointers.values()];pinchDistance=Math.hypot(p[0][0]-p[1][0],p[0][1]-p[1][1]);}
 };
 canvas.onpointermove=e=>{
@@ -298,7 +298,7 @@ canvas.onpointermove=e=>{
  pointers.set(e.pointerId,[e.clientX,e.clientY]);
  if(pointers.size===2){const p=[...pointers.values()],d=Math.hypot(p[0][0]-p[1][0],p[0][1]-p[1][1]),r=canvas.getBoundingClientRect();if(pinchDistance)zoom(d/pinchDistance,(p[0][0]+p[1][0])/2-r.left,(p[0][1]+p[1][1])/2-r.top);pinchDistance=d;dragging={x:e.clientX,y:e.clientY};return;}
  const dx=e.clientX-dragging.x,dy=e.clientY-dragging.y;dragging={x:e.clientX,y:e.clientY};
- if(state.mode==='rotate'||e.shiftKey){
+ if(state.mode==='rotate'){
   const sample=cursorSphere(e);if(!sample)return;
   if(!grabbed){grabbed=geographicPoint(state,sample);return;}
   leaveSearch();setRotation(followPoint(state,sample,grabbed));
@@ -383,7 +383,8 @@ function restoreSettings(provided){
    $(id+'-value').value=Number(state[id].toFixed(2))+(reliefRanges.find(s=>s[0]===id)?.[6]??rangeSuffixes[id]??(['lon','lat','roll','gridRotation','grid','clearance'].includes(id)?'°':''));
   }
   if(Number.isInteger(ss.layout)&&ss.layout>=0&&ss.layout<81)state.layout=ss.layout;
-  if(ss.mode==='pan'||ss.mode==='rotate')mode(ss.mode);
+  // Drag mode is a local choice, never restored from a shared map.
+  mode('pan');
   const legacyMaterial=saved.controls?.['relief-material'];
   if(['ivory','elevation'].includes(legacyMaterial))saved.controls={...saved.controls,'map-source':legacyMaterial};
   if(saved.controls?.['map-source']==='rivers')saved.controls={...saved.controls,'map-source':'continents','rivers-visible':true};
@@ -495,9 +496,8 @@ function setOptionControl(id,value){
 }
 function applyMapOption(option,type){
   if(type==='layout'){
-    for(const id of ['method','arrangement','lon','lat','roll','bias','height','clearance','gridRotation','mode'])if(option.state[id]!==undefined){if(['method','arrangement','mode'].includes(id))state[id]=option.state[id];else setOptionRange(id,option.state[id]);}
+    for(const id of ['method','arrangement','lon','lat','roll','bias','height','clearance','gridRotation'])if(option.state[id]!==undefined){if(['method','arrangement'].includes(id))state[id]=option.state[id];else setOptionRange(id,option.state[id]);}
     for(const id of ['interpolation','optimize'])if(option.controls[id]!==undefined)setOptionControl(id,option.controls[id]);
-    if(option.mode)mode(option.mode);else mode(state.mode);
     state.layout=0;document.querySelectorAll('.method').forEach(el=>el.classList.toggle('active',el.dataset.method===state.method));
     rebuild();resize();if(option.viewOffset){state.panX=option.viewOffset[0]*scale;state.panY=option.viewOffset[1]*scale;draw();}updateRelief();
   }else{
