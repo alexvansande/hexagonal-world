@@ -42,6 +42,7 @@ export const styleOptions=[
       "graticuleWidth": 1
     },
     "controls": {
+      "lighting-preset": "sculpted",
       "map-source": "ecology",
       "relief-enabled": true,
       "relief-treatment": "atlas",
@@ -93,6 +94,7 @@ export const styleOptions=[
       "graticuleWidth": 1
     },
     "controls": {
+      "lighting-preset": "sculpted",
       "map-source": "marble",
       "relief-enabled": true,
       "relief-treatment": "atlas",
@@ -143,6 +145,7 @@ export const styleOptions=[
       "graticuleWidth": 1
     },
     "controls": {
+      "lighting-preset": "dramatic",
       "map-source": "elevation",
       "relief-enabled": true,
       "relief-treatment": "atlas",
@@ -193,6 +196,7 @@ export const styleOptions=[
       "graticuleWidth": 1
     },
     "controls": {
+      "lighting-preset": "none",
       "map-source": "countries",
       "relief-enabled": false,
       "relief-treatment": "atlas",
@@ -244,6 +248,7 @@ export const styleOptions=[
       "graticuleWidth": 1
     },
     "controls": {
+      "lighting-preset": "gentle",
       "map-source": "terrain",
       "relief-enabled": true,
       "relief-treatment": "atlas",
@@ -295,6 +300,7 @@ export const styleOptions=[
       "graticuleWidth": 1
     },
     "controls": {
+      "lighting-preset": "dramatic",
       "map-source": "continents",
       "relief-enabled": true,
       "relief-treatment": "land",
@@ -346,6 +352,7 @@ export const styleOptions=[
       "graticuleWidth": 1
     },
     "controls": {
+      "lighting-preset": "gentle",
       "map-source": "ivory",
       "relief-enabled": true,
       "relief-treatment": "atlas",
@@ -397,6 +404,7 @@ export const styleOptions=[
       "graticuleWidth": 1
     },
     "controls": {
+      "lighting-preset": "none",
       "map-source": "continents",
       "relief-enabled": false,
       "relief-treatment": "land",

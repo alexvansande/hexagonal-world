@@ -33,3 +33,6 @@ for(let i=0;i<2000;i++){
 console.log('Styles: eight render thumbnails, geography-independent settings, requested corrections, and Gosper-aligned ecology cells pass.');
 
 assert.equal(byId.lifezones.state.reliefColorFade,.1,'Lifezones defaults to 10% colour fade');
+
+const lightingDefaults={"lifezones": "sculpted", "satellite": "sculpted", "elevation": "dramatic", "gray-neutral": "dramatic", "topographic": "gentle", "ivory": "gentle", "political": "none", "distortion-analysis": "none"};
+for(const [id,preset] of Object.entries(lightingDefaults)){assert.equal(byId[id].controls['lighting-preset'],preset);assert.equal(byId[id].controls['relief-enabled'],preset!=='none');}

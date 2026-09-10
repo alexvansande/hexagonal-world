@@ -2,7 +2,7 @@ import {renderLifezonesLegend} from './lifezones-legend.mjs?v=waves-1';
 import {fadedLegendColor} from './legend-colors.mjs';
 import {ProjectedLighting,lightingSettings,lightingKey} from './projected-lighting.mjs?v=layers-4';
 import {compactDevice,mobileFitRect} from './device-profile.mjs';
-import {readSharePath,sharePair,inferSharePair,presetSettings} from './share-routes.mjs?v=waves-1';
+import {readSharePath,sharePair,inferSharePair,presetSettings} from './share-routes.mjs?v=style-lighting-1';
 import {initAnalytics,trackEvent} from './analytics.mjs';
 import {pngFromTiles,printPDF} from './map-export.mjs?v=waves-1';
 import {fractalRegion,fractalOpacities,edgeKey} from './fractal-grid.mjs';
@@ -20,7 +20,7 @@ import {visibleTiles} from './tiling.mjs';
 import {makeGeometry,layouts,matching,canvasWorld,hex,world} from './geometry.mjs?v=circular-2';
 import {projectionGLSL} from './projection-shader.mjs?v=circular-2';
 import {ReliefRenderer,reliefRanges,reliefDefaults,reliefLooks} from './relief.mjs?v=layers-4';
-import {layoutOptions,styleOptions,layoutIcon} from './map-options.mjs?v=waves-1';
+import {layoutOptions,styleOptions,layoutIcon} from './map-options.mjs?v=style-lighting-1';
 const $=id=>document.getElementById(id), canvas=$('map'),overlay=$('overlay'),ctx=overlay.getContext('2d');
 const classOptions=[3,6,10,15];
 const classCount=id=>classOptions[Math.max(0,Math.min(3,Math.round(+$(id).value)))];
@@ -49,7 +49,7 @@ range('river-controls','riverWidth','River width',.5,3,.25,1,'×');range('river-
 for(const spec of reliefRanges){const id=spec[0];range(id==='reliefColorFade'?'lighting-opacity-controls':['reliefHeight','reliefAzimuth','reliefAltitude','reliefThickness'].includes(id)?'relief-main-controls':'relief-fine-controls',...spec);}
 range('lighting-opacity-controls','shadowOpacity','Dark opacity',0,1,.01,1);
 range('lighting-opacity-controls','lightOpacity','Light opacity',0,1,.01,1);
-const customOption=$('lighting-preset').querySelector('[value=custom]');if(compactDevice){customOption.value='none';customOption.textContent='None';}
+const customOption=$('lighting-preset').querySelector('[value=custom]');if(compactDevice)customOption.remove();
 const gl=canvas.getContext('webgl',{antialias:true,alpha:true,preserveDrawingBuffer:true});
 function fail(message){$('error').hidden=false;$('error').textContent=message;$('status').textContent='Rendering unavailable';}
 const vs=`attribute vec2 regionPosition;attribute float region;varying vec2 localPosition;varying float regionIndex;varying vec2 flatPosition;attribute float opacity;varying float tileAlpha;attribute vec2 position;attribute vec3 bary;attribute vec3 va;attribute vec3 vb;attribute vec3 vc;uniform vec2 size;uniform vec3 view;uniform float gridRotation;varying vec3 weights;varying vec3 a;varying vec3 b;varying vec3 c;void main(){localPosition=regionPosition;regionIndex=region;flatPosition=position;float cr=cos(gridRotation),sr=sin(gridRotation);vec2 rotated=vec2(cr*position.x-sr*position.y,sr*position.x+cr*position.y);vec2 p=(rotated*view.x+view.yz)/size*2.0;gl_Position=vec4(p.x,-p.y,0.,1.);tileAlpha=opacity;weights=bary;a=va;b=vb;c=vc;}`;
@@ -557,7 +557,7 @@ function applyMapOption(option,type){
   }else{
     for(const [id,value] of Object.entries(option.state))setOptionRange(id,value);
     for(const [id,value] of Object.entries(option.controls))setOptionControl(id,value);
-    $('lighting-preset').value=state.reliefHeight<=.8?'gentle':state.reliefHeight>=1.4?'dramatic':'sculpted';customApplied=null;
+    customApplied=null;
     updateMapSource();updateRelief();updateRiverLayer();draw();
   }
   syncOptionCards();
