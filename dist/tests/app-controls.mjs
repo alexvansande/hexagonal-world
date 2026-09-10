@@ -1,5 +1,6 @@
+import {searchPresets} from '../search-presets.mjs?v=rus-search-1';
 import {decodeMapState,encodeMapState} from '../map-state.mjs';
-import {layoutOptions,styleOptions} from '../map-options.mjs?v=analysis-style-1';
+import {layoutOptions,styleOptions} from '../map-options.mjs?v=rus-search-1';
 const frame=document.querySelector('iframe'),list=document.querySelector('#checks'),result=document.querySelector('#result');
 const errors=[];let checks=0;
 const delay=ms=>new Promise(resolve=>setTimeout(resolve,ms));
@@ -43,6 +44,7 @@ try{
   if(option.viewOffset){const v=decodeMapState(win.location.hash.slice(3)).view;assert(Math.abs(v.panX/v.scale-option.viewOffset[0])<1e-10&&Math.abs(v.panY/v.scale-option.viewOffset[1])<1e-10,'Infinite view did not retain its Africa-centered offset');}
   pass(option.name+' switches and renders');
  }
+ doc.querySelector('[data-arrangement="infinite"]').click();await settle();
  assert($('map-heading').dataset.obscured==='true'&&!$('sidebar-title').hidden,'Infinite map should move the title into the expanded column');pass('Title moves to the expanded column when the map covers it');
  const geography=()=>{const saved=decodeMapState(win.location.hash.slice(3));return JSON.stringify([saved.view,...['method','arrangement','lon','lat','roll','bias','height','gridRotation','mode'].map(id=>saved.state[id])]);};
  for(const option of styleOptions){
@@ -115,6 +117,13 @@ try{
  for(const [method,format] of [['lambert-one','single'],['lambert-two','double']]){
   doc.querySelector(`[data-method="${method}"]`).click();await settle();
   assert($('layout').value===format&&$('layout').options.length===1,'Circular method retained incompatible layout');
+  assert(!$('optimize').disabled,'Rus minimizer is unavailable');
+  for(const distance of [0,9]){
+   change('clearance',distance);await settle();
+   const expected=searchPresets[method][format].results[distance].angles,actual=decodeMapState(win.location.hash.slice(3)).state;
+   assert($('optimize').checked&&Object.keys(expected).every(k=>Math.abs(actual[k]-expected[k])<1e-10),'Rus search preset did not apply');
+  }
+  pass((method==='lambert-one'?'Rus One':'Rus Two')+' boundary search supports 0–9° clearance');
   assert($('bias').closest('label').hidden&&$('interpolation').closest('label').hidden,'Unsupported shape controls remain visible');
   for(const reliefEnabled of [false,true]){
    change('relief-enabled',reliefEnabled);change('graticule',true);change('distortion',true);await settle();

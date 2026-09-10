@@ -1,7 +1,7 @@
-import {layoutOptions,styleOptions} from '../map-options.mjs?v=analysis-style-1';
+import {layoutOptions,styleOptions} from '../map-options.mjs?v=rus-search-1';
 import {encodeMapState} from '../map-state.mjs?v=grid-styling-1';
 import {makeGeometry,layouts,hex,canvasWorld} from '../geometry.mjs?v=circular-2';
-import {makeArrangement} from '../arrangements.mjs?v=circular-2';
+import {makeArrangement} from '../arrangements.mjs?v=rus-search-1';
 const frame=document.querySelector('iframe'),result=document.querySelector('#result');
 const delay=ms=>new Promise(resolve=>setTimeout(resolve,ms));
 async function until(test,label){for(let i=0;i<300;i++){if(test())return;await delay(100);}throw Error('Timed out: '+label);}
@@ -13,7 +13,7 @@ try{
  const xs=points.map(p=>p[0]),ys=points.map(p=>p[1]),left=Math.min(...xs),right=Math.max(...xs),top=Math.min(...ys),bottom=Math.max(...ys);
  const scale=Math.min(702/(right-left),656/(bottom-top)),view={scale,zoom:1,panX:175-(left+right)*scale/2,panY:-28-(top+bottom)*scale/2};
  const selected=styleOptions.filter(style=>!new URLSearchParams(location.search).has('only')||style.id===new URLSearchParams(location.search).get('only'));
- frame.src='../index.html?v=analysis-style-1#m='+encodeMapState({state:layout.state,controls:layout.controls,view,details:{}});
+ frame.src='../index.html?v=rus-search-1#m='+encodeMapState({state:layout.state,controls:layout.controls,view,details:{}});
  await until(()=>frame.contentDocument?.querySelector('.style-preset-card'),'startup');
  const doc=frame.contentDocument,$=id=>doc.getElementById(id);
  await until(()=>$('relief-status').textContent.startsWith('Elevation ready'),'elevation');

@@ -1,13 +1,15 @@
+import {circularMode,hexSphere} from './circular-projections.mjs';
 import {makeGeometry,matching,norm,add,mul,world,hex} from './geometry.mjs?v=circular-2';
 const D=Math.PI/180;
 // Uniform samples along the flat hexagon perimeter, with each paired edge counted once.
 export function edgeSamples({method,height,bias=1,blend=0},resolution=256){
+ const cm=circularMode(method);if(cm===1)return new Float64Array([0,0,-1]);
  const tiles=makeGeometry(method,height),samples=[];
  for(const tile of tiles)for(let e=0;e<6;e++){
   const other=matching(tiles,tile.id,e);if(tile.id>other.id)continue;
   const mix=v=>add(mul(v,1-blend),mul(norm(v),blend));
   const a=mix(tile.ring[e]),b=mix(tile.ring[(e+1)%6]);
-  for(let i=0;i<resolution;i++){const t=(i+.5)/resolution,wa=(1-t)**bias,wb=t**bias;samples.push(...norm(add(mul(a,wa),mul(b,wb))));}
+  for(let i=0;i<resolution;i++){const t=(i+.5)/resolution;if(cm){samples.push(...hexSphere(hex[e].map((v,j)=>v*(1-t)+hex[(e+1)%6][j]*t),cm,tile.id));continue;}const wa=(1-t)**bias,wb=t**bias;samples.push(...norm(add(mul(a,wa),mul(b,wb))));}
  }
  return new Float64Array(samples);
 }
@@ -20,6 +22,7 @@ function sphereAt(point,tile,geometry,bias=1,blend=0){
   const u=((b[1]-c[1])*(x-c[0])+(c[0]-b[0])*(y-c[1]))/det;
   const v=((c[1]-a[1])*(x-c[0])+(a[0]-c[0])*(y-c[1]))/det;
   const weights=[u,v,1-u-v];if(weights.some(w=>w< -1e-8))continue;
+  if(circularMode(geometry.method))return hexSphere([x,y],circularMode(geometry.method),geometry.id);
   const powered=weights.map(w=>Math.max(0,w)**bias),sum=powered.reduce((s,w)=>s+w,0);
   return norm([0,1,2].map(j=>patch.v.reduce((s,p,i)=>s+(p[j]*(1-blend)+norm(p)[j]*blend)*powered[i]/sum,0)));
  }
@@ -67,6 +70,8 @@ export function outerEdgeSamples(config,arrangement,resolution=256){
 // Both sides of a red join matter: they can show different geographic land.
 // Matching internal joins are continuous and stay out of the finite objective.
 export function cutEdgeSamples(config,arrangement,resolution=256){
+ // The entire full-world perimeter is a single antipodal point.
+ if(circularMode(config.method)===1)return new Float64Array([0,0,-1]);
  if(!arrangement||arrangement.tiling)return edgeSamples(config,resolution);
  const outer=outerEdgeSamples(config,arrangement,resolution),extra=[];
  const geometry=makeGeometry(config.method,config.height);

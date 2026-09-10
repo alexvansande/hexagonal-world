@@ -8,18 +8,21 @@ import {searchPresets as previous} from '../dist/search-presets.mjs';
 import {layoutOptions} from '../dist/map-options.mjs';
 // Generate the source mask from continents.png (grayscale <128 = land).
 // The optional first argument is the raw 4320x2160 byte mask path.
-const methods=['tetra','octa','rhombic','tetrakis'];
-const names=['infinite','flower','dymaxion','bighex','felv'];
+const methods=['tetra','octa','rhombic','tetrakis','lambert-one','lambert-two'];
+const namesFor=method=>method==='lambert-one'?['single']:method==='lambert-two'?['double']:['infinite','flower','dymaxion','bighex','felv'];
 if(isMainThread){
- const maskPath=process.argv[2]||'/tmp/hex-land-mask.bin';
- const jobs=methods.flatMap(method=>names.map(name=>({method,name,maskPath}))),presets=Object.fromEntries(methods.map(m=>[m,{}]));
+ const args=process.argv.slice(2),maskPath=args.find(a=>!a.startsWith('--'))||'/tmp/hex-land-mask.bin';
+ const selected=args.find(a=>a.startsWith('--methods='))?.slice(10).split(',')||methods;
+ if(selected.some(m=>!methods.includes(m)))throw Error('Unknown method filter');
+ const jobs=selected.flatMap(method=>namesFor(method).map(name=>({method,name,maskPath}))),presets=structuredClone(previous);
+ for(const method of selected)presets[method]??={};
  const run=async()=>{while(jobs.length){const job=jobs.shift();await new Promise((resolve,reject)=>{
   const worker=new Worker(new URL(import.meta.url),{workerData:job});let received=false;
   worker.on('message',preset=>{received=true;presets[job.method][job.name]=preset;console.log(`${job.method}/${job.name}: 10 validated presets (${preset.objective})`);});
   worker.on('error',reject);worker.on('exit',code=>code||!received?reject(Error(`Worker failed: ${job.method}/${job.name} (${code})`)):resolve());
  });}};
  await Promise.all(Array.from({length:4},run));
- const ordered=Object.fromEntries(methods.map(m=>[m,Object.fromEntries(names.map(n=>[n,presets[m][n]]))]));
+ const ordered=Object.fromEntries(methods.map(m=>[m,Object.fromEntries(namesFor(m).filter(n=>presets[m]?.[n]).map(n=>[n,presets[m][n]]))]));
  writeFileSync('dist/search-presets.mjs','// Deterministic search of continents.png: 1,500 initial rotations per distance, then dense validation on the same objective.\nexport const searchPresets = '+JSON.stringify(ordered,null,2)+';\n');
 }else{
  const {method,name,maskPath}=workerData,mask=new Uint8Array(readFileSync(maskPath)),width=4320,height=2160;
@@ -34,5 +37,5 @@ if(isMainThread){
   if(result.after>result.before)throw Error(`${method}/${name}: score regression`);
   results.push({distance,...result});
  }
- parentPort.postMessage({config,objective:arrangement.tiling?'all-hex-edges':'outer-and-red-seams',results});
+ parentPort.postMessage({config,objective:method==='lambert-one'?'antipodal-point':method==='lambert-two'?'hemisphere-cuts':arrangement.tiling?'all-hex-edges':'outer-and-red-seams',results});
 }

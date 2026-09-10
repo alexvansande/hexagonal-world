@@ -62,3 +62,17 @@ assert(far.reduce((a,b)=>a+b)>near.reduce((a,b)=>a+b));
 assert(clearanceField(new Uint8Array(36*18),36,18,36,18).distance.every(d=>d===Infinity));
 assert(clearanceField(new Uint8Array(36*18).fill(1),36,18,36,18).distance.every(d=>d===0));
 console.log('Coastline clearance: angular units, date-line wrapping, monotonic thresholds and empty/full masks pass.');
+
+// Circular edges must use the exact disk-to-hex inverse, not polyhedral vertices.
+for(const [method,format,edgeCount] of [['lambert-one','single',0],['lambert-two','double',10]]){
+ const config={method,height:1.5},tiles=makeGeometry(method),arrangement=makeArrangement(tiles,format,layouts(tiles));
+ const cuts=cutEdgeSamples(config,arrangement,32);
+ assert.equal(cuts.length/3,edgeCount?edgeCount*32:1);
+ if(!edgeCount)assert.deepEqual([...cuts],[0,0,-1]);
+ else for(let i=0;i<cuts.length;i+=3){assert(Math.abs(cuts[i+2])<1e-12);assert(Math.abs(Math.hypot(...cuts.slice(i,i+3))-1)<1e-12);}
+ const testMask=new Uint8Array(128*64);testMask.fill(1,128*58);
+ const result=optimize({config,arrangement,start,mask:testMask,width:128,height:64,budget:30,seed:42});
+ const samples=cutEdgeSamples(config,arrangement,2048);
+ assert.equal(result.samples,samples.length/3);assert.equal(result.after,landScore(samples,result.angles,testMask,128,64));assert(result.after<=result.before);
+}
+console.log('Rus searches: antipodal point, equatorial cuts, consistent scoring and dense validation pass.');

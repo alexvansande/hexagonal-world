@@ -27,7 +27,7 @@ Default central projection uses actual planar polyhedral coordinates. The normal
 
 The tests check spherical area, all paired borders at 101 samples, and all contacts in every generated layout. Relief rendering has a separate browser GPU regression page at `/tests/relief-render.html`.
 
-## Lambert hexagons
+## Rus One and Rus Two (Lambert hexagons)
 
 `dist/circular-projections.mjs` contains matching CPU and GPU inverse maps. For a
 unit hexagon, let `a = √3/2`, `s = π/3`, `k = π/(2√3)`, and `β` be the normal
@@ -45,8 +45,11 @@ antipode: the entire perimeter represents one point (label P). It follows the
 circular-map proposal and does not reproduce Rus's triangular-dihedron fold.
 The two-hexagon map has the hexagonal-dihedron boundary pairing, using equal-area
 rather than conformal mapping. Shape bias and vertex interpolation do not apply.
-Only their corresponding finite arrangements are offered; there are no cut-search
-presets for these methods. Rotation, styles, terrain, overlays and exports remain
+Only their corresponding finite arrangements are offered. Each has ten search
+presets (0–9° clearance). Rus One scores its single antipodal boundary point;
+Rus Two scores its exposed hemisphere edges, excluding the continuous shared
+edge. Search uses the exact Lambert/disk-to-hex map rather than interpolated
+vertices. The format cards start with the zero-clearance results. Rotation, styles, terrain, overlays and exports remain
 available. `circular-tests.mjs` checks coverage, Jacobians, every paired edge,
 round trips, dragging and projected source circles.
 

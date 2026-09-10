@@ -2627,5 +2627,271 @@ export const searchPresets = {
         }
       ]
     }
+  },
+  "lambert-one": {
+    "single": {
+      "config": {
+        "method": "lambert-one",
+        "height": 1.5,
+        "bias": 1,
+        "blend": 0
+      },
+      "objective": "antipodal-point",
+      "results": [
+        {
+          "distance": 0,
+          "angles": {
+            "lon": -113.3026042766869,
+            "lat": 22.058934644941793,
+            "roll": -63.51656958460808
+          },
+          "before": 1,
+          "after": 0,
+          "evaluations": 1900,
+          "samples": 1
+        },
+        {
+          "distance": 1,
+          "angles": {
+            "lon": -113.3026042766869,
+            "lat": 22.058934644941793,
+            "roll": -63.51656958460808
+          },
+          "before": 1,
+          "after": 0,
+          "evaluations": 1900,
+          "samples": 1
+        },
+        {
+          "distance": 2,
+          "angles": {
+            "lon": -83.24938382953405,
+            "lat": -39.972005734060815,
+            "roll": -79.61926454678178
+          },
+          "before": 1,
+          "after": 0,
+          "evaluations": 1900,
+          "samples": 1
+        },
+        {
+          "distance": 3,
+          "angles": {
+            "lon": -83.24938382953405,
+            "lat": -39.972005734060815,
+            "roll": -79.61926454678178
+          },
+          "before": 1,
+          "after": 0,
+          "evaluations": 1900,
+          "samples": 1
+        },
+        {
+          "distance": 4,
+          "angles": {
+            "lon": -83.24938382953405,
+            "lat": -39.972005734060815,
+            "roll": -79.61926454678178
+          },
+          "before": 1,
+          "after": 0,
+          "evaluations": 1900,
+          "samples": 1
+        },
+        {
+          "distance": 5,
+          "angles": {
+            "lon": -83.24938382953405,
+            "lat": -39.972005734060815,
+            "roll": -79.61926454678178
+          },
+          "before": 1,
+          "after": 0,
+          "evaluations": 1900,
+          "samples": 1
+        },
+        {
+          "distance": 6,
+          "angles": {
+            "lon": -83.24938382953405,
+            "lat": -39.972005734060815,
+            "roll": -79.61926454678178
+          },
+          "before": 1,
+          "after": 0,
+          "evaluations": 1900,
+          "samples": 1
+        },
+        {
+          "distance": 7,
+          "angles": {
+            "lon": -83.24938382953405,
+            "lat": -39.972005734060815,
+            "roll": -79.61926454678178
+          },
+          "before": 1,
+          "after": 0,
+          "evaluations": 1900,
+          "samples": 1
+        },
+        {
+          "distance": 8,
+          "angles": {
+            "lon": 68.66473828442395,
+            "lat": 5.89190213173371,
+            "roll": -142.3506696615368
+          },
+          "before": 1,
+          "after": 0,
+          "evaluations": 1900,
+          "samples": 1
+        },
+        {
+          "distance": 9,
+          "angles": {
+            "lon": 68.66473828442395,
+            "lat": 5.89190213173371,
+            "roll": -142.3506696615368
+          },
+          "before": 1,
+          "after": 0,
+          "evaluations": 1900,
+          "samples": 1
+        }
+      ]
+    }
+  },
+  "lambert-two": {
+    "double": {
+      "config": {
+        "method": "lambert-two",
+        "height": 1.5,
+        "bias": 1,
+        "blend": 0
+      },
+      "objective": "hemisphere-cuts",
+      "results": [
+        {
+          "distance": 0,
+          "angles": {
+            "lon": -32.30610191412268,
+            "lat": -32.063330167477375,
+            "roll": 158.64937123842537
+          },
+          "before": 0.1413858413696287,
+          "after": 0.012196917376519748,
+          "evaluations": 2074,
+          "samples": 20480
+        },
+        {
+          "distance": 1,
+          "angles": {
+            "lon": -27.88110191412261,
+            "lat": -30.638330167477363,
+            "roll": 158.64937123842537
+          },
+          "before": 0.24583330154418945,
+          "after": 0.04458968006865305,
+          "evaluations": 2194,
+          "samples": 20480
+        },
+        {
+          "distance": 2,
+          "angles": {
+            "lon": 92.96773333624003,
+            "lat": 13.79620816624049,
+            "roll": 46.87679040580997
+          },
+          "before": 0.29416704177856445,
+          "after": 0.06346287039622381,
+          "evaluations": 2170,
+          "samples": 20480
+        },
+        {
+          "distance": 3,
+          "angles": {
+            "lon": 159.33776979669938,
+            "lat": 48.180795999264774,
+            "roll": -170.95786229074002
+          },
+          "before": 0.33750019073486326,
+          "after": 0.08568915863865319,
+          "evaluations": 2242,
+          "samples": 20480
+        },
+        {
+          "distance": 4,
+          "angles": {
+            "lon": -144.3690025046468,
+            "lat": 53.32619559202158,
+            "roll": 33.654580604285
+          },
+          "before": 0.3800004005432129,
+          "after": 0.11077250068660438,
+          "evaluations": 2170,
+          "samples": 20480
+        },
+        {
+          "distance": 5,
+          "angles": {
+            "lon": -142.83937047980726,
+            "lat": 54.24778709025509,
+            "roll": 31.5798652600497
+          },
+          "before": 0.4423959732055664,
+          "after": 0.12429278528039775,
+          "evaluations": 2218,
+          "samples": 20480
+        },
+        {
+          "distance": 6,
+          "angles": {
+            "lon": -50.096669778227806,
+            "lat": 41.2421563407122,
+            "roll": 134.47246523872013
+          },
+          "before": 0.4783330917358398,
+          "after": 0.15048196422164242,
+          "evaluations": 2224,
+          "samples": 20480
+        },
+        {
+          "distance": 7,
+          "angles": {
+            "lon": -51.671669778227795,
+            "lat": 39.89215634071229,
+            "roll": 134.62246523872022
+          },
+          "before": 0.519999885559082,
+          "after": 0.16687909913602322,
+          "evaluations": 2194,
+          "samples": 20480
+        },
+        {
+          "distance": 8,
+          "angles": {
+            "lon": -52.796669778227795,
+            "lat": 41.31715634071213,
+            "roll": 134.54746523872018
+          },
+          "before": 0.5591671943664551,
+          "after": 0.20555119696649285,
+          "evaluations": 2200,
+          "samples": 20480
+        },
+        {
+          "distance": 9,
+          "angles": {
+            "lon": -152.4144704528153,
+            "lat": 50.23666433516473,
+            "roll": 30.999616473913193
+          },
+          "before": 0.5958335876464844,
+          "after": 0.2906055995592915,
+          "evaluations": 2218,
+          "samples": 20480
+        }
+      ]
+    }
   }
 };
