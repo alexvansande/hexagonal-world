@@ -1,0 +1,4 @@
+# Original source downloads; derived runtime assets are in dist/maps.
+/data/
+.DS_Store
+__pycache__/

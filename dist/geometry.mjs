@@ -27,6 +27,22 @@ export function makeGeometry(method,height=1.5){
 }
 const rot=(p,r)=>{const a=r*Math.PI/3;return [p[0]*Math.cos(a)-p[1]*Math.sin(a),p[0]*Math.sin(a)+p[1]*Math.cos(a)];};
 export const world=(p,t)=>add(rot(p,t.r),[t.x,t.y]);
-export function matching(tiles,id,e){const a=key(tiles[id].ring[e]),b=key(tiles[id].ring[(e+1)%6]);for(const t of tiles)for(let j=0;j<6;j++)if(t.id!==id&&key(t.ring[j])===b&&key(t.ring[(j+1)%6])===a)return {id:t.id,e:j};throw Error('Unpaired edge');}
+// Geometry uses Y up; canvas coordinates use Y down. Convert exactly once.
+export const canvasWorld=(p,t)=>{const [x,y]=world(p,t);return [x,-y];};
+const edgePairCache=new WeakMap();
+export function matching(tiles,id,e){
+ let pairs=edgePairCache.get(tiles);
+ if(!pairs){
+  const edges=new Map();
+  for(const t of tiles)for(let j=0;j<6;j++)edges.set(`${key(t.ring[j])}|${key(t.ring[(j+1)%6])}`,{id:t.id,e:j});
+  pairs=tiles.map(t=>t.ring.map((p,j)=>{
+   const pair=edges.get(`${key(t.ring[(j+1)%6])}|${key(p)}`);
+   if(!pair||pair.id===t.id)throw Error('Unpaired edge');
+   return pair;
+  }));
+  edgePairCache.set(tiles,pairs);
+ }
+ return pairs[id][e];
+}
 export function layouts(tiles){const results=[];const seen=new Set();function visit(placed){if(placed.length===4){const k=[...placed].sort((a,b)=>a.id-b.id).map(t=>[t.id,t.x.toFixed(3),t.y.toFixed(3),t.r].join(',')).join(';');if(!seen.has(k)){seen.add(k);results.push(placed);}return;}for(const t of placed)for(let e=0;e<6;e++){const m=matching(tiles,t.id,e);if(placed.some(p=>p.id===m.id))continue;const w=(e+t.r)%6,angle=(w+.5)*Math.PI/3;const n={id:m.id,r:(w+3-m.e+12)%6,x:t.x+Math.sqrt(3)*Math.cos(angle),y:t.y+Math.sqrt(3)*Math.sin(angle)};let valid=true;for(const p of placed){const d=Math.hypot(p.x-n.x,p.y-n.y);if(d<1.7){valid=false;break;}if(d<1.74){let edge=-1;for(let j=0;j<6;j++){const mid=world(mul(add(hex[j],hex[(j+1)%6]),.5),p);if(Math.hypot(mid[0]-(p.x+n.x)/2,mid[1]-(p.y+n.y)/2)<1e-6)edge=j;}if(edge<0){valid=false;break;}const mm=matching(tiles,p.id,edge);if(mm.id!==n.id||(mm.e+n.r)%6!==(edge+p.r+3)%6){valid=false;break;}}}if(valid)visit([...placed,n]);}}visit([{id:0,x:0,y:0,r:0}]);return results;}
 export function sphereArea(a,b,c){a=norm(a);b=norm(b);c=norm(c);return 2*Math.atan2(Math.abs(dot(a,cross(b,c))),1+dot(a,b)+dot(b,c)+dot(c,a));}

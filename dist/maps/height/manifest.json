@@ -1,0 +1,31 @@
+{
+  "source": "data/height.png (user supplied)",
+  "size": [
+    21600,
+    10800
+  ],
+  "sourcePrecisionBits": 8,
+  "encoding": "Grayscale brightness; higher is higher. Physical vertical units are unspecified.",
+  "seaLevel": 0.4117647058823529,
+  "seaLevelNote": "Approximate coastal brightness, adjustable in the relief controls; not a calibrated datum.",
+  "overview": "overview.png",
+  "overviewSize": [
+    5400,
+    2700
+  ],
+  "columns": 3,
+  "rows": 2,
+  "tileSize": [
+    7200,
+    5400
+  ],
+  "gutter": 1,
+  "tiles": [
+    "0-0.png",
+    "0-1.png",
+    "0-2.png",
+    "1-0.png",
+    "1-1.png",
+    "1-2.png"
+  ]
+}

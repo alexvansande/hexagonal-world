@@ -1,0 +1,127 @@
+{
+  "ecologySize": [
+    1440,
+    720
+  ],
+  "countrySize": [
+    4320,
+    2160
+  ],
+  "holdridgeClasses": {
+    "2": "Polar desert",
+    "3": "Polar dry tundra",
+    "4": "Polar moist tundra",
+    "5": "Polar wet tundra",
+    "9": "Boreal moist forest",
+    "10": "Boreal wet forest",
+    "6": "Polar rain tundra",
+    "8": "Boreal dry bush",
+    "7": "Boreal desert",
+    "11": "Boreal rain forest",
+    "0": "",
+    "1": "Ice",
+    "15": "Cool temperate moist forest",
+    "17": "Cool temperate rain forest",
+    "16": "Cool temperate wet forest",
+    "13": "Cool temperate desert bush",
+    "12": "Cool temperate desert",
+    "22": "Warm temperate moist forest",
+    "21": "Warm temperate dry forest",
+    "20": "Warm temperate thorn steppe",
+    "14": "Cool temperate steppe",
+    "19": "Warm temperate desert bush",
+    "18": "Warm temperate desert",
+    "25": "Subtropical desert",
+    "26": "Subtropical desert bush",
+    "27": "Subtropical thorn steppe",
+    "28": "Subtropical dry forest",
+    "23": "Warm temperate wet forest",
+    "29": "Subtropical moist forest",
+    "32": "Tropical desert",
+    "33": "Tropical desert bush",
+    "36": "Tropical dry forest",
+    "34": "Tropical thorn steppe",
+    "35": "Tropical very dry forest",
+    "24": "Warm temperate rain forest",
+    "37": "Tropical moist forest",
+    "38": "Tropical wet forest",
+    "30": "Subtropical wet forest",
+    "31": "Subtropical rain forest"
+  },
+  "land": {
+    "name": "Leemans / Holdridge life zones",
+    "publication": 1992,
+    "climatePeriod": "1931\u20131960",
+    "nativeResolution": "0.5\u00b0",
+    "source": "https://data-gis.unep-wcmc.org/portal/home/item.html?id=31d5e80482834f6ba6ee51a2813b82e7",
+    "download": "https://datadownload-production.s3.dualstack.us-east-1.amazonaws.com/Holdridge_Life_Zones.zip",
+    "documentation": "https://www.ngdc.noaa.gov/ecosys/cdroms/AVHRR97_d2/document/ncillary/lhold/aareadme.htm"
+  },
+  "temperature": {
+    "name": "NOAA OISST v2",
+    "period": "1991\u20132020",
+    "nativeResolution": "1\u00b0",
+    "aggregation": "Days-weighted mean of 12 monthly normals",
+    "binsC": [
+      10,
+      20
+    ],
+    "download": "https://downloads.psl.noaa.gov/Datasets/noaa.oisst.v2/sst.ltm.1991-2020.nc"
+  },
+  "depth": {
+    "name": "Natural Earth bathymetry / SRTM Plus",
+    "binsM": [
+      200,
+      1000,
+      2000,
+      4000
+    ],
+    "source": "https://www.naturalearthdata.com/downloads/10m-physical-vectors/10m-bathymetry/",
+    "download": "https://naturalearth.s3.amazonaws.com/10m_physical/ne_10m_bathymetry_all.zip"
+  },
+  "countries": {
+    "name": "Natural Earth Admin 0",
+    "version": "5.1.1",
+    "scale": "1:50 million",
+    "boundaries": "de facto",
+    "source": "https://www.naturalearthdata.com/downloads/50m-cultural-vectors/50m-admin-0-countries-2/"
+  },
+  "blueMarble": {
+    "file": "bluemarble-high.jpg",
+    "source": "User-supplied /Users/avsa/Dev/Gosper-Fractals/img/bluemarble-high.jpg",
+    "size": [
+      10800,
+      5400
+    ],
+    "description": "Preferred Blue Marble image with brighter oceans and seafloor detail. Replaces the previously downloaded July 2004 image."
+  },
+  "encoding": "RGB: Holdridge class (0 ocean, 254 unclassified polar land); bathymetry bin 0\u20134; thermal bin (0 unavailable,1 <10C,2 10\u201320C,3 >=20C). No interpolation between classes.",
+  "notes": "Holdridge is potential climate-defined vegetation, not observed contemporary cover. Marine classes are custom seafloor-depth \u00d7 surface-temperature groups, not Holdridge or measured deep-water biomes. Source value 254 is unclassified polar land and is displayed as polar rather than missing; gray indicates other missing source data. Display presets are custom aggregations with 3, 6, 10 and 15 options for both land and ocean.",
+  "terrain": {
+    "file": "topography.jpg",
+    "source": "User source folder: Equirectangular-projection-topographic-world.jpg",
+    "description": "Pre-shaded topographic image; fixed lighting. Not a calibrated elevation raster."
+  },
+  "height": {
+    "source": "User-supplied data/height.png",
+    "size": [
+      21600,
+      10800
+    ],
+    "description": "8-bit grayscale relative elevation including land and seafloor. Vertical units unspecified; initial sea level 105/255 is approximate and adjustable.",
+    "manifest": "height/manifest.json",
+    "processing": "scripts/prepare-heightmap.py preserves the original and packages a reduced overview plus six full-resolution grayscale tiles with wrapped one-pixel gutters."
+  },
+  "riverOverlay": {
+    "source": "https://www.naturalearthdata.com/downloads/10m-physical-vectors/10m-rivers-lake-centerlines/",
+    "file": "river-lines.json",
+    "description": "Natural Earth 1:10m river/lake centerlines; all included ranks, styled by scalerank. Generalized major rivers and tributaries; not a complete stream network."
+  },
+  "ecologyDisplay": {
+    "sampling": "Hexagonal cells in projected map coordinates, aligned to the sixth Gosper subgrid generation. Cell centers are projected to the source sphere before classification sampling.",
+    "radiusRelativeToParentHex": 0.0029154518950437317,
+    "nativeLandDegrees": 0.5,
+    "nativeOceanTemperatureDegrees": 1,
+    "limitation": "Changes the display pixel shape; does not add geographic information or increase native source resolution. Relief and rivers retain their original sampling."
+  }
+}

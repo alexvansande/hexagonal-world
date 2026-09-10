@@ -1,0 +1,303 @@
+import {makeGeometry,layouts,hex,world} from './geometry.mjs';
+import {makeArrangement} from './arrangements.mjs';
+
+export const layoutOptions=[
+ {name:'Felv',arrangement:'felv',state:{method:'rhombic',arrangement:'felv',lon:-17.09618694721815,lat:-47.838840542042334,roll:3.719788555653089,bias:1,height:1.5,gridRotation:0,mode:'rotate'},controls:{interpolation:'0',optimize:false}},
+ {name:'Flower World',arrangement:'bighex',state:{method:'rhombic',arrangement:'bighex',lon:-19.196120097618845,lat:54.98466622358542,roll:-73.21086442098823,bias:1,height:1.5,gridRotation:60,mode:'rotate'},controls:{interpolation:'0',optimize:false}},
+ {name:'4Hexes',arrangement:'flower',state:{method:'rhombic',arrangement:'flower',lon:-59.546827942297625,lat:47.19105399532358,roll:17.040754474795346,bias:1,height:1.5,gridRotation:31,mode:'rotate'},controls:{interpolation:'0',optimize:false}},
+ {name:'Spaceship Earth',arrangement:'dymaxion',state:{method:'rhombic',arrangement:'dymaxion',lon:-169.20054704482222,lat:35.360266510364475,roll:-11.021389243205215,bias:1,height:1.5,gridRotation:31,mode:'rotate'},controls:{interpolation:'0',optimize:false}},
+ {name:'Infinite Honeycomb',arrangement:'infinite',state:{method:'rhombic',arrangement:'infinite',lon:-168.51360216723162,lat:37.41313981522221,roll:-11.453856794719924,bias:1,height:1.5,gridRotation:31,mode:'pan'},controls:{interpolation:'0',optimize:false}}
+];
+
+// Curated surface settings from the user's saved maps. Projection and view are deliberately absent.
+export const styleOptions=[
+  {
+    "id": "gray-neutral",
+    "name": "Gray neutral",
+    "source": "continents",
+    "state": {
+      "reliefHeight": 1.25,
+      "reliefAzimuth": 0,
+      "reliefAltitude": 54,
+      "reliefContrast": 1.15,
+      "reliefHighlights": 0.85,
+      "reliefAmbient": 0.35,
+      "reliefShadows": 0.05,
+      "reliefSoftness": 0.25,
+      "reliefAO": 0.3,
+      "reliefColorFade": 0,
+      "reliefThickness": 0,
+      "reliefOcean": 0.45,
+      "reliefRiverDepth": 0.5,
+      "reliefSeaLevel": 105,
+      "line": 0.1,
+      "grid": 30,
+      "distortionOpacity": 0.75,
+      "riverWidth": 1,
+      "riverLevels": 6
+    },
+    "controls": {
+      "map-source": "continents",
+      "relief-enabled": true,
+      "relief-treatment": "land",
+      "relief-tone": "neutral",
+      "rivers-visible": false,
+      "land-classes": 15,
+      "ocean-classes": 3,
+      "graticule": false,
+      "subgrid": false,
+      "dotgrid": false,
+      "palette": "atlas",
+      "construction": false,
+      "labels": false,
+      "distortion": false,
+      "indicatrix": "off"
+    },
+    "thumbnail": "maps/styles/gray-neutral.png"
+  },
+  {
+    "id": "satellite",
+    "name": "Satellite",
+    "source": "marble",
+    "state": {
+      "reliefHeight": 1.1,
+      "reliefAzimuth": 300,
+      "reliefAltitude": 32,
+      "reliefContrast": 1.45,
+      "reliefHighlights": 0.9,
+      "reliefAmbient": 0.7,
+      "reliefShadows": 0.65,
+      "reliefSoftness": 0.65,
+      "reliefAO": 0.75,
+      "reliefColorFade": 0.25,
+      "reliefThickness": 0.55,
+      "reliefOcean": 0.6,
+      "reliefRiverDepth": 0.75,
+      "reliefSeaLevel": 116,
+      "line": 0.1,
+      "grid": 30,
+      "distortionOpacity": 0.75,
+      "riverWidth": 1.25,
+      "riverLevels": 6
+    },
+    "controls": {
+      "map-source": "marble",
+      "relief-enabled": true,
+      "relief-treatment": "atlas",
+      "relief-tone": "neutral",
+      "rivers-visible": true,
+      "land-classes": 15,
+      "ocean-classes": 3,
+      "graticule": false,
+      "subgrid": false,
+      "dotgrid": false,
+      "palette": "atlas",
+      "construction": false,
+      "labels": false,
+      "distortion": false,
+      "indicatrix": "off"
+    },
+    "thumbnail": "maps/styles/satellite.png"
+  },
+  {
+    "id": "elevation",
+    "name": "Elevation",
+    "source": "elevation",
+    "state": {
+      "reliefHeight": 1.25,
+      "reliefAzimuth": 269,
+      "reliefAltitude": 17,
+      "reliefContrast": 1.45,
+      "reliefHighlights": 0.9,
+      "reliefAmbient": 0.7,
+      "reliefShadows": 0.7,
+      "reliefSoftness": 0.65,
+      "reliefAO": 0.75,
+      "reliefColorFade": 0.25,
+      "reliefThickness": 0.55,
+      "reliefOcean": 0.4,
+      "reliefRiverDepth": 0.9,
+      "reliefSeaLevel": 105,
+      "line": 0.1,
+      "grid": 30,
+      "distortionOpacity": 0.75,
+      "riverWidth": 1.75,
+      "riverLevels": 6
+    },
+    "controls": {
+      "map-source": "elevation",
+      "relief-enabled": true,
+      "relief-treatment": "atlas",
+      "relief-tone": "neutral",
+      "rivers-visible": true,
+      "land-classes": 15,
+      "ocean-classes": 3,
+      "graticule": false,
+      "subgrid": false,
+      "dotgrid": false,
+      "palette": "atlas",
+      "construction": false,
+      "labels": false,
+      "distortion": false,
+      "indicatrix": "off"
+    },
+    "thumbnail": "maps/styles/elevation.png"
+  },
+  {
+    "id": "political",
+    "name": "Political",
+    "source": "countries",
+    "state": {
+      "reliefHeight": 1.25,
+      "reliefAzimuth": 269,
+      "reliefAltitude": 17,
+      "reliefContrast": 1.45,
+      "reliefHighlights": 0.9,
+      "reliefAmbient": 0.7,
+      "reliefShadows": 0.7,
+      "reliefSoftness": 0.65,
+      "reliefAO": 0.75,
+      "reliefColorFade": 0.25,
+      "reliefThickness": 0.55,
+      "reliefOcean": 0.4,
+      "reliefRiverDepth": 0.9,
+      "reliefSeaLevel": 105,
+      "line": 0.1,
+      "grid": 30,
+      "distortionOpacity": 0.75,
+      "riverWidth": 1.25,
+      "riverLevels": 12
+    },
+    "controls": {
+      "map-source": "countries",
+      "relief-enabled": false,
+      "relief-treatment": "atlas",
+      "relief-tone": "neutral",
+      "rivers-visible": true,
+      "land-classes": 15,
+      "ocean-classes": 3,
+      "graticule": true,
+      "subgrid": false,
+      "dotgrid": true,
+      "palette": "atlas",
+      "construction": false,
+      "labels": false,
+      "distortion": false,
+      "indicatrix": "off"
+    },
+    "thumbnail": "maps/styles/political.png"
+  },
+  {
+    "id": "lifezones",
+    "name": "Lifezones",
+    "source": "ecology",
+    "state": {
+      "reliefHeight": 1.15,
+      "reliefAzimuth": 315,
+      "reliefAltitude": 53,
+      "reliefContrast": 1,
+      "reliefHighlights": 0.55,
+      "reliefAmbient": 0.75,
+      "reliefShadows": 0.4,
+      "reliefSoftness": 0.75,
+      "reliefAO": 0.45,
+      "reliefColorFade": 0.3,
+      "reliefThickness": 0.7,
+      "reliefOcean": 0.4,
+      "reliefRiverDepth": 0.25,
+      "reliefSeaLevel": 105,
+      "line": 0.1,
+      "grid": 30,
+      "distortionOpacity": 0.75,
+      "riverWidth": 2.5,
+      "riverLevels": 12
+    },
+    "controls": {
+      "map-source": "ecology",
+      "relief-enabled": true,
+      "relief-treatment": "atlas",
+      "relief-tone": "warm",
+      "rivers-visible": true,
+      "land-classes": 10,
+      "ocean-classes": 6,
+      "graticule": false,
+      "subgrid": true,
+      "dotgrid": false,
+      "palette": "atlas",
+      "construction": false,
+      "labels": false,
+      "distortion": false,
+      "indicatrix": "off"
+    },
+    "thumbnail": "maps/styles/lifezones.png"
+  },
+  {
+    "id": "ivory",
+    "name": "Ivory",
+    "source": "ivory",
+    "state": {
+      "reliefHeight": 0.65,
+      "reliefAzimuth": 315,
+      "reliefAltitude": 48,
+      "reliefContrast": 1.1,
+      "reliefHighlights": 0.65,
+      "reliefAmbient": 0.7,
+      "reliefShadows": 0.45,
+      "reliefSoftness": 0.65,
+      "reliefAO": 0.25,
+      "reliefColorFade": 0.3,
+      "reliefThickness": 0.65,
+      "reliefOcean": 0.4,
+      "reliefRiverDepth": 0.2,
+      "reliefSeaLevel": 105,
+      "line": 0.1,
+      "grid": 30,
+      "distortionOpacity": 0.75,
+      "riverWidth": 2.5,
+      "riverLevels": 12
+    },
+    "controls": {
+      "map-source": "ivory",
+      "relief-enabled": true,
+      "relief-treatment": "atlas",
+      "relief-tone": "warm",
+      "rivers-visible": true,
+      "land-classes": 10,
+      "ocean-classes": 6,
+      "graticule": false,
+      "subgrid": false,
+      "dotgrid": false,
+      "palette": "atlas",
+      "construction": false,
+      "labels": false,
+      "distortion": false,
+      "indicatrix": "off"
+    },
+    "thumbnail": "maps/styles/ivory.png"
+  }
+];
+
+const svgNS='http://www.w3.org/2000/svg';
+// Icons use the same polygons, placements and rotation as the selected format.
+export function layoutPolygons(option){
+ const tiles=makeGeometry(option.state.method,option.state.height);
+ const arrangement=makeArrangement(tiles,option.arrangement,layouts(tiles));
+ const net=arrangement.tiling?Array.from({length:7},(_,i)=>i-3).flatMap(q=>
+  Array.from({length:7},(_,i)=>i-3).filter(r=>Math.abs(q+r)<=3).map(r=>
+   ({...arrangement.tiling.at(q,r),x:q*1.5,y:Math.sqrt(3)*(r+q/2)}))):arrangement.net;
+ const angle=option.state.gridRotation*Math.PI/180,c=Math.cos(angle),s=Math.sin(angle);
+ return net.map(t=>(t.polygon||hex).map(p=>{
+  const [x,y]=world(p,t);return [c*x+s*y,s*x-c*y];
+ }));
+}
+export function layoutIcon(option){
+ const polygons=layoutPolygons(option),points=polygons.flat();
+ const left=Math.min(...points.map(p=>p[0])),top=Math.min(...points.map(p=>p[1]));
+ const width=Math.max(...points.map(p=>p[0]))-left,height=Math.max(...points.map(p=>p[1]))-top;
+ const scale=Math.min(88/width,58/height);
+ const svg=document.createElementNS(svgNS,'svg');svg.classList.add('layout-icon');svg.setAttribute('viewBox','0 0 100 70');svg.setAttribute('aria-hidden','true');
+ for(const polygon of polygons){const path=document.createElementNS(svgNS,'path');
+  path.setAttribute('d',polygon.map(([x,y],i)=>`${i?'L':'M'}${(50+(x-left-width/2)*scale).toFixed(3)} ${(35+(y-top-height/2)*scale).toFixed(3)}`).join(' ')+'Z');svg.append(path);
+ }
+ return svg;
+}
