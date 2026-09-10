@@ -1,4 +1,4 @@
-// Precomputed from continents.png; 1,500 initial rotations per distance, scored on each shape's exposed outer boundary.
+// Deterministic search of continents.png: 1,500 initial rotations per distance, then dense validation on the same objective.
 export const searchPresets = {
   "tetra": {
     "infinite": {
@@ -8,7 +8,129 @@ export const searchPresets = {
         "bias": 1,
         "blend": 0
       },
-      "results": []
+      "objective": "all-hex-edges",
+      "results": [
+        {
+          "distance": 0,
+          "angles": {
+            "lon": -42.03932575508952,
+            "lat": -70.24307779596023,
+            "roll": -62.77504002302885
+          },
+          "before": 0.3426270855783096,
+          "after": 0.09292448917465145,
+          "evaluations": 2164,
+          "samples": 24576
+        },
+        {
+          "distance": 1,
+          "angles": {
+            "lon": 142.2335620466621,
+            "lat": 69.19926940568894,
+            "roll": -122.74861186332998
+          },
+          "before": 0.40548237643892043,
+          "after": 0.15212276846664793,
+          "evaluations": 2188,
+          "samples": 24576
+        },
+        {
+          "distance": 2,
+          "angles": {
+            "lon": -22.47614520862703,
+            "lat": 26.40496666616366,
+            "roll": -144.0028911352158
+          },
+          "before": 0.46447397551707104,
+          "after": 0.20051696848890568,
+          "evaluations": 2182,
+          "samples": 24576
+        },
+        {
+          "distance": 3,
+          "angles": {
+            "lon": 88.53302932754173,
+            "lat": 32.01039827508441,
+            "roll": -128.15418743044137
+          },
+          "before": 0.512087022163415,
+          "after": 0.2300902521917324,
+          "evaluations": 2176,
+          "samples": 24576
+        },
+        {
+          "distance": 4,
+          "angles": {
+            "lon": 87.33302932754157,
+            "lat": 31.260398275084412,
+            "roll": -126.4291874304414
+          },
+          "before": 0.5661307104191756,
+          "after": 0.2557532089148946,
+          "evaluations": 2194,
+          "samples": 24576
+        },
+        {
+          "distance": 5,
+          "angles": {
+            "lon": -94.06767230406405,
+            "lat": -31.052531500268458,
+            "roll": -54.84680949747559
+          },
+          "before": 0.613283136895857,
+          "after": 0.28624701784816137,
+          "evaluations": 2182,
+          "samples": 24576
+        },
+        {
+          "distance": 6,
+          "angles": {
+            "lon": -12.069630381837442,
+            "lat": -11.36912602667553,
+            "roll": -108.85238017402588
+          },
+          "before": 0.659371164752585,
+          "after": 0.31903941059408497,
+          "evaluations": 2230,
+          "samples": 24576
+        },
+        {
+          "distance": 7,
+          "angles": {
+            "lon": -97.94287533201276,
+            "lat": 19.784305687089272,
+            "roll": -11.50990578196945
+          },
+          "before": 0.7245910624121707,
+          "after": 0.3519436825271672,
+          "evaluations": 2206,
+          "samples": 24576
+        },
+        {
+          "distance": 8,
+          "angles": {
+            "lon": -25.264457853510976,
+            "lat": -17.355383675561143,
+            "roll": -106.59311699084935
+          },
+          "before": 0.775339103186523,
+          "after": 0.3820537895589091,
+          "evaluations": 2212,
+          "samples": 24576
+        },
+        {
+          "distance": 9,
+          "angles": {
+            "lon": -109.95746616236863,
+            "lat": 16.097331179630828,
+            "roll": -19.78735202886162
+          },
+          "before": 0.8155875973785994,
+          "after": 0.40649838614977246,
+          "evaluations": 2170,
+          "samples": 24576
+        }
+      ]
     },
     "flower": {
       "config": {
@@ -17,6 +139,7 @@ export const searchPresets = {
         "bias": 1,
         "blend": 0
       },
+      "objective": "outer-and-red-seams",
       "results": [
         {
           "distance": 0,
@@ -25,22 +148,22 @@ export const searchPresets = {
             "lat": -40.13158198579208,
             "roll": -177.00252107866106
           },
-          "before": 0.3426270855783096,
-          "after": 0.15029103046620118,
-          "evaluations": 2176,
-          "samples": 24576
+          "before": 0.010132054790212768,
+          "after": 0.010132054790212768,
+          "evaluations": 2140,
+          "samples": 36864
         },
         {
           "distance": 1,
           "angles": {
-            "lon": -141.34904538989082,
-            "lat": -8.24061020537556,
-            "roll": -132.66223151609302
+            "lon": -140.59904538989088,
+            "lat": -8.09061020537547,
+            "roll": -132.737231516093
           },
-          "before": 0.40548237643892043,
-          "after": 0.22063550447559288,
-          "evaluations": 2272,
-          "samples": 24576
+          "before": 0.03308118025267634,
+          "after": 0.032283189240268594,
+          "evaluations": 2218,
+          "samples": 36864
         },
         {
           "distance": 2,
@@ -49,10 +172,10 @@ export const searchPresets = {
             "lat": -5.765610205375651,
             "roll": -134.312231516093
           },
-          "before": 0.46447397551707104,
-          "after": 0.27087338744955985,
-          "evaluations": 2314,
-          "samples": 24576
+          "before": 0.07638038355039295,
+          "after": 0.07638038355039295,
+          "evaluations": 2236,
+          "samples": 36864
         },
         {
           "distance": 3,
@@ -61,10 +184,10 @@ export const searchPresets = {
             "lat": -2.1656102053757422,
             "roll": -131.68723151609305
           },
-          "before": 0.512087022163415,
-          "after": 0.29418335937659607,
-          "evaluations": 2260,
-          "samples": 24576
+          "before": 0.11183109675556802,
+          "after": 0.11183109675556802,
+          "evaluations": 2212,
+          "samples": 36864
         },
         {
           "distance": 4,
@@ -73,10 +196,10 @@ export const searchPresets = {
             "lat": -31.427531500268458,
             "roll": -55.746809497475624
           },
-          "before": 0.5661307104191756,
-          "after": 0.2555130915537992,
-          "evaluations": 2230,
-          "samples": 24576
+          "before": 0.15898800803447352,
+          "after": 0.15898800803447352,
+          "evaluations": 2176,
+          "samples": 36864
         },
         {
           "distance": 5,
@@ -85,22 +208,22 @@ export const searchPresets = {
             "lat": -41.74431084717912,
             "roll": -178.18989268764852
           },
-          "before": 0.613283136895857,
-          "after": 0.35628020853329967,
-          "evaluations": 2254,
-          "samples": 24576
+          "before": 0.169048916258079,
+          "after": 0.169048916258079,
+          "evaluations": 2170,
+          "samples": 36864
         },
         {
           "distance": 6,
           "angles": {
-            "lon": -96.66056203767658,
-            "lat": 16.226110340907326,
-            "roll": -13.21777427047482
+            "lon": -96.28556203767658,
+            "lat": 14.65111034090728,
+            "roll": -13.142774270474774
           },
-          "before": 0.659371164752585,
-          "after": 0.325288926967621,
-          "evaluations": 2218,
-          "samples": 24576
+          "before": 0.2603386507985679,
+          "after": 0.25938039257888224,
+          "evaluations": 2194,
+          "samples": 36864
         },
         {
           "distance": 7,
@@ -109,10 +232,10 @@ export const searchPresets = {
             "lat": -45.90088786182906,
             "roll": -88.78578682467344
           },
-          "before": 0.7245910624121707,
-          "after": 0.43269753012151674,
-          "evaluations": 2218,
-          "samples": 24576
+          "before": 0.26106794378120085,
+          "after": 0.26106794378120085,
+          "evaluations": 2176,
+          "samples": 36864
         },
         {
           "distance": 8,
@@ -121,10 +244,10 @@ export const searchPresets = {
             "lat": -9.331949778813168,
             "roll": -104.78888923935597
           },
-          "before": 0.775339103186523,
-          "after": 0.4197631898281929,
-          "evaluations": 2212,
-          "samples": 24576
+          "before": 0.30809758836211387,
+          "after": 0.30809758836211387,
+          "evaluations": 2140,
+          "samples": 36864
         },
         {
           "distance": 9,
@@ -133,10 +256,10 @@ export const searchPresets = {
             "lat": 13.97611034090744,
             "roll": -13.96777427047482
           },
-          "before": 0.8155875973785994,
-          "after": 0.41872629354397023,
-          "evaluations": 2194,
-          "samples": 24576
+          "before": 0.3409180067515394,
+          "after": 0.3409180067515394,
+          "evaluations": 2134,
+          "samples": 36864
         }
       ]
     },
@@ -147,6 +270,7 @@ export const searchPresets = {
         "bias": 1,
         "blend": 0
       },
+      "objective": "outer-and-red-seams",
       "results": [
         {
           "distance": 0,
@@ -155,10 +279,10 @@ export const searchPresets = {
             "lat": -56.59690082781526,
             "roll": 161.52030056342483
           },
-          "before": 0.3426270855783096,
-          "after": 0.19008404568913684,
-          "evaluations": 2098,
-          "samples": 24576
+          "before": 0,
+          "after": 0,
+          "evaluations": 2074,
+          "samples": 32768
         },
         {
           "distance": 1,
@@ -167,10 +291,10 @@ export const searchPresets = {
             "lat": -56.59690082781526,
             "roll": 161.52030056342483
           },
-          "before": 0.40548237643892043,
-          "after": 0.2125748682190519,
-          "evaluations": 2134,
-          "samples": 24576
+          "before": 0,
+          "after": 0,
+          "evaluations": 2116,
+          "samples": 32768
         },
         {
           "distance": 2,
@@ -179,10 +303,10 @@ export const searchPresets = {
             "lat": -55.09690082781526,
             "roll": 161.52030056342483
           },
-          "before": 0.46447397551707104,
-          "after": 0.2440124987766357,
-          "evaluations": 2230,
-          "samples": 24576
+          "before": 0,
+          "after": 0,
+          "evaluations": 2206,
+          "samples": 32768
         },
         {
           "distance": 3,
@@ -191,22 +315,22 @@ export const searchPresets = {
             "lat": -56.146900827815216,
             "roll": 161.52030056342483
           },
-          "before": 0.512087022163415,
-          "after": 0.26131758792905385,
-          "evaluations": 2182,
-          "samples": 24576
+          "before": 0.0078425709296433,
+          "after": 0.0078425709296433,
+          "evaluations": 2146,
+          "samples": 32768
         },
         {
           "distance": 4,
           "angles": {
-            "lon": 162.48264076933265,
-            "lat": -56.92455558449092,
-            "roll": 156.13897954523577
+            "lon": 163.08264076933278,
+            "lat": -56.62455558449096,
+            "roll": 157.18897954523572
           },
-          "before": 0.5661307104191756,
-          "after": 0.28967370494626693,
-          "evaluations": 2260,
-          "samples": 24576
+          "before": 0.026949439587134923,
+          "after": 0.02155148575700229,
+          "evaluations": 2236,
+          "samples": 32768
         },
         {
           "distance": 5,
@@ -215,22 +339,22 @@ export const searchPresets = {
             "lat": -60.37455558449096,
             "roll": 143.68897954523572
           },
-          "before": 0.613283136895857,
-          "after": 0.323496530323585,
-          "evaluations": 2224,
-          "samples": 24576
+          "before": 0.07745757532389547,
+          "after": 0.07745757532389547,
+          "evaluations": 2176,
+          "samples": 32768
         },
         {
           "distance": 6,
           "angles": {
-            "lon": 148.68623247966184,
-            "lat": -59.61342876063259,
-            "roll": 141.44731526076816
+            "lon": 149.13623247966189,
+            "lat": -59.5384287606326,
+            "roll": 142.2723152607682
           },
-          "before": 0.659371164752585,
-          "after": 0.3501321707504704,
-          "evaluations": 2230,
-          "samples": 24576
+          "before": 0.0947955513482831,
+          "after": 0.09392518980673205,
+          "evaluations": 2206,
+          "samples": 32768
         },
         {
           "distance": 7,
@@ -239,10 +363,10 @@ export const searchPresets = {
             "lat": -57.721900827815205,
             "roll": 146.37030056342473
           },
-          "before": 0.7245910624121707,
-          "after": 0.3828949790264327,
-          "evaluations": 2254,
-          "samples": 24576
+          "before": 0.1266274799023614,
+          "after": 0.1266274799023614,
+          "evaluations": 2212,
+          "samples": 32768
         },
         {
           "distance": 8,
@@ -251,10 +375,10 @@ export const searchPresets = {
             "lat": -57.535964805966216,
             "roll": 147.30373975709085
           },
-          "before": 0.775339103186523,
-          "after": 0.4096544210368544,
-          "evaluations": 2260,
-          "samples": 24576
+          "before": 0.16163795623428032,
+          "after": 0.16163795623428032,
+          "evaluations": 2218,
+          "samples": 32768
         },
         {
           "distance": 9,
@@ -263,10 +387,10 @@ export const searchPresets = {
             "lat": -60.31096480596625,
             "roll": 151.05373975709074
           },
-          "before": 0.8155875973785994,
-          "after": 0.4505989695037708,
-          "evaluations": 2284,
-          "samples": 24576
+          "before": 0.22584533007029164,
+          "after": 0.22584533007029164,
+          "evaluations": 2224,
+          "samples": 32768
         }
       ]
     },
@@ -277,126 +401,127 @@ export const searchPresets = {
         "bias": 1,
         "blend": 0
       },
+      "objective": "outer-and-red-seams",
       "results": [
         {
           "distance": 0,
           "angles": {
-            "lon": -125.79580681398511,
-            "lat": -51.23646015895442,
-            "roll": -90.47708183526993
+            "lon": -84.57953417636452,
+            "lat": -70.4527399540666,
+            "roll": 98.41033484973013
           },
-          "before": 0.3426270855783096,
-          "after": 0.14442367569851547,
-          "evaluations": 2020,
-          "samples": 24576
+          "before": 0.07221183784925772,
+          "after": 0.051435607677146326,
+          "evaluations": 2104,
+          "samples": 49152
         },
         {
           "distance": 1,
           "angles": {
-            "lon": -122.79580681398511,
-            "lat": -39.2364601589544,
-            "roll": -91.22708183526993
+            "lon": -40.86972056664524,
+            "lat": -69.46992194128171,
+            "roll": 119.40365850068633
           },
-          "before": 0.40548237643892043,
-          "after": 0.19155154494575213,
-          "evaluations": 2152,
-          "samples": 24576
+          "before": 0.09577577247287594,
+          "after": 0.08945985230906352,
+          "evaluations": 2224,
+          "samples": 49152
         },
         {
           "distance": 2,
           "angles": {
-            "lon": -139.97100214473897,
-            "lat": -3.0248701349580642,
-            "roll": -129.42126483656466
+            "lon": -146.946002144739,
+            "lat": -2.1248701349579733,
+            "roll": -134.29626483656466
           },
-          "before": 0.46447397551707104,
-          "after": 0.2847088421723021,
-          "evaluations": 2212,
-          "samples": 24576
+          "before": 0.15485675911977784,
+          "after": 0.11863935503437849,
+          "evaluations": 2218,
+          "samples": 49152
         },
         {
           "distance": 3,
           "angles": {
-            "lon": -146.196002144739,
-            "lat": -3.924870134958155,
-            "roll": -131.44626483656464
+            "lon": -146.42100214473902,
+            "lat": -1.1498701349580642,
+            "roll": -134.44626483656464
           },
-          "before": 0.512087022163415,
-          "after": 0.28913227263371255,
-          "evaluations": 2236,
-          "samples": 24576
+          "before": 0.16509770066189294,
+          "after": 0.14798036954575575,
+          "evaluations": 2170,
+          "samples": 49152
         },
         {
           "distance": 4,
           "angles": {
-            "lon": -143.72100214473897,
-            "lat": -2.2748701349580642,
-            "roll": -130.92126483656455
+            "lon": -26.67614520862685,
+            "lat": 13.954966666163614,
+            "roll": -139.80289113521576
           },
-          "before": 0.5661307104191756,
-          "after": 0.32328696784059857,
-          "evaluations": 2248,
-          "samples": 24576
+          "before": 0.18602704501829737,
+          "after": 0.17579770197374087,
+          "evaluations": 2206,
+          "samples": 49152
         },
         {
           "distance": 5,
           "angles": {
-            "lon": 121.88568242266751,
-            "lat": -48.64336954219982,
-            "roll": -95.46855544298887
+            "lon": 121.06068242266747,
+            "lat": -48.118369542199844,
+            "roll": -95.9185554429888
           },
-          "before": 0.613283136895857,
-          "after": 0.34604110770278246,
-          "evaluations": 2272,
-          "samples": 24576
+          "before": 0.20271035667279916,
+          "after": 0.20070456371757273,
+          "evaluations": 2218,
+          "samples": 49152
         },
         {
           "distance": 6,
           "angles": {
-            "lon": 124.36068242266765,
-            "lat": -47.81836954219983,
-            "roll": -93.3685554429888
+            "lon": -125.39635820053525,
+            "lat": -49.6128803369279,
+            "roll": -100.17273312695329
           },
-          "before": 0.659371164752585,
-          "after": 0.3937889370538878,
-          "evaluations": 2296,
-          "samples": 24576
+          "before": 0.2369056569101945,
+          "after": 0.22865092206737855,
+          "evaluations": 2230,
+          "samples": 49152
         },
         {
           "distance": 7,
           "angles": {
-            "lon": 122.86068242266788,
-            "lat": -42.34336954219975,
-            "roll": -90.81855544298884
+            "lon": -156.120953559503,
+            "lat": 20.836686607045976,
+            "roll": -112.38518070168789
           },
-          "before": 0.7245910624121707,
-          "after": 0.4304103379334933,
-          "evaluations": 2272,
-          "samples": 24576
+          "before": 0.2846719791445884,
+          "after": 0.26981472429446846,
+          "evaluations": 2218,
+          "samples": 49152
         },
         {
           "distance": 8,
           "angles": {
-            "lon": -84.19968483299021,
-            "lat": -34.0504502236501,
-            "roll": 167.30313247069716
+            "lon": -119.98171909041702,
+            "lat": -54.49011323325158,
+            "roll": -97.91254263930023
           },
-          "before": 0.775339103186523,
-          "after": 0.46994718581211625,
-          "evaluations": 2272,
-          "samples": 24576
+          "before": 0.2968780001794628,
+          "after": 0.27486659507223443,
+          "evaluations": 2212,
+          "samples": 49152
         },
         {
           "distance": 9,
           "angles": {
-            "lon": -173.8617597687989,
-            "lat": 5.125960349444085,
-            "roll": -69.50278703682125
+            "lon": -118.10671909041707,
+            "lat": -54.86511323325158,
+            "roll": -95.51254263930025
           },
-          "before": 0.8155875973785994,
-          "after": 0.5046128528501231,
-          "evaluations": 2326,
-          "samples": 24576
+          "before": 0.3368107941138945,
+          "after": 0.31210219045441095,
+          "evaluations": 2200,
+          "samples": 49152
         }
       ]
     },
@@ -407,6 +532,7 @@ export const searchPresets = {
         "bias": 1,
         "blend": 0
       },
+      "objective": "outer-and-red-seams",
       "results": [
         {
           "distance": 0,
@@ -415,10 +541,10 @@ export const searchPresets = {
             "lat": -45.23596480596626,
             "roll": 150.6037397570908
           },
-          "before": 0.3426270855783096,
-          "after": 0.16759537298321667,
-          "evaluations": 2218,
-          "samples": 24576
+          "before": 0.002192676753649082,
+          "after": 0.002192676753649082,
+          "evaluations": 2182,
+          "samples": 26624
         },
         {
           "distance": 1,
@@ -427,34 +553,34 @@ export const searchPresets = {
             "lat": -41.265676466012906,
             "roll": 152.23558234758673
           },
-          "before": 0.40548237643892043,
-          "after": 0.19840378206004164,
-          "evaluations": 2206,
-          "samples": 24576
+          "before": 0.020773275062727376,
+          "after": 0.020773275062727376,
+          "evaluations": 2176,
+          "samples": 26624
         },
         {
           "distance": 2,
           "angles": {
-            "lon": 160.3076407693327,
-            "lat": -34.799555584490975,
-            "roll": 152.08897954523582
+            "lon": 161.0576407693327,
+            "lat": -38.84955558449087,
+            "roll": 155.91397954523586
           },
-          "before": 0.46447397551707104,
-          "after": 0.24039428436693464,
-          "evaluations": 2170,
-          "samples": 24576
+          "before": 0.04662230027148721,
+          "after": 0.03885850062324587,
+          "evaluations": 2176,
+          "samples": 26624
         },
         {
           "distance": 3,
           "angles": {
-            "lon": 160.08264076933256,
-            "lat": -34.34955558449104,
-            "roll": 155.16397954523563
+            "lon": 159.93264076933247,
+            "lat": -34.04955558449109,
+            "roll": 155.01397954523554
           },
-          "before": 0.512087022163415,
-          "after": 0.3304438452086623,
-          "evaluations": 2206,
-          "samples": 24576
+          "before": 0.06149397757998622,
+          "after": 0.06072953125699016,
+          "evaluations": 2176,
+          "samples": 26624
         },
         {
           "distance": 4,
@@ -463,10 +589,10 @@ export const searchPresets = {
             "lat": -62.07190082781523,
             "roll": 165.87030056342485
           },
-          "before": 0.5661307104191756,
-          "after": 0.40866302352897427,
-          "evaluations": 2188,
-          "samples": 24576
+          "before": 0.09550269638780451,
+          "after": 0.09550269638780451,
+          "evaluations": 2158,
+          "samples": 26624
         },
         {
           "distance": 5,
@@ -475,10 +601,10 @@ export const searchPresets = {
             "lat": -61.696900827815284,
             "roll": 167.07030056342478
           },
-          "before": 0.613283136895857,
-          "after": 0.43727256059258174,
-          "evaluations": 2254,
-          "samples": 24576
+          "before": 0.11248656138473598,
+          "after": 0.11248656138473598,
+          "evaluations": 2188,
+          "samples": 26624
         },
         {
           "distance": 6,
@@ -487,10 +613,10 @@ export const searchPresets = {
             "lat": -60.96342876063261,
             "roll": 164.69731526076794
           },
-          "before": 0.659371164752585,
-          "after": 0.4896714007555066,
-          "evaluations": 2266,
-          "samples": 24576
+          "before": 0.1301517560737024,
+          "after": 0.1301517560737024,
+          "evaluations": 2212,
+          "samples": 26624
         },
         {
           "distance": 7,
@@ -499,10 +625,10 @@ export const searchPresets = {
             "lat": -67.51503611718033,
             "roll": -152.20716519579292
           },
-          "before": 0.7245910624121707,
-          "after": 0.3983406157301735,
-          "evaluations": 2200,
-          "samples": 24576
+          "before": 0.17032449278379483,
+          "after": 0.17032449278379483,
+          "evaluations": 2140,
+          "samples": 26624
         },
         {
           "distance": 8,
@@ -511,10 +637,10 @@ export const searchPresets = {
             "lat": -65.19003611718034,
             "roll": -159.70716519579292
           },
-          "before": 0.775339103186523,
-          "after": 0.44726342702101607,
-          "evaluations": 2236,
-          "samples": 24576
+          "before": 0.194236472383248,
+          "after": 0.194236472383248,
+          "evaluations": 2170,
+          "samples": 26624
         },
         {
           "distance": 9,
@@ -523,10 +649,10 @@ export const searchPresets = {
             "lat": -54.6336468056777,
             "roll": 15.162685877457307
           },
-          "before": 0.8155875973785994,
-          "after": 0.5449792696100234,
-          "evaluations": 2320,
-          "samples": 24576
+          "before": 0.19288303508424687,
+          "after": 0.19288303508424687,
+          "evaluations": 2266,
+          "samples": 26624
         }
       ]
     }
@@ -539,7 +665,129 @@ export const searchPresets = {
         "bias": 1,
         "blend": 0
       },
-      "results": []
+      "objective": "all-hex-edges",
+      "results": [
+        {
+          "distance": 0,
+          "angles": {
+            "lon": -179.7393229790032,
+            "lat": 28.431984540999792,
+            "roll": -7.595907229185059
+          },
+          "before": 0.24432218576759457,
+          "after": 0.11675953915102995,
+          "evaluations": 2212,
+          "samples": 24576
+        },
+        {
+          "distance": 1,
+          "angles": {
+            "lon": 84.86821245364854,
+            "lat": 6.907701204972909,
+            "roll": 120.2792391378432
+          },
+          "before": 0.31834451874253844,
+          "after": 0.14240416288011368,
+          "evaluations": 2236,
+          "samples": 24576
+        },
+        {
+          "distance": 2,
+          "angles": {
+            "lon": -176.58932297900327,
+            "lat": 29.706984540999656,
+            "roll": -9.920907229185104
+          },
+          "before": 0.36776987165677316,
+          "after": 0.1651491534989443,
+          "evaluations": 2176,
+          "samples": 24576
+        },
+        {
+          "distance": 3,
+          "angles": {
+            "lon": -174.4845306750388,
+            "lat": 32.00868122216821,
+            "roll": 167.44581167511637
+          },
+          "before": 0.4117404315054483,
+          "after": 0.20567090140895758,
+          "evaluations": 2212,
+          "samples": 24576
+        },
+        {
+          "distance": 4,
+          "angles": {
+            "lon": -176.73453067503868,
+            "lat": 30.658681222168298,
+            "roll": 169.3208116751166
+          },
+          "before": 0.44823454997352513,
+          "after": 0.2426455760224097,
+          "evaluations": 2224,
+          "samples": 24576
+        },
+        {
+          "distance": 5,
+          "angles": {
+            "lon": -170.9339115969837,
+            "lat": -73.0676122736121,
+            "roll": -71.32392059415577
+          },
+          "before": 0.49678492254316087,
+          "after": 0.3069819261513388,
+          "evaluations": 2116,
+          "samples": 24576
+        },
+        {
+          "distance": 6,
+          "angles": {
+            "lon": 143.22467404045142,
+            "lat": -43.27057591363001,
+            "roll": 70.89399282149952
+          },
+          "before": 0.537977569279237,
+          "after": 0.33335030212961936,
+          "evaluations": 2158,
+          "samples": 24576
+        },
+        {
+          "distance": 7,
+          "angles": {
+            "lon": -20.46973254270847,
+            "lat": -14.092677783314457,
+            "roll": 159.09223055429766
+          },
+          "before": 0.587593937102387,
+          "after": 0.36176259794519955,
+          "evaluations": 2176,
+          "samples": 24576
+        },
+        {
+          "distance": 8,
+          "angles": {
+            "lon": -19.86973254270856,
+            "lat": -14.317677783314593,
+            "roll": 158.11723055429752
+          },
+          "before": 0.6304678863512371,
+          "after": 0.38101956418587196,
+          "evaluations": 2236,
+          "samples": 24576
+        },
+        {
+          "distance": 9,
+          "angles": {
+            "lon": -18.669732542708516,
+            "lat": -13.792677783314502,
+            "roll": 158.56723055429757
+          },
+          "before": 0.6682068617110487,
+          "after": 0.4006596773323679,
+          "evaluations": 2200,
+          "samples": 24576
+        }
+      ]
     },
     "flower": {
       "config": {
@@ -548,6 +796,7 @@ export const searchPresets = {
         "bias": 1,
         "blend": 0
       },
+      "objective": "outer-and-red-seams",
       "results": [
         {
           "distance": 0,
@@ -556,10 +805,10 @@ export const searchPresets = {
             "lat": 23.963949303472646,
             "roll": 90.74545768126848
           },
-          "before": 0.24432218576759457,
-          "after": 0.17640211750232435,
-          "evaluations": 2158,
-          "samples": 24576
+          "before": 0.036643637989455004,
+          "after": 0.036643637989455004,
+          "evaluations": 2110,
+          "samples": 36864
         },
         {
           "distance": 1,
@@ -568,10 +817,10 @@ export const searchPresets = {
             "lat": 2.7082171886164588,
             "roll": 21.41869421191518
           },
-          "before": 0.31834451874253844,
-          "after": 0.2187137240037791,
-          "evaluations": 2218,
-          "samples": 24576
+          "before": 0.07974125618418205,
+          "after": 0.07974125618418205,
+          "evaluations": 2152,
+          "samples": 36864
         },
         {
           "distance": 2,
@@ -580,10 +829,10 @@ export const searchPresets = {
             "lat": -8.405379827960473,
             "roll": 60.036471197381616
           },
-          "before": 0.36776987165677316,
-          "after": 0.16871351106321594,
-          "evaluations": 2218,
-          "samples": 24576
+          "before": 0.10919189911574424,
+          "after": 0.10919189911574424,
+          "evaluations": 2170,
+          "samples": 36864
         },
         {
           "distance": 3,
@@ -592,10 +841,10 @@ export const searchPresets = {
             "lat": -8.55537982796045,
             "roll": 59.06147119738159
           },
-          "before": 0.4117404315054483,
-          "after": 0.199182043028592,
-          "evaluations": 2200,
-          "samples": 24576
+          "before": 0.12618011190175266,
+          "after": 0.12618011190175266,
+          "evaluations": 2158,
+          "samples": 36864
         },
         {
           "distance": 4,
@@ -604,10 +853,10 @@ export const searchPresets = {
             "lat": -8.93037982796045,
             "roll": 57.71147119738157
           },
-          "before": 0.44823454997352513,
-          "after": 0.24737051117191378,
-          "evaluations": 2236,
-          "samples": 24576
+          "before": 0.15645165277200734,
+          "after": 0.15645165277200734,
+          "evaluations": 2170,
+          "samples": 36864
         },
         {
           "distance": 5,
@@ -616,10 +865,10 @@ export const searchPresets = {
             "lat": -8.630379827960496,
             "roll": 56.81147119738159
           },
-          "before": 0.49678492254316087,
-          "after": 0.29948601336200803,
-          "evaluations": 2182,
-          "samples": 24576
+          "before": 0.20398251208365542,
+          "after": 0.20398251208365542,
+          "evaluations": 2134,
+          "samples": 36864
         },
         {
           "distance": 6,
@@ -628,10 +877,10 @@ export const searchPresets = {
             "lat": 2.76577063648665,
             "roll": 35.32613435983649
           },
-          "before": 0.537977569279237,
-          "after": 0.33426527255430466,
-          "evaluations": 2200,
-          "samples": 24576
+          "before": 0.23413975487481883,
+          "after": 0.23413975487481883,
+          "evaluations": 2146,
+          "samples": 36864
         },
         {
           "distance": 7,
@@ -640,10 +889,10 @@ export const searchPresets = {
             "lat": 66.99598306327209,
             "roll": 33.73962361067538
           },
-          "before": 0.587593937102387,
-          "after": 0.3683757776057033,
-          "evaluations": 2182,
-          "samples": 24576
+          "before": 0.2888243609096523,
+          "after": 0.2888243609096523,
+          "evaluations": 2152,
+          "samples": 36864
         },
         {
           "distance": 8,
@@ -652,10 +901,10 @@ export const searchPresets = {
             "lat": 65.1209830632722,
             "roll": 32.164623610675335
           },
-          "before": 0.6304678863512371,
-          "after": 0.3823152266087164,
-          "evaluations": 2224,
-          "samples": 24576
+          "before": 0.30927314684143464,
+          "after": 0.30927314684143464,
+          "evaluations": 2182,
+          "samples": 36864
         },
         {
           "distance": 9,
@@ -664,10 +913,10 @@ export const searchPresets = {
             "lat": 64.52098306327207,
             "roll": 29.23962361067538
           },
-          "before": 0.6682068617110487,
-          "after": 0.40843881394120934,
-          "evaluations": 2242,
-          "samples": 24576
+          "before": 0.3286825072629988,
+          "after": 0.3286825072629988,
+          "evaluations": 2176,
+          "samples": 36864
         }
       ]
     },
@@ -678,6 +927,7 @@ export const searchPresets = {
         "bias": 1,
         "blend": 0
       },
+      "objective": "outer-and-red-seams",
       "results": [
         {
           "distance": 0,
@@ -686,10 +936,10 @@ export const searchPresets = {
             "lat": 53.45003944091263,
             "roll": 108.24813710153103
           },
-          "before": 0.24432218576759457,
-          "after": 0.14607548839427786,
-          "evaluations": 2116,
-          "samples": 24576
+          "before": 0,
+          "after": 0,
+          "evaluations": 2080,
+          "samples": 32768
         },
         {
           "distance": 1,
@@ -698,10 +948,10 @@ export const searchPresets = {
             "lat": 54.57457304771356,
             "roll": 108.78146589361131
           },
-          "before": 0.31834451874253844,
-          "after": 0.17637439025570467,
-          "evaluations": 2146,
-          "samples": 24576
+          "before": 0,
+          "after": 0,
+          "evaluations": 2116,
+          "samples": 32768
         },
         {
           "distance": 2,
@@ -710,10 +960,10 @@ export const searchPresets = {
             "lat": 54.95003944091263,
             "roll": 108.24813710153103
           },
-          "before": 0.36776987165677316,
-          "after": 0.20730939887921895,
-          "evaluations": 2182,
-          "samples": 24576
+          "before": 0,
+          "after": 0,
+          "evaluations": 2176,
+          "samples": 32768
         },
         {
           "distance": 3,
@@ -722,10 +972,10 @@ export const searchPresets = {
             "lat": 53.426359610262125,
             "roll": 110.54089534431694
           },
-          "before": 0.4117404315054483,
-          "after": 0.23701938446086898,
-          "evaluations": 2224,
-          "samples": 24576
+          "before": 0.022608463103318252,
+          "after": 0.022608463103318252,
+          "evaluations": 2188,
+          "samples": 32768
         },
         {
           "distance": 4,
@@ -734,10 +984,10 @@ export const searchPresets = {
             "lat": 57.350039440912724,
             "roll": 106.2981371015311
           },
-          "before": 0.44823454997352513,
-          "after": 0.2544775570997414,
-          "evaluations": 2212,
-          "samples": 24576
+          "before": 0.03183216485716768,
+          "after": 0.03183216485716768,
+          "evaluations": 2140,
+          "samples": 32768
         },
         {
           "distance": 5,
@@ -746,10 +996,10 @@ export const searchPresets = {
             "lat": 56.77053435155449,
             "roll": 108.04104426540425
           },
-          "before": 0.49678492254316087,
-          "after": 0.2888006262111106,
-          "evaluations": 2260,
-          "samples": 24576
+          "before": 0.070834856614122,
+          "after": 0.070834856614122,
+          "evaluations": 2194,
+          "samples": 32768
         },
         {
           "distance": 6,
@@ -758,10 +1008,10 @@ export const searchPresets = {
             "lat": 45.85534202833401,
             "roll": 158.0392824053764
           },
-          "before": 0.537977569279237,
-          "after": 0.3613552358374004,
-          "evaluations": 2242,
-          "samples": 24576
+          "before": 0.13124187508593932,
+          "after": 0.13124187508593932,
+          "evaluations": 2176,
+          "samples": 32768
         },
         {
           "distance": 7,
@@ -770,10 +1020,10 @@ export const searchPresets = {
             "lat": 45.74085800189448,
             "roll": 159.19244304299355
           },
-          "before": 0.587593937102387,
-          "after": 0.37697487136008084,
-          "evaluations": 2230,
-          "samples": 24576
+          "before": 0.14653176125667108,
+          "after": 0.14653176125667108,
+          "evaluations": 2176,
+          "samples": 32768
         },
         {
           "distance": 8,
@@ -782,10 +1032,10 @@ export const searchPresets = {
             "lat": 46.15534202833419,
             "roll": 157.96428240537648
           },
-          "before": 0.6304678863512371,
-          "after": 0.4118167363799126,
-          "evaluations": 2230,
-          "samples": 24576
+          "before": 0.18004163538052567,
+          "after": 0.18004163538052567,
+          "evaluations": 2170,
+          "samples": 32768
         },
         {
           "distance": 9,
@@ -794,10 +1044,10 @@ export const searchPresets = {
             "lat": 46.85868122216823,
             "roll": 161.0708116751165
           },
-          "before": 0.6682068617110487,
-          "after": 0.4444332894355876,
-          "evaluations": 2230,
-          "samples": 24576
+          "before": 0.21908332777543532,
+          "after": 0.21908332777543532,
+          "evaluations": 2170,
+          "samples": 32768
         }
       ]
     },
@@ -808,126 +1058,127 @@ export const searchPresets = {
         "bias": 1,
         "blend": 0
       },
+      "objective": "outer-and-red-seams",
       "results": [
         {
           "distance": 0,
           "angles": {
-            "lon": 57.61685190908611,
-            "lat": 39.8782236746174,
-            "roll": 1.5354490745812654
+            "lon": 48.78694302476947,
+            "lat": 4.110335600762369,
+            "roll": 33.59531982354815
           },
-          "before": 0.24432218576759457,
-          "after": 0.18134787076195058,
-          "evaluations": 2062,
-          "samples": 24576
+          "before": 0.09067393538097528,
+          "after": 0.07634227110133573,
+          "evaluations": 2188,
+          "samples": 49152
         },
         {
           "distance": 1,
           "angles": {
-            "lon": 144.62968468666077,
-            "lat": -10.924405577798893,
-            "roll": 32.909539360553026
+            "lon": 84.86821245364843,
+            "lat": 6.982701204972955,
+            "roll": 120.20423913784316
           },
-          "before": 0.31834451874253844,
-          "after": 0.23027482517853723,
-          "evaluations": 2116,
-          "samples": 24576
+          "before": 0.11513741258926873,
+          "after": 0.10342499082043981,
+          "evaluations": 2236,
+          "samples": 49152
         },
         {
           "distance": 2,
           "angles": {
-            "lon": 144.62968468666077,
-            "lat": -11.674405577798893,
-            "roll": 32.75953936055305
+            "lon": 84.19321245364836,
+            "lat": 7.057701204973,
+            "roll": 120.87923913784323
           },
-          "before": 0.36776987165677316,
-          "after": 0.28454350377936094,
-          "evaluations": 2200,
-          "samples": 24576
+          "before": 0.14227175188968047,
+          "after": 0.12452757004548122,
+          "evaluations": 2206,
+          "samples": 49152
         },
         {
           "distance": 3,
           "angles": {
-            "lon": 144.55468468666072,
-            "lat": -11.599405577798962,
-            "roll": 32.08453936055298
+            "lon": 147.67219266816983,
+            "lat": 1.3407706364866954,
+            "roll": 33.22613435983658
           },
-          "before": 0.4117404315054483,
-          "after": 0.33370820426855935,
-          "evaluations": 2230,
-          "samples": 24576
+          "before": 0.1748932796536914,
+          "after": 0.15223701679385196,
+          "evaluations": 2176,
+          "samples": 49152
         },
         {
           "distance": 4,
           "angles": {
-            "lon": 152.8967108979823,
-            "lat": 5.580242256213069,
-            "roll": 41.53126686438918
+            "lon": 151.69671089798226,
+            "lat": 6.480242256213046,
+            "roll": 43.03126686438918
           },
-          "before": 0.44823454997352513,
-          "after": 0.31303996887464547,
-          "evaluations": 2320,
-          "samples": 24576
+          "before": 0.17965896242907067,
+          "after": 0.17476778253876954,
+          "evaluations": 2212,
+          "samples": 49152
         },
         {
           "distance": 5,
           "angles": {
             "lon": 155.5471926681696,
-            "lat": 5.540770636486741,
+            "lat": 5.390770636486764,
             "roll": 38.926134359836624
           },
-          "before": 0.49678492254316087,
-          "after": 0.3247859949330591,
-          "evaluations": 2326,
-          "samples": 24576
+          "before": 0.1926738208522777,
+          "after": 0.19264832002494212,
+          "evaluations": 2254,
+          "samples": 49152
         },
         {
           "distance": 6,
           "angles": {
-            "lon": 157.32171089798203,
-            "lat": 4.380242256213251,
-            "roll": 37.55626686438927
+            "lon": 157.09671089798212,
+            "lat": 4.455242256213296,
+            "roll": 37.70626686438936
           },
-          "before": 0.537977569279237,
-          "after": 0.33458223241835033,
-          "evaluations": 2248,
-          "samples": 24576
+          "before": 0.20406933745072756,
+          "after": 0.20392235742436615,
+          "evaluations": 2194,
+          "samples": 49152
         },
         {
           "distance": 7,
           "angles": {
-            "lon": 153.85468468666068,
-            "lat": -10.174405577799007,
-            "roll": 48.509539360552935
+            "lon": 158.09719266816978,
+            "lat": 3.590770636486468,
+            "roll": 36.60113435983658
           },
-          "before": 0.587593937102387,
-          "after": 0.43496294920153716,
-          "evaluations": 2206,
-          "samples": 24576
+          "before": 0.2691764364742881,
+          "after": 0.22816028962250626,
+          "evaluations": 2188,
+          "samples": 49152
         },
         {
           "distance": 8,
           "angles": {
-            "lon": 156.4471926681697,
-            "lat": 1.7907706364865135,
-            "roll": 37.35113435983658
+            "lon": 153.6721926681696,
+            "lat": 5.9157706364865135,
+            "roll": 36.22613435983658
           },
-          "before": 0.6304678863512371,
-          "after": 0.4254930730778748,
-          "evaluations": 2224,
-          "samples": 24576
+          "before": 0.2735554676618707,
+          "after": 0.2574464009216016,
+          "evaluations": 2272,
+          "samples": 49152
         },
         {
           "distance": 9,
           "angles": {
-            "lon": 154.4546846866608,
-            "lat": -0.8744055777988251,
-            "roll": 39.43453936055312
+            "lon": 154.0796846866608,
+            "lat": -0.7244055777989615,
+            "roll": 39.659539360553026
           },
-          "before": 0.6682068617110487,
-          "after": 0.46258860204763025,
-          "evaluations": 2266,
-          "samples": 24576
+          "before": 0.30507158113090616,
+          "after": 0.3043465674152308,
+          "evaluations": 2218,
+          "samples": 49152
         }
       ]
     },
@@ -938,30 +1189,31 @@ export const searchPresets = {
         "bias": 1,
         "blend": 0
       },
+      "objective": "outer-and-red-seams",
       "results": [
         {
           "distance": 0,
           "angles": {
-            "lon": 2.818131006136582,
-            "lat": 51.719617314773814,
-            "roll": -88.87894916720688
+            "lon": 3.7181310061365593,
+            "lat": 51.569617314773836,
+            "roll": -86.10394916720685
           },
-          "before": 0.24432218576759457,
-          "after": 0.1864558270784047,
-          "evaluations": 2194,
-          "samples": 24576
+          "before": 0.003718517708643292,
+          "after": 0.0000643010550130721,
+          "evaluations": 2158,
+          "samples": 26624
         },
         {
           "distance": 1,
           "angles": {
-            "lon": 1.2431310061365366,
-            "lat": 51.94461731477372,
-            "roll": -92.85394916720685
+            "lon": 1.318131006136582,
+            "lat": 52.01961731477377,
+            "roll": -86.85394916720685
           },
-          "before": 0.31834451874253844,
-          "after": 0.2208045509788145,
-          "evaluations": 2194,
-          "samples": 24576
+          "before": 0.03519684992416906,
+          "after": 0.02827935294279429,
+          "evaluations": 2158,
+          "samples": 26624
         },
         {
           "distance": 2,
@@ -970,10 +1222,10 @@ export const searchPresets = {
             "lat": 64.29983717952939,
             "roll": 92.28518186397844
           },
-          "before": 0.36776987165677316,
-          "after": 0.3098574620095226,
-          "evaluations": 2260,
-          "samples": 24576
+          "before": 0.06534983412997591,
+          "after": 0.06534983412997591,
+          "evaluations": 2206,
+          "samples": 26624
         },
         {
           "distance": 3,
@@ -982,10 +1234,10 @@ export const searchPresets = {
             "lat": 59.42483717952928,
             "roll": 78.63518186397857
           },
-          "before": 0.4117404315054483,
-          "after": 0.33020729071234173,
-          "evaluations": 2242,
-          "samples": 24576
+          "before": 0.0999039526084595,
+          "after": 0.0999039526084595,
+          "evaluations": 2188,
+          "samples": 26624
         },
         {
           "distance": 4,
@@ -994,34 +1246,34 @@ export const searchPresets = {
             "lat": 59.24894796090416,
             "roll": 113.00497463196507
           },
-          "before": 0.44823454997352513,
-          "after": 0.3460154837136756,
-          "evaluations": 2266,
-          "samples": 24576
+          "before": 0.11429635205721092,
+          "after": 0.11429635205721092,
+          "evaluations": 2188,
+          "samples": 26624
         },
         {
           "distance": 5,
           "angles": {
-            "lon": -40.08738429173832,
+            "lon": -40.01238429173833,
             "lat": 61.423947960904115,
-            "roll": 110.90497463196493
+            "roll": 110.82997463196489
           },
-          "before": 0.49678492254316087,
-          "after": 0.4480686078416402,
-          "evaluations": 2242,
-          "samples": 24576
+          "before": 0.13751198162906278,
+          "after": 0.13748235858930422,
+          "evaluations": 2182,
+          "samples": 26624
         },
         {
           "distance": 6,
           "angles": {
-            "lon": -45.93738429173834,
-            "lat": 57.823947960904206,
-            "roll": 112.85497463196498
+            "lon": -45.78738429173836,
+            "lat": 58.04894796090434,
+            "roll": 112.77997463196493
           },
-          "before": 0.537977569279237,
-          "after": 0.45278619686439825,
-          "evaluations": 2206,
-          "samples": 24576
+          "before": 0.16814012096679323,
+          "after": 0.16767749599763457,
+          "evaluations": 2152,
+          "samples": 26624
         },
         {
           "distance": 7,
@@ -1030,10 +1282,10 @@ export const searchPresets = {
             "lat": 59.32394796090398,
             "roll": 105.80497463196525
           },
-          "before": 0.587593937102387,
-          "after": 0.5095162587058355,
-          "evaluations": 2224,
-          "samples": 24576
+          "before": 0.18715458175591076,
+          "after": 0.18715458175591076,
+          "evaluations": 2188,
+          "samples": 26624
         },
         {
           "distance": 8,
@@ -1042,10 +1294,10 @@ export const searchPresets = {
             "lat": -9.479086526699916,
             "roll": -30.411807271465648
           },
-          "before": 0.6304678863512371,
-          "after": 0.5256926735351424,
-          "evaluations": 2212,
-          "samples": 24576
+          "before": 0.2199727197844515,
+          "after": 0.2199727197844515,
+          "evaluations": 2152,
+          "samples": 26624
         },
         {
           "distance": 9,
@@ -1054,10 +1306,10 @@ export const searchPresets = {
             "lat": -9.479086526699916,
             "roll": -31.83680727146566
           },
-          "before": 0.6682068617110487,
-          "after": 0.5534765263256721,
-          "evaluations": 2284,
-          "samples": 24576
+          "before": 0.24977023873607868,
+          "after": 0.24977023873607868,
+          "evaluations": 2248,
+          "samples": 26624
         }
       ]
     }
@@ -1070,7 +1322,129 @@ export const searchPresets = {
         "bias": 1,
         "blend": 0
       },
-      "results": []
+      "objective": "all-hex-edges",
+      "results": [
+        {
+          "distance": 0,
+          "angles": {
+            "lon": 178.04000940732658,
+            "lat": 67.14833477595857,
+            "roll": 130.3435273367911
+          },
+          "before": 0.2072366650472254,
+          "after": 0.12575898301435853,
+          "evaluations": 2164,
+          "samples": 24576
+        },
+        {
+          "distance": 1,
+          "angles": {
+            "lon": -20.103349537029885,
+            "lat": 37.17730094825481,
+            "roll": 120.13147700764239
+          },
+          "before": 0.2571019153782374,
+          "after": 0.16711959760134706,
+          "evaluations": 2188,
+          "samples": 24576
+        },
+        {
+          "distance": 2,
+          "angles": {
+            "lon": -175.6143229790032,
+            "lat": 29.7819845409997,
+            "roll": -10.445907229184968
+          },
+          "before": 0.29852137020377484,
+          "after": 0.1875942999570398,
+          "evaluations": 2188,
+          "samples": 24576
+        },
+        {
+          "distance": 3,
+          "angles": {
+            "lon": -176.88932297900317,
+            "lat": 30.456984540999656,
+            "roll": -10.295907229185104
+          },
+          "before": 0.33862859697724507,
+          "after": 0.22202386185024672,
+          "evaluations": 2206,
+          "samples": 24576
+        },
+        {
+          "distance": 4,
+          "angles": {
+            "lon": -175.45953067503865,
+            "lat": 28.258681222168207,
+            "roll": 166.84581167511647
+          },
+          "before": 0.38331950123953384,
+          "after": 0.27618161152116877,
+          "evaluations": 2164,
+          "samples": 24576
+        },
+        {
+          "distance": 5,
+          "angles": {
+            "lon": 27.247403167560833,
+            "lat": 65.06071821862338,
+            "roll": 41.88677322529247
+          },
+          "before": 0.4223121961759925,
+          "after": 0.31380162970247744,
+          "evaluations": 2164,
+          "samples": 24576
+        },
+        {
+          "distance": 6,
+          "angles": {
+            "lon": 159.0707622494548,
+            "lat": 14.985134822982104,
+            "roll": -159.57064828835428
+          },
+          "before": 0.4686448827259655,
+          "after": 0.3370546385467182,
+          "evaluations": 2176,
+          "samples": 24576
+        },
+        {
+          "distance": 7,
+          "angles": {
+            "lon": -20.495417945086956,
+            "lat": -14.01449254923591,
+            "roll": 159.06485542282462
+          },
+          "before": 0.5142991200906634,
+          "after": 0.36376134277602784,
+          "evaluations": 2266,
+          "samples": 24576
+        },
+        {
+          "distance": 8,
+          "angles": {
+            "lon": -139.37768189236522,
+            "lat": -65.61326253023441,
+            "roll": -33.28347233980895
+          },
+          "before": 0.5516080009763992,
+          "after": 0.38557353255699534,
+          "evaluations": 2212,
+          "samples": 24576
+        },
+        {
+          "distance": 9,
+          "angles": {
+            "lon": 161.48542958535245,
+            "lat": 14.09287662937436,
+            "roll": 21.19814841561015
+          },
+          "before": 0.6011935288855886,
+          "after": 0.40503334937333885,
+          "evaluations": 2218,
+          "samples": 24576
+        }
+      ]
     },
     "flower": {
       "config": {
@@ -1079,18 +1453,19 @@ export const searchPresets = {
         "bias": 1,
         "blend": 0
       },
+      "objective": "outer-and-red-seams",
       "results": [
         {
           "distance": 0,
           "angles": {
-            "lon": 41.96616880595684,
-            "lat": 0.474670893543248,
-            "roll": 39.87589568272233
+            "lon": 42.11616880595682,
+            "lat": 0.9246708935432935,
+            "roll": 40.175895682722285
           },
-          "before": 0.2328138117879516,
-          "after": 0.1424311963825585,
-          "evaluations": 2164,
-          "samples": 24576
+          "before": 0.015038754945410796,
+          "after": 0.012026787070991068,
+          "evaluations": 2158,
+          "samples": 36864
         },
         {
           "distance": 1,
@@ -1099,10 +1474,10 @@ export const searchPresets = {
             "lat": 40.19079148977437,
             "roll": 87.45012620687487
           },
-          "before": 0.30462657103402385,
-          "after": 0.2368779542343656,
-          "evaluations": 2230,
-          "samples": 24576
+          "before": 0.050064427914565494,
+          "after": 0.050064427914565494,
+          "evaluations": 2182,
+          "samples": 36864
         },
         {
           "distance": 2,
@@ -1111,10 +1486,10 @@ export const searchPresets = {
             "lat": 57.507495856824335,
             "roll": 5.0312497448176146
           },
-          "before": 0.35156666224058775,
-          "after": 0.25829027881288413,
-          "evaluations": 2218,
-          "samples": 24576
+          "before": 0.09170838657666144,
+          "after": 0.09170838657666144,
+          "evaluations": 2188,
+          "samples": 36864
         },
         {
           "distance": 3,
@@ -1123,10 +1498,10 @@ export const searchPresets = {
             "lat": 4.899670893543089,
             "roll": 31.62589568272233
           },
-          "before": 0.3928142225397895,
-          "after": 0.29269777914574413,
-          "evaluations": 2314,
-          "samples": 24576
+          "before": 0.13092753595408815,
+          "after": 0.13092753595408815,
+          "evaluations": 2254,
+          "samples": 36864
         },
         {
           "distance": 4,
@@ -1135,10 +1510,10 @@ export const searchPresets = {
             "lat": 57.37867824017417,
             "roll": 11.428687953203962
           },
-          "before": 0.4265713600318775,
-          "after": 0.3353005610796799,
-          "evaluations": 2308,
-          "samples": 24576
+          "before": 0.1631471667246879,
+          "after": 0.1631471667246879,
+          "evaluations": 2260,
+          "samples": 36864
         },
         {
           "distance": 5,
@@ -1147,10 +1522,10 @@ export const searchPresets = {
             "lat": 1.2508043070749864,
             "roll": 41.17129632644355
           },
-          "before": 0.468296325703957,
-          "after": 0.3955651883548059,
-          "evaluations": 2122,
-          "samples": 24576
+          "before": 0.20720359858904505,
+          "after": 0.20720359858904505,
+          "evaluations": 2104,
+          "samples": 36864
         },
         {
           "distance": 6,
@@ -1159,10 +1534,10 @@ export const searchPresets = {
             "lat": 0.6508043070750773,
             "roll": 42.89629632644346
           },
-          "before": 0.5061781876663308,
-          "after": 0.4253029417606547,
-          "evaluations": 2182,
-          "samples": 24576
+          "before": 0.24124370815417132,
+          "after": 0.24124370815417132,
+          "evaluations": 2110,
+          "samples": 36864
         },
         {
           "distance": 7,
@@ -1171,10 +1546,10 @@ export const searchPresets = {
             "lat": 1.340770636486468,
             "roll": 39.22613435983658
           },
-          "before": 0.5523942764764854,
-          "after": 0.4009266253078559,
-          "evaluations": 2224,
-          "samples": 24576
+          "before": 0.29023086523502684,
+          "after": 0.29023086523502684,
+          "evaluations": 2164,
+          "samples": 36864
         },
         {
           "distance": 8,
@@ -1183,22 +1558,22 @@ export const searchPresets = {
             "lat": 3.365770636486559,
             "roll": 36.82613435983649
           },
-          "before": 0.594248557661731,
-          "after": 0.4046099509656747,
-          "evaluations": 2200,
-          "samples": 24576
+          "before": 0.3144275415882076,
+          "after": 0.3144275415882076,
+          "evaluations": 2152,
+          "samples": 36864
         },
         {
           "distance": 9,
           "angles": {
             "lon": 167.39576224945495,
-            "lat": 13.410134822982172,
-            "roll": -165.79564828835436
+            "lat": 13.485134822982218,
+            "roll": -165.72064828835437
           },
-          "before": 0.6376968597272522,
-          "after": 0.4124582859589941,
-          "evaluations": 2170,
-          "samples": 24576
+          "before": 0.35293879893404734,
+          "after": 0.35276595997614124,
+          "evaluations": 2116,
+          "samples": 36864
         }
       ]
     },
@@ -1209,6 +1584,7 @@ export const searchPresets = {
         "bias": 1,
         "blend": 0
       },
+      "objective": "outer-and-red-seams",
       "results": [
         {
           "distance": 0,
@@ -1217,10 +1593,10 @@ export const searchPresets = {
             "lat": 32.99273576349003,
             "roll": -13.384930707514286
           },
-          "before": 0.2328138117879516,
-          "after": 0.1696594623805736,
-          "evaluations": 2146,
-          "samples": 24576
+          "before": 0,
+          "after": 0,
+          "evaluations": 2110,
+          "samples": 32768
         },
         {
           "distance": 1,
@@ -1229,10 +1605,10 @@ export const searchPresets = {
             "lat": 29.931984540999792,
             "roll": -9.920907229185104
           },
-          "before": 0.30462657103402385,
-          "after": 0.1776002322808976,
-          "evaluations": 2164,
-          "samples": 24576
+          "before": 0,
+          "after": 0,
+          "evaluations": 2140,
+          "samples": 32768
         },
         {
           "distance": 2,
@@ -1241,10 +1617,10 @@ export const searchPresets = {
             "lat": 31.431984540999792,
             "roll": -9.920907229185104
           },
-          "before": 0.35156666224058775,
-          "after": 0.21087345657166878,
-          "evaluations": 2254,
-          "samples": 24576
+          "before": 0,
+          "after": 0,
+          "evaluations": 2230,
+          "samples": 32768
         },
         {
           "distance": 3,
@@ -1253,10 +1629,10 @@ export const searchPresets = {
             "lat": 31.33952046826232,
             "roll": -9.820429288968398
           },
-          "before": 0.3928142225397895,
-          "after": 0.24418019915837944,
-          "evaluations": 2278,
-          "samples": 24576
+          "before": 0.007453986965818693,
+          "after": 0.007453986965818693,
+          "evaluations": 2242,
+          "samples": 32768
         },
         {
           "distance": 4,
@@ -1265,22 +1641,22 @@ export const searchPresets = {
             "lat": 30.2927357634901,
             "roll": -11.884930707514286
           },
-          "before": 0.4265713600318775,
-          "after": 0.2687032445471206,
-          "evaluations": 2308,
-          "samples": 24576
+          "before": 0.029020309486244247,
+          "after": 0.029020309486244247,
+          "evaluations": 2248,
+          "samples": 32768
         },
         {
           "distance": 5,
           "angles": {
             "lon": -174.9264549929648,
             "lat": 33.73993078447597,
-            "roll": -10.196011976525142
+            "roll": -9.671011976525051
           },
-          "before": 0.468296325703957,
-          "after": 0.3206924712060626,
-          "evaluations": 2158,
-          "samples": 24576
+          "before": 0.0776424324275842,
+          "after": 0.07735090053639858,
+          "evaluations": 2152,
+          "samples": 32768
         },
         {
           "distance": 6,
@@ -1289,10 +1665,10 @@ export const searchPresets = {
             "lat": 24.23198454099986,
             "roll": -19.22090722918506
           },
-          "before": 0.5061781876663308,
-          "after": 0.3503508231610706,
-          "evaluations": 2224,
-          "samples": 24576
+          "before": 0.11563858231477948,
+          "after": 0.11563858231477948,
+          "evaluations": 2176,
+          "samples": 32768
         },
         {
           "distance": 7,
@@ -1301,10 +1677,10 @@ export const searchPresets = {
             "lat": 25.806984540999792,
             "roll": -18.695907229185195
           },
-          "before": 0.5523942764764854,
-          "after": 0.39719835626309735,
-          "evaluations": 2260,
-          "samples": 24576
+          "before": 0.1716292134294529,
+          "after": 0.1716292134294529,
+          "evaluations": 2230,
+          "samples": 32768
         },
         {
           "distance": 8,
@@ -1313,10 +1689,10 @@ export const searchPresets = {
             "lat": 14.946174302109966,
             "roll": -41.32310910522932
           },
-          "before": 0.594248557661731,
-          "after": 0.43830667288128383,
-          "evaluations": 2242,
-          "samples": 24576
+          "before": 0.20836395225024992,
+          "after": 0.20836395225024992,
+          "evaluations": 2188,
+          "samples": 32768
         },
         {
           "distance": 9,
@@ -1325,10 +1701,10 @@ export const searchPresets = {
             "lat": 19.56787662937427,
             "roll": 8.373148415610217
           },
-          "before": 0.6376968597272522,
-          "after": 0.4294441870783263,
-          "evaluations": 2218,
-          "samples": 24576
+          "before": 0.23024167629121522,
+          "after": 0.23024167629121522,
+          "evaluations": 2164,
+          "samples": 32768
         }
       ]
     },
@@ -1339,126 +1715,127 @@ export const searchPresets = {
         "bias": 1,
         "blend": 0
       },
+      "objective": "outer-and-red-seams",
       "results": [
         {
           "distance": 0,
           "angles": {
-            "lon": 147.31464528478682,
-            "lat": 5.18862581528424,
-            "roll": 52.058129696175456
+            "lon": 44.29116880595677,
+            "lat": 0.32467089354315704,
+            "roll": 39.950895682722376
           },
-          "before": 0.2328138117879516,
-          "after": 0.1677835073532675,
-          "evaluations": 2074,
-          "samples": 24576
+          "before": 0.08389175367663383,
+          "after": 0.06683539962865488,
+          "evaluations": 2188,
+          "samples": 49152
         },
         {
           "distance": 1,
           "angles": {
-            "lon": 68.24475886300206,
-            "lat": 54.880053787292354,
-            "roll": -17.66006427258253
+            "lon": 69.21975886300197,
+            "lat": 53.30505378729231,
+            "roll": -19.16006427258253
           },
-          "before": 0.30462657103402385,
-          "after": 0.23387780884892115,
-          "evaluations": 2140,
-          "samples": 24576
+          "before": 0.1169389044244606,
+          "after": 0.10805521974566144,
+          "evaluations": 2218,
+          "samples": 49152
         },
         {
           "distance": 2,
           "angles": {
-            "lon": 71.84475886300208,
-            "lat": 55.630053787292354,
-            "roll": -20.66006427258253
+            "lon": 147.55468468666072,
+            "lat": 0.5505944222011294,
+            "roll": 32.909539360553026
           },
-          "before": 0.35156666224058775,
-          "after": 0.28440761530929626,
-          "evaluations": 2176,
-          "samples": 24576
+          "before": 0.1422038076546482,
+          "after": 0.13541977265555102,
+          "evaluations": 2164,
+          "samples": 49152
         },
         {
           "distance": 3,
           "angles": {
-            "lon": 36.18694302476956,
-            "lat": 9.510335600762346,
-            "roll": 45.6703198235482
+            "lon": 147.6467108979822,
+            "lat": 1.305242256213205,
+            "roll": 33.206266864389136
           },
-          "before": 0.3928142225397895,
-          "after": 0.32968391629079047,
-          "evaluations": 2248,
-          "samples": 24576
+          "before": 0.16497642256561684,
+          "after": 0.15068402591478938,
+          "evaluations": 2218,
+          "samples": 49152
         },
         {
           "distance": 4,
           "angles": {
             "lon": 148.52968468666074,
-            "lat": 1.225594422201084,
-            "roll": 32.159539360553026
+            "lat": 1.750594422201175,
+            "roll": 32.45953936055298
           },
-          "before": 0.4265713600318775,
-          "after": 0.30494093636633585,
-          "evaluations": 2206,
-          "samples": 24576
+          "before": 0.1772104915189382,
+          "after": 0.1743583046805163,
+          "evaluations": 2236,
+          "samples": 49152
         },
         {
           "distance": 5,
           "angles": {
-            "lon": 156.14719266816974,
-            "lat": 4.7907706364865135,
+            "lon": 156.0721926681697,
+            "lat": 4.565770636486604,
             "roll": 37.87613435983644
           },
-          "before": 0.468296325703957,
-          "after": 0.3220214597022703,
-          "evaluations": 2320,
-          "samples": 24576
+          "before": 0.1973251600876764,
+          "after": 0.1971757602703665,
+          "evaluations": 2218,
+          "samples": 49152
         },
         {
           "distance": 6,
           "angles": {
             "lon": 157.02171089798208,
-            "lat": 4.60524225621316,
+            "lat": 4.530242256213114,
             "roll": 37.78126686438918
           },
-          "before": 0.5061781876663308,
-          "after": 0.3351893733830084,
-          "evaluations": 2122,
-          "samples": 24576
+          "before": 0.20996788093428354,
+          "after": 0.2099196370206676,
+          "evaluations": 2164,
+          "samples": 49152
         },
         {
           "distance": 7,
           "angles": {
-            "lon": 153.85468468666068,
-            "lat": -10.32440557779887,
-            "roll": 48.509539360552935
+            "lon": 157.2467108979821,
+            "lat": 3.780242256213228,
+            "roll": 37.03126686438918
           },
-          "before": 0.5523942764764854,
-          "after": 0.4293608699215796,
-          "evaluations": 2230,
-          "samples": 24576
+          "before": 0.2723289432904728,
+          "after": 0.23823666081116432,
+          "evaluations": 2188,
+          "samples": 49152
         },
         {
           "distance": 8,
           "angles": {
-            "lon": 12.87306125611076,
-            "lat": -10.639025957542117,
-            "roll": 34.5490495316684
+            "lon": 156.2971926681697,
+            "lat": 4.715770636486582,
+            "roll": 35.326134359836715
           },
-          "before": 0.594248557661731,
-          "after": 0.4754913264668636,
-          "evaluations": 2260,
-          "samples": 24576
+          "before": 0.29116677983010425,
+          "after": 0.2675053972829568,
+          "evaluations": 2164,
+          "samples": 49152
         },
         {
           "distance": 9,
           "angles": {
             "lon": 155.44671089798214,
-            "lat": 1.2302422562131596,
+            "lat": 1.380242256213137,
             "roll": 37.331266864389136
           },
-          "before": 0.6376968597272522,
-          "after": 0.45465663633878,
-          "evaluations": 2212,
-          "samples": 24576
+          "before": 0.31279409435906713,
+          "after": 0.3124662968050887,
+          "evaluations": 2152,
+          "samples": 49152
         }
       ]
     },
@@ -1469,30 +1846,31 @@ export const searchPresets = {
         "bias": 1,
         "blend": 0
       },
+      "objective": "outer-and-red-seams",
       "results": [
         {
           "distance": 0,
           "angles": {
-            "lon": 0,
-            "lat": 0,
-            "roll": 0
+            "lon": 150.47873873636127,
+            "lat": 20.844480065163225,
+            "roll": -13.244582068920181
           },
-          "before": 0.2328138117879516,
-          "after": 0.2328138117879516,
+          "before": 0.10440308564725119,
+          "after": 0.007386226609589486,
           "evaluations": 2134,
-          "samples": 24576
+          "samples": 26624
         },
         {
           "distance": 1,
           "angles": {
-            "lon": 0,
-            "lat": 0,
-            "roll": 0
+            "lon": 165.41399853564803,
+            "lat": 42.007924962356356,
+            "roll": 91.6869058739394
           },
-          "before": 0.30462657103402385,
-          "after": 0.30462657103402385,
+          "before": 0.14855032472316487,
+          "after": 0.03675478261476865,
           "evaluations": 2254,
-          "samples": 24576
+          "samples": 26624
         },
         {
           "distance": 2,
@@ -1501,10 +1879,10 @@ export const searchPresets = {
             "lat": -43.17008094578142,
             "roll": -0.5146624334156513
           },
-          "before": 0.35156666224058775,
-          "after": 0.2792658738564144,
-          "evaluations": 2320,
-          "samples": 24576
+          "before": 0.06131566886008905,
+          "after": 0.06131566886008905,
+          "evaluations": 2224,
+          "samples": 26624
         },
         {
           "distance": 3,
@@ -1513,10 +1891,10 @@ export const searchPresets = {
             "lat": -42.04019961295529,
             "roll": -1.7428079310803923
           },
-          "before": 0.3928142225397895,
-          "after": 0.3006492854233565,
-          "evaluations": 2260,
-          "samples": 24576
+          "before": 0.10425589116377271,
+          "after": 0.10425589116377271,
+          "evaluations": 2194,
+          "samples": 26624
         },
         {
           "distance": 4,
@@ -1525,34 +1903,34 @@ export const searchPresets = {
             "lat": -42.6401996129552,
             "roll": -3.1678079310804605
           },
-          "before": 0.4265713600318775,
-          "after": 0.35395874918371156,
-          "evaluations": 2194,
-          "samples": 24576
+          "before": 0.13567615870292912,
+          "after": 0.13567615870292912,
+          "evaluations": 2140,
+          "samples": 26624
         },
         {
           "distance": 5,
           "angles": {
-            "lon": 0,
-            "lat": 0,
-            "roll": 0
+            "lon": 163.0787387363613,
+            "lat": 26.469480065163225,
+            "roll": -10.46958206892009
           },
-          "before": 0.468296325703957,
-          "after": 0.468296325703957,
+          "before": 0.29626235448066957,
+          "after": 0.16985169695609503,
           "evaluations": 2188,
-          "samples": 24576
+          "samples": 26624
         },
         {
           "distance": 6,
           "angles": {
-            "lon": 0,
-            "lat": 0,
-            "roll": 0
+            "lon": 161.5787387363613,
+            "lat": 26.91948006516327,
+            "roll": -10.169582068920135
           },
-          "before": 0.5061781876663308,
-          "after": 0.5061781876663308,
+          "before": 0.3478144439950197,
+          "after": 0.19737536676843895,
           "evaluations": 2230,
-          "samples": 24576
+          "samples": 26624
         },
         {
           "distance": 7,
@@ -1561,10 +1939,10 @@ export const searchPresets = {
             "lat": 28.569480065163248,
             "roll": -10.169582068920135
           },
-          "before": 0.5523942764764854,
-          "after": 0.5477741666196388,
-          "evaluations": 2224,
-          "samples": 24576
+          "before": 0.22064019667436796,
+          "after": 0.22064019667436796,
+          "evaluations": 2194,
+          "samples": 26624
         },
         {
           "distance": 8,
@@ -1573,10 +1951,10 @@ export const searchPresets = {
             "lat": 29.619480065163202,
             "roll": -10.319582068920113
           },
-          "before": 0.594248557661731,
-          "after": 0.5789742850881868,
-          "evaluations": 2254,
-          "samples": 24576
+          "before": 0.24542305373380616,
+          "after": 0.24542305373380616,
+          "evaluations": 2200,
+          "samples": 26624
         },
         {
           "distance": 9,
@@ -1585,10 +1963,10 @@ export const searchPresets = {
             "lat": -34.395080945781444,
             "roll": -12.139662433415651
           },
-          "before": 0.6376968597272522,
-          "after": 0.5285193630310231,
-          "evaluations": 2278,
-          "samples": 24576
+          "before": 0.283999352764281,
+          "after": 0.283999352764281,
+          "evaluations": 2230,
+          "samples": 26624
         }
       ]
     }
@@ -1601,7 +1979,129 @@ export const searchPresets = {
         "bias": 1,
         "blend": 0
       },
-      "results": []
+      "objective": "all-hex-edges",
+      "results": [
+        {
+          "distance": 0,
+          "angles": {
+            "lon": -71.01472279317682,
+            "lat": 17.590187479982433,
+            "roll": 99.78943669684236
+          },
+          "before": 0.2209154999605445,
+          "after": 0.11537608631554613,
+          "evaluations": 2200,
+          "samples": 24576
+        },
+        {
+          "distance": 1,
+          "angles": {
+            "lon": 154.7701060831546,
+            "lat": -34.68169852626676,
+            "roll": -129.4576394073665
+          },
+          "before": 0.2909732907651559,
+          "after": 0.17569542598691065,
+          "evaluations": 2260,
+          "samples": 24576
+        },
+        {
+          "distance": 2,
+          "angles": {
+            "lon": -175.8393229790032,
+            "lat": 29.556984540999792,
+            "roll": -10.145907229185013
+          },
+          "before": 0.3363186230221759,
+          "after": 0.20097181199293046,
+          "evaluations": 2236,
+          "samples": 24576
+        },
+        {
+          "distance": 3,
+          "angles": {
+            "lon": 88.01821245364852,
+            "lat": 9.007701204972818,
+            "roll": 121.0292391378432
+          },
+          "before": 0.37586099254294264,
+          "after": 0.23900689690480936,
+          "evaluations": 2218,
+          "samples": 24576
+        },
+        {
+          "distance": 4,
+          "angles": {
+            "lon": 32.339731213822915,
+            "lat": -44.15281073691551,
+            "roll": 45.607389862462924
+          },
+          "before": 0.407589177393044,
+          "after": 0.2661708102589789,
+          "evaluations": 2158,
+          "samples": 24576
+        },
+        {
+          "distance": 5,
+          "angles": {
+            "lon": -11.683279982954218,
+            "lat": -11.560599987025398,
+            "roll": 162.11718954741957
+          },
+          "before": 0.44467823047850336,
+          "after": 0.3123196079556254,
+          "evaluations": 2206,
+          "samples": 24576
+        },
+        {
+          "distance": 6,
+          "angles": {
+            "lon": 158.92219266816983,
+            "lat": 3.4407706364866044,
+            "roll": 36.37613435983667
+          },
+          "before": 0.48052915882064373,
+          "after": 0.3327230274457196,
+          "evaluations": 2158,
+          "samples": 24576
+        },
+        {
+          "distance": 7,
+          "angles": {
+            "lon": -11.570417945087001,
+            "lat": -13.63949254923591,
+            "roll": 161.68985542282462
+          },
+          "before": 0.5248272770113062,
+          "after": 0.3623893887529632,
+          "evaluations": 2278,
+          "samples": 24576
+        },
+        {
+          "distance": 8,
+          "angles": {
+            "lon": 162.61042958535256,
+            "lat": 13.71787662937436,
+            "roll": 21.873148415610217
+          },
+          "before": 0.5663743649174694,
+          "after": 0.3864359983102064,
+          "evaluations": 2158,
+          "samples": 24576
+        },
+        {
+          "distance": 9,
+          "angles": {
+            "lon": 161.48542958535245,
+            "lat": 14.09287662937436,
+            "roll": 21.19814841561015
+          },
+          "before": 0.6143339989527065,
+          "after": 0.40859570192632955,
+          "evaluations": 2194,
+          "samples": 24576
+        }
+      ]
     },
     "flower": {
       "config": {
@@ -1610,6 +2110,7 @@ export const searchPresets = {
         "bias": 1,
         "blend": 0
       },
+      "objective": "outer-and-red-seams",
       "results": [
         {
           "distance": 0,
@@ -1618,10 +2119,10 @@ export const searchPresets = {
             "lat": 50.02894570159208,
             "roll": 1.8510193303227425
           },
-          "before": 0.2209154999605445,
-          "after": 0.1416608386394945,
-          "evaluations": 2194,
-          "samples": 24576
+          "before": 0.011633277772637302,
+          "after": 0.011633277772637302,
+          "evaluations": 2164,
+          "samples": 36864
         },
         {
           "distance": 1,
@@ -1630,10 +2131,10 @@ export const searchPresets = {
             "lat": 8.075804307075032,
             "roll": 42.82129632644353
           },
-          "before": 0.2909732907651559,
-          "after": 0.2383029716044728,
-          "evaluations": 2260,
-          "samples": 24576
+          "before": 0.04218113662939184,
+          "after": 0.04218113662939184,
+          "evaluations": 2224,
+          "samples": 36864
         },
         {
           "distance": 2,
@@ -1642,10 +2143,10 @@ export const searchPresets = {
             "lat": 43.857495856824244,
             "roll": 9.531249744817615
           },
-          "before": 0.3363186230221759,
-          "after": 0.27901966481304447,
-          "evaluations": 2278,
-          "samples": 24576
+          "before": 0.08807846357164958,
+          "after": 0.08807846357164958,
+          "evaluations": 2218,
+          "samples": 36864
         },
         {
           "distance": 3,
@@ -1654,10 +2155,10 @@ export const searchPresets = {
             "lat": 50.83249585682438,
             "roll": -0.6687502551824309
           },
-          "before": 0.37586099254294264,
-          "after": 0.32365317476443345,
-          "evaluations": 2290,
-          "samples": 24576
+          "before": 0.12717058592869102,
+          "after": 0.12717058592869102,
+          "evaluations": 2236,
+          "samples": 36864
         },
         {
           "distance": 4,
@@ -1666,10 +2167,10 @@ export const searchPresets = {
             "lat": 40.82867306854132,
             "roll": 88.51817471086974
           },
-          "before": 0.407589177393044,
-          "after": 0.3457530049752436,
-          "evaluations": 2272,
-          "samples": 24576
+          "before": 0.16074144382763944,
+          "after": 0.16074144382763944,
+          "evaluations": 2206,
+          "samples": 36864
         },
         {
           "distance": 5,
@@ -1678,10 +2179,10 @@ export const searchPresets = {
             "lat": 1.7758043070750773,
             "roll": 41.9962963264436
           },
-          "before": 0.44467823047850336,
-          "after": 0.37968824024600023,
-          "evaluations": 2224,
-          "samples": 24576
+          "before": 0.19062876748738836,
+          "after": 0.19062876748738836,
+          "evaluations": 2176,
+          "samples": 36864
         },
         {
           "distance": 6,
@@ -1690,10 +2191,10 @@ export const searchPresets = {
             "lat": 0.8758043070751,
             "roll": 42.97129632644351
           },
-          "before": 0.48052915882064373,
-          "after": 0.4089715343551623,
-          "evaluations": 2164,
-          "samples": 24576
+          "before": 0.22228307579348794,
+          "after": 0.22228307579348794,
+          "evaluations": 2122,
+          "samples": 36864
         },
         {
           "distance": 7,
@@ -1702,10 +2203,10 @@ export const searchPresets = {
             "lat": 44.97015174735225,
             "roll": 94.50225345455101
           },
-          "before": 0.5248272770113062,
-          "after": 0.43323173691237327,
-          "evaluations": 2224,
-          "samples": 24576
+          "before": 0.2793151427727392,
+          "after": 0.2793151427727392,
+          "evaluations": 2146,
+          "samples": 36864
         },
         {
           "distance": 8,
@@ -1714,10 +2215,10 @@ export const searchPresets = {
             "lat": -12.747075660903874,
             "roll": -75.61460061930126
           },
-          "before": 0.5663743649174694,
-          "after": 0.3982756883872163,
-          "evaluations": 2200,
-          "samples": 24576
+          "before": 0.3251732884737786,
+          "after": 0.3251732884737786,
+          "evaluations": 2134,
+          "samples": 36864
         },
         {
           "distance": 9,
@@ -1726,10 +2227,10 @@ export const searchPresets = {
             "lat": 13.635134822982081,
             "roll": -165.64564828835438
           },
-          "before": 0.6143339989527065,
-          "after": 0.4139772177267141,
-          "evaluations": 2212,
-          "samples": 24576
+          "before": 0.3460744102966769,
+          "after": 0.3460744102966769,
+          "evaluations": 2158,
+          "samples": 36864
         }
       ]
     },
@@ -1740,6 +2241,7 @@ export const searchPresets = {
         "bias": 1,
         "blend": 0
       },
+      "objective": "outer-and-red-seams",
       "results": [
         {
           "distance": 0,
@@ -1748,10 +2250,10 @@ export const searchPresets = {
             "lat": 38.93198454099979,
             "roll": -6.920907229185104
           },
-          "before": 0.2209154999605445,
-          "after": 0.2142551604193582,
-          "evaluations": 2170,
-          "samples": 24576
+          "before": 0,
+          "after": 0,
+          "evaluations": 2146,
+          "samples": 32768
         },
         {
           "distance": 1,
@@ -1760,10 +2262,10 @@ export const searchPresets = {
             "lat": 30.195222830959892,
             "roll": -10.203820696100593
           },
-          "before": 0.2909732907651559,
-          "after": 0.1915273720976325,
-          "evaluations": 2194,
-          "samples": 24576
+          "before": 0,
+          "after": 0,
+          "evaluations": 2164,
+          "samples": 32768
         },
         {
           "distance": 2,
@@ -1772,10 +2274,10 @@ export const searchPresets = {
             "lat": 31.33952046826232,
             "roll": -10.270429288968444
           },
-          "before": 0.3363186230221759,
-          "after": 0.22048637721033434,
-          "evaluations": 2230,
-          "samples": 24576
+          "before": 0,
+          "after": 0,
+          "evaluations": 2212,
+          "samples": 32768
         },
         {
           "distance": 3,
@@ -1784,10 +2286,10 @@ export const searchPresets = {
             "lat": 31.339930784475882,
             "roll": -9.896011976525187
           },
-          "before": 0.37586099254294264,
-          "after": 0.25275002234428834,
-          "evaluations": 2296,
-          "samples": 24576
+          "before": 0.007644234810230775,
+          "after": 0.007644234810230775,
+          "evaluations": 2254,
+          "samples": 32768
         },
         {
           "distance": 4,
@@ -1796,10 +2298,10 @@ export const searchPresets = {
             "lat": 29.992735763490032,
             "roll": -11.509930707514286
           },
-          "before": 0.407589177393044,
-          "after": 0.271529314372743,
-          "evaluations": 2326,
-          "samples": 24576
+          "before": 0.02471404210239282,
+          "after": 0.02471404210239282,
+          "evaluations": 2278,
+          "samples": 32768
         },
         {
           "distance": 5,
@@ -1808,10 +2310,10 @@ export const searchPresets = {
             "lat": 28.995222830959847,
             "roll": -13.653820696100524
           },
-          "before": 0.44467823047850336,
-          "after": 0.31353498757451703,
-          "evaluations": 2266,
-          "samples": 24576
+          "before": 0.06610300243766062,
+          "after": 0.06610300243766062,
+          "evaluations": 2170,
+          "samples": 32768
         },
         {
           "distance": 6,
@@ -1820,10 +2322,10 @@ export const searchPresets = {
             "lat": 26.59522283095987,
             "roll": -17.1788206961005
           },
-          "before": 0.48052915882064373,
-          "after": 0.3557827489277881,
-          "evaluations": 2236,
-          "samples": 24576
+          "before": 0.10647386912783663,
+          "after": 0.10647386912783663,
+          "evaluations": 2176,
+          "samples": 32768
         },
         {
           "distance": 7,
@@ -1832,10 +2334,10 @@ export const searchPresets = {
             "lat": 27.83198454099977,
             "roll": -17.27090722918524
           },
-          "before": 0.5248272770113062,
-          "after": 0.4066102528509106,
-          "evaluations": 2260,
-          "samples": 24576
+          "before": 0.16635708741096364,
+          "after": 0.16635708741096364,
+          "evaluations": 2194,
+          "samples": 32768
         },
         {
           "distance": 8,
@@ -1844,10 +2346,10 @@ export const searchPresets = {
             "lat": 5.186282552506327,
             "roll": 34.9429352391511
           },
-          "before": 0.5663743649174694,
-          "after": 0.3888948765331406,
-          "evaluations": 2260,
-          "samples": 24576
+          "before": 0.21289503747286834,
+          "after": 0.21289503747286834,
+          "evaluations": 2200,
+          "samples": 32768
         },
         {
           "distance": 9,
@@ -1856,10 +2358,10 @@ export const searchPresets = {
             "lat": 20.295971525590403,
             "roll": 7.1462881889194705
           },
-          "before": 0.6143339989527065,
-          "after": 0.43683689960533795,
-          "evaluations": 2212,
-          "samples": 24576
+          "before": 0.23211916770280946,
+          "after": 0.23211916770280946,
+          "evaluations": 2146,
+          "samples": 32768
         }
       ]
     },
@@ -1870,126 +2372,127 @@ export const searchPresets = {
         "bias": 1,
         "blend": 0
       },
+      "objective": "outer-and-red-seams",
       "results": [
         {
           "distance": 0,
           "angles": {
-            "lon": 57.61685190908611,
-            "lat": 39.8782236746174,
-            "roll": 1.5354490745812654
+            "lon": 55.74185190908611,
+            "lat": 39.80322367461736,
+            "roll": 2.4354490745812427
           },
-          "before": 0.2209154999605445,
-          "after": 0.14536537348929834,
-          "evaluations": 2020,
-          "samples": 24576
+          "before": 0.07268268674464921,
+          "after": 0.06711120867058608,
+          "evaluations": 2206,
+          "samples": 49152
         },
         {
           "distance": 1,
           "angles": {
-            "lon": 68.24475886300206,
-            "lat": 54.880053787292354,
-            "roll": -17.66006427258253
+            "lon": 147.2971926681697,
+            "lat": 2.615770636486559,
+            "roll": 50.251134359836556
           },
-          "before": 0.2909732907651559,
-          "after": 0.2277369390630313,
-          "evaluations": 2170,
-          "samples": 24576
+          "before": 0.11386846953151569,
+          "after": 0.10127549462391672,
+          "evaluations": 2200,
+          "samples": 49152
         },
         {
           "distance": 2,
           "angles": {
-            "lon": 71.84475886300208,
-            "lat": 55.630053787292354,
-            "roll": -20.66006427258253
+            "lon": 148.27219266816974,
+            "lat": 2.5407706364865135,
+            "roll": 51.82613435983649
           },
-          "before": 0.3363186230221759,
-          "after": 0.27939719278196634,
-          "evaluations": 2134,
-          "samples": 24576
+          "before": 0.139698596390983,
+          "after": 0.12494627813304303,
+          "evaluations": 2218,
+          "samples": 49152
         },
         {
           "distance": 3,
           "angles": {
-            "lon": 36.18694302476956,
-            "lat": 9.510335600762346,
-            "roll": 45.6703198235482
+            "lon": 35.66194302476947,
+            "lat": 9.660335600762323,
+            "roll": 45.82031982354829
           },
-          "before": 0.37586099254294264,
-          "after": 0.3132992220141679,
-          "evaluations": 2188,
-          "samples": 24576
+          "before": 0.15677133023320614,
+          "after": 0.15624868960994187,
+          "evaluations": 2254,
+          "samples": 49152
         },
         {
           "distance": 4,
           "angles": {
             "lon": 148.4546846866608,
-            "lat": 1.225594422201084,
-            "roll": 32.23453936055307
+            "lat": 1.750594422201175,
+            "roll": 32.534539360553026
           },
-          "before": 0.407589177393044,
-          "after": 0.3028588133165433,
-          "evaluations": 2182,
-          "samples": 24576
+          "before": 0.1759106682416456,
+          "after": 0.17334958652445762,
+          "evaluations": 2248,
+          "samples": 49152
         },
         {
           "distance": 5,
           "angles": {
-            "lon": 35.479991156235315,
-            "lat": 3.950804307075032,
-            "roll": 41.696296326443644
+            "lon": 156.8221926681697,
+            "lat": 3.6657706364865135,
+            "roll": 36.601134359836806
           },
-          "before": 0.44467823047850336,
-          "after": 0.36964713167490304,
-          "evaluations": 2212,
-          "samples": 24576
+          "before": 0.22133162671218798,
+          "after": 0.199695640576081,
+          "evaluations": 2218,
+          "samples": 49152
         },
         {
           "distance": 6,
           "angles": {
-            "lon": 36.60499115623543,
-            "lat": 3.2758043070749636,
-            "roll": 42.29629632644355
+            "lon": 157.7971926681697,
+            "lat": 3.8157706364866044,
+            "roll": 36.751134359836556
           },
-          "before": 0.48052915882064373,
-          "after": 0.41343556665071923,
-          "evaluations": 2224,
-          "samples": 24576
+          "before": 0.2558571650421995,
+          "after": 0.2118106267691191,
+          "evaluations": 2170,
+          "samples": 49152
         },
         {
           "distance": 7,
           "angles": {
-            "lon": 79.4755090344695,
-            "lat": 40.43611483050199,
-            "roll": -21.93270782567538
+            "lon": 157.57219266816992,
+            "lat": 4.4157706364865135,
+            "roll": 36.301134359836624
           },
-          "before": 0.5248272770113062,
-          "after": 0.43771467074596115,
-          "evaluations": 2200,
-          "samples": 24576
+          "before": 0.2773565687244395,
+          "after": 0.24183558202283675,
+          "evaluations": 2218,
+          "samples": 49152
         },
         {
           "distance": 8,
           "angles": {
-            "lon": 155.82171089798203,
-            "lat": 2.355242256213387,
-            "roll": 37.25626686438932
+            "lon": 156.42171089798217,
+            "lat": 4.680242256213205,
+            "roll": 35.30626686438927
           },
-          "before": 0.5663743649174694,
-          "after": 0.4200535986660303,
-          "evaluations": 2272,
-          "samples": 24576
+          "before": 0.28714559452077726,
+          "after": 0.2723639012657442,
+          "evaluations": 2218,
+          "samples": 49152
         },
         {
           "distance": 9,
           "angles": {
-            "lon": 81.42550903446977,
-            "lat": 45.91111483050213,
-            "roll": -24.632707825675652
+            "lon": 17.834055980667472,
+            "lat": 64.57331275785373,
+            "roll": -131.12380019389093
           },
-          "before": 0.6143339989527065,
-          "after": 0.5197806083848865,
-          "evaluations": 2164,
-          "samples": 24576
+          "before": 0.3478819477319222,
+          "after": 0.31498306160874656,
+          "evaluations": 2188,
+          "samples": 49152
         }
       ]
     },
@@ -2000,6 +2503,7 @@ export const searchPresets = {
         "bias": 1,
         "blend": 0
       },
+      "objective": "outer-and-red-seams",
       "results": [
         {
           "distance": 0,
@@ -2008,22 +2512,22 @@ export const searchPresets = {
             "lat": -39.12008094578147,
             "roll": -0.36466243341556037
           },
-          "before": 0.2209154999605445,
-          "after": 0.20361941125404673,
-          "evaluations": 2206,
-          "samples": 24576
+          "before": 0.00576270076870639,
+          "after": 0.00576270076870639,
+          "evaluations": 2152,
+          "samples": 26624
         },
         {
           "distance": 1,
           "angles": {
-            "lon": 0,
-            "lat": 0,
-            "roll": 0
+            "lon": 165.41399853564803,
+            "lat": 42.0829249623564,
+            "roll": 91.6869058739394
           },
-          "before": 0.2909732907651559,
-          "after": 0.2909732907651559,
+          "before": 0.14227848566458107,
+          "after": 0.037983075480523064,
           "evaluations": 2224,
-          "samples": 24576
+          "samples": 26624
         },
         {
           "distance": 2,
@@ -2032,22 +2536,22 @@ export const searchPresets = {
             "lat": -43.32008094578151,
             "roll": -0.5896624334156968
           },
-          "before": 0.3363186230221759,
-          "after": 0.28572476058809776,
-          "evaluations": 2182,
-          "samples": 24576
+          "before": 0.05647288173268747,
+          "after": 0.05647288173268747,
+          "evaluations": 2134,
+          "samples": 26624
         },
         {
           "distance": 3,
           "angles": {
-            "lon": -5.183258477971094,
-            "lat": -42.940199612955155,
-            "roll": -1.0678079310805515
+            "lon": -4.958258477971185,
+            "lat": -43.690199612955155,
+            "roll": -0.46780793108052876
           },
-          "before": 0.37586099254294264,
-          "after": 0.3112172425460637,
-          "evaluations": 2158,
-          "samples": 24576
+          "before": 0.10095091160842469,
+          "after": 0.09823477298319191,
+          "evaluations": 2134,
+          "samples": 26624
         },
         {
           "distance": 4,
@@ -2056,22 +2560,22 @@ export const searchPresets = {
             "lat": -42.94019961295521,
             "roll": -3.467807931080415
           },
-          "before": 0.407589177393044,
-          "after": 0.3623012664913106,
-          "evaluations": 2200,
-          "samples": 24576
+          "before": 0.1353864254959539,
+          "after": 0.1353864254959539,
+          "evaluations": 2164,
+          "samples": 26624
         },
         {
           "distance": 5,
           "angles": {
-            "lon": 0,
-            "lat": 0,
-            "roll": 0
+            "lon": 163.15373873636122,
+            "lat": 26.39448006516318,
+            "roll": -10.544582068920135
           },
-          "before": 0.44467823047850336,
-          "after": 0.44467823047850336,
+          "before": 0.2878728868114102,
+          "after": 0.18734444945695547,
           "evaluations": 2206,
-          "samples": 24576
+          "samples": 26624
         },
         {
           "distance": 6,
@@ -2080,10 +2584,10 @@ export const searchPresets = {
             "lat": -38.145080945781444,
             "roll": -18.43966243341572
           },
-          "before": 0.48052915882064373,
-          "after": 0.4698407973891006,
-          "evaluations": 2188,
-          "samples": 24576
+          "before": 0.20488634454781265,
+          "after": 0.20488634454781265,
+          "evaluations": 2116,
+          "samples": 26624
         },
         {
           "distance": 7,
@@ -2092,10 +2596,10 @@ export const searchPresets = {
             "lat": -37.04361813165764,
             "roll": -22.59415043368938
           },
-          "before": 0.5248272770113062,
-          "after": 0.5099334354809116,
-          "evaluations": 2320,
-          "samples": 24576
+          "before": 0.22916801130280495,
+          "after": 0.22916801130280495,
+          "evaluations": 2260,
+          "samples": 26624
         },
         {
           "distance": 8,
@@ -2104,10 +2608,10 @@ export const searchPresets = {
             "lat": -34.41861813165764,
             "roll": -28.144150433689333
           },
-          "before": 0.5663743649174694,
-          "after": 0.5387189199306567,
-          "evaluations": 2290,
-          "samples": 24576
+          "before": 0.2545140441591549,
+          "after": 0.2545140441591549,
+          "evaluations": 2224,
+          "samples": 26624
         },
         {
           "distance": 9,
@@ -2116,10 +2620,10 @@ export const searchPresets = {
             "lat": -20.26557141919875,
             "roll": -49.41423977427189
           },
-          "before": 0.6143339989527065,
-          "after": 0.603087590635549,
-          "evaluations": 2212,
-          "samples": 24576
+          "before": 0.2826489579306439,
+          "after": 0.2826489579306439,
+          "evaluations": 2158,
+          "samples": 26624
         }
       ]
     }

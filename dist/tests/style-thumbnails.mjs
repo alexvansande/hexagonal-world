@@ -1,4 +1,4 @@
-import {layoutOptions,styleOptions} from '../map-options.mjs?v=circular-2';
+import {layoutOptions,styleOptions} from '../map-options.mjs?v=cuts-1';
 import {encodeMapState} from '../map-state.mjs?v=grid-styling-1';
 import {makeGeometry,layouts,hex,canvasWorld} from '../geometry.mjs?v=circular-2';
 import {makeArrangement} from '../arrangements.mjs?v=circular-2';

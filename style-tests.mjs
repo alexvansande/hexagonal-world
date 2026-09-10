@@ -19,7 +19,7 @@ assert.equal(byId['gray-neutral'].controls['relief-treatment'],'land');
 assert.equal(byId.political.controls.graticule,false);assert.equal(byId.political.controls.dotgrid,false);assert.equal(byId.political.controls['background-color'],'#2b4b5f');
 assert.equal(byId.political.controls['relief-enabled'],false);
 assert.equal(byId.lifezones.controls.subgrid,true);assert.equal(byId.lifezones.controls.dotgrid,true);assert.equal(byId.lifezones.state.subgridWidth,.2);assert.equal(byId.lifezones.controls['hex-grid-color'],'#d6d6d6');assert.equal(byId.lifezones.controls['background-color'],'#ebebeb');
-const spaceship=layoutOptions.find(o=>o.arrangement==='dymaxion');assert.deepEqual([spaceship.state.lon,spaceship.state.lat,spaceship.state.roll],[-169.74621893297788,34.99467419672773,-13.80296086449369]);
+const spaceship=layoutOptions.find(o=>o.arrangement==='dymaxion');assert.deepEqual([spaceship.state.lon,spaceship.state.lat,spaceship.state.roll],[-170.01889457926154,32.99273576349003,-13.384930707514286]);
 assert.equal(byId.ivory.controls['relief-tone'],'warm');assert.equal(byId.ivory.controls.graticule,true);assert.equal(byId.ivory.controls['background-color'],'#8b9992');
 assert.equal(ecologyGridLevel,6);assert(Math.abs(ecologyHexRadius-1/343)<1e-12);
 // All sixth-generation centers are on the same lattice used by ecology pixels.

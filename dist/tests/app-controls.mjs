@@ -1,5 +1,5 @@
-import {decodeMapState} from '../map-state.mjs';
-import {layoutOptions,styleOptions} from '../map-options.mjs?v=circular-2';
+import {decodeMapState,encodeMapState} from '../map-state.mjs';
+import {layoutOptions,styleOptions} from '../map-options.mjs?v=cuts-1';
 const frame=document.querySelector('iframe'),list=document.querySelector('#checks'),result=document.querySelector('#result');
 const errors=[];let checks=0;
 const delay=ms=>new Promise(resolve=>setTimeout(resolve,ms));
@@ -36,10 +36,11 @@ try{
   const source=$('map-source').value;
   doc.querySelector(`[data-arrangement="${option.arrangement}"]`).click();await settle();
   assert($('layout').value===option.arrangement,'Arrangement did not update');
-  if(option.arrangement==='dymaxion')for(const id of ['lon','lat','roll'])assert(Math.abs(decodeMapState(win.location.hash.slice(3)).state[id]-option.state[id])<1e-10,'Spaceship Earth orientation did not update');
+  for(const id of ['lon','lat','roll','gridRotation','clearance'].filter(id=>option.state[id]!==undefined))assert(Math.abs(decodeMapState(win.location.hash.slice(3)).state[id]-option.state[id])<1e-10,option.name+' orientation did not update');
   if(option.arrangement==='bighex')assert(+$('gridRotation').value===60,'Flower World rotation is not 60 degrees');
   assert($('map-source').value===source,'Format changed the chosen style');
   assert(doc.querySelectorAll('.layout-preset-card[aria-pressed="true"]').length===1,'Format selection is inconsistent');
+  if(option.viewOffset){const v=decodeMapState(win.location.hash.slice(3)).view;assert(Math.abs(v.panX/v.scale-option.viewOffset[0])<1e-10&&Math.abs(v.panY/v.scale-option.viewOffset[1])<1e-10,'Infinite view did not retain its Africa-centered offset');}
   pass(option.name+' switches and renders');
  }
  assert($('map-heading').dataset.obscured==='true'&&!$('sidebar-title').hidden,'Infinite map should move the title into the expanded column');pass('Title moves to the expanded column when the map covers it');
@@ -52,6 +53,7 @@ try{
   assert(geography()===before,'Style changed projection, arrangement or viewport');
   for(const [id,value] of Object.entries(option.state))assert(Math.abs(+$(id).value-value)<.001,'Style omitted '+id);
   assert(doc.querySelector(`[data-source="${option.source}"]`).getAttribute('aria-pressed')==='true','Style selection is inconsistent');
+  if(option.viewOffset){const v=decodeMapState(win.location.hash.slice(3)).view;assert(Math.abs(v.panX/v.scale-option.viewOffset[0])<1e-10&&Math.abs(v.panY/v.scale-option.viewOffset[1])<1e-10,'Infinite view did not retain its Africa-centered offset');}
   pass(option.name+' switches and renders');
  }
  doc.querySelector('[data-source="ecology"]').click();await settle();
@@ -69,6 +71,14 @@ try{
  doc.querySelector('[data-arrangement="infinite"]').click();await settle();
  $('zoom-out').click();await settle();assert($('zoom-value').textContent==='80%','Zoom did not update');
  pass('Infinite mode remains rendered after zoom');
+ assert(!$('optimize').disabled,'Infinite minimizer is unavailable');$('optimize').checked=true;$('optimize').dispatchEvent(new win.Event('change'));await settle();assert($('optimize').checked&&$('optimizer-note').textContent.includes('Every distinct hexagon border'),'Infinite minimizer did not apply');pass('Infinite minimizer scores every hexagon border');
+ const historical=decodeMapState(win.location.hash.slice(3));historical.state.lon+=.1234;historical.controls.optimize=true;
+ win.location.href=win.location.href.split('#')[0]+'#m='+encodeMapState(historical);win.location.reload();
+ await until(()=>frame.contentDocument!==doc&&frame.contentDocument?.querySelector('.layout-preset-card'),'historical map reload');
+ win=frame.contentWindow;doc=frame.contentDocument;
+ win.addEventListener('error',event=>errors.push(event.message));win.addEventListener('unhandledrejection',event=>errors.push(String(event.reason)));
+ await until(()=>$('status').textContent.startsWith('Infinite ·'),'historical map render');await settle();
+ assert(Math.abs(decodeMapState(win.location.hash.slice(3)).state.lon-historical.state.lon)<1e-10&&!$('optimize').checked,'Saved rotation was overwritten by regenerated presets');pass('Saved maps retain their recorded orientation after search presets change');
 
  const change=(id,value)=>{const el=$(id);if(el.type==='checkbox')el.checked=value;else el.value=value;el.dispatchEvent(new win.Event(['range','color'].includes(el.type)?'input':'change',{bubbles:true}));};
  const overlayInk=()=>{const c=$('overlay'),rgba=c.getContext('2d').getImageData(0,0,c.width,c.height).data;for(let i=3;i<rgba.length;i+=4)if(rgba[i])return true;return false;};

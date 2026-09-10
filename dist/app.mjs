@@ -6,12 +6,12 @@ import {decodeMapState,encodeMapState,distortionEnabled,restorePanelStates} from
 import {sphereAt,followPoint,geographicPoint} from './globe-drag.mjs?v=circular-2';
 import {makeArrangement,arrangementNames} from './arrangements.mjs?v=circular-2';
 import {mapSource,landLegends,oceanLegend,missing,riverMask} from './map-layers.mjs?v=rivers-5';
-import {searchPresets} from './search-presets.mjs';
+import {searchPresets} from './search-presets.mjs?v=cuts-1';
 import {visibleTiles} from './tiling.mjs';
 import {makeGeometry,layouts,matching,canvasWorld,hex} from './geometry.mjs?v=circular-2';
 import {projectionGLSL} from './projection-shader.mjs?v=circular-2';
 import {ReliefRenderer,reliefRanges,reliefDefaults,reliefLooks} from './relief.mjs?v=circular-2';
-import {layoutOptions,styleOptions,layoutIcon} from './map-options.mjs?v=circular-2';
+import {layoutOptions,styleOptions,layoutIcon} from './map-options.mjs?v=cuts-1';
 const $=id=>document.getElementById(id), canvas=$('map'),overlay=$('overlay'),ctx=overlay.getContext('2d');
 const classOptions=[3,6,10,15];
 const classCount=id=>classOptions[Math.max(0,Math.min(3,Math.round(+$(id).value)))];
@@ -289,7 +289,7 @@ const img=new Image();img.onload=()=>{if(!gl||!program)return;texture=gl.createT
 canvas.addEventListener('webglcontextlost',e=>{e.preventDefault();ready=false;fail('The graphics context was interrupted. Reload to restore the map.');});
 
 function setRotation(angles){for(const id of ['lon','lat','roll']){state[id]=angles[id];$(id).value=angles[id];$(id+'-value').value=angles[id].toFixed(2)+'°';}draw();}
-function updateOptimizerUI(){const preset=searchPresets[state.method]?.[state.arrangement],available=Boolean(preset?.results?.length);$('optimize').disabled=!ready||!available;if(!available)$('optimize').checked=false;$('optimizer-note').textContent=available?'Only the exposed outer boundary is scored.':'No cut-search preset is available for this projection and format.';}
+function updateOptimizerUI(){const preset=searchPresets[state.method]?.[state.arrangement],available=Boolean(preset?.results?.length);$('optimize').disabled=!ready||!available;if(!available)$('optimize').checked=false;$('optimizer-note').textContent=available?(preset.objective==='all-hex-edges'?'Every distinct hexagon border is scored across the repeating map.':'Outer boundaries and both sides of red seams are scored.'):'No cut-search preset is available for this projection and format.';}
 function applySearch(){
  if(!$('optimize').checked)return;
  const preset=searchPresets[state.method]?.[state.arrangement];
@@ -335,6 +335,8 @@ function restoreSettings(provided){
    }
    if(el.matches('select')&&id!=='layout'&&[...el.options].some(o=>o.value===value))el.value=value;
   }
+  // A shared map records its exact rotation, even if search presets later change.
+  $('optimize').checked=false;
   document.querySelectorAll('.method').forEach(el=>el.classList.toggle('active',el.dataset.method===state.method));
   restorePanelStates(document.querySelectorAll('aside > details'),saved.details);
   const v=saved.view;
@@ -428,11 +430,11 @@ function setOptionControl(id,value){
 }
 function applyMapOption(option,type){
   if(type==='layout'){
-    for(const id of ['method','arrangement','lon','lat','roll','bias','height','gridRotation','mode'])if(option.state[id]!==undefined){if(['method','arrangement','mode'].includes(id))state[id]=option.state[id];else setOptionRange(id,option.state[id]);}
+    for(const id of ['method','arrangement','lon','lat','roll','bias','height','clearance','gridRotation','mode'])if(option.state[id]!==undefined){if(['method','arrangement','mode'].includes(id))state[id]=option.state[id];else setOptionRange(id,option.state[id]);}
     for(const id of ['interpolation','optimize'])if(option.controls[id]!==undefined)setOptionControl(id,option.controls[id]);
     if(option.mode)mode(option.mode);else mode(state.mode);
     state.layout=0;document.querySelectorAll('.method').forEach(el=>el.classList.toggle('active',el.dataset.method===state.method));
-    rebuild();resize();updateRelief();
+    rebuild();resize();if(option.viewOffset){state.panX=option.viewOffset[0]*scale;state.panY=option.viewOffset[1]*scale;draw();}updateRelief();
   }else{
     for(const [id,value] of Object.entries(option.state))setOptionRange(id,value);
     for(const [id,value] of Object.entries(option.controls))setOptionControl(id,value);

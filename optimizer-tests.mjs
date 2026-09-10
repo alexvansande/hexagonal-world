@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import {edgeSamples,outerEdgeSamples,rotation,landScore,optimize} from './dist/optimizer.mjs';
+import {edgeSamples,outerEdgeSamples,cutEdgeSamples,rotation,landScore,optimize} from './dist/optimizer.mjs';
 import {makeGeometry,layouts} from './dist/geometry.mjs';
 import {makeArrangement} from './dist/arrangements.mjs';
 const start={lon:0,lat:0,roll:0};
@@ -14,6 +14,16 @@ for(const method of ['tetra','octa','rhombic','tetrakis']){
  assert.equal(outerEdgeSamples({method,height:1.5},makeArrangement(tiles,'dymaxion',nets),8).length,16*8*3,'Fuller samples only exposed edges');
  assert.equal(outerEdgeSamples({method,height:1.5},makeArrangement(tiles,'bighex',nets),8).length,18*8*3,'Big hex samples only exposed edges');
  assert.equal(outerEdgeSamples({method,height:1.5},makeArrangement(tiles,'felv',nets),8).length,13*8*3,'Felv samples only exposed edges');
+ const config={method,height:1.5};
+ assert.deepEqual(cutEdgeSamples(config,makeArrangement(tiles,'infinite',nets),8),edgeSamples(config,8),'Infinite must include every unique spherical border');
+ for(const name of ['flower','bighex','dymaxion','felv']){
+  const arrangement=makeArrangement(tiles,name,nets),outer=outerEdgeSamples(config,arrangement,8),cuts=cutEdgeSamples(config,arrangement,8);
+  const redSides=arrangement.net.reduce((n,t)=>n+t.bad.filter(Boolean).length,0);
+  assert.equal(cuts.length,outer.length+redSides*8*3,'Finite objective must include both sides of every red seam exactly once');
+  assert.deepEqual(cuts.slice(0,outer.length),outer,'Outer cuts must be preserved');
+  if(name==='bighex')assert(redSides>0,'Flower World must exercise red seams');
+ }
+
 }
 // Independent sequential Euler rotations match the renderer's convention.
 for(const angles of [{lon:30,lat:20,roll:-40},{lon:-170,lat:-80,roll:125}]){
@@ -28,6 +38,16 @@ for(let y=18;y<42;y++)for(let x=50;x<80;x++)mask[y*width+x]=1;
 const result=optimize({config:{method:'tetra'},start,mask,width,height,budget:100,seed:42});
 assert(result.after<=result.before);assert(result.after<result.before,'search should avoid the synthetic land patch');
 assert.equal(result.samples,24576);assert(Number.isFinite(result.angles.lon));
+// Validation must use the same layout cuts as exploration and refinement.
+for(const name of ['flower','bighex','felv','infinite']){
+ const config={method:'rhombic',height:1.5},tiles=makeGeometry(config.method),arrangement=makeArrangement(tiles,name,layouts(tiles));
+ const result=optimize({config,arrangement,start,mask,width,height,budget:15,seed:42});
+ const validation=cutEdgeSamples(config,arrangement,2048);
+ assert.equal(result.samples,validation.length/3,'Validation used a different edge set');
+ assert.equal(result.before,landScore(validation,start,mask,width,height));
+ assert.equal(result.after,landScore(validation,result.angles,mask,width,height));
+ assert(result.after<=result.before,'The accepted result regresses on its actual objective');
+}
 console.log('Optimizer: sphere samples, land masks, rotation convention, improvement and dense validation passed.');
 
 const {clearanceField,clearanceMask}=await import('./dist/clearance.mjs');

@@ -61,7 +61,7 @@ The app uses the polyhedral constructions as a basis, and does not implement Gos
 
 ## Continent-cut search
 
-Enable **Minimize land on edges** beneath the orientation sliders to apply precomputed globe rotations. The supplied silhouette is thresholded at grayscale 128 (dark = land), and only the chosen finite arrangement's exposed outer boundary is scored. The clearance slider selects among ten rotations prepared for distances from 0° to 9°. Infinite tiling has no outer boundary, so this control is unavailable there.
+Enable **Minimize land on borders** beneath the orientation sliders to apply precomputed globe rotations. The supplied silhouette is thresholded at grayscale 128 (dark = land), and finite arrangements score the outer boundary plus both sides of red seams. Matching internal joins are excluded. Infinite tiling scores every distinct spherical hexagon border once, including borders that meet without a visible seam. The clearance slider selects among ten rotations prepared for distances from 0° to 9°. Exploration, refinement and dense validation use the same objective. Each result is compared against the previous saved result with the new metric, and rejected if it regresses.
 
 The offline preparation script explores 1,500 initial rotations per distance, refines candidates, and validates the result. These are heuristic results, not certified global minima. Selecting a result also restores the projection bias, interpolation, and tetrakis height used to compute it. Adjusting orientation or projection controls manually leaves the preset mode.
 

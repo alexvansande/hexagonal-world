@@ -64,6 +64,22 @@ export function outerEdgeSamples(config,arrangement,resolution=256){
  }
  return new Float64Array(samples);
 }
+// Both sides of a red join matter: they can show different geographic land.
+// Matching internal joins are continuous and stay out of the finite objective.
+export function cutEdgeSamples(config,arrangement,resolution=256){
+ if(!arrangement||arrangement.tiling)return edgeSamples(config,resolution);
+ const outer=outerEdgeSamples(config,arrangement,resolution),extra=[];
+ const geometry=makeGeometry(config.method,config.height);
+ for(const tile of arrangement.net)for(let e=0;e<6;e++){
+  if(!tile.bad?.[(e+tile.r)%6])continue;
+  for(let i=0;i<resolution;i++){
+   const t=(i+.5)/resolution,point=world(hex[e].map((v,j)=>v*(1-t)+hex[(e+1)%6][j]*t),tile);
+   const sample=sphereAt(point,tile,geometry[tile.id],config.bias??1,config.blend??0);
+   if(sample)extra.push(...sample);
+  }
+ }
+ const samples=new Float64Array(outer.length+extra.length);samples.set(outer);samples.set(extra,outer.length);return samples;
+}
 export function rotation({lon,lat,roll}){
  const cy=Math.cos(lon*D),sy=Math.sin(lon*D),cp=Math.cos(lat*D),sp=Math.sin(lat*D),cr=Math.cos(roll*D),sr=Math.sin(roll*D);
  // Same X roll, negative Y pitch, then Z longitude as the map shader.
@@ -83,7 +99,7 @@ const wrap=x=>((x+180)%360+360)%360-180;
 function canonical(p){let {lon,lat,roll}=p;lat=wrap(lat);if(lat>90){lat=180-lat;lon+=180;roll+=180;}if(lat< -90){lat=-180-lat;lon+=180;roll+=180;}return {lon:wrap(lon),lat,roll:wrap(roll)};}
 export function optimize({config,start,mask,width,height,arrangement,budget=1500,seed=1},progress=()=>{}){
  let rng=seed>>>0;const random=()=>{rng=(Math.imul(1664525,rng)+1013904223)>>>0;return rng/4294967296;};
- const sample=(resolution)=>arrangement?outerEdgeSamples(config,arrangement,resolution):edgeSamples(config,resolution),coarse=sample(64),fine=sample(512);let evaluations=0;
+ const sample=(resolution)=>cutEdgeSamples(config,arrangement,resolution),coarse=sample(64),fine=sample(512);let evaluations=0;
  if(!coarse.length)return {angles:{...start},before:0,after:0,evaluations,samples:0};
  const score=(p,samples=coarse)=>{evaluations++;return landScore(samples,p,mask,width,height);};
  const baseline=score(start,fine);let pool=[{angles:{...start},score:score(start)}];
@@ -105,6 +121,6 @@ export function optimize({config,start,mask,width,height,arrangement,budget=1500
   if(!improved)break;
  }
  // Independent denser validation prevents accepting a coarse-sampling regression.
- progress({phase:'Validating perimeter',percent:95});const validation=edgeSamples(config,2048);const before=score(start,validation),after=score(best.angles,validation);
+ progress({phase:'Validating perimeter',percent:95});const validation=sample(2048);const before=score(start,validation),after=score(best.angles,validation);
  return {angles:after<=before?best.angles:{...start},before,after:Math.min(after,before),evaluations,samples:validation.length/3};
 }
