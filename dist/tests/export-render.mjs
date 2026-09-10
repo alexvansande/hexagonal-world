@@ -4,7 +4,9 @@ try{
  await until(()=>frame.contentDocument?.querySelector('.style-preset-card'),'startup');const win=frame.contentWindow,doc=frame.contentDocument,$=id=>doc.getElementById(id),errors=[];
  win.addEventListener('error',e=>errors.push(e.message));win.addEventListener('unhandledrejection',e=>errors.push(String(e.reason)));
  await until(()=>$('relief-status').textContent.startsWith('Elevation ready')&&!$('map-loading').textContent,'assets');
- doc.querySelector('[data-arrangement="gosper"]').click();doc.querySelector('[data-style="topographic"]').click();await until(()=>!$('map-loading').textContent,'terrain');await delay(1000);
+ const params=new URLSearchParams(location.search);
+ doc.querySelector('[data-arrangement="'+(params.get('format')||'gosper')+'"]').click();doc.querySelector('[data-style="'+(params.get('style')||'topographic')+'"]').click();await until(()=>!$('map-loading').textContent,'terrain');await delay(1000);
+ if(params.has('background')){$('background-color').value='#'+params.get('background');$('background-color').dispatchEvent(new win.Event('input',{bubbles:true}));await delay(500);}
  assert([...$('export-scale').options].map(o=>o.textContent).join('|')==='PNG 2x|PNG 10x|PDF (print)','Export choices wrong');
  const before=win.location.hash,size=[$('map').width,$('map').height];let captured;
  const create=win.URL.createObjectURL,click=win.HTMLAnchorElement.prototype.click;
