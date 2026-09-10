@@ -1,4 +1,4 @@
-import {reliefRanges} from './relief.mjs';
+import {reliefRanges} from './relief.mjs?v=circular-2';
 
 // The URL payload is positional and URL-safe so a complete map can be shared
 // without exposing implementation names in a long query string.

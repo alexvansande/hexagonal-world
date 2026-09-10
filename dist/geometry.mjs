@@ -1,3 +1,4 @@
+import {circularMode,hexSphere} from './circular-projections.mjs';
 export const TAU=Math.PI*2;
 export const add=(a,b)=>a.map((x,i)=>x+b[i]);
 export const mul=(a,s)=>a.map(x=>x*s);
@@ -10,6 +11,11 @@ export const hex=Array.from({length:6},(_,i)=>[Math.cos(i*Math.PI/3),Math.sin(i*
 const tetra=[[1,1,1],[1,-1,-1],[-1,1,-1],[-1,-1,1]];
 const order=(arr,c)=>{const n=norm(c),u=norm(cross(n,[0,0,1])),v=cross(n,u);return [...arr].sort((a,b)=>Math.atan2(dot(a,v),dot(a,u))-Math.atan2(dot(b,v),dot(b,u)));};
 export function makeGeometry(method,height=1.5){
+ const mode=circularMode(method);
+ if(mode)return Array.from({length:mode},(_,id)=>{
+  const center=hexSphere([0,0],mode,id),ring=hex.map(p=>hexSphere(p,mode,id));
+  return {id,method,center,ring,patches:hex.map((p,i)=>({xy:[[0,0],p,hex[(i+1)%6]],v:[center,ring[i],ring[(i+1)%6]]}))};
+ });
  return tetra.map((t,id)=>{
  let center,ring,patches;
  if(method==='tetra'||method==='spherical'){
@@ -31,6 +37,7 @@ export const world=(p,t)=>add(rot(p,t.r),[t.x,t.y]);
 export const canvasWorld=(p,t)=>{const [x,y]=world(p,t);return [x,-y];};
 const edgePairCache=new WeakMap();
 export function matching(tiles,id,e){
+ if(circularMode(tiles[0].method))return tiles.length===1?{id:0,e}: {id:1-id,e:5-e};
  let pairs=edgePairCache.get(tiles);
  if(!pairs){
   const edges=new Map();
@@ -44,5 +51,5 @@ export function matching(tiles,id,e){
  }
  return pairs[id][e];
 }
-export function layouts(tiles){const results=[];const seen=new Set();function visit(placed){if(placed.length===4){const k=[...placed].sort((a,b)=>a.id-b.id).map(t=>[t.id,t.x.toFixed(3),t.y.toFixed(3),t.r].join(',')).join(';');if(!seen.has(k)){seen.add(k);results.push(placed);}return;}for(const t of placed)for(let e=0;e<6;e++){const m=matching(tiles,t.id,e);if(placed.some(p=>p.id===m.id))continue;const w=(e+t.r)%6,angle=(w+.5)*Math.PI/3;const n={id:m.id,r:(w+3-m.e+12)%6,x:t.x+Math.sqrt(3)*Math.cos(angle),y:t.y+Math.sqrt(3)*Math.sin(angle)};let valid=true;for(const p of placed){const d=Math.hypot(p.x-n.x,p.y-n.y);if(d<1.7){valid=false;break;}if(d<1.74){let edge=-1;for(let j=0;j<6;j++){const mid=world(mul(add(hex[j],hex[(j+1)%6]),.5),p);if(Math.hypot(mid[0]-(p.x+n.x)/2,mid[1]-(p.y+n.y)/2)<1e-6)edge=j;}if(edge<0){valid=false;break;}const mm=matching(tiles,p.id,edge);if(mm.id!==n.id||(mm.e+n.r)%6!==(edge+p.r+3)%6){valid=false;break;}}}if(valid)visit([...placed,n]);}}visit([{id:0,x:0,y:0,r:0}]);return results;}
+export function layouts(tiles){if(tiles.length===1)return [[{id:0,x:0,y:0,r:0}]];if(tiles.length===2)return [[{id:0,x:-.75,y:-Math.sqrt(3)/4,r:0},{id:1,x:.75,y:Math.sqrt(3)/4,r:4}]];const results=[];const seen=new Set();function visit(placed){if(placed.length===4){const k=[...placed].sort((a,b)=>a.id-b.id).map(t=>[t.id,t.x.toFixed(3),t.y.toFixed(3),t.r].join(',')).join(';');if(!seen.has(k)){seen.add(k);results.push(placed);}return;}for(const t of placed)for(let e=0;e<6;e++){const m=matching(tiles,t.id,e);if(placed.some(p=>p.id===m.id))continue;const w=(e+t.r)%6,angle=(w+.5)*Math.PI/3;const n={id:m.id,r:(w+3-m.e+12)%6,x:t.x+Math.sqrt(3)*Math.cos(angle),y:t.y+Math.sqrt(3)*Math.sin(angle)};let valid=true;for(const p of placed){const d=Math.hypot(p.x-n.x,p.y-n.y);if(d<1.7){valid=false;break;}if(d<1.74){let edge=-1;for(let j=0;j<6;j++){const mid=world(mul(add(hex[j],hex[(j+1)%6]),.5),p);if(Math.hypot(mid[0]-(p.x+n.x)/2,mid[1]-(p.y+n.y)/2)<1e-6)edge=j;}if(edge<0){valid=false;break;}const mm=matching(tiles,p.id,edge);if(mm.id!==n.id||(mm.e+n.r)%6!==(edge+p.r+3)%6){valid=false;break;}}}if(valid)visit([...placed,n]);}}visit([{id:0,x:0,y:0,r:0}]);return results;}
 export function sphereArea(a,b,c){a=norm(a);b=norm(b);c=norm(c);return 2*Math.atan2(Math.abs(dot(a,cross(b,c))),1+dot(a,b)+dot(b,c)+dot(c,a));}

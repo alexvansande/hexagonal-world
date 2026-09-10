@@ -1,4 +1,4 @@
-import {matching} from './geometry.mjs';
+import {matching} from './geometry.mjs?v=circular-2';
 export const directions=[[1,0],[0,1],[-1,1],[-1,0],[0,-1],[1,-1]];
 const mod=(x,n)=>((x%n)+n)%n;
 export const axial=(x,y)=>{const q=Math.round(x/1.5);return [q,Math.round(y/Math.sqrt(3)-q/2)];};

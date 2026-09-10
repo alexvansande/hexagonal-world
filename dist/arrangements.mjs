@@ -1,8 +1,8 @@
 import {makeFelv} from './felv.mjs';
-import {hex,world,matching} from './geometry.mjs';
+import {hex,world,matching} from './geometry.mjs?v=circular-2';
 import {makeTiling,directions,axial} from './tiling.mjs';
 const H=Math.sqrt(3)/2,mod=x=>(x%6+6)%6;
-export const arrangementNames={infinite:'Infinite',flower:'Flower',dymaxion:'Fuller',bighex:'Big hex',felv:'Felv'};
+export const arrangementNames={infinite:'Infinite',flower:'Flower',dymaxion:'Fuller',bighex:'Big hex',felv:'Felv',single:'One hexagon',double:'Two hexagons'};
 function edgeBetween(a,b){return Array.from({length:6},(_,e)=>e).find(e=>{const p=world(hex[e],a),q=world(hex[(e+1)%6],a);return Math.hypot(p[0]+q[0]-a.x-b.x,p[1]+q[1]-a.y-b.y)<1e-6;});}
 export function markEdges(tiles,net){return net.map(t=>({...t,opacity:1,bad:Array.from({length:6},(_,e)=>{const local=mod(e-t.r),a=world(hex[local],t),b=world(hex[(local+1)%6],t);return net.some(n=>n!==t&&Array.from({length:6},(_,j)=>j).some(j=>{const c=world(hex[j],n),d=world(hex[(j+1)%6],n);if(Math.hypot(a[0]-d[0],a[1]-d[1],b[0]-c[0],b[1]-c[1])>1e-6)return false;const pair=matching(tiles,t.id,local);return pair.id!==n.id||pair.e!==j;}));})}));}
 function bestNet(tiles,positions){
@@ -17,6 +17,7 @@ function bestNet(tiles,positions){
  for(let r=0;r<6;r++)visit([{id:0,r,x:positions[0][0],y:positions[0][1]}],[1,2,3]);return best;
 }
 export function makeArrangement(tiles,name,nets){
+ if(tiles.length<4)return {net:markEdges(tiles,nets[0])};
  const flower=nets.find(net=>net.some(t=>{const edges=net.filter(n=>n!==t).map(n=>edgeBetween(t,n));return edges.every(e=>e!==undefined)&&new Set(edges.map(e=>e%2)).size===1;}))||nets[0];
  if(name==='infinite')return {net:nets[0],tiling:makeTiling(tiles,nets[0])};
  if(name==='flower')return {net:markEdges(tiles,flower)};

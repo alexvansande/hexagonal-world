@@ -1,5 +1,6 @@
-import {norm,dot} from './geometry.mjs';
-import {sphereAt} from './globe-drag.mjs';
+import {circularMode,sphereHex} from './circular-projections.mjs';
+import {norm,dot} from './geometry.mjs?v=circular-2';
+import {sphereAt} from './globe-drag.mjs?v=circular-2';
 import {subgridLevels} from './subgrid.mjs';
 
 const cross=(a,b)=>[a[1]*b[2]-a[2]*b[1],a[2]*b[0]-a[0]*b[2],a[0]*b[1]-a[1]*b[0]];
@@ -45,6 +46,23 @@ export function projectCircle(circle,projector){
  return segments;
 }
 
+// Clip hemisphere crossings on the sphere before mapping. Split at the full
+// world's antipode so a circle never draws a spurious chord across the map.
+export function circularCircle(circle,mode,region){
+ const segments=[],sign=region===1?-1:1;
+ for(let i=0;i<circle.length;i++){
+  let a=circle[i],b=circle[(i+1)%circle.length];
+  if(mode===2){
+   const za=a[2]*sign,zb=b[2]*sign;
+   if(za<0&&zb<0)continue;
+   if(za<0||zb<0){const cut=norm(mix(a,b,za/(za-zb)));if(za<0)a=cut;else b=cut;}
+  }
+  const pa=sphereHex(a,mode,region),pb=sphereHex(b,mode,region);
+  if(pa&&pb&&Math.hypot(pa[0]-pb[0],pa[1]-pb[1])<.4)segments.push([pa,pb]);
+ }
+ return segments;
+}
+
 export function indicatrixField(tiles,level,bias=1,blend=0){
  const radius=6*Math.PI/180/Math.sqrt(7)**(level-1),centers=[];
  for(const tile of tiles)for(const cell of subgridLevels[level]){
@@ -55,7 +73,8 @@ export function indicatrixField(tiles,level,bias=1,blend=0){
  // source circles and source centers together, so their projected outlines are
  // invariant under that rotation. Cache in the unrotated sphere coordinate frame.
  const circles=centers.map(center=>sphericalCircle(center.sphere,radius));
- const regions=tiles.map(tile=>tile.patches.flatMap(patch=>{
+ const cm=circularMode(tiles[0].method);
+ const regions=cm?tiles.map(tile=>circles.flatMap(circle=>circularCircle(circle,cm,tile.id))):tiles.map(tile=>tile.patches.flatMap(patch=>{
   const projector=patchProjector(patch,bias,blend);
   return circles.flatMap(circle=>projectCircle(circle,projector));
  }));

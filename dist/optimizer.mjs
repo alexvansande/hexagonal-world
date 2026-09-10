@@ -1,4 +1,4 @@
-import {makeGeometry,matching,norm,add,mul,world,hex} from './geometry.mjs';
+import {makeGeometry,matching,norm,add,mul,world,hex} from './geometry.mjs?v=circular-2';
 const D=Math.PI/180;
 // Uniform samples along the flat hexagon perimeter, with each paired edge counted once.
 export function edgeSamples({method,height,bias=1,blend=0},resolution=256){

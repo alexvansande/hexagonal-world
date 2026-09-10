@@ -22,7 +22,8 @@ uniform vec3 ecologyVertices[28];
 varying vec2 localPosition;
 varying float regionIndex;
 vec2 ecologyCenter(vec2 p){
- float radius=${ecologyHexRadius.toFixed(12)};
+ // Fewer parent hexagons cover more of the sphere: advance two Gosper levels.
+ float radius=${ecologyHexRadius.toFixed(12)}/(circularMode>0?7.:1.);
  vec2 qr=vec2(2.*p.x/3.,-p.x/3.+p.y/sqrt(3.))/radius;
  vec3 cube=vec3(qr,-qr.x-qr.y),rounded=floor(cube+.5),error=abs(cube-rounded);
  if(error.x>error.y&&error.x>error.z)rounded.x=-rounded.y-rounded.z;
@@ -37,6 +38,7 @@ vec3 planarWeights(vec2 p,vec2 a,vec2 b,vec2 c){
  return vec3(u,v,1.-u-v);
 }
 vec3 ecologySphere(vec2 p){
+ if(circularMode>0)return hexSphere(p,regionIndex);
  int sector=length(p)<.000001?0:int(floor(mod(atan(p.y,p.x)+6.28318530718,6.28318530718)/1.047197551197));
  // Constant loop bounds keep uniform-array indexing valid in WebGL 1.
  for(int region=0;region<4;region++)if(abs(regionIndex-float(region))<.5){

@@ -1,5 +1,5 @@
-import {hex,world} from './geometry.mjs';
-import {sphereAt} from './globe-drag.mjs';
+import {hex,world} from './geometry.mjs?v=circular-2';
+import {sphereAt} from './globe-drag.mjs?v=circular-2';
 const H=Math.sqrt(3)/2,rotate=(p,r)=>{const a=r*Math.PI/3;return [p[0]*Math.cos(a)-p[1]*Math.sin(a),p[0]*Math.sin(a)+p[1]*Math.cos(a)];};
 export const area=p=>Math.abs(p.reduce((s,a,i)=>{const b=p[(i+1)%p.length];return s+a[0]*b[1]-a[1]*b[0];},0))/2;
 // Convex polygon clipping, retaining original barycentric coordinates as attributes.

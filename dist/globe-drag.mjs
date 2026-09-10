@@ -1,4 +1,5 @@
-import {norm} from './geometry.mjs';
+import {circularMode,hexSphere} from './circular-projections.mjs';
+import {norm} from './geometry.mjs?v=circular-2';
 import {rotation} from './optimizer.mjs';
 export const transform=(m,p)=>[0,1,2].map(i=>m[i*3]*p[0]+m[i*3+1]*p[1]+m[i*3+2]*p[2]);
 const dot=(a,b)=>a.reduce((s,x,i)=>s+x*b[i],0);
@@ -13,6 +14,7 @@ export function sphereAt(point,tile,geometry,bias=1,blend=0){
   const u=((b[1]-c[1])*(x-c[0])+(c[0]-b[0])*(y-c[1]))/det;
   const v=((c[1]-a[1])*(x-c[0])+(a[0]-c[0])*(y-c[1]))/det;
   const weights=[u,v,1-u-v];if(weights.some(w=>w< -1e-8))continue;
+  if(circularMode(geometry.method))return hexSphere([x,y],circularMode(geometry.method),geometry.id);
   const powered=weights.map(w=>Math.max(0,w)**bias),sum=powered.reduce((a,b)=>a+b,0);
   return norm([0,1,2].map(j=>patch.v.reduce((s,p,i)=>s+(p[j]*(1-blend)+norm(p)[j]*blend)*powered[i]/sum,0)));
  }

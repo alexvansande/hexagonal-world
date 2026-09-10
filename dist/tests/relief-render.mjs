@@ -1,4 +1,4 @@
-import {ReliefRenderer,reliefDefaults} from '../relief.mjs?v=background-1';
+import {ReliefRenderer,reliefDefaults} from '../relief.mjs?v=circular-2';
 
 const results=document.querySelector('#results'),images=document.querySelector('#images');
 const lines=[];let failures=0;
@@ -8,8 +8,8 @@ try{
  const gl=canvas.getContext('webgl',{preserveDrawingBuffer:true,antialias:false});
  if(!gl)throw Error('WebGL unavailable');
  const vs=`attribute vec2 position;uniform vec2 size;uniform vec3 view;uniform float gridRotation;
- varying vec2 flatPosition;varying vec3 weights;varying vec3 a;varying vec3 b;varying vec3 c;
- void main(){flatPosition=position;weights=vec3(1.,0.,0.);a=vec3(1.,position.x*.45,-position.y*.45);b=a;c=a;
+ varying vec2 localPosition;varying float regionIndex;varying vec2 flatPosition;varying vec3 weights;varying vec3 a;varying vec3 b;varying vec3 c;
+ void main(){localPosition=position;regionIndex=0.;flatPosition=position;weights=vec3(1.,0.,0.);a=vec3(1.,position.x*.45,-position.y*.45);b=a;c=a;
  float co=cos(gridRotation),si=sin(gridRotation);vec2 p=vec2(co*position.x-si*position.y,si*position.x+co*position.y);
  p=(p*view.x+view.yz)/size*2.;gl_Position=vec4(p.x,-p.y,0.,1.);}`;
  const r=new ReliefRenderer(gl,vs,()=>{},()=>{});

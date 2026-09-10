@@ -1,5 +1,5 @@
 import {decodeMapState} from '../map-state.mjs';
-import {layoutOptions,styleOptions} from '../map-options.mjs?v=lifezones-2';
+import {layoutOptions,styleOptions} from '../map-options.mjs?v=circular-2';
 const frame=document.querySelector('iframe'),list=document.querySelector('#checks'),result=document.querySelector('#result');
 const errors=[];let checks=0;
 const delay=ms=>new Promise(resolve=>setTimeout(resolve,ms));
@@ -56,7 +56,7 @@ try{
  }
  doc.querySelector('[data-source="ecology"]').click();await settle();
  assert($('subgrid').checked&&$('dotgrid').checked&&+$('subgridWidth').value===.2&&$('hex-grid-color').value==='#d6d6d6'&&$('background-color').value==='#ebebeb','Lifezones saved look did not apply');
- for(const method of ['tetra','octa','rhombic','tetrakis']){doc.querySelector(`[data-method="${method}"]`).click();await settle();}pass('Hexagonal Lifezones renders through all four projections');
+ for(const method of ['lambert-one','lambert-two','tetra','octa','rhombic','tetrakis']){doc.querySelector(`[data-method="${method}"]`).click();await settle();}pass('Hexagonal Lifezones renders through all six projections');
  doc.querySelector('[data-source="countries"]').click();await settle();assert(!$('graticule').checked&&!$('dotgrid').checked&&$('background-color').value==='#2b4b5f','Political style did not update');
  doc.querySelector('[data-source="elevation"]').click();await settle();assert(+$('reliefSeaLevel').value===105,'Elevation sea level did not reset');pass('Political and Elevation corrections apply');
  doc.querySelector('[data-source="continents"]').click();await settle();
@@ -66,6 +66,7 @@ try{
  pass('Styles restore their own surface treatment');
  for(const source of ['marble','ecology','countries','continents'])doc.querySelector(`[data-source="${source}"]`).click();
  await settle();assert($('source-name').textContent==='continents.png','A stale source request won');pass('Rapid style changes retain the final source');
+ doc.querySelector('[data-arrangement="infinite"]').click();await settle();
  $('zoom-out').click();await settle();assert($('zoom-value').textContent==='80%','Zoom did not update');
  pass('Infinite mode remains rendered after zoom');
 
@@ -99,6 +100,29 @@ try{
  await until(()=>$('indicatrix-status').textContent===''&&overlayInk(),'projected Tissot circles');await settle();
  pass('Projected Tissot circles render at the subhex centers');
  change('indicatrix','off');await settle();assert(!overlayInk(),'Tissot outlines remain after disabling');pass('Tissot toggle clears its projected outlines');
+ for(const [method,format] of [['lambert-one','single'],['lambert-two','double']]){
+  doc.querySelector(`[data-method="${method}"]`).click();await settle();
+  assert($('layout').value===format&&$('layout').options.length===1,'Circular method retained incompatible layout');
+  assert($('bias').closest('label').hidden&&$('interpolation').closest('label').hidden,'Unsupported shape controls remain visible');
+  for(const reliefEnabled of [false,true]){
+   change('relief-enabled',reliefEnabled);change('graticule',true);change('distortion',true);await settle();
+   change('distortion',false);change('graticule',false);
+  }
+  change('relief-enabled',false);change('indicatrix','4x49');
+  await until(()=>$('indicatrix-status').textContent===''&&overlayInk(),'circular Tissot');await settle();
+  change('indicatrix','off');await settle();assert(!overlayInk(),'Circular Tissot did not clear');
+  const before=$('map').toDataURL(),lon=+$('lon').value;
+  change('lon',lon+20);await settle();assert($('map').toDataURL()!==before,'Circular orientation does not update');
+  const saved=decodeMapState(win.location.hash.slice(3));assert(saved.state.method===method&&saved.state.arrangement===format,'Circular URL did not save');
+  frame.contentWindow.location.reload();await until(()=>frame.contentDocument!==doc&&frame.contentDocument?.querySelector('.layout-preset-card'),'circular reload');
+  win=frame.contentWindow;doc=frame.contentDocument;$=id=>doc.getElementById(id);
+  win.addEventListener('error',event=>errors.push(event.message));win.addEventListener('unhandledrejection',event=>errors.push(String(event.reason)));
+  await until(()=>$('status').textContent.includes(' · '),'circular render after reload');await settle();
+  assert($('layout').value===format&&doc.querySelector(`[data-method="${method}"]`).classList.contains('active'),'Circular URL did not restore');
+  pass(method+' supports relief, overlays, rotation and URL reload');
+ }
+ doc.querySelector('[data-method="rhombic"]').click();await settle();change('layout','infinite');await settle();
+ assert(!$('bias').closest('label').hidden&&!$('interpolation').closest('label').hidden,'Polyhedral shape controls did not return');
  change('background-color','#123456');await settle();
  assert(win.getComputedStyle(doc.querySelector('.workspace')).backgroundColor==='rgb(18, 52, 86)','Background picker does not update the workspace');
  // URL persistence must restore final panel ordering, including the dynamically installed source panel.
