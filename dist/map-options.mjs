@@ -310,6 +310,56 @@ export const styleOptions=[
       "graticule-color": "#4f8796"
     },
     "thumbnail": "maps/styles/ivory.png"
+  },
+  {
+    "id": "distortion-analysis",
+    "name": "Distortion Analysis",
+    "source": "continents",
+    "state": {
+      "reliefHeight": 1.25,
+      "reliefAzimuth": 0,
+      "reliefAltitude": 54,
+      "reliefContrast": 1.15,
+      "reliefHighlights": 0.85,
+      "reliefAmbient": 0.35,
+      "reliefShadows": 0.05,
+      "reliefSoftness": 0.25,
+      "reliefAO": 0.3,
+      "reliefColorFade": 0,
+      "reliefThickness": 0,
+      "reliefOcean": 0.45,
+      "reliefRiverDepth": 0.5,
+      "reliefSeaLevel": 105,
+      "line": 0,
+      "grid": 30,
+      "distortionOpacity": 0.9,
+      "riverWidth": 1,
+      "riverLevels": 6,
+      "subgridWidth": 1,
+      "graticuleWidth": 1
+    },
+    "controls": {
+      "map-source": "continents",
+      "relief-enabled": false,
+      "relief-treatment": "land",
+      "relief-tone": "neutral",
+      "rivers-visible": false,
+      "land-classes": 15,
+      "ocean-classes": 3,
+      "graticule": false,
+      "subgrid": false,
+      "dotgrid": true,
+      "palette": "atlas",
+      "construction": false,
+      "labels": false,
+      "distortion": true,
+      "indicatrix": "4x49",
+      "background-color": "#eff4f5",
+      "border-color": "#376472",
+      "hex-grid-color": "#315865",
+      "graticule-color": "#4f8796"
+    },
+    "thumbnail": "maps/styles/distortion-analysis.png"
   }
 ];
 

@@ -1,5 +1,5 @@
 import {decodeMapState,encodeMapState} from '../map-state.mjs';
-import {layoutOptions,styleOptions} from '../map-options.mjs?v=cuts-1';
+import {layoutOptions,styleOptions} from '../map-options.mjs?v=analysis-style-1';
 const frame=document.querySelector('iframe'),list=document.querySelector('#checks'),result=document.querySelector('#result');
 const errors=[];let checks=0;
 const delay=ms=>new Promise(resolve=>setTimeout(resolve,ms));
@@ -47,13 +47,15 @@ try{
  const geography=()=>{const saved=decodeMapState(win.location.hash.slice(3));return JSON.stringify([saved.view,...['method','arrangement','lon','lat','roll','bias','height','gridRotation','mode'].map(id=>saved.state[id])]);};
  for(const option of styleOptions){
   const before=geography();
-  doc.querySelector(`[data-source="${option.source}"]`).click();await settle();
+  doc.querySelector(`[data-style="${option.id}"]`).click();await settle();
   assert($('map-source').value===option.source,'Source did not update');
   assert($('relief-enabled').checked===option.controls['relief-enabled'],'Relief state did not update');
   assert(geography()===before,'Style changed projection, arrangement or viewport');
   for(const [id,value] of Object.entries(option.state))assert(Math.abs(+$(id).value-value)<.001,'Style omitted '+id);
-  assert(doc.querySelector(`[data-source="${option.source}"]`).getAttribute('aria-pressed')==='true','Style selection is inconsistent');
+  assert(doc.querySelector(`[data-style="${option.id}"]`).getAttribute('aria-pressed')==='true','Style selection is inconsistent');
   if(option.viewOffset){const v=decodeMapState(win.location.hash.slice(3)).view;assert(Math.abs(v.panX/v.scale-option.viewOffset[0])<1e-10&&Math.abs(v.panY/v.scale-option.viewOffset[1])<1e-10,'Infinite view did not retain its Africa-centered offset');}
+  assert(doc.querySelectorAll('.style-preset-card[aria-pressed="true"]').length===1,'Styles sharing a source are selected together');
+  if(option.id==='distortion-analysis'){assert($('distortion').checked&&+$('distortionOpacity').value===.9&&$('indicatrix').value==='4x49'&&$('dotgrid').checked&&+$('line').value===0&&!$('relief-enabled').checked&&$('background-color').value==='#eff4f5','Distortion Analysis omitted saved settings');await until(()=>$('indicatrix-status').textContent==='','analysis circles');}
   pass(option.name+' switches and renders');
  }
  doc.querySelector('[data-source="ecology"]').click();await settle();

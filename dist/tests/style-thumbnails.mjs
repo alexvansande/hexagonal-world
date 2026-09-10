@@ -1,4 +1,4 @@
-import {layoutOptions,styleOptions} from '../map-options.mjs?v=cuts-1';
+import {layoutOptions,styleOptions} from '../map-options.mjs?v=analysis-style-1';
 import {encodeMapState} from '../map-state.mjs?v=grid-styling-1';
 import {makeGeometry,layouts,hex,canvasWorld} from '../geometry.mjs?v=circular-2';
 import {makeArrangement} from '../arrangements.mjs?v=circular-2';
@@ -13,16 +13,16 @@ try{
  const xs=points.map(p=>p[0]),ys=points.map(p=>p[1]),left=Math.min(...xs),right=Math.max(...xs),top=Math.min(...ys),bottom=Math.max(...ys);
  const scale=Math.min(702/(right-left),656/(bottom-top)),view={scale,zoom:1,panX:175-(left+right)*scale/2,panY:-28-(top+bottom)*scale/2};
  const selected=styleOptions.filter(style=>!new URLSearchParams(location.search).has('only')||style.id===new URLSearchParams(location.search).get('only'));
- frame.src='../index.html?v=lifezones-2#m='+encodeMapState({state:layout.state,controls:layout.controls,view,details:{}});
+ frame.src='../index.html?v=analysis-style-1#m='+encodeMapState({state:layout.state,controls:layout.controls,view,details:{}});
  await until(()=>frame.contentDocument?.querySelector('.style-preset-card'),'startup');
  const doc=frame.contentDocument,$=id=>doc.getElementById(id);
  await until(()=>$('relief-status').textContent.startsWith('Elevation ready'),'elevation');
  for(const style of selected){
-  result.textContent='Rendering '+style.name+'…';doc.querySelector(`[data-source="${style.source}"]`).click();
-  await until(()=>!$('map-loading').textContent,'map source');await delay(700);
+  result.textContent='Rendering '+style.name+'…';doc.querySelector(`[data-style="${style.id}"]`).click();
+  await until(()=>!$('map-loading').textContent,'map source');await delay(700);await until(()=>$('indicatrix-status').textContent==='','Tissot outlines');
   const canvas=$('map'),overlay=$('overlay'),out=document.createElement('canvas');out.width=480;out.height=272;
   const ctx=out.getContext('2d'),ratio=canvas.width/1100,crop={x:525,y:233,w:400,h:400*272/480};
-  ctx.fillStyle='#e9f0f2';ctx.fillRect(0,0,out.width,out.height);
+  ctx.fillStyle=$('background-color').value;ctx.fillRect(0,0,out.width,out.height);
   for(const source of [canvas,overlay])ctx.drawImage(source,crop.x*ratio,crop.y*ratio,crop.w*ratio,crop.h*ratio,0,0,out.width,out.height);
   const figure=document.createElement('figure'),image=document.createElement('img'),caption=document.createElement('figcaption');image.src=out.toDataURL();caption.textContent=style.name;figure.append(image,caption);document.querySelector('#previews').append(figure);
   if(new URLSearchParams(location.search).has('save')){

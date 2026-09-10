@@ -3,7 +3,7 @@ from http.server import BaseHTTPRequestHandler, HTTPServer
 from pathlib import Path
 
 OUT = Path(__file__).resolve().parents[1] / 'dist/maps/styles'
-NAMES = {'gray-neutral', 'satellite', 'elevation', 'political', 'lifezones', 'ivory'}
+NAMES = {'gray-neutral', 'satellite', 'elevation', 'political', 'lifezones', 'ivory', 'distortion-analysis'}
 
 class Handler(BaseHTTPRequestHandler):
     def cors(self):
