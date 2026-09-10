@@ -1,5 +1,5 @@
 import {fadedLegendColor} from '../legend-colors.mjs';
-import {waveLegendLayout} from './wave-legend.mjs';
+import {waveLegendLayout} from './wave-legend.mjs?v=temperature-colors-1';
 export {pdfColor} from '../print-legend.mjs';
 import {pdfColor} from '../print-legend.mjs';
 export function addLifezonesLegend({landCount,oceanCount,colorFade=0,lettering,pageWidth,pageHeight,ink}){

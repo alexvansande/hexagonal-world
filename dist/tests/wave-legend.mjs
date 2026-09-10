@@ -1,4 +1,4 @@
-import {landRows,oceanRows} from './wave-layers.mjs';
+import {landRows,oceanRows} from './wave-layers.mjs?v=temperature-colors-1';
 
 // Both renderers consume the same layout, so print and web keep identical axes.
 export function waveLegendLayout(landCount,oceanCount){
