@@ -92,8 +92,8 @@
     ],
     "description": "Preferred Blue Marble image with brighter oceans and seafloor detail. Replaces the previously downloaded July 2004 image."
   },
-  "encoding": "RGB: Holdridge class (0 ocean, 254 unclassified polar land); bathymetry bin 0\u20134; SST v2 (0 unavailable; otherwise 1 + round((Celsius + 5) * 4)). No interpolation between classes.",
-  "notes": "Holdridge is potential climate-defined vegetation, not observed contemporary cover. Marine classes are custom triangular seafloor-depth \u00d7 surface-temperature groups: progressively fewer temperature divisions at greater depth. They are not Holdridge or measured deep-water biomes. Gray indicates missing source data. Display presets are custom aggregations. Source value 254 is displayed as polar land. Each preset has 3, 6, 10 or 15 classes arranged as rows of 1 through 2, 3, 4 or 5.",
+  "encoding": "RGB: Holdridge class (0 ocean, 254 unclassified land); bathymetry bin 0\u20134; SST v2 (0 unavailable; otherwise 1 + round((Celsius + 5) * 4)). No interpolation between classes.",
+  "notes": "Holdridge is potential climate-defined vegetation, not observed contemporary cover. Marine classes are custom triangular seafloor-depth \u00d7 surface-temperature groups: progressively fewer temperature divisions at greater depth. They are not Holdridge or measured deep-water biomes. Gray indicates missing source data. Display presets are custom aggregations. Source value 254 marks unclassified land and is displayed as missing data, never inferred as polar. Each preset has 3, 6, 10 or 15 classes arranged as rows of 1 through 2, 3, 4 or 5.",
   "terrain": {
     "file": "topography.jpg",
     "source": "User source folder: Equirectangular-projection-topographic-world.jpg",

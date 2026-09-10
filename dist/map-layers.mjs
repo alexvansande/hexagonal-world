@@ -30,7 +30,9 @@ export const landLegends=Object.fromEntries(Object.entries(landBands).map(([n,ba
 const landLookup=Object.fromEntries(Object.entries(landLegends).map(([n,cells])=>[n,Object.fromEntries(cells.flatMap((c,i)=>c.raw.map(raw=>[raw,i])))]));
 export function landClass(raw,count){
  if(!landLookup[count])throw Error('Invalid land class count');
- return raw===254?0:landLookup[count][raw]??-1;
+ // 254 marks land outside the climate dataset, including coastal gaps.
+ // It is not evidence of a polar climate.
+ return landLookup[count][raw]??-1;
 }
 export function landRows(count){return landBands[count].map(([label,cells])=>({label,cells}));}
 

@@ -1,0 +1,12 @@
+<!doctype html><meta charset="utf-8"><title>Coastal climate data check</title><p id="result">Running…</p><script type="module">
+import {paintEcology} from '../map-layers.mjs?v=missing-land-1-waves-1';
+try{
+ const image=new Image();image.src='../maps/ecology-waves.png';await image.decode();const canvas=document.createElement('canvas');canvas.width=image.width;canvas.height=image.height;const ctx=canvas.getContext('2d',{willReadFrequently:true});ctx.drawImage(image,0,0);
+ // Mauritanian coast: native missing-land code must survive browser decoding
+ // and must be shown as missing, not as an interpolated or polar class.
+ const x=Math.floor((-16.125+180)/360*image.width),y=Math.floor((90-18.875)/180*image.height),raw=ctx.getImageData(x,y,1,1).data;
+ if(raw[0]!==254)throw Error('Unexpected coastal raw class: '+raw[0]);
+ for(const count of [3,6,10,15]){const result=paintEcology(raw,count,6);if(result[0]!==153||result[1]!==156||result[2]!==163)throw Error('Missing coast incorrectly classified');}
+ document.querySelector('#result').textContent='PASS · Actual Mauritanian coastal pixel decodes as missing land (254) and stays gray in all four palettes.';
+}catch(error){document.querySelector('#result').textContent='FAIL · '+error.message;}
+</script>
