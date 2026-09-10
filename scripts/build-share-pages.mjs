@@ -7,7 +7,7 @@ export async function buildSharePages(output){
  const template=await readFile(resolve(root,'dist/index.html'),'utf8');
  const escape=text=>text.replaceAll('&','&amp;').replaceAll('"','&quot;').replaceAll('<','&lt;');
  for(const pair of shareCombinations){
-  const title=`${pair.style.name} · ${pair.layout.name} — Hexagonal World`,description=`${pair.style.name} in the ${pair.layout.name} format. Explore, customize and print a hexagonal world map.`,url='https://hexagonal.earth'+pair.path,image='https://hexagonal.earth'+pair.image;
+  const title=`${pair.style.name} · ${pair.layout.name} — Hexagonal Earth`,description=`${pair.style.name} in the ${pair.layout.name} format. Explore, customize and print a hexagonal world map.`,url='https://hexagonal.earth'+pair.path,image='https://hexagonal.earth'+pair.image;
   let html=template.replace(/<title>.*?<\/title>/,`<title>${escape(title)}</title>`).replace(/(<link rel="canonical" href=")[^"]+/,`$1${url}`);
   for(const [key,value] of Object.entries({'description':description,'og:title':title,'og:description':description,'og:url':url,'og:image':image,'og:image:type':'image/jpeg','og:image:alt':description,'twitter:title':title,'twitter:description':description,'twitter:image':image,'twitter:image:alt':description}))html=html.replace(new RegExp(`(<meta (?:name|property)="${key}" content=")[^"]*`),(_,prefix)=>prefix+escape(value));
   const destination=resolve(output,pair.path.slice(1),'index.html');await mkdir(dirname(destination),{recursive:true});await writeFile(destination,html);

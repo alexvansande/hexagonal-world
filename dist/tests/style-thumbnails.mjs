@@ -1,4 +1,4 @@
-import {layoutOptions,styleOptions} from '../map-options.mjs?v=topographic-1';
+import {layoutOptions,styleOptions} from '../map-options.mjs?v=lifezones-bg-1';
 import {encodeMapState} from '../map-state.mjs?v=gosper-1';
 import {makeGeometry,layouts,hex,canvasWorld} from '../geometry.mjs?v=circular-2';
 import {makeArrangement} from '../arrangements.mjs?v=gosper-1';
@@ -16,10 +16,10 @@ try{
  frame.src='../index.html?v=topographic-1#m='+encodeMapState({state:layout.state,controls:layout.controls,view,details:{}});
  await until(()=>frame.contentDocument?.querySelector('.style-preset-card'),'startup');
  const doc=frame.contentDocument,$=id=>doc.getElementById(id);
- await until(()=>$('relief-status').textContent.startsWith('Elevation ready'),'elevation');
+
  for(const style of selected){
   result.textContent='Rendering '+style.name+'…';doc.querySelector(`[data-style="${style.id}"]`).click();
-  await until(()=>!$('map-loading').textContent,'map source');await delay(700);await until(()=>$('indicatrix-status').textContent==='','Tissot outlines');
+  await until(()=>!$('map-loading').textContent,'map source');await until(()=>!$('relief-enabled').checked||$('relief-status').textContent==='Lighting layers ready','lighting');await delay(700);await until(()=>$('indicatrix-status').textContent==='','Tissot outlines');
   const canvas=$('map'),overlay=$('overlay'),out=document.createElement('canvas');out.width=480;out.height=272;
   const ctx=out.getContext('2d'),ratio=canvas.width/1100,crop={x:525,y:233,w:400,h:400*272/480};
   ctx.fillStyle=$('background-color').value;ctx.fillRect(0,0,out.width,out.height);
