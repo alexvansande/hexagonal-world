@@ -1,3 +1,5 @@
+import {readSharePath,sharePair,inferSharePair,presetSettings} from './share-routes.mjs';
+import {initAnalytics,trackEvent} from './analytics.mjs';
 import {pngFromTiles,printPDF} from './map-export.mjs?v=triangular-1';
 import {fractalRegion,fractalOpacities,edgeKey} from './fractal-grid.mjs';
 import {pointInLoops} from './gosper-fractal.mjs';
@@ -22,6 +24,7 @@ function syncClassControl(id,count){const el=$(id);if(!el)return;const index=cla
 const rangeSuffixes={riverWidth:'×',subgridWidth:'×',graticuleWidth:'×'};
 const state={method:'tetra',lon:0,lat:0,roll:0,bias:1,height:1.5,grid:30,line:0.8,subgridWidth:1,graticuleWidth:1,distortionOpacity:.7,clearance:0,riverWidth:1,riverLevels:6,layout:0,gridRotation:0,zoom:1,panX:0,panY:0,mode:'pan',arrangement:'infinite',sidebarExpanded:false,interpolation:0,...reliefDefaults};
 let exporting=false;
+let shareSelection=readSharePath(location.pathname)||inferSharePair(readMapStateFromUrl());
 let persistenceReady=false,saveTimer=null,restoredView=null,headingBounds=null;
 let displayedSource='continents',mapRequest=0;
 let arrangement,tiling,visible=[],meshSignature=null,geometryKey=null,edgeLabels=[];
@@ -137,7 +140,7 @@ function fitView(){
  state.zoom=1;state.panX=(left+right-w)/2-(b[0]+b[2])/2*scale;state.panY=(top+bottom-h)/2+(b[1]+b[3])/2*scale;draw();
 }
 function resize(){if(exporting)return;headingBounds=null;const rect=$('stage').getBoundingClientRect();w=rect.width;h=rect.height;dpr=Math.min(window.devicePixelRatio||1,+$('quality').value);canvas.width=Math.round(w*dpr);canvas.height=Math.round(h*dpr);overlay.width=canvas.width;overlay.height=canvas.height;
- if(!persistenceReady){if(restoredView){scale=restoredView.scale;state.zoom=restoredView.zoom;state.panX=restoredView.panX;state.panY=restoredView.panY;}else fitView();persistenceReady=true;}draw();}
+ if(!persistenceReady){if(restoredView){scale=restoredView.scale;state.zoom=restoredView.zoom;state.panX=restoredView.panX;state.panY=restoredView.panY;}else{fitView();const offset=shareSelection.layout.viewOffset;if(offset){state.panX=offset[0]*scale;state.panY=offset[1]*scale;}}persistenceReady=true;}draw();}
 function point(p,t){const v=rotateScreen(canvasWorld(p,t));return [w/2+v[0]*scale*state.zoom+state.panX,h/2+v[1]*scale*state.zoom+state.panY];}
 function draw(){if(exporting)return;scheduleSave();if(queued)return;queued=true;requestAnimationFrame(render);}
 let fractalGridKey=null,fractalPaths=[];
@@ -340,7 +343,7 @@ async function exportMap(){
   const onProgress=value=>progress.textContent=`Rendering ${isPDF?'PDF':`PNG ${factor}×`} · ${Math.round(value*100)}%`;
   const blob=isPDF?await printPDF({width:crop.width,height:crop.height,mapInsetTop:crop.topInset||0,renderTile,signal:control.signal,onProgress,background:$('background-color').value,lifezones:displayedSource==='ecology'?{landCount:classCount('land-classes'),oceanCount:classCount('ocean-classes')}:null}):await pngFromTiles({width:Math.round(saved.w*factor),height:Math.round(saved.h*factor),renderTile,signal:control.signal,onProgress});
   control.signal.throwIfAborted();
-  const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=`hexagonal-world-${state.method}-${isPDF?'print.pdf':factor+'x.png'}`;a.click();setTimeout(()=>URL.revokeObjectURL(url),60000);
+  const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=`hexagonal-world-${state.method}-${isPDF?'print.pdf':factor+'x.png'}`;a.click();trackEvent('download',isPDF?'pdf':factor+'x-png');setTimeout(()=>URL.revokeObjectURL(url),60000);
  }catch(error){if(error.name!=='AbortError'){console.warn('Map export:',error);$('relief-status').textContent='Export failed: '+error.message;}}
  finally{w=saved.w;h=saved.h;dpr=saved.dpr;state.panX=saved.panX;state.panY=saved.panY;out.width=out.height=1;exporting=false;main.inert=false;dialog.close();button.disabled=false;meshSignature=null;resize();}
 }
@@ -414,7 +417,7 @@ function captureSettings(){
  return {version:1,state:{...state},controls,view:{scale,zoom:state.zoom,panX:state.panX,panY:state.panY},details:Object.fromEntries([...document.querySelectorAll('aside > details')].map(el=>[el.id,el.open]))};
 }
 function readMapStateFromUrl(){const hash=location.hash;if(!hash.startsWith('#m=')&&!hash.startsWith('#p='))return null;try{return decodeMapState(hash.slice(3));}catch{return null;}}
-function updateMapUrl(){if(!persistenceReady||exporting)return;clearTimeout(saveTimer);try{const url=new URL(location.href);url.hash='m='+encodeMapState(captureSettings());history.replaceState(null,'',url);}catch{}}
+function updateMapUrl(){if(!persistenceReady||exporting)return;clearTimeout(saveTimer);try{const url=new URL(location.href);if(!location.pathname.startsWith('/tests/'))url.pathname=shareSelection.path;url.hash='m='+encodeMapState(captureSettings());history.replaceState(null,'',url);}catch{}}
 function scheduleSave(){if(!persistenceReady)return;clearTimeout(saveTimer);saveTimer=setTimeout(updateMapUrl,180);}
 document.addEventListener('input',scheduleSave);document.addEventListener('change',scheduleSave);
 
@@ -500,6 +503,8 @@ function setOptionControl(id,value){
   else if(el.matches('select')&&[...el.options].some(option=>option.value===String(value)))el.value=String(value);
 }
 function applyMapOption(option,type){
+  shareSelection=type==='layout'?sharePair(shareSelection.style.id,option.arrangement):sharePair(option.id,state.arrangement);
+  trackEvent(type==='layout'?'format':'style',type==='layout'?shareSelection.layout.arrangement:option.id);
   if(type==='layout'){
     for(const id of ['method','arrangement','lon','lat','roll','bias','height','clearance','gridRotation'])if(option.state[id]!==undefined){if(['method','arrangement'].includes(id))state[id]=option.state[id];else setOptionRange(id,option.state[id]);}
     for(const id of ['interpolation','optimize'])if(option.controls[id]!==undefined)setOptionControl(id,option.controls[id]);
@@ -526,8 +531,8 @@ function installColumnOptions(){
 }
 installColumnOptions();
 
-const defaultLayout=layoutOptions.find(option=>option.arrangement==='dymaxion'),defaultStyle=styleOptions.find(option=>option.id==='lifezones');
-restoreSettings(readMapStateFromUrl()||{version:1,state:{...defaultLayout.state,...defaultStyle.state},controls:{...defaultLayout.controls,...defaultStyle.controls}});setSidebarExpanded(state.sidebarExpanded,false);rebuild(false);
+restoreSettings(readMapStateFromUrl()||presetSettings(shareSelection));
+initAnalytics(shareSelection.path);setSidebarExpanded(state.sidebarExpanded,false);rebuild(false);
 document.querySelectorAll('aside details').forEach(el=>el.addEventListener('toggle',scheduleSave));
 new ResizeObserver(resize).observe($('stage'));
 updateRelief();

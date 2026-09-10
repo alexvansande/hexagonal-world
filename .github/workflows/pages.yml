@@ -27,6 +27,7 @@ jobs:
           mkdir _site
           rsync -a --exclude=tests/ dist/ _site/
           cp LICENSE _site/LICENSE
+          node scripts/build-share-pages.mjs _site
       - uses: actions/upload-pages-artifact@v4
         with:
           path: _site

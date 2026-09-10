@@ -3,3 +3,13 @@
 .DS_Store
 __pycache__/
 /_site/
+
+# Generated share landing pages (rebuilt for local preview and publishing).
+/dist/lifezones/
+/dist/satellite/
+/dist/elevation/
+/dist/political/
+/dist/topographic/
+/dist/gray-neutral/
+/dist/ivory/
+/dist/distortion-analysis/
