@@ -3,7 +3,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "test": "node tests.mjs && node optimizer-tests.mjs && node tiling-tests.mjs && node map-layer-tests.mjs && node arrangement-tests.mjs && node globe-drag-tests.mjs && node relief-tests.mjs && node audit-tests.mjs && node indicatrix-tests.mjs && node style-tests.mjs && node interface-tests.mjs && node circular-tests.mjs",
+    "test": "node tests.mjs && node optimizer-tests.mjs && node tiling-tests.mjs && node map-layer-tests.mjs && node arrangement-tests.mjs && node globe-drag-tests.mjs && node relief-tests.mjs && node audit-tests.mjs && node indicatrix-tests.mjs && node style-tests.mjs && node interface-tests.mjs && node circular-tests.mjs && node fractal-tests.mjs",
     "start": "python3 -m http.server 4173 --directory dist"
   }
 }

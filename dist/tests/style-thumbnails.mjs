@@ -1,7 +1,7 @@
-import {layoutOptions,styleOptions} from '../map-options.mjs?v=rus-fixed-1';
-import {encodeMapState} from '../map-state.mjs?v=grid-styling-1';
+import {layoutOptions,styleOptions} from '../map-options.mjs?v=gosper-1';
+import {encodeMapState} from '../map-state.mjs?v=gosper-1';
 import {makeGeometry,layouts,hex,canvasWorld} from '../geometry.mjs?v=circular-2';
-import {makeArrangement} from '../arrangements.mjs?v=rus-search-1';
+import {makeArrangement} from '../arrangements.mjs?v=gosper-1';
 const frame=document.querySelector('iframe'),result=document.querySelector('#result');
 const delay=ms=>new Promise(resolve=>setTimeout(resolve,ms));
 async function until(test,label){for(let i=0;i<300;i++){if(test())return;await delay(100);}throw Error('Timed out: '+label);}

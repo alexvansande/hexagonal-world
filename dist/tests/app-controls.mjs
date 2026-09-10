@@ -1,5 +1,5 @@
-import {decodeMapState,encodeMapState} from '../map-state.mjs';
-import {layoutOptions,styleOptions} from '../map-options.mjs?v=rus-fixed-1';
+import {decodeMapState,encodeMapState} from '../map-state.mjs?v=gosper-1';
+import {layoutOptions,styleOptions} from '../map-options.mjs?v=gosper-1';
 const frame=document.querySelector('iframe'),list=document.querySelector('#checks'),result=document.querySelector('#result');
 const errors=[];let checks=0;
 const delay=ms=>new Promise(resolve=>setTimeout(resolve,ms));
@@ -140,13 +140,37 @@ try{
   assert($('layout').value===format&&doc.querySelector(`[data-method="${method}"]`).classList.contains('active'),'Circular URL did not restore');
   pass(method+' supports relief, overlays, rotation and URL reload');
  }
+ doc.querySelector('[data-arrangement="gosper"]').click();await settle();
+ assert($('fractalgrid').checked&&!$('subgrid').checked&&!$('dotgrid').checked,'Fractal format did not select its recursive grid');
+ change('line',0);change('subgridWidth',1);change('relief-enabled',false);await settle();
+ assert(overlayInk(),'Fractal grid is blank');const fractalBlue=$('overlay').toDataURL();
+ change('hex-grid-color','#ff0000');await settle();assert($('overlay').toDataURL()!==fractalBlue,'Fractal grid color did not change');
+ change('subgridWidth',0);await settle();assert(!overlayInk(),'Zero fractal thickness still draws outlines');
+ change('subgridWidth',3);change('hex-grid-color','#0000ff');await settle();assert(overlayInk(),'Fractal outlines did not return');
+ const fractalMap=$('map').toDataURL();change('fractalgrid',false);await settle();
+ assert(!overlayInk()&&$('map').toDataURL()===fractalMap,'Turning off the grid changes the fractal map cut');
+ change('subgrid',true);change('dotgrid',true);change('fractalgrid',true);await settle();
+ assert(!$('subgrid').checked&&!$('dotgrid').checked,'Old grids remain enabled with the fractal grid');
+ change('dotgrid',true);await settle();assert(!$('fractalgrid').checked,'Dot grid did not switch off fractal lines');
+ change('fractalgrid',true);change('relief-enabled',true);await settle();
+ pass('Gosper Fractal supports relief, independent outlines, grid color and thickness');
+ await until(()=>{const c=decodeMapState(win.location.hash.slice(3)).controls;return c.fractalgrid===true&&c.dotgrid===false&&c['relief-enabled']===true;},'fractal URL save');
+ win.location.reload();await until(()=>frame.contentDocument!==doc&&frame.contentDocument?.querySelector('.layout-preset-card'),'fractal reload');
+ win=frame.contentWindow;doc=frame.contentDocument;$=id=>doc.getElementById(id);
+ win.addEventListener('error',event=>errors.push(event.message));win.addEventListener('unhandledrejection',event=>errors.push(String(event.reason)));
+ await until(()=>$('status').textContent.includes(' · '),'fractal render after reload');await settle();
+ assert($('layout').value==='gosper'&&$('fractalgrid').checked&&!$('subgrid').checked&&!$('dotgrid').checked,'Fractal shape and grid did not survive reload');
+ pass('Shared URLs restore the Gosper shape and recursive grid');
+ doc.querySelector('[data-style="ivory"]').click();await settle();assert(!$('fractalgrid').checked&&$('layout').value==='gosper','Style did not clear the grid independently of the format');
+ // Restore the appearance used by the persistence checks below.
+ change('graticule',false);change('border-color','#00ff00');change('hex-grid-color','#0000ff');change('graticule-color','#0000ff');change('subgridWidth',3);change('graticuleWidth',3);
  doc.querySelector('[data-method="rhombic"]').click();await settle();change('layout','infinite');await settle();
  assert(!$('bias').closest('label').hidden&&!$('interpolation').closest('label').hidden,'Polyhedral shape controls did not return');
  change('background-color','#123456');await settle();
  assert(win.getComputedStyle(doc.querySelector('.workspace')).backgroundColor==='rgb(18, 52, 86)','Background picker does not update the workspace');
  // URL persistence must restore final panel ordering, including the dynamically installed source panel.
  $('relief-panel').open=true;$('map-source-panel').open=true;
- await delay(300);
+ await until(()=>{const d=decodeMapState(win.location.hash.slice(3)).details;return d['relief-panel']&&d['map-source-panel'];},'expanded panels saved');
  win.location.reload();await until(()=>frame.contentDocument!==doc&&frame.contentDocument?.querySelector('.layout-preset-card'),'reload');
  win=frame.contentWindow;doc=frame.contentDocument;
  win.addEventListener('error',event=>errors.push(event.message));

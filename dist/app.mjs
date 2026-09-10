@@ -1,17 +1,19 @@
+import {fractalRegion,fractalOpacities,edgeKey} from './fractal-grid.mjs';
+import {pointInLoops} from './gosper-fractal.mjs';
 import {circularMode} from './circular-projections.mjs';
 import {polygonOverlapsRect} from './interface-layout.mjs';
 import {ecologyGridGLSL} from './ecology-grid.mjs?v=circular-2';
 import {gosperScale,rotateLocal,subgridLevels} from './subgrid.mjs';
-import {decodeMapState,encodeMapState,distortionEnabled,restorePanelStates} from './map-state.mjs?v=grid-styling-1';
+import {decodeMapState,encodeMapState,distortionEnabled,restorePanelStates} from './map-state.mjs?v=gosper-1';
 import {sphereAt,followPoint,geographicPoint} from './globe-drag.mjs?v=circular-2';
-import {makeArrangement,arrangementNames} from './arrangements.mjs?v=rus-search-1';
+import {makeArrangement,arrangementNames} from './arrangements.mjs?v=gosper-1';
 import {mapSource,landLegends,oceanLegend,missing,riverMask} from './map-layers.mjs?v=rivers-5';
 import {searchPresets} from './search-presets.mjs?v=rus-search-1';
 import {visibleTiles} from './tiling.mjs';
-import {makeGeometry,layouts,matching,canvasWorld,hex} from './geometry.mjs?v=circular-2';
+import {makeGeometry,layouts,matching,canvasWorld,hex,world} from './geometry.mjs?v=circular-2';
 import {projectionGLSL} from './projection-shader.mjs?v=circular-2';
 import {ReliefRenderer,reliefRanges,reliefDefaults,reliefLooks} from './relief.mjs?v=circular-2';
-import {layoutOptions,styleOptions,layoutIcon} from './map-options.mjs?v=rus-fixed-1';
+import {layoutOptions,styleOptions,layoutIcon} from './map-options.mjs?v=gosper-1';
 const $=id=>document.getElementById(id), canvas=$('map'),overlay=$('overlay'),ctx=overlay.getContext('2d');
 const classOptions=[3,6,10,15];
 const classCount=id=>classOptions[Math.max(0,Math.min(3,Math.round(+$(id).value)))];
@@ -122,7 +124,7 @@ function drawGeometry(p){
  for(const {loc,n,off} of layout.attributes){gl.enableVertexAttribArray(loc);gl.vertexAttribPointer(loc,n,gl.FLOAT,false,72,off*4);}
  gl.drawArrays(gl.TRIANGLES,0,count);
 }
-function bounds(){const all=arrangement.clip?arrangement.clip.map(([x,y])=>{const v=rotateScreen([x,-y]);return [v[0],-v[1]];}):net.flatMap(t=>(t.polygon||hex).map(p=>{const v=rotateScreen(canvasWorld(p,t));return [v[0],-v[1]];}));return [Math.min(...all.map(p=>p[0])),Math.min(...all.map(p=>p[1])),Math.max(...all.map(p=>p[0])),Math.max(...all.map(p=>p[1]))];}
+function bounds(){const all=arrangement.outline?arrangement.outline.flat().map(([x,y])=>{const v=rotateScreen([x,-y]);return [v[0],-v[1]];}):arrangement.clip?arrangement.clip.map(([x,y])=>{const v=rotateScreen([x,-y]);return [v[0],-v[1]];}):net.flatMap(t=>(t.polygon||hex).map(p=>{const v=rotateScreen(canvasWorld(p,t));return [v[0],-v[1]];}));return [Math.min(...all.map(p=>p[0])),Math.min(...all.map(p=>p[1])),Math.max(...all.map(p=>p[0])),Math.max(...all.map(p=>p[1]))];}
 function fitView(){
  const b=bounds(),panel=document.querySelector('aside').getBoundingClientRect();
  const wide=w>700;
@@ -136,6 +138,24 @@ function resize(){headingBounds=null;const rect=$('stage').getBoundingClientRect
  if(!persistenceReady){if(restoredView){scale=restoredView.scale;state.zoom=restoredView.zoom;state.panX=restoredView.panX;state.panY=restoredView.panY;}else fitView();persistenceReady=true;}draw();}
 function point(p,t){const v=rotateScreen(canvasWorld(p,t));return [w/2+v[0]*scale*state.zoom+state.panX,h/2+v[1]*scale*state.zoom+state.panY];}
 function draw(){scheduleSave();if(queued)return;queued=true;requestAnimationFrame(render);}
+let fractalGridKey=null,fractalPaths=[];
+function drawFractalGrid(){
+ if(!$('fractalgrid').checked||state.subgridWidth<=0)return;
+ if(fractalGridKey!==meshSignature){
+  fractalGridKey=meshSignature;const strongest=new Map();
+  for(const t of arrangement.gridParents||visible)fractalRegion().lines.forEach((edges,level)=>{
+   for(const [a,b] of edges){const p=world(a,t),q=world(b,t),id=edgeKey(p,q),old=strongest.get(id);if(!old||level>old.level)strongest.set(id,{p,q,level});}
+  });
+  for(const [p,q] of arrangement.outlineEdges||[])strongest.set(edgeKey(p,q),{p,q,level:4});
+  fractalPaths=fractalOpacities.map(()=>new Path2D());
+  for(const {p,q,level} of strongest.values()){fractalPaths[level].moveTo(...p);fractalPaths[level].lineTo(...q);}
+ }
+ const unit=scale*state.zoom;
+ ctx.save();ctx.translate(w/2+state.panX,h/2+state.panY);ctx.rotate(state.gridRotation*Math.PI/180);ctx.scale(unit,-unit);
+ ctx.strokeStyle=$('hex-grid-color').value;ctx.lineWidth=state.subgridWidth*Math.max(.65,unit*.0025)/unit;
+ fractalPaths.forEach((path,level)=>{ctx.globalAlpha=fractalOpacities[level];ctx.stroke(path);});ctx.restore();
+}
+function traceOutline(){ctx.beginPath();for(const loop of arrangement.outline){loop.forEach((p,i)=>i?ctx.lineTo(...point(p,{x:0,y:0,r:0})):ctx.moveTo(...point(p,{x:0,y:0,r:0})));ctx.closePath();}}
 function drawSubgrid(){
  if(!$('subgrid').checked&&!$('dotgrid').checked)return;
  const color=$('hex-grid-color').value,levels=subgridLevels;
@@ -216,15 +236,17 @@ function render(refined=false,exportMode=false){queued=false;document.documentEl
  }else drawColor();
  ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,w,h);ctx.lineJoin='round';
  ctx.save();
- if(!tiling){ctx.beginPath();for(const t of visible){(t.polygon||hex).forEach((p,i)=>i?ctx.lineTo(...point(p,t)):ctx.moveTo(...point(p,t)));ctx.closePath();}ctx.clip();}
+ if(arrangement.outline){traceOutline();ctx.clip();}
+ else if(!tiling){ctx.beginPath();for(const t of visible){(t.polygon||hex).forEach((p,i)=>i?ctx.lineTo(...point(p,t)):ctx.moveTo(...point(p,t)));ctx.closePath();}ctx.clip();}
  if(arrangement.clip){ctx.beginPath();arrangement.clip.forEach((p,i)=>i?ctx.lineTo(...point(p,{x:0,y:0,r:0})):ctx.moveTo(...point(p,{x:0,y:0,r:0})));ctx.closePath();ctx.clip();}
- drawSubgrid();drawIndicatrixes();
- for(const t of visible){ctx.globalAlpha=t.opacity;ctx.beginPath();(t.polygon||hex).forEach((p,i)=>{const xy=point(p,t);i?ctx.lineTo(...xy):ctx.moveTo(...xy);});ctx.closePath();ctx.strokeStyle=$('border-color').value;if(state.line>0){ctx.lineWidth=state.line;ctx.stroke();}
+ drawSubgrid();drawFractalGrid();drawIndicatrixes();
+ for(const t of visible){ctx.globalAlpha=t.opacity;ctx.beginPath();(t.polygon||hex).forEach((p,i)=>{const xy=point(p,t);i?ctx.lineTo(...xy):ctx.moveTo(...xy);});ctx.closePath();ctx.strokeStyle=$('border-color').value;if(state.line>0&&!arrangement.outline){ctx.lineWidth=state.line;ctx.stroke();}
  if($('construction').checked){ctx.strokeStyle='#cb6d3199';ctx.lineWidth=1;ctx.setLineDash([4,4]);for(const p of (t.drawPatches||tiles[t.id].patches)){ctx.beginPath();p.xy.forEach((v,i)=>i?ctx.lineTo(...point(v,t)):ctx.moveTo(...point(v,t)));ctx.closePath();ctx.stroke();}ctx.setLineDash([]);}
  if($('labels').checked){const c=point(t.polygon?t.polygon.reduce((s,p)=>s.map((v,i)=>v+p[i]/t.polygon.length),[0,0]):[0,0],t);ctx.beginPath();ctx.arc(...c,14,0,Math.PI*2);ctx.fillStyle='#f6fbfbea';ctx.fill();ctx.fillStyle='#214754';ctx.font='600 12px "DM Sans",sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText('ABCD'[t.id],...c);
  for(let e=0;e<(t.polygon?0:6);e++){const mid=hex[e].map((v,i)=>(v+hex[(e+1)%6][i])*.46);const xy=point(mid,t);ctx.font='10px "Space Grotesk",sans-serif';ctx.fillStyle='#f6fbfbde';ctx.fillRect(xy[0]-8,xy[1]-7,16,14);ctx.fillStyle='#3d6774';ctx.fillText(edgeLabels[t.id][e],...xy);}}
  }
  ctx.globalAlpha=1;
+ if(arrangement.outline&&state.line>0){traceOutline();ctx.strokeStyle=$('border-color').value;ctx.lineWidth=state.line;ctx.stroke();}
  if(state.line>0){ctx.strokeStyle='#d33d42';ctx.lineWidth=state.line*2.5;
  for(const t of visible)for(let e=0;e<6;e++)if(t.bad[e]){const local=(e-t.r+6)%6;ctx.beginPath();ctx.moveTo(...point(hex[local],t));ctx.lineTo(...point(hex[(local+1)%6],t));ctx.stroke();}
  for(const edge of arrangement.seams||[])if(edge.error>1e-6){ctx.beginPath();ctx.moveTo(...point(edge.a,{x:0,y:0,r:0}));ctx.lineTo(...point(edge.b,{x:0,y:0,r:0}));ctx.stroke();}
@@ -232,7 +254,9 @@ function render(refined=false,exportMode=false){queued=false;document.documentEl
  ctx.restore();$('status').textContent=arrangementNames[state.arrangement]+(state.line>0?' · red edges mark mismatched joins':' · borders hidden');
 }
 for(const b of document.querySelectorAll('.method'))b.onclick=()=>{state.method=b.dataset.method;state.layout=0;document.querySelectorAll('.method').forEach(el=>el.classList.toggle('active',el===b));rebuild();};
-$('layout').onchange=()=>{state.arrangement=$('layout').value;rebuild();if($('optimize').checked)applySearch();};for(const id of ['interpolation','graticule','construction','subgrid','dotgrid','labels','palette','distortion','indicatrix'])$(id).onchange=draw;$('quality').onchange=resize;
+$('layout').onchange=()=>{state.arrangement=$('layout').value;rebuild();if($('optimize').checked)applySearch();};for(const id of ['interpolation','graticule','construction','subgrid','dotgrid','fractalgrid','labels','palette','distortion','indicatrix'])$(id).onchange=draw;$('quality').onchange=resize;
+$('fractalgrid').addEventListener('change',()=>{if($('fractalgrid').checked){$('subgrid').checked=false;$('dotgrid').checked=false;}draw();});
+for(const id of ['subgrid','dotgrid'])$(id).addEventListener('change',()=>{if($(id).checked)$('fractalgrid').checked=false;draw();});
 function ensureRelief(){if(!gl||!program)return;if(!relief){relief=new ReliefRenderer(gl,vs,draw,message=>$('relief-status').textContent=message);heightTexture=relief.heightTextures[0];}relief.load();}
 function updateRelief(){
  const enabled=$('relief-enabled').checked,materialSource=['ivory','elevation'].includes($('map-source').value);$('relief-options').hidden=!enabled;
@@ -255,6 +279,7 @@ function cursorSphere(e){
  const rect=canvas.getBoundingClientRect(),unit=scale*state.zoom;
  const p=rotateScreen([(e.clientX-rect.left-w/2-state.panX)/unit,(e.clientY-rect.top-h/2-state.panY)/unit],-state.gridRotation*Math.PI/180);
  const xy=[p[0],-p[1]];
+ if(arrangement.outline&&!pointInLoops(xy,arrangement.outline))return null;
  if(arrangement.clip){const fy=xy[1],fx=xy[0]-Math.sqrt(3)*fy;if(fy<0||fy>Math.sqrt(3)||fx< -1||fx>5)return null;}
  // In a repeated net each displayed hexagon has its own orientation.
  const candidates=tiling?visibleTiles(tiling,{left:xy[0],right:xy[0],bottom:xy[1],top:xy[1]}):net;
@@ -436,7 +461,7 @@ function setOptionControl(id,value){
 function applyMapOption(option,type){
   if(type==='layout'){
     for(const id of ['method','arrangement','lon','lat','roll','bias','height','clearance','gridRotation','mode'])if(option.state[id]!==undefined){if(['method','arrangement','mode'].includes(id))state[id]=option.state[id];else setOptionRange(id,option.state[id]);}
-    for(const id of ['interpolation','optimize'])if(option.controls[id]!==undefined)setOptionControl(id,option.controls[id]);
+    for(const id of ['interpolation','optimize','fractalgrid','subgrid','dotgrid'])if(option.controls[id]!==undefined)setOptionControl(id,option.controls[id]);
     if(option.mode)mode(option.mode);else mode(state.mode);
     state.layout=0;document.querySelectorAll('.method').forEach(el=>el.classList.toggle('active',el.dataset.method===state.method));
     rebuild();resize();if(option.viewOffset){state.panX=option.viewOffset[0]*scale;state.panY=option.viewOffset[1]*scale;draw();}updateRelief();
@@ -492,7 +517,10 @@ function updateHeadingVisibility(){
  if(!headingBounds){const r=title.getBoundingClientRect();headingBounds={left:r.left-10,top:r.top-8,right:r.right+10,bottom:r.bottom+10};}
  const r=headingBounds;
  const unavailable=r.right>w||r.bottom>h||(state.sidebarExpanded&&w<=700);
- const overlaps=!unavailable&&(tiling||visible.some(tile=>polygonOverlapsRect((tile.polygon||hex).map(p=>point(p,tile)),r)));
+ const origin={x:0,y:0,r:0};
+ const bounds=arrangement?.bounds;
+ const fractalOverlap=arrangement?.leaves&&bounds&&polygonOverlapsRect([[bounds.left,bounds.bottom],[bounds.right,bounds.bottom],[bounds.right,bounds.top],[bounds.left,bounds.top]].map(p=>point(p,origin)),r)&&arrangement.leaves.some(poly=>polygonOverlapsRect(poly.map(p=>point(p,origin)),r));
+ const overlaps=!unavailable&&(tiling||(arrangement?.leaves?fractalOverlap:visible.some(tile=>polygonOverlapsRect((tile.polygon||hex).map(p=>point(p,tile)),r))));
  const obscured=Boolean(unavailable||overlaps);
  title.dataset.obscured=String(obscured);title.setAttribute('aria-hidden',String(obscured));
  $('sidebar-title').hidden=!state.sidebarExpanded||!obscured;

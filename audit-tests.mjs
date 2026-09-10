@@ -4,10 +4,10 @@ import {area,clip} from './dist/felv.mjs';
 import {riverMask,paintEcology,landClass,oceanClass,landLegends,oceanLegend,missing} from './dist/map-layers.mjs';
 for(const option of layoutOptions){
  const polygons=layoutPolygons(option);
- assert.equal(polygons.length,{felv:8,bighex:7,flower:4,dymaxion:4,infinite:37,single:1,double:2}[option.arrangement]);
+ assert.equal(polygons.length,{felv:8,bighex:7,flower:4,dymaxion:4,infinite:37,single:1,double:2,gosper:1}[option.arrangement]);
  for(let i=0;i<polygons.length;i++)for(let j=0;j<i;j++)assert(area(clip(polygons[i],polygons[j].toReversed()))<1e-7,option.name+' icon has overlapping cells');
  const total=polygons.reduce((sum,p)=>sum+area(p),0),hexArea=3*Math.sqrt(3)/2;
- assert(Math.abs(total-hexArea*(option.arrangement==='infinite'?37:option.arrangement==='bighex'?7:option.arrangement==='single'?1:option.arrangement==='double'?2:4))<1e-7,'Icon area must preserve each region');
+ assert(Math.abs(total-hexArea*(option.arrangement==='infinite'?37:['bighex','gosper'].includes(option.arrangement)?7:option.arrangement==='single'?1:option.arrangement==='double'?2:4))<1e-7,'Icon area must preserve each region');
 }
 assert.equal(styleOptions.find(s=>s.source==='continents').controls['relief-treatment'],'land');
 const rgb=hex=>[1,3,5].map(i=>parseInt(hex.slice(i,i+2),16));

@@ -3,7 +3,7 @@ import {readFileSync,existsSync} from 'node:fs';
 import {layoutOptions,styleOptions} from './dist/map-options.mjs';
 import {ecologyCellCenter,ecologyHexRadius,ecologyGridLevel} from './dist/ecology-grid.mjs';
 import {nestedHexLevels} from './dist/subgrid.mjs';
-assert.deepEqual(layoutOptions.map(s=>s.name),['Spaceship Earth','Felv','Flower World','4Hexes','Infinite Honeycomb','Rus One','Rus Two']);
+assert.deepEqual(layoutOptions.map(s=>s.name),['Spaceship Earth','Felv','Flower World','Gosper Fractal','4Hexes','Infinite Honeycomb','Rus One','Rus Two']);
 assert.deepEqual(styleOptions.map(s=>s.name),['Lifezones','Satellite','Elevation','Political','Gray neutral','Ivory','Distortion Analysis']);
 for(const style of styleOptions){
  for(const key of ['method','arrangement','lon','lat','roll','gridRotation','bias','height','zoom','panX','panY'])assert(!(key in style.state),'Style must not contain '+key);
