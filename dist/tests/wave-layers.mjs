@@ -2,22 +2,20 @@
 // The green channel contains wave-exposure bands, not seafloor depth.
 import * as original from '../map-layers.mjs';
 export * from '../map-layers.mjs';
-// Lightness expresses an illustrative cold/exposure burden, not measured risk.
-// Equal difficulty diagonals have equal perceptual lightness. Hue alone varies
-// with temperature; the cold apex therefore never masquerades as calm water.
+// sRGB swatches sampled from the user's reference; interpolate the same
+// temperature/exposure palette for the other triangular class counts.
+const referenceOcean=[
+ ['#7cd4df'],
+ ['#6eb2ef','#62a0d9'],
+ ['#5374ef','#4662d0','#3953ad'],
+ ['#401cee','#3917d2','#3013b3','#280f95'],
+];
+const rgb=hex=>[1,3,5].map(i=>parseInt(hex.slice(i,i+2),16));
+const mix=(a,b,t)=>a.map((v,i)=>v+(b[i]-v)*t);
+function rowColor(row,exposure){const x=exposure*(row.length-1),i=Math.floor(x);return mix(rgb(row[i]),rgb(row[Math.min(i+1,row.length-1)]),x-i);}
 export function oceanColor(row,column,levels){
- const warmth=row/(levels-1),difficulty=(levels-1-row+column)/(levels-1);
- const L=.84-.49*difficulty,h=(220+65*warmth)*Math.PI/180;
- let rgb;
- for(let chroma=.085;chroma>=0;chroma-=.005){
-  const a=chroma*Math.cos(h),b=chroma*Math.sin(h);
-  const l=(L+.3963377774*a+.2158037573*b)**3;
-  const m=(L-.1055613458*a-.0638541728*b)**3;
-  const s=(L-.0894841775*a-1.291485548*b)**3;
-  rgb=[4.0767416621*l-3.3077115913*m+.2309699292*s,-1.2684380046*l+2.6097574011*m-.3413193965*s,-.0041960863*l-.7034186147*m+1.707614701*s];
-  if(rgb.every(v=>v>=0&&v<=1))break;
- }
- return '#'+rgb.map(v=>Math.round(255*(v<=.0031308?12.92*v:1.055*Math.max(0,v)**(1/2.4)-.055))).map(v=>Math.max(0,Math.min(255,v)).toString(16).padStart(2,'0')).join('');
+ const temperature=row/(levels-1)*3,i=Math.floor(temperature),exposure=row?column/row:0;
+ return '#'+mix(rowColor(referenceOcean[i],exposure),rowColor(referenceOcean[Math.min(i+1,3)],exposure),temperature-i).map(v=>Math.round(v).toString(16).padStart(2,'0')).join('');
 }
 const temperatureCuts={3:[15],6:[10,20],10:[5,15,25],15:[0,10,20,25]};
 const exposureCuts={1:[],2:[1],3:[1,2],4:[1,2,3],5:[1,2,3,4]};
@@ -28,7 +26,7 @@ export function oceanRows(count){
   const lo=cuts[i-1],hi=cuts[i],temp=lo===undefined?`<${hi}°C`:hi===undefined?`≥${lo}°C`:`${lo}–${hi}°C`;
   const bands=exposureCuts[i+1],low=percentages[bands[j-1]??0],high=percentages[bands[j]??5];
   const exposure=i===0?'all wave exposures':`${low}–${high}% of samples with significant wave height >2 m`;
-  return {name:`${row.label} · ${exposure}`,color:oceanColor(i,j,cuts.length+1),detail:`Annual surface temperature ${temp}; ${exposure}. Hue indicates temperature; darker means colder or more wave-exposed in this illustrative palette. The cold apex merges all exposures. This is not a navigation risk score.`};
+  return {name:`${row.label} · ${exposure}`,color:oceanColor(i,j,cuts.length+1),detail:`Annual surface temperature ${temp}; ${exposure}. Hue indicates temperature; within each temperature row, darker means more wave-exposed. The cold apex merges all exposures. This is not a navigation risk score.`};
  })}));
 }
 export function oceanLegend(count){return oceanRows(count).flatMap(row=>row.cells);}

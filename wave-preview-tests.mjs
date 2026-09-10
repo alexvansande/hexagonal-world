@@ -8,8 +8,7 @@ for(const count of [3,6,10,15]){
  assert.equal(rows.reduce((sum,r)=>sum+r.cells.length,0),count);
  assert.deepEqual(rows.map(r=>r.cells.length),rows.map((_,i)=>i+1));
  for(const row of rows)for(let j=1;j<row.cells.length;j++)assert(luminance(row.cells[j].color)<luminance(row.cells[j-1].color),'Rougher water gets darker within every temperature row');
- for(let i=1;i<rows.length;i++)assert(luminance(rows[i-1].cells[0].color)<luminance(rows[i].cells[0].color),'Colder rows never look gentler than the next warmer row');
- assert(luminance(rows[0].cells[0].color)<.06,'The merged cold apex is dark');
+ if(count===10)assert.deepEqual(rows.map(r=>r.cells.map(c=>c.color)),[['#7cd4df'],['#6eb2ef','#62a0d9'],['#5374ef','#4662d0','#3953ad'],['#401cee','#3917d2','#3013b3','#280f95']],'Match the reference swatches');
  const classes=new Set();
  for(let thermal=1;thermal<256;thermal++)for(let band=0;band<5;band++)classes.add(oceanClass(band,thermal,count));
  assert.equal(classes.size,count,'Every legend swatch is reachable');
@@ -22,7 +21,7 @@ for(const count of [3,6,10,15]){
   const layout=waveLegendLayout(count,other),labels=layout.texts.filter(t=>t.x===220);
   assert.equal(labels.length,Math.max(rows.length,oceanRows(other).length));
   assert.equal(layout.hexes.length,count+other);
-  assert(layout.texts.some(t=>t.value==='Gentle Seas ↔ Rough Seas'));
+  assert(layout.texts.some(t=>t.value==='Gentle ↔ Rough'));
  }
 }
 console.log('Wave preview: shared temperature axis, temperature hues and monotonic darkness, increasing exposure resolution and missing-data checks pass.');
@@ -31,7 +30,7 @@ const fonts=JSON.parse((await import('node:fs')).readFileSync('./dist/pdf-letter
 const lettering={measure:(key,s,size)=>[...s].reduce((n,c)=>n+fonts[key].glyphs[c.charCodeAt(0)].width,0)*size/1000,text:(key,s,size,x,y)=>`${key} ${size} ${x} ${y} (${s}) Tj`};
 for(const landCount of [3,6,10,15])for(const oceanCount of [3,6,10,15]){
  const commands=addLifezonesLegend({landCount,oceanCount,lettering,pageWidth:1190,pageHeight:842,ink:'0 0 0'});
- assert(commands.some(s=>s.includes('(Gentle Seas) Tj')));assert(commands.some(s=>s.includes('(Rough Seas) Tj')));
+ assert(commands.some(s=>s.includes('(Gentle) Tj')));assert(commands.some(s=>s.includes('(Rough) Tj')));
  assert(commands.every(s=>!s.includes('NaN')));
 }
 console.log('Print legend: all 16 class-count combinations have vector glyphs and finite positions.');

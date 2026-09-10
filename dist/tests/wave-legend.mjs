@@ -1,4 +1,4 @@
-import {landRows,oceanRows} from './wave-layers.mjs?v=temperature-colors-1';
+import {landRows,oceanRows} from './wave-layers.mjs?v=reference-colors-2';
 
 // Both renderers consume the same layout, so print and web keep identical axes.
 export function waveLegendLayout(landCount,oceanCount){
@@ -11,7 +11,7 @@ export function waveLegendLayout(landCount,oceanCount){
   const cy=42+((labels.length-rows.length)/2+i)*19;
   row.cells.forEach((cell,j)=>hexes.push({...cell,x:cx+(j-i/2)*20,y:cy,r:11}));
  });
- texts.push({value:'Arid ↔ Humid',x:85,y:height-4,size:16,italic:true},{value:'Gentle Seas ↔ Rough Seas',x:355,y:height-4,size:14,italic:true});
+ texts.push({value:'Arid ↔ Humid',x:85,y:height-4,size:16,italic:true},{value:'Gentle ↔ Rough',x:355,y:height-4,size:14,italic:true});
  return {width,height,hexes,texts};
 }
 export function renderWaveLegend(container,landCount,oceanCount){
