@@ -7,7 +7,8 @@ export function waveLegendLayout(landCount,oceanCount){
  texts.push({value:'Land',x:85,y:23,size:24},{value:'Ocean',x:355,y:23,size:24});
  labels.forEach((value,i)=>texts.push({value,x:220,y:47+i*19,size:16,italic:true}));
  for(const [rows,cx] of [[land,85],[ocean,355]])rows.forEach((row,i)=>{
-  const cy=42+i/(rows.length-1)*(labels.length-1)*19;
+  // Keep hex spacing consistent; fewer climate bands sit between shared labels.
+  const cy=42+((labels.length-rows.length)/2+i)*19;
   row.cells.forEach((cell,j)=>hexes.push({...cell,x:cx+(j-i/2)*20,y:cy,r:11}));
  });
  texts.push({value:'Arid ↔ Humid',x:85,y:height-4,size:16,italic:true},{value:'Gentle Seas ↔ Rough Seas',x:355,y:height-4,size:14,italic:true});
