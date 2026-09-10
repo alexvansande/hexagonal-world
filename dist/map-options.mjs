@@ -62,7 +62,7 @@ export const styleOptions=[
       "border-color": "#376472",
       "hex-grid-color": "#d6d6d6",
       "graticule-color": "#4f8796",
-      "background-color": "#ebebeb"
+      "background-color": "#d9d3d3"
     },
     "thumbnail": "maps/styles/lifezones.png"
   },
