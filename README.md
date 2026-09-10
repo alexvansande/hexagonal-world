@@ -45,11 +45,10 @@ antipode: the entire perimeter represents one point (label P). It follows the
 circular-map proposal and does not reproduce Rus's triangular-dihedron fold.
 The two-hexagon map has the hexagonal-dihedron boundary pairing, using equal-area
 rather than conformal mapping. Shape bias and vertex interpolation do not apply.
-Only their corresponding finite arrangements are offered. Each has ten search
-presets (0–9° clearance). Rus One scores its single antipodal boundary point;
-Rus Two scores its exposed hemisphere edges, excluding the continuous shared
-edge. Search uses the exact Lambert/disk-to-hex map rather than interpolated
-vertices. The format cards start with the zero-clearance results. Rotation, styles, terrain, overlays and exports remain
+Only their corresponding finite arrangements are offered. Rus One starts with
+the north pole at its center; Rus Two uses the selected fixed globe orientation.
+The minimizer and clearance controls are disabled for both. The previously
+computed search data remains available for offline experiments. Rotation, styles, terrain, overlays and exports remain
 available. `circular-tests.mjs` checks coverage, Jacobians, every paired edge,
 round trips, dragging and projected source circles.
 

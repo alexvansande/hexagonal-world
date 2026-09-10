@@ -1,6 +1,5 @@
-import {searchPresets} from '../search-presets.mjs?v=rus-search-1';
 import {decodeMapState,encodeMapState} from '../map-state.mjs';
-import {layoutOptions,styleOptions} from '../map-options.mjs?v=rus-search-1';
+import {layoutOptions,styleOptions} from '../map-options.mjs?v=rus-fixed-1';
 const frame=document.querySelector('iframe'),list=document.querySelector('#checks'),result=document.querySelector('#result');
 const errors=[];let checks=0;
 const delay=ms=>new Promise(resolve=>setTimeout(resolve,ms));
@@ -117,13 +116,12 @@ try{
  for(const [method,format] of [['lambert-one','single'],['lambert-two','double']]){
   doc.querySelector(`[data-method="${method}"]`).click();await settle();
   assert($('layout').value===format&&$('layout').options.length===1,'Circular method retained incompatible layout');
-  assert(!$('optimize').disabled,'Rus minimizer is unavailable');
-  for(const distance of [0,9]){
-   change('clearance',distance);await settle();
-   const expected=searchPresets[method][format].results[distance].angles,actual=decodeMapState(win.location.hash.slice(3)).state;
-   assert($('optimize').checked&&Object.keys(expected).every(k=>Math.abs(actual[k]-expected[k])<1e-10),'Rus search preset did not apply');
-  }
-  pass((method==='lambert-one'?'Rus One':'Rus Two')+' boundary search supports 0–9° clearance');
+  assert($('optimize').disabled&&$('clearance').disabled&&$('optimize').closest('.optimizer').hidden,'Rus minimizer remains available');
+  const original=decodeMapState(win.location.hash.slice(3)).state;
+  change('clearance',9);await settle();
+  const unchanged=decodeMapState(win.location.hash.slice(3)).state;
+  assert(!$('optimize').checked&&['lon','lat','roll'].every(k=>original[k]===unchanged[k]),'Rus orientation changed through the disabled minimizer');
+  pass((method==='lambert-one'?'Rus One':'Rus Two')+' keeps its orientation with minimizer disabled');
   assert($('bias').closest('label').hidden&&$('interpolation').closest('label').hidden,'Unsupported shape controls remain visible');
   for(const reliefEnabled of [false,true]){
    change('relief-enabled',reliefEnabled);change('graticule',true);change('distortion',true);await settle();

@@ -11,7 +11,7 @@ import {visibleTiles} from './tiling.mjs';
 import {makeGeometry,layouts,matching,canvasWorld,hex} from './geometry.mjs?v=circular-2';
 import {projectionGLSL} from './projection-shader.mjs?v=circular-2';
 import {ReliefRenderer,reliefRanges,reliefDefaults,reliefLooks} from './relief.mjs?v=circular-2';
-import {layoutOptions,styleOptions,layoutIcon} from './map-options.mjs?v=rus-search-1';
+import {layoutOptions,styleOptions,layoutIcon} from './map-options.mjs?v=rus-fixed-1';
 const $=id=>document.getElementById(id), canvas=$('map'),overlay=$('overlay'),ctx=overlay.getContext('2d');
 const classOptions=[3,6,10,15];
 const classCount=id=>classOptions[Math.max(0,Math.min(3,Math.round(+$(id).value)))];
@@ -289,11 +289,16 @@ const img=new Image();img.onload=()=>{if(!gl||!program)return;texture=gl.createT
 canvas.addEventListener('webglcontextlost',e=>{e.preventDefault();ready=false;fail('The graphics context was interrupted. Reload to restore the map.');});
 
 function setRotation(angles){for(const id of ['lon','lat','roll']){state[id]=angles[id];$(id).value=angles[id];$(id+'-value').value=angles[id].toFixed(2)+'°';}draw();}
-function updateOptimizerUI(){const preset=searchPresets[state.method]?.[state.arrangement],available=Boolean(preset?.results?.length);$('optimize').disabled=!ready||!available;if(!available)$('optimize').checked=false;$('optimizer-note').textContent=available?(preset.objective==='antipodal-point'?'The whole perimeter is one point. Search places that point away from land.':preset.objective==='hemisphere-cuts'?'Exposed hemisphere boundaries are scored; the continuous shared edge is excluded.':preset.objective==='all-hex-edges'?'Every distinct hexagon border is scored across the repeating map.':'Outer boundaries and both sides of red seams are scored.'):'No cut-search preset is available for this projection and format.';}
+function updateOptimizerUI(){
+ const rus=Boolean(circularMode(state.method)),preset=searchPresets[state.method]?.[state.arrangement],available=!rus&&Boolean(preset?.results?.length);
+ $('optimize').closest('.optimizer').hidden=rus;$('optimize').disabled=!ready||!available;$('clearance').disabled=!ready||!available;
+ if(!available)$('optimize').checked=false;
+ $('optimizer-note').textContent=available?(preset.objective==='all-hex-edges'?'Every distinct hexagon border is scored across the repeating map.':'Outer boundaries and both sides of red seams are scored.'):'No cut-search preset is available for this projection and format.';
+}
 function applySearch(){
  if(!$('optimize').checked)return;
  const preset=searchPresets[state.method]?.[state.arrangement];
- if(!preset?.results?.length){$('optimize').checked=false;updateOptimizerUI();return;}
+ if(circularMode(state.method)||!preset?.results?.length){$('optimize').checked=false;updateOptimizerUI();return;}
  // Each baked rotation belongs to the geometry it was optimized for.
  state.bias=preset.config.bias;$('bias').value=state.bias;$('bias-value').value=state.bias;
  $('interpolation').value=String(preset.config.blend);

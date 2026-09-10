@@ -7,8 +7,8 @@ export const layoutOptions=[
  {name:'Flower World',arrangement:'bighex',state:{method:'rhombic',arrangement:'bighex',lon:-19.196120097618845,lat:54.98466622358542,roll:-73.21086442098823,bias:1,height:1.5,gridRotation:60,mode:'rotate'},controls:{interpolation:'0',optimize:false}},
  {name:'4Hexes',arrangement:'flower',state:{method:'rhombic',arrangement:'flower',lon:132.47383515760305,lat:40.19079148977437,roll:87.45012620687487,bias:1,height:1.5,clearance:1,gridRotation:120,mode:'pan'},controls:{interpolation:'0',optimize:false}},
  {name:'Infinite Honeycomb',arrangement:'infinite',state:{method:'rhombic',arrangement:'infinite',lon:-168.51360216723162,lat:37.41313981522221,roll:-11.453856794719924,bias:1,height:1.5,clearance:1,gridRotation:60,mode:'pan'},viewOffset:[-0.28669960461805105,-0.4522765322383842],controls:{interpolation:'0',optimize:false}},
- {name:'Rus One',arrangement:'single',state:{method:'lambert-one',arrangement:'single',lon:-113.3026042766869,lat:22.058934644941793,roll:-63.51656958460808,bias:1,height:1.5,clearance:0,gridRotation:30,mode:'rotate'},controls:{interpolation:'0',optimize:false}},
- {name:'Rus Two',arrangement:'double',state:{method:'lambert-two',arrangement:'double',lon:-32.30610191412268,lat:-32.063330167477375,roll:158.64937123842537,bias:1,height:1.5,clearance:0,gridRotation:30,mode:'rotate'},controls:{interpolation:'0',optimize:false}}
+ {name:'Rus One',arrangement:'single',state:{method:'lambert-one',arrangement:'single',lon:0,lat:0,roll:0,bias:1,height:1.5,clearance:0,gridRotation:30,mode:'rotate'},controls:{interpolation:'0',optimize:false}},
+ {name:'Rus Two',arrangement:'double',state:{method:'lambert-two',arrangement:'double',lon:-21.47927481028223,lat:-2.7086501277338852,roll:101.53366955475948,bias:1,height:1.5,clearance:0,gridRotation:30,mode:'rotate'},controls:{interpolation:'0',optimize:false}}
 ];
 
 // Curated surface settings from the user's saved maps. Projection and view are deliberately absent.
