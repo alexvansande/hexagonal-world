@@ -29,10 +29,14 @@ try{
  // A bold silhouette retains the four-hexagon identity even at 16 px.
  // Keep the complete mark within the circular mask-safe area of home-screen icons.
  const s=Math.min(64/bw,60/bh),paths=polygons.map(poly=>'M'+poly.map(([x,y])=>[(50+(x-(left+right)/2)*s).toFixed(3),(50+(y-(top+bottom)/2)*s).toFixed(3)].join(',')).join('L')+'Z');
- const svg='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><g transform="translate(-12.5 -12.5) scale(1.25)" fill="#234b59" stroke="#234b59" stroke-width=".3">'+paths.map(d=>'<path d="'+d+'"/>').join('')+'</g></svg>';
+ // Separate the favicon cells, then fit the mark almost edge-to-edge.
+ const separated=polygons.map(poly=>{const cx=poly.reduce((sum,p)=>sum+p[0],0)/poly.length,cy=poly.reduce((sum,p)=>sum+p[1],0)/poly.length;return poly.map(([x,y])=>[cx+(x-cx)*.84,cy+(y-cy)*.84]);});
+ const iconPoints=separated.flat(),ix=iconPoints.map(p=>p[0]),iy=iconPoints.map(p=>p[1]),il=Math.min(...ix),ir=Math.max(...ix),it=Math.min(...iy),ib=Math.max(...iy),is=Math.min(96/(ir-il),94/(ib-it));
+ const faviconPaths=separated.map(poly=>'M'+poly.map(([x,y])=>[(50+(x-(il+ir)/2)*is).toFixed(3),(50+(y-(it+ib)/2)*is).toFixed(3)].join(',')).join('L')+'Z');
+ const svg='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><g fill="#234b59">'+faviconPaths.map(d=>'<path d="'+d+'"/>').join('')+'</g></svg>';
  await save('favicon.svg',new Blob([svg],{type:'image/svg+xml'}));
  for(const [name,size] of [['favicon-32.png',32],['apple-touch-icon.png',180],['icon-192.png',192],['icon-512.png',512]]){
-  const canvas=document.createElement('canvas');canvas.width=canvas.height=size;const c=canvas.getContext('2d');if(size!==32){c.fillStyle='#234b59';c.fillRect(0,0,size,size);}c.scale(size/100,size/100);if(size===32){c.translate(-12.5,-12.5);c.scale(1.25,1.25);}c.fillStyle=c.strokeStyle=size===32?'#234b59':'#bfdce4';c.lineWidth=.3;for(const d of paths){const path=new Path2D(d);c.fill(path);c.stroke(path);}if(size>=180){c.strokeStyle='#234b59';c.lineWidth=1;for(const d of paths)c.stroke(new Path2D(d));}await save(name,await png(canvas));
+  const canvas=document.createElement('canvas');canvas.width=canvas.height=size;const c=canvas.getContext('2d');if(size!==32){c.fillStyle='#234b59';c.fillRect(0,0,size,size);}c.scale(size/100,size/100);c.fillStyle=c.strokeStyle=size===32?'#234b59':'#bfdce4';c.lineWidth=.3;for(const d of size===32?faviconPaths:paths){const path=new Path2D(d);c.fill(path);if(size!==32)c.stroke(path);}if(size>=180){c.strokeStyle='#234b59';c.lineWidth=1;for(const d of paths)c.stroke(new Path2D(d));}await save(name,await png(canvas));
  }
  result.textContent=new URLSearchParams(location.search).get('only')==='favicon'?'Ready · transparent dark-blue favicons':'Ready · social preview and five icons';result.dataset.status='passed';
 }catch(error){result.textContent=error.message;result.dataset.status='failed';console.error(error);}
