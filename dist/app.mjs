@@ -10,7 +10,7 @@ import {visibleTiles} from './tiling.mjs';
 import {makeGeometry,layouts,matching,canvasWorld,hex} from './geometry.mjs';
 import {projectionGLSL} from './projection-shader.mjs';
 import {ReliefRenderer,reliefRanges,reliefDefaults,reliefLooks} from './relief.mjs?v=background-1';
-import {layoutOptions,styleOptions,layoutIcon} from './map-options.mjs?v=grid-styling-1';
+import {layoutOptions,styleOptions,layoutIcon} from './map-options.mjs?v=lifezones-2';
 const $=id=>document.getElementById(id), canvas=$('map'),overlay=$('overlay'),ctx=overlay.getContext('2d');
 const classOptions=[3,6,10,15];
 const classCount=id=>classOptions[Math.max(0,Math.min(3,Math.round(+$(id).value)))];
@@ -441,7 +441,7 @@ function installColumnOptions(){
   const layoutBox=document.createElement('div');layoutBox.className='layout-presets';layoutBox.setAttribute('aria-label','Map format options');
   const styleBox=document.createElement('div');styleBox.className='style-presets';styleBox.setAttribute('aria-label','Map style options');
   for(const option of layoutOptions){const card=document.createElement('button');card.type='button';card.className='layout-preset-card';card.title='Use '+option.name+' format';card.dataset.arrangement=option.arrangement;card.setAttribute('aria-label',option.name);card.append(layoutIcon(option));const label=document.createElement('b');label.textContent=option.name;card.append(label);card.onclick=()=>applyMapOption(option,'layout');layoutBox.append(card);}
-  for(const option of styleOptions){const card=document.createElement('button');card.type='button';card.className='style-preset-card';card.title='Use '+option.name+' style';card.dataset.source=option.source;card.setAttribute('aria-label',option.name);const thumb=document.createElement('img');thumb.className='style-thumb';thumb.src=option.thumbnail+'?v=grid-styling-1';thumb.alt='';thumb.loading='lazy';thumb.width=240;thumb.height=136;const label=document.createElement('b');label.textContent=option.name;card.append(thumb,label);card.onclick=()=>applyMapOption(option,'style');styleBox.append(card);}
+  for(const option of styleOptions){const card=document.createElement('button');card.type='button';card.className='style-preset-card';card.title='Use '+option.name+' style';card.dataset.source=option.source;card.setAttribute('aria-label',option.name);const thumb=document.createElement('img');thumb.className='style-thumb';thumb.src=option.thumbnail+'?v=lifezones-2';thumb.alt='';thumb.loading='lazy';thumb.width=240;thumb.height=136;const label=document.createElement('b');label.textContent=option.name;card.append(thumb,label);card.onclick=()=>applyMapOption(option,'style');styleBox.append(card);}
   intro.after(layoutHeading,layoutBox,styleHeading,styleBox);
   document.querySelectorAll('aside details').forEach(el=>{el.open=false;});
 }

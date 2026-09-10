@@ -1,5 +1,5 @@
 import {decodeMapState} from '../map-state.mjs';
-import {layoutOptions,styleOptions} from '../map-options.mjs?v=grid-styling-1';
+import {layoutOptions,styleOptions} from '../map-options.mjs?v=lifezones-2';
 const frame=document.querySelector('iframe'),list=document.querySelector('#checks'),result=document.querySelector('#result');
 const errors=[];let checks=0;
 const delay=ms=>new Promise(resolve=>setTimeout(resolve,ms));
@@ -36,6 +36,7 @@ try{
   const source=$('map-source').value;
   doc.querySelector(`[data-arrangement="${option.arrangement}"]`).click();await settle();
   assert($('layout').value===option.arrangement,'Arrangement did not update');
+  if(option.arrangement==='dymaxion')for(const id of ['lon','lat','roll'])assert(Math.abs(decodeMapState(win.location.hash.slice(3)).state[id]-option.state[id])<1e-10,'Spaceship Earth orientation did not update');
   if(option.arrangement==='bighex')assert(+$('gridRotation').value===60,'Flower World rotation is not 60 degrees');
   assert($('map-source').value===source,'Format changed the chosen style');
   assert(doc.querySelectorAll('.layout-preset-card[aria-pressed="true"]').length===1,'Format selection is inconsistent');
@@ -54,7 +55,7 @@ try{
   pass(option.name+' switches and renders');
  }
  doc.querySelector('[data-source="ecology"]').click();await settle();
- assert($('subgrid').checked&&!$('dotgrid').checked,'Lifezones grid correction missing');
+ assert($('subgrid').checked&&$('dotgrid').checked&&+$('subgridWidth').value===.2&&$('hex-grid-color').value==='#d6d6d6'&&$('background-color').value==='#ebebeb','Lifezones saved look did not apply');
  for(const method of ['tetra','octa','rhombic','tetrakis']){doc.querySelector(`[data-method="${method}"]`).click();await settle();}pass('Hexagonal Lifezones renders through all four projections');
  doc.querySelector('[data-source="countries"]').click();await settle();assert(!$('graticule').checked&&!$('dotgrid').checked&&$('background-color').value==='#2b4b5f','Political style did not update');
  doc.querySelector('[data-source="elevation"]').click();await settle();assert(+$('reliefSeaLevel').value===105,'Elevation sea level did not reset');pass('Political and Elevation corrections apply');

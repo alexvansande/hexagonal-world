@@ -2,7 +2,7 @@ import {makeGeometry,layouts,hex,world} from './geometry.mjs';
 import {makeArrangement} from './arrangements.mjs';
 
 export const layoutOptions=[
- {name:'Spaceship Earth',arrangement:'dymaxion',state:{method:'rhombic',arrangement:'dymaxion',lon:-169.20054704482222,lat:35.360266510364475,roll:-11.021389243205215,bias:1,height:1.5,gridRotation:31,mode:'rotate'},controls:{interpolation:'0',optimize:false}},
+ {name:'Spaceship Earth',arrangement:'dymaxion',state:{method:'rhombic',arrangement:'dymaxion',lon:-169.74621893297788,lat:34.99467419672773,roll:-13.80296086449369,bias:1,height:1.5,gridRotation:31,mode:'rotate'},controls:{interpolation:'0',optimize:false}},
  {name:'Felv',arrangement:'felv',state:{method:'rhombic',arrangement:'felv',lon:-17.09618694721815,lat:-47.838840542042334,roll:3.719788555653089,bias:1,height:1.5,gridRotation:0,mode:'rotate'},controls:{interpolation:'0',optimize:false}},
  {name:'Flower World',arrangement:'bighex',state:{method:'rhombic',arrangement:'bighex',lon:-19.196120097618845,lat:54.98466622358542,roll:-73.21086442098823,bias:1,height:1.5,gridRotation:60,mode:'rotate'},controls:{interpolation:'0',optimize:false}},
  {name:'4Hexes',arrangement:'flower',state:{method:'rhombic',arrangement:'flower',lon:-59.546827942297625,lat:47.19105399532358,roll:17.040754474795346,bias:1,height:1.5,gridRotation:31,mode:'rotate'},controls:{interpolation:'0',optimize:false}},
@@ -35,7 +35,7 @@ export const styleOptions=[
       "distortionOpacity": 0.75,
       "riverWidth": 2.5,
       "riverLevels": 12,
-      "subgridWidth": 1,
+      "subgridWidth": 0.2,
       "graticuleWidth": 1
     },
     "controls": {
@@ -48,15 +48,16 @@ export const styleOptions=[
       "ocean-classes": 6,
       "graticule": false,
       "subgrid": true,
-      "dotgrid": false,
+      "dotgrid": true,
       "palette": "atlas",
       "construction": false,
       "labels": false,
       "distortion": false,
       "indicatrix": "off",
       "border-color": "#376472",
-      "hex-grid-color": "#315865",
-      "graticule-color": "#4f8796"
+      "hex-grid-color": "#d6d6d6",
+      "graticule-color": "#4f8796",
+      "background-color": "#ebebeb"
     },
     "thumbnail": "maps/styles/lifezones.png"
   },
