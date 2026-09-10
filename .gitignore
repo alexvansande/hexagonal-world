@@ -13,3 +13,7 @@ __pycache__/
 /dist/gray-neutral/
 /dist/ivory/
 /dist/distortion-analysis/
+
+# Generated local-only wave preview (rebuild with scripts/build-wave-preview.mjs).
+/dist/tests/wave-app.mjs
+/dist/tests/wave-preview.html

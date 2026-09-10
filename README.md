@@ -201,3 +201,11 @@ To regenerate artwork, start the app and `python3 scripts/save-site-assets.py`, 
 ## Aggregate analytics
 
 The About this dialog links to GoatCounter and its privacy information. `dist/analytics.mjs` holds only the public counting endpoint. An empty endpoint leaves analytics disabled. With an endpoint configured, the script loads only on hexagonal.earth/www.hexagonal.earth, outside iframes, and honors Global Privacy Control and Do Not Track. It sends one initial pageview with the clean combination path, the referrer origin, and allowlisted events for preset choices and successfully generated downloads. Hashes, query strings, map coordinates and pan/zoom interactions are never included. Loading or counting failures do not interrupt map interactions. Keep individual-pageview collection disabled in GoatCounter for aggregate-only storage.
+
+## Local wave-exposure preview
+
+Run `node scripts/build-wave-preview.mjs` and open `/tests/wave-preview.html` on the local server. This uses the regular app with a preview-only module override; production Lifezones, preset thumbnails and social images are unchanged. The generated HTML/app copy is ignored and all preview assets are excluded from Pages publication under `tests/`.
+
+The ocean replaces depth with the fraction of sampled significant wave heights above 2 m. The checked-in preview uses 513 snapshots at 171-hour intervals across 2015–2024 from Copernicus Marine WAVERYS, its 0.8° spatially averaged product. It is a sampled estimate, not a complete hourly climatology. Exposure thresholds are 10%, 25%, 50%, 75%; coarser triangular presets merge the roughest bands. At least 90% sample availability is required; unknown/ice-covered water stays gray. Temperature remains the existing NOAA 1991–2020 normal. Merging temperature in rougher water is an editorial classification, not a physical law or a navigation safety rating.
+
+`python scripts/build-wave-data.py` rebuilds `dist/tests/ecology-waves.png` and its source metadata (requires NumPy, Pillow and numcodecs; raw public Zarr chunks are cached in ignored `data/wave-preview/`). `node wave-preview-tests.mjs` checks the preview legend and missing-data rules. Source: https://doi.org/10.48670/moi-00022.

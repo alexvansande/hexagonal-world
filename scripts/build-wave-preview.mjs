@@ -1,0 +1,23 @@
+// Builds a local-only app preview. Production source and thumbnails are untouched.
+import fs from 'node:fs';
+import {presetSettings,sharePair} from '../dist/share-routes.mjs';
+import {encodeMapState} from '../dist/map-state.mjs';
+import {fileURLToPath} from 'node:url';
+const root=fileURLToPath(new URL('../',import.meta.url));
+const source=fs.readFileSync(root+'dist/index.html','utf8').replace(/<p>Marine classes[\s\S]*?<\/p>/, '<p>This local preview replaces ocean depth with the sampled frequency of significant wave height above 2 metres. Copernicus WAVERYS, 2015–2024, sampled every 7 days 3 hours at 0.8°. Classification boundaries are 10%, 25%, 50% and 75%. Temperature distinctions merge toward rougher water as a design choice. Gray marks missing data, including persistently ice-covered water. This is not a navigation safety rating.</p>');
+const appSrc=source.match(/src="(app\.mjs[^\"]*)"/)[1];
+const layerImport=fs.readFileSync(root+'dist/app.mjs','utf8').match(/from '\.\/(map-layers\.mjs[^']*)'/)[1];
+const initial=presetSettings(sharePair('lifezones','dymaxion'));
+initial.controls['ocean-classes']=10;
+initial.state.sidebarExpanded=false;
+initial.view={scale:0,zoom:1,panX:0,panY:0};initial.details={};
+const initialHash='m='+encodeMapState(initial);
+const setup='<script>if(!location.hash)history.replaceState(null,"","#"+'+JSON.stringify(initialHash)+');</script>';
+const importMap={imports:{['/'+layerImport]:'/tests/wave-layers.mjs'}};
+const banner='<div style="position:fixed;top:0;left:0;right:0;z-index:9999;background:#234b59;color:white;text-align:center;padding:5px 12px;font:12px system-ui;pointer-events:none">OCEAN PREVIEW · Wave exposure × temperature · 2015–2024 sample · Darker = more often above 2 m · Gray = no data</div>';
+fs.writeFileSync(root+'dist/tests/wave-preview.html',source.replace('<head>','<head><script type="importmap">'+JSON.stringify(importMap)+'</script>'+setup).replace('<body>','<body>'+banner).replace('src="'+appSrc+'"','src="tests/wave-app.mjs"'));
+let app=fs.readFileSync(root+'dist/app.mjs','utf8').replaceAll("from './","from '../").replaceAll("new URL('./","new URL('../");
+app=app.replace('NOAA OISST 1991–2020; Natural Earth bathymetry.','NOAA OISST 1991–2020; Copernicus wave reanalysis (preview).');
+app=app.replace('0.5° land · 1° ocean temperature · hexagonal cells','Wave exposure preview · waves >2 m · temperature merged in rougher water');
+fs.writeFileSync(root+'dist/tests/wave-app.mjs',app);
+console.log('Local preview: http://127.0.0.1:4173/tests/wave-preview.html');
