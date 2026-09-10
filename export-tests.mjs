@@ -15,12 +15,12 @@ console.log('Exports: streaming PNG rows and tile joins, cancellation, portrait/
 
 const fonts=JSON.parse(readFileSync('dist/pdf-lettering.json','utf8')),objects=[];
 const lettering=addPrintLettering({fonts,pageHeight:1190,add:object=>{objects.push(object);return objects.length;},streamObject:(header,data)=>new Blob([header,data])});
-assert.deepEqual(Object.values(fonts).map(f=>f.name).sort(),['Baskerville','Baskerville-Italic','Gotham-Bold']);
+assert.deepEqual(Object.values(fonts).map(f=>f.name).sort(),['Baskerville','Baskerville','Baskerville-Italic','Gotham-Bold']);
 for(const font of Object.values(fonts))for(const char of font.text){const glyph=font.glyphs[char.charCodeAt(0)];assert(glyph&&glyph.width>0);if(char!==' ')assert(glyph.path.endsWith('f'),'Visible text must use filled vector paths');}
 const embedded=(await Promise.all(objects.map(o=>o.text()))).join('\n');
-assert.equal((embedded.match(/\/Subtype \/Type3/g)||[]).length,3);assert.equal((embedded.match(/\/ToUnicode/g)||[]).length,3);assert(!embedded.includes('/Subtype /Image'));
-assert.equal(lettering.commands.length,3);for(const text of ['Hexagonal World','A COLLECTION OF HEXAGON BASED MAPS.','By Alex Van de Sande - hexagonal.earth'])assert(lettering.commands.some(c=>c.includes(text)));
-console.log('PDF lettering: three embedded vector fonts, complete glyph subsets and selectable text mappings pass.');
+assert.equal((embedded.match(/\/Subtype \/Type3/g)||[]).length,4);assert.equal((embedded.match(/\/ToUnicode/g)||[]).length,4);assert(!embedded.includes('/Subtype /Image'));
+assert.equal(lettering.commands.length,3);for(const text of ['Hexagonal Earth','A COLLECTION OF HEXAGON BASED MAPS.','By Alex Van de Sande - hexagonal.earth'])assert(lettering.commands.some(c=>c.includes(text)));
+console.log('PDF lettering: four embedded vector fonts, complete glyph subsets and selectable text mappings pass.');
 
 const {lifezoneRows,addLifezonesLegend,pdfColor}=await import('./dist/print-legend.mjs');
 const {landLegends,oceanLegend}=await import('./dist/map-layers.mjs');
@@ -35,3 +35,5 @@ for(const landCount of [3,6,10,15])for(const oceanCount of [3,6,10,15]){
  assert(!commands.some(c=>c.includes(' Do ')),'Legend must remain vector');
 }
 console.log('Print legend: every selected land/ocean class represented once, vector swatches and complete text for all 16 class combinations pass.');
+
+assert.equal(fonts.title.name,'Baskerville');assert.equal(fonts.legend.name,'Baskerville-Italic');assert(lettering.commands.some(c=>c.includes('/Fsubtitle 13 Tf')));

@@ -1,5 +1,5 @@
-import {addLifezonesLegend,pdfColor} from './print-legend.mjs?v=waves-1';
-import {loadPrintLettering,addPrintLettering} from './pdf-lettering.mjs?v=triangular-1';
+import {addLifezonesLegend,pdfColor} from './print-legend.mjs?v=earth-title-1';
+import {loadPrintLettering,addPrintLettering} from './pdf-lettering.mjs?v=earth-title-1';
 // Encode rows incrementally: the final PNG is never held in one giant canvas.
 const utf8=new TextEncoder();
 const crcTable=Uint32Array.from({length:256},(_,n)=>{for(let k=0;k<8;k++)n=n&1?0xedb88320^(n>>>1):n>>>1;return n>>>0;});
@@ -48,7 +48,7 @@ export async function printPDF({width,height,renderTile,signal,onProgress=()=>{}
  const headingOffset=mapInsetTop*layout.map.width/width;
  const lettering=addPrintLettering({fonts,add,streamObject,pageHeight:layout.pageHeight,headingOffset,ink});commands.push(...lettering.commands);
  if(lifezones)commands.push(...addLifezonesLegend({...lifezones,lettering,pageWidth:layout.pageWidth,pageHeight:layout.pageHeight-headingOffset,ink}));
- const content=add(streamObject('',new Blob([commands.join('\n')]))),info=add(bytes('<< /Title '+pdfString('Hexagonal World')+' /Author '+pdfString('Alex Van de Sande')+' /Subject '+pdfString('A collection of hexagon based maps. | By Alex Van de Sande - hexagonal.earth')+' >>'));
+ const content=add(streamObject('',new Blob([commands.join('\n')]))),info=add(bytes('<< /Title '+pdfString('Hexagonal Earth')+' /Author '+pdfString('Alex Van de Sande')+' /Subject '+pdfString('A collection of hexagon based maps. | By Alex Van de Sande - hexagonal.earth')+' >>'));
  objects[catalog-1]=bytes(`<< /Type /Catalog /Pages ${pages} 0 R >>`);objects[pages-1]=bytes(`<< /Type /Pages /Kids [${page} 0 R] /Count 1 >>`);objects[page-1]=bytes(`<< /Type /Page /Parent ${pages} 0 R /MediaBox [0 0 ${layout.pageWidth} ${layout.pageHeight}] /Resources << /Font << ${lettering.resources} >> /XObject << ${resources.join(' ')} >> >> /Contents ${content} 0 R >>`);
  const output=[bytes('%PDF-1.4\n%\xE2\xE3\xCF\xD3\n')],offsets=[0];let offset=output[0].length;
  objects.forEach((object,i)=>{offsets.push(offset);const entry=new Blob([`${i+1} 0 obj\n`,object,'\nendobj\n']);output.push(entry);offset+=entry.size;});

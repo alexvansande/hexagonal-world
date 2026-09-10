@@ -4,7 +4,7 @@ import {ProjectedLighting,lightingSettings,lightingKey} from './projected-lighti
 import {compactDevice,mobileFitRect} from './device-profile.mjs';
 import {readSharePath,sharePair,inferSharePair,presetSettings} from './share-routes.mjs?v=lifezones-bg-1';
 import {initAnalytics,trackEvent} from './analytics.mjs';
-import {pngFromTiles,printPDF} from './map-export.mjs?v=waves-1';
+import {pngFromTiles,printPDF} from './map-export.mjs?v=earth-title-1';
 import {fractalRegion,fractalOpacities,edgeKey} from './fractal-grid.mjs';
 import {pointInLoops} from './gosper-fractal.mjs';
 import {circularMode} from './circular-projections.mjs';

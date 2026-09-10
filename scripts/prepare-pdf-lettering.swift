@@ -3,7 +3,8 @@ import Foundation
 import CoreText
 import CoreGraphics
 let specifications = [
- ("title", "Baskerville-Italic", "Hexagonal World"),
+ ("title", "Baskerville", "Hexagonal Earth"),
+ ("legend", "Baskerville-Italic", ""),
  ("subtitle", "Gotham-Bold", "A COLLECTION OF HEXAGON BASED MAPS."),
  ("credit", "Baskerville", "By Alex Van de Sande - hexagonal.earth")
 ]
@@ -20,7 +21,7 @@ for (key, name, text) in specifications {
  let actual = CTFontCopyPostScriptName(font) as String
  guard actual == name else { fatalError("Expected \(name), got \(actual)") }
  var glyphs: [String: Any] = [:]
- let extra = key == "title" ? "Polar Boreal Temperate Warm Cold Mild/warm Arid Humid Shallow Deep Forest Climate zones Subtropical Tropical Abyssal Shelf Slope Lower slope Upper slope Gentle Seas Rough Seas" : key == "credit" ? "Land Ocean" : ""
+ let extra = key == "legend" ? "Polar Boreal Temperate Warm Cold Mild/warm Arid Humid Shallow Deep Forest Climate zones Subtropical Tropical Abyssal Shelf Slope Lower slope Upper slope Gentle Seas Rough Seas" : key == "credit" ? "Land Ocean" : ""
  for char in Set((text + extra).utf16).sorted() {
   var code = char, glyph: CGGlyph = 0, advance = CGSize.zero
   guard CTFontGetGlyphsForCharacters(font, &code, &glyph, 1) else { fatalError("Missing character \(char)") }

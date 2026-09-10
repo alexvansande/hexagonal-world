@@ -3,7 +3,7 @@ const delay=ms=>new Promise(r=>setTimeout(r,ms)),until=async(fn,label)=>{for(let
 try{
  await until(()=>frame.contentDocument?.querySelector('.style-preset-card'),'startup');const win=frame.contentWindow,doc=frame.contentDocument,$=id=>doc.getElementById(id),errors=[];
  win.addEventListener('error',e=>errors.push(e.message));win.addEventListener('unhandledrejection',e=>errors.push(String(e.reason)));
- await until(()=>$('relief-status').textContent.startsWith('Elevation ready')&&!$('map-loading').textContent,'assets');
+ await until(()=>$('relief-status').textContent==='Lighting layers ready'&&!$('map-loading').textContent,'assets');
  const params=new URLSearchParams(location.search);
  doc.querySelector('[data-arrangement="'+(params.get('format')||'gosper')+'"]').click();doc.querySelector('[data-style="'+(params.get('style')||'topographic')+'"]').click();await until(()=>!$('map-loading').textContent,'terrain');await delay(1000);
  if(params.has('background')){$('background-color').value='#'+params.get('background');$('background-color').dispatchEvent(new win.Event('input',{bubbles:true}));await delay(500);}
