@@ -34,7 +34,9 @@ export const styleOptions=[
       "grid": 30,
       "distortionOpacity": 0.75,
       "riverWidth": 2.5,
-      "riverLevels": 12
+      "riverLevels": 12,
+      "subgridWidth": 1,
+      "graticuleWidth": 1
     },
     "controls": {
       "map-source": "ecology",
@@ -51,7 +53,10 @@ export const styleOptions=[
       "construction": false,
       "labels": false,
       "distortion": false,
-      "indicatrix": "off"
+      "indicatrix": "off",
+      "border-color": "#376472",
+      "hex-grid-color": "#315865",
+      "graticule-color": "#4f8796"
     },
     "thumbnail": "maps/styles/lifezones.png"
   },
@@ -78,7 +83,9 @@ export const styleOptions=[
       "grid": 30,
       "distortionOpacity": 0.75,
       "riverWidth": 1.25,
-      "riverLevels": 6
+      "riverLevels": 6,
+      "subgridWidth": 1,
+      "graticuleWidth": 1
     },
     "controls": {
       "map-source": "marble",
@@ -95,7 +102,10 @@ export const styleOptions=[
       "construction": false,
       "labels": false,
       "distortion": false,
-      "indicatrix": "off"
+      "indicatrix": "off",
+      "border-color": "#376472",
+      "hex-grid-color": "#315865",
+      "graticule-color": "#4f8796"
     },
     "thumbnail": "maps/styles/satellite.png"
   },
@@ -122,7 +132,9 @@ export const styleOptions=[
       "grid": 30,
       "distortionOpacity": 0.75,
       "riverWidth": 1.75,
-      "riverLevels": 6
+      "riverLevels": 6,
+      "subgridWidth": 1,
+      "graticuleWidth": 1
     },
     "controls": {
       "map-source": "elevation",
@@ -139,7 +151,10 @@ export const styleOptions=[
       "construction": false,
       "labels": false,
       "distortion": false,
-      "indicatrix": "off"
+      "indicatrix": "off",
+      "border-color": "#376472",
+      "hex-grid-color": "#315865",
+      "graticule-color": "#4f8796"
     },
     "thumbnail": "maps/styles/elevation.png"
   },
@@ -166,7 +181,9 @@ export const styleOptions=[
       "grid": 15,
       "distortionOpacity": 0.75,
       "riverWidth": 1.25,
-      "riverLevels": 12
+      "riverLevels": 12,
+      "subgridWidth": 1,
+      "graticuleWidth": 1
     },
     "controls": {
       "map-source": "countries",
@@ -184,7 +201,10 @@ export const styleOptions=[
       "labels": false,
       "distortion": false,
       "indicatrix": "off",
-      "background-color": "#2b4b5f"
+      "background-color": "#2b4b5f",
+      "border-color": "#376472",
+      "hex-grid-color": "#315865",
+      "graticule-color": "#4f8796"
     },
     "thumbnail": "maps/styles/political.png"
   },
@@ -211,7 +231,9 @@ export const styleOptions=[
       "grid": 30,
       "distortionOpacity": 0.75,
       "riverWidth": 1,
-      "riverLevels": 6
+      "riverLevels": 6,
+      "subgridWidth": 1,
+      "graticuleWidth": 1
     },
     "controls": {
       "map-source": "continents",
@@ -229,7 +251,10 @@ export const styleOptions=[
       "labels": false,
       "distortion": false,
       "indicatrix": "off",
-      "background-color": "#a2bac1"
+      "background-color": "#a2bac1",
+      "border-color": "#376472",
+      "hex-grid-color": "#315865",
+      "graticule-color": "#4f8796"
     },
     "thumbnail": "maps/styles/gray-neutral.png"
   },
@@ -256,7 +281,9 @@ export const styleOptions=[
       "grid": 30,
       "distortionOpacity": 0.75,
       "riverWidth": 2.5,
-      "riverLevels": 12
+      "riverLevels": 12,
+      "subgridWidth": 1,
+      "graticuleWidth": 1
     },
     "controls": {
       "map-source": "ivory",
@@ -266,14 +293,18 @@ export const styleOptions=[
       "rivers-visible": true,
       "land-classes": 10,
       "ocean-classes": 6,
-      "graticule": false,
+      "graticule": true,
       "subgrid": false,
       "dotgrid": false,
       "palette": "atlas",
       "construction": false,
       "labels": false,
       "distortion": false,
-      "indicatrix": "off"
+      "indicatrix": "off",
+      "background-color": "#8b9992",
+      "border-color": "#376472",
+      "hex-grid-color": "#315865",
+      "graticule-color": "#4f8796"
     },
     "thumbnail": "maps/styles/ivory.png"
   }

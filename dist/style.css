@@ -94,3 +94,5 @@ body:not(.customizing) #customize:hover{background:#dfeaed}
  .view-tools{right:12px;bottom:12px}
 }
 @media(prefers-reduced-motion:reduce){.map-heading{transition:none}}
+
+.grid-settings{padding-top:4px;margin-top:18px;border-top:1px solid #e1e9eb}.grid-settings .color-control{margin:14px 0}.grid-settings .color-control span{max-width:145px}.grid-settings .range{margin-bottom:20px}

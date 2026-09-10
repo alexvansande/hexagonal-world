@@ -1,5 +1,5 @@
 import {decodeMapState} from '../map-state.mjs';
-import {layoutOptions,styleOptions} from '../map-options.mjs?v=gray-neutral-1';
+import {layoutOptions,styleOptions} from '../map-options.mjs?v=grid-styling-1';
 const frame=document.querySelector('iframe'),list=document.querySelector('#checks'),result=document.querySelector('#result');
 const errors=[];let checks=0;
 const delay=ms=>new Promise(resolve=>setTimeout(resolve,ms));
@@ -61,7 +61,7 @@ try{
  doc.querySelector('[data-source="continents"]').click();await settle();
  assert($('relief-treatment').value==='land','Gray neutral treatment is wrong');
  assert(+$('line').value===0&&$('dotgrid').checked&&$('background-color').value==='#a2bac1','Gray neutral saved look did not apply');
- doc.querySelector('[data-source="ivory"]').click();await settle();assert($('relief-treatment').value==='atlas','Land cutout leaked into Ivory');
+ doc.querySelector('[data-source="ivory"]').click();await settle();assert($('relief-treatment').value==='atlas','Land cutout leaked into Ivory');assert($('graticule').checked&&$('background-color').value==='#8b9992','Ivory saved look did not apply');
  pass('Styles restore their own surface treatment');
  for(const source of ['marble','ecology','countries','continents'])doc.querySelector(`[data-source="${source}"]`).click();
  await settle();assert($('source-name').textContent==='continents.png','A stale source request won');pass('Rapid style changes retain the final source');
@@ -72,7 +72,24 @@ try{
  const overlayInk=()=>{const c=$('overlay'),rgba=c.getContext('2d').getImageData(0,0,c.width,c.height).data;for(let i=3;i<rgba.length;i+=4)if(rgba[i])return true;return false;};
  change('dotgrid',false);change('line',0);await settle();assert(!overlayInk(),'Zero border weight still draws normal or red borders');pass('Zero border weight removes normal and red edges');
  change('line',.8);await settle();assert(overlayInk(),'Borders do not return after increasing weight');pass('Increasing border weight restores edges');
- change('relief-enabled',false);await settle();const plain=$('map').toDataURL();
+ change('border-color','#00ff00');await settle();
+ const borderPixels=$('overlay').getContext('2d').getImageData(0,0,$('overlay').width,$('overlay').height).data;
+ assert(borderPixels.some((v,i)=>i%4===1&&v>200&&borderPixels[i-1]<80&&borderPixels[i+1]<80),'Border color did not render');
+ change('line',0);change('subgrid',true);change('subgridWidth',0);await settle();assert(!overlayInk(),'Zero hex grid thickness draws lines');
+ change('subgridWidth',1);change('hex-grid-color','#ff0000');await settle();assert(overlayInk(),'Hex grid is blank');const thinHex=$('overlay').toDataURL();
+ const coverage=()=>{const rgba=$('overlay').getContext('2d').getImageData(0,0,$('overlay').width,$('overlay').height).data;let sum=0;for(let i=3;i<rgba.length;i+=4)sum+=rgba[i];return sum;};const thinCoverage=coverage();
+ change('hex-grid-color','#0000ff');await settle();assert($('overlay').toDataURL()!==thinHex,'Hex grid color does not change');
+ change('subgridWidth',3);await settle();assert(coverage()>thinCoverage*1.2,'Hex grid thickness does not increase coverage');change('subgrid',false);
+ pass('Hex border and subgrid colors, thickness, and zero visibility work');
+ for(const reliefEnabled of [false,true]){
+  change('relief-enabled',reliefEnabled);change('graticule',false);await settle();const unlined=$('map').toDataURL();
+  change('graticule',true);change('graticuleWidth',0);await settle();assert($('map').toDataURL()===unlined,'Zero latitude/longitude width draws lines');
+  change('graticuleWidth',1);change('graticule-color','#ff0000');await settle();const thin=$('map').toDataURL();assert(thin!==unlined,'Latitude/longitude lines are blank');
+  change('graticule-color','#0000ff');await settle();const blue=$('map').toDataURL();assert(blue!==thin,'Latitude/longitude color does not change');
+  change('graticuleWidth',3);await settle();assert($('map').toDataURL()!==blue,'Latitude/longitude thickness does not change');
+ }
+ pass('Latitude/longitude color and thickness work in flat and relief views');
+ change('graticule',false);change('relief-enabled',false);await settle();const plain=$('map').toDataURL();
  assert($('distortion').type==='checkbox','Distortion is not a toggle');change('distortionOpacity',0);change('distortion',true);await settle();
  assert(!$('distortion-controls').hidden,'Opacity control is hidden while distortion is on');
  assert($('map').toDataURL()===plain,'Zero-opacity distortion changes the map');
@@ -91,7 +108,8 @@ try{
  win.addEventListener('error',event=>errors.push(event.message));
  win.addEventListener('unhandledrejection',event=>errors.push(String(event.reason)));
  await until(()=>$('status').textContent.startsWith('Infinite ·'),'restored render');
- assert($('background-color').value==='#123456','Background color was not restored');pass('Background picker updates the workspace and survives reload');
+ assert($('background-color').value==='#123456','Background color was not restored');
+ assert($('border-color').value==='#00ff00'&&$('hex-grid-color').value==='#0000ff'&&$('graticule-color').value==='#0000ff'&&+$('subgridWidth').value===3&&+$('graticuleWidth').value===3,'Grid appearance was not restored');pass('Background picker updates the workspace and survives reload');
  assert($('relief-panel').open&&$('map-source-panel').open,'Expanded panels were not restored');pass('Shared URL restores expanded panels');
  frame.style.width='390px';frame.style.height='844px';await delay(200);$('fit').click();await settle();
  assert(doc.querySelector('aside').getBoundingClientRect().bottom<844*.5,'Mobile controls cover the map');pass('Mobile view leaves space for map interaction');

@@ -19,7 +19,7 @@ assert.equal(byId['gray-neutral'].controls['relief-treatment'],'land');
 assert.equal(byId.political.controls.graticule,false);assert.equal(byId.political.controls.dotgrid,false);assert.equal(byId.political.controls['background-color'],'#2b4b5f');
 assert.equal(byId.political.controls['relief-enabled'],false);
 assert.equal(byId.lifezones.controls.subgrid,true);assert.equal(byId.lifezones.controls.dotgrid,false);
-assert.equal(byId.ivory.controls['relief-tone'],'warm');
+assert.equal(byId.ivory.controls['relief-tone'],'warm');assert.equal(byId.ivory.controls.graticule,true);assert.equal(byId.ivory.controls['background-color'],'#8b9992');
 assert.equal(ecologyGridLevel,6);assert(Math.abs(ecologyHexRadius-1/343)<1e-12);
 // All sixth-generation centers are on the same lattice used by ecology pixels.
 const cells=nestedHexLevels(6)[6];for(let i=0;i<cells.length;i+=31){const p=cells[i].center,q=ecologyCellCenter(p);assert(Math.hypot(p[0]-q[0],p[1]-q[1])<1e-10);}

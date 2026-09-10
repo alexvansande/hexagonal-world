@@ -1,5 +1,5 @@
-import {layoutOptions,styleOptions} from '../map-options.mjs?v=gray-neutral-1';
-import {encodeMapState} from '../map-state.mjs?v=compact-1';
+import {layoutOptions,styleOptions} from '../map-options.mjs?v=grid-styling-1';
+import {encodeMapState} from '../map-state.mjs?v=grid-styling-1';
 import {makeGeometry,layouts,hex,canvasWorld} from '../geometry.mjs';
 import {makeArrangement} from '../arrangements.mjs';
 const frame=document.querySelector('iframe'),result=document.querySelector('#result');
@@ -13,7 +13,7 @@ try{
  const xs=points.map(p=>p[0]),ys=points.map(p=>p[1]),left=Math.min(...xs),right=Math.max(...xs),top=Math.min(...ys),bottom=Math.max(...ys);
  const scale=Math.min(702/(right-left),656/(bottom-top)),view={scale,zoom:1,panX:175-(left+right)*scale/2,panY:-28-(top+bottom)*scale/2};
  const selected=styleOptions.filter(style=>!new URLSearchParams(location.search).has('only')||style.id===new URLSearchParams(location.search).get('only'));
- frame.src='../index.html?v=gray-neutral-1#m='+encodeMapState({state:layout.state,controls:layout.controls,view,details:{}});
+ frame.src='../index.html?v=grid-styling-1#m='+encodeMapState({state:layout.state,controls:layout.controls,view,details:{}});
  await until(()=>frame.contentDocument?.querySelector('.style-preset-card'),'startup');
  const doc=frame.contentDocument,$=id=>doc.getElementById(id);
  await until(()=>$('relief-status').textContent.startsWith('Elevation ready'),'elevation');
