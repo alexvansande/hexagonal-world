@@ -4,6 +4,7 @@ const frame=document.querySelector('iframe'),result=document.querySelector('#res
 const delay=ms=>new Promise(resolve=>setTimeout(resolve,ms));
 async function until(test,label){for(let i=0;i<600;i++){if(test())return;await delay(100);}throw Error('Timed out: '+label);}
 async function save(name,blob){
+ if(new URLSearchParams(location.search).get('only')==='favicon'&&!name.startsWith('favicon'))return;
  const image=document.createElement('img');image.src=URL.createObjectURL(blob);image.alt=name;document.querySelector('#previews').append(image);
  if(new URLSearchParams(location.search).has('save')){const response=await fetch('http://127.0.0.1:4175/'+name,{method:'POST',body:blob});if(!response.ok)throw Error('Saving '+name+' failed');}
 }
@@ -28,10 +29,10 @@ try{
  // A bold silhouette retains the four-hexagon identity even at 16 px.
  // Keep the complete mark within the circular mask-safe area of home-screen icons.
  const s=Math.min(64/bw,60/bh),paths=polygons.map(poly=>'M'+poly.map(([x,y])=>[(50+(x-(left+right)/2)*s).toFixed(3),(50+(y-(top+bottom)/2)*s).toFixed(3)].join(',')).join('L')+'Z');
- const svg='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" rx="18" fill="#234b59"/><g transform="translate(-12.5 -12.5) scale(1.25)" fill="#bfdce4" stroke="#bfdce4" stroke-width=".3">'+paths.map(d=>'<path d="'+d+'"/>').join('')+'</g></svg>';
+ const svg='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><g transform="translate(-12.5 -12.5) scale(1.25)" fill="#234b59" stroke="#234b59" stroke-width=".3">'+paths.map(d=>'<path d="'+d+'"/>').join('')+'</g></svg>';
  await save('favicon.svg',new Blob([svg],{type:'image/svg+xml'}));
  for(const [name,size] of [['favicon-32.png',32],['apple-touch-icon.png',180],['icon-192.png',192],['icon-512.png',512]]){
-  const canvas=document.createElement('canvas');canvas.width=canvas.height=size;const c=canvas.getContext('2d');c.fillStyle='#234b59';c.fillRect(0,0,size,size);c.scale(size/100,size/100);if(size===32){c.translate(-12.5,-12.5);c.scale(1.25,1.25);}c.fillStyle='#bfdce4';c.strokeStyle='#bfdce4';c.lineWidth=.3;for(const d of paths){const path=new Path2D(d);c.fill(path);c.stroke(path);}if(size>=180){c.strokeStyle='#234b59';c.lineWidth=1;for(const d of paths)c.stroke(new Path2D(d));}await save(name,await png(canvas));
+  const canvas=document.createElement('canvas');canvas.width=canvas.height=size;const c=canvas.getContext('2d');if(size!==32){c.fillStyle='#234b59';c.fillRect(0,0,size,size);}c.scale(size/100,size/100);if(size===32){c.translate(-12.5,-12.5);c.scale(1.25,1.25);}c.fillStyle=c.strokeStyle=size===32?'#234b59':'#bfdce4';c.lineWidth=.3;for(const d of paths){const path=new Path2D(d);c.fill(path);c.stroke(path);}if(size>=180){c.strokeStyle='#234b59';c.lineWidth=1;for(const d of paths)c.stroke(new Path2D(d));}await save(name,await png(canvas));
  }
- result.textContent='Ready · social preview and five icons';result.dataset.status='passed';
+ result.textContent=new URLSearchParams(location.search).get('only')==='favicon'?'Ready · transparent dark-blue favicons':'Ready · social preview and five icons';result.dataset.status='passed';
 }catch(error){result.textContent=error.message;result.dataset.status='failed';console.error(error);}
