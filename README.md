@@ -4,6 +4,13 @@ A dependency-free WebGL app using the supplied 4320 × 2160 equirectangular cont
 
 Run `npm start`, then open http://localhost:4173. Run `npm test` for geometry and regression validation.
 
+## License
+
+The project code is licensed under the [MIT License](LICENSE).
+Copyright © 2026 Alex Van de Sande. Third-party map data, imagery, and font
+assets retain their respective terms; map sources are recorded in
+[`dist/maps/sources.json`](dist/maps/sources.json).
+
 ## Publishing
 
 GitHub Pages publishes the app automatically after a push to `main`, once the
