@@ -58,3 +58,39 @@ aside > details{flex-shrink:0}
 
 .workspace{background:var(--map-background,#e9f0f2)}
 .color-control{display:flex;align-items:center;gap:10px;font-size:13px;margin:20px 0}.color-control span{margin-right:auto}.color-control input{width:42px;height:32px;padding:2px;border:1px solid #cbdade;border-radius:5px;cursor:pointer}.color-control output{font-size:11px;font-family:monospace;color:#587179}
+
+/* Compact map controls and an independent, map-aware masthead. */
+.map-heading{position:fixed;z-index:6;top:30px;left:24px;width:max-content;max-width:calc(100vw - 48px);pointer-events:none;color:var(--heading-ink,#193c49);opacity:1;transition:opacity .35s ease}
+.map-heading h1,.sidebar-title{font-family:Baskerville,'Baskerville Old Face','Palatino Linotype',Georgia,serif;font-style:italic;font-weight:400;letter-spacing:-2.5px;line-height:1.08}
+.map-heading h1{font-size:clamp(46px,5.7vw,82px);margin:0 0 15px}
+.map-heading p{font-family:Gotham,'Avenir Next',Arial,sans-serif;font-size:11px;font-weight:700;letter-spacing:2.1px;text-transform:uppercase;line-height:1.6;margin:0}
+.map-heading[data-obscured=true]{opacity:0}
+.customizing .map-heading{left:382px}
+aside{box-shadow:0 8px 30px #193a4518;background:#ffffffed;backdrop-filter:blur(20px);border-color:#ffffffb3}
+aside>*{flex-shrink:0}
+aside .sidebar-title{font-size:37px;margin:12px 0 18px;letter-spacing:-1.3px;padding-right:15px}
+aside .welcome-copy{font-size:12px;line-height:1.7;color:#5e737a;margin:12px 0 20px}
+#collapse-customize{position:absolute;right:10px;top:8px;border:0;padding:4px 9px;font-size:23px;line-height:1.1;z-index:1}
+#customize{display:none}
+body:not(.customizing) aside{top:auto;bottom:24px;left:24px;right:auto;width:344px;height:auto;max-width:calc(100vw - 48px);max-height:none;padding:12px;border-radius:16px;overflow:visible}
+body:not(.customizing) aside>:not(.layout-presets):not(.style-presets):not(#customize){display:none}
+body:not(.customizing) .layout-presets,body:not(.customizing) .style-presets{display:flex;flex-wrap:nowrap;gap:8px;overflow-x:auto;overscroll-behavior-x:contain;scrollbar-width:thin;scrollbar-color:#c6d4d7 transparent;margin:0;padding:2px 2px 8px;scroll-snap-type:x proximity}
+body:not(.customizing) .layout-preset-card,body:not(.customizing) .style-preset-card{flex:0 0 74px;padding:4px;border-radius:8px;scroll-snap-align:start;min-width:0;background:#f4f7f6;border-color:transparent}
+body:not(.customizing) .layout-preset-card b,body:not(.customizing) .style-preset-card b{display:none}
+body:not(.customizing) .layout-icon{height:44px}
+body:not(.customizing) .style-preset-card{flex-basis:94px}
+body:not(.customizing) .style-thumb{height:53px;border-radius:5px}
+body:not(.customizing) .selected{border-color:#417886;box-shadow:0 0 0 1px #417886;background:#e1eef0}
+body:not(.customizing) #customize{display:flex;align-items:center;justify-content:center;gap:9px;width:100%;margin-top:2px;padding:9px;background:#f1f5f4;border:0;font-size:12px;font-weight:600;letter-spacing:.3px}
+body:not(.customizing) #customize:hover{background:#dfeaed}
+#customize span{font-size:18px;line-height:1}
+@media(max-width:700px){
+ .map-heading{top:24px;left:12px;max-width:calc(100vw - 24px)}
+ .map-heading h1{font-size:48px;letter-spacing:-1.7px}
+ .map-heading p{font-size:9px;letter-spacing:1.4px}
+ .customizing .map-heading{left:382px}
+ .customizing aside{left:12px;right:12px;top:12px;bottom:auto;width:auto;height:44dvh;max-height:44dvh;padding:25px 20px}
+ body:not(.customizing) aside{left:12px;bottom:76px;max-width:calc(100vw - 24px)}
+ .view-tools{right:12px;bottom:12px}
+}
+@media(prefers-reduced-motion:reduce){.map-heading{transition:none}}

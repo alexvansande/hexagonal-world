@@ -66,3 +66,9 @@ The follow-up request replaced the approximate Tissot ellipse renderer with geog
 Six user-supplied looks now have actual rendered thumbnails and complete style settings. Style application preserves geography and viewport, while format application preserves styling. Elevation resets sea level, Political includes graticules, and Lifezones substitutes the subgrid for dots. The infinite icon now uses 37 hexagons. Obsolete synthetic thumbnail CSS and unused style fields in format presets were removed.
 
 Lifezones colors are sampled in sixth-generation Gosper-aligned hex cells; native land and ocean-temperature resolution remain 0.5° and 1° respectively. Rivers and elevation keep their original sampling. All four projections passed local GPU rendering checks; visual inspection at 931% zoom confirmed hexagonal color boundaries. The full Node suite and all 26 browser control checks passed, as did the relief GPU checks. The README now describes the current precomputed orientation controls.
+
+## Interface redesign
+
+New maps start with Lifezones and Spaceship Earth. The controller opens compact, using horizontally scrolling thumbnail strips and a Customize button, and shares its form controls with the expanded column. The main masthead follows map overlap during pan and zoom, with a conditional sidebar title. Political now follows the updated saved look: no grids, dark blue background, and a refreshed rendered thumbnail. The order is Spaceship Earth, Felv, Flower World, 4Hexes, Infinite; Lifezones, Satellite, Elevation, Political, Gray neutral, Ivory.
+
+Validation: all Node tests and 31 browser checks pass. Manual pan and zoom checks confirmed the masthead fades away and returns; mobile controls, expanded-state restoration, and PNG background export also pass. Gotham is requested through the system font stack, with a fallback when the font is unavailable.

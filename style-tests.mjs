@@ -1,9 +1,10 @@
 import assert from 'node:assert/strict';
 import {readFileSync,existsSync} from 'node:fs';
-import {styleOptions} from './dist/map-options.mjs';
+import {layoutOptions,styleOptions} from './dist/map-options.mjs';
 import {ecologyCellCenter,ecologyHexRadius,ecologyGridLevel} from './dist/ecology-grid.mjs';
 import {nestedHexLevels} from './dist/subgrid.mjs';
-assert.deepEqual(styleOptions.map(s=>s.name),['Gray neutral','Satellite','Elevation','Political','Lifezones','Ivory']);
+assert.deepEqual(layoutOptions.map(s=>s.name),['Spaceship Earth','Felv','Flower World','4Hexes','Infinite Honeycomb']);
+assert.deepEqual(styleOptions.map(s=>s.name),['Lifezones','Satellite','Elevation','Political','Gray neutral','Ivory']);
 for(const style of styleOptions){
  for(const key of ['method','arrangement','lon','lat','roll','gridRotation','bias','height','zoom','panX','panY'])assert(!(key in style.state),'Style must not contain '+key);
  assert(existsSync('dist/'+style.thumbnail),'Missing rendered thumbnail '+style.id);
@@ -14,7 +15,7 @@ assert.equal(byId.elevation.state.reliefSeaLevel,105);
 assert.equal(byId.satellite.state.reliefSeaLevel,116);
 assert.equal(byId['gray-neutral'].state.reliefShadows,.05);
 assert.equal(byId['gray-neutral'].controls['relief-treatment'],'land');
-assert.equal(byId.political.controls.graticule,true);
+assert.equal(byId.political.controls.graticule,false);assert.equal(byId.political.controls.dotgrid,false);assert.equal(byId.political.controls['background-color'],'#2b4b5f');
 assert.equal(byId.political.controls['relief-enabled'],false);
 assert.equal(byId.lifezones.controls.subgrid,true);assert.equal(byId.lifezones.controls.dotgrid,false);
 assert.equal(byId.ivory.controls['relief-tone'],'warm');

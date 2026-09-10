@@ -1,5 +1,5 @@
 import {decodeMapState} from '../map-state.mjs';
-import {layoutOptions,styleOptions} from '../map-options.mjs';
+import {layoutOptions,styleOptions} from '../map-options.mjs?v=compact-1';
 const frame=document.querySelector('iframe'),list=document.querySelector('#checks'),result=document.querySelector('#result');
 const errors=[];let checks=0;
 const delay=ms=>new Promise(resolve=>setTimeout(resolve,ms));
@@ -11,7 +11,7 @@ try{
  let win=frame.contentWindow,doc=frame.contentDocument,$=id=>doc.getElementById(id);
  win.addEventListener('error',event=>errors.push(event.message));
  win.addEventListener('unhandledrejection',event=>errors.push(String(event.reason)));
- await until(()=>$('status').textContent.startsWith('Infinite ·'),'first render');
+ await until(()=>$('status').textContent.startsWith('Fuller ·'),'first render');
  await until(()=>$('relief-status').textContent.startsWith('Elevation ready'),'height assets');
  function rendered(){
   const canvas=$('map'),gl=canvas.getContext('webgl');
@@ -23,7 +23,14 @@ try{
   assert(covered>0,'Canvas is blank');assert(!errors.length,errors.join('\n'));
  }
  const settle=async()=>{await delay(300);await until(()=>!$('map-loading').textContent,'map source');rendered();};
- pass('Startup renders and retains status / research controls');
+ assert($('layout').value==='dymaxion'&&$('map-source').value==='ecology','New maps do not default to Lifezones + Spaceship Earth');
+ assert(doc.querySelector('.layout-preset-card').dataset.arrangement==='dymaxion'&&doc.querySelector('.style-preset-card').dataset.source==='ecology','Default options are not listed first');
+ pass('New maps start with Lifezones + Spaceship Earth, listed first');
+ assert(!doc.body.classList.contains('customizing'),'New maps should use compact controls');
+ for(const selector of ['.layout-presets','.style-presets']){const row=doc.querySelector(selector);assert(row.scrollWidth>row.clientWidth,'Compact thumbnails should overflow horizontally');assert(win.getComputedStyle(row.querySelector('b')).display==='none','Compact card titles should be hidden');}
+ assert($('map-heading').dataset.obscured==='false','Default map hides the main title');pass('Compact controls scroll sideways and leave the masthead visible');
+ $('customize').click();await settle();
+ assert(doc.body.classList.contains('customizing'),'Customize did not expand the column');
  assert(doc.querySelectorAll('aside details details').length===0,'Settings contain nested collapsible sections');pass('All collapsible settings share one level');
  for(const option of layoutOptions){
   const source=$('map-source').value;
@@ -34,6 +41,7 @@ try{
   assert(doc.querySelectorAll('.layout-preset-card[aria-pressed="true"]').length===1,'Format selection is inconsistent');
   pass(option.name+' switches and renders');
  }
+ assert($('map-heading').dataset.obscured==='true'&&!$('sidebar-title').hidden,'Infinite map should move the title into the expanded column');pass('Title moves to the expanded column when the map covers it');
  const geography=()=>{const saved=decodeMapState(win.location.hash.slice(3));return JSON.stringify([saved.view,...['method','arrangement','lon','lat','roll','bias','height','gridRotation','mode'].map(id=>saved.state[id])]);};
  for(const option of styleOptions){
   const before=geography();
@@ -48,7 +56,7 @@ try{
  doc.querySelector('[data-source="ecology"]').click();await settle();
  assert($('subgrid').checked&&!$('dotgrid').checked,'Lifezones grid correction missing');
  for(const method of ['tetra','octa','rhombic','tetrakis']){doc.querySelector(`[data-method="${method}"]`).click();await settle();}pass('Hexagonal Lifezones renders through all four projections');
- doc.querySelector('[data-source="countries"]').click();await settle();assert($('graticule').checked,'Political graticule missing');
+ doc.querySelector('[data-source="countries"]').click();await settle();assert(!$('graticule').checked&&!$('dotgrid').checked&&$('background-color').value==='#2b4b5f','Political style did not update');
  doc.querySelector('[data-source="elevation"]').click();await settle();assert(+$('reliefSeaLevel').value===105,'Elevation sea level did not reset');pass('Political and Elevation corrections apply');
  doc.querySelector('[data-source="continents"]').click();await settle();
  assert($('relief-treatment').value==='land','Gray neutral treatment is wrong');
@@ -96,5 +104,9 @@ try{
   const bitmap=await createImageBitmap(exported),out=document.createElement('canvas');out.width=bitmap.width;out.height=bitmap.height;const context=out.getContext('2d');context.drawImage(bitmap,0,0);bitmap.close();
   const pixel=context.getImageData(0,0,1,1).data;assert([18,52,86,255].every((v,i)=>pixel[i]===v),'PNG does not contain the selected background');pass('PNG export includes the chosen background color');
  }finally{win.URL.createObjectURL=originalURL;win.HTMLAnchorElement.prototype.click=originalClick;}
+ $('collapse-customize').click();$('fit').click();await settle();
+ const controls=doc.querySelector('aside').getBoundingClientRect(),tools=doc.querySelector('.view-tools').getBoundingClientRect();
+ assert(controls.bottom<tools.top,'Compact mobile controls overlap the map tools');assert(!doc.body.classList.contains('customizing'),'Sidebar did not collapse');
+ assert($('map-heading').getBoundingClientRect().right<=390,'Mobile masthead extends beyond the screen');pass('Compact mobile controls and title fit the screen');
  result.textContent=`PASS · ${checks} checks`;result.dataset.status='passed';
 }catch(error){result.textContent='FAIL · '+error.message;result.className='fail';result.dataset.status='failed';console.error(error);}

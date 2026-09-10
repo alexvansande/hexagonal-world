@@ -100,7 +100,7 @@ All collapsible sections are siblings: Projection method, Layout & grids, Globe 
 
 ## Curated styles and hexagonal Lifezones
 
-The style panel contains Gray neutral, Satellite, Elevation, Political, Lifezones, and Ivory, with thumbnails rendered from their actual settings. Styles restore their complete lighting, material, river, and overlay settings without changing the projection, format, orientation, interaction mode, or viewport. Format buttons likewise preserve the selected styling. Elevation resets sea level to 105; Political enables graticules; Lifezones uses the hex subgrid without dots. The Infinite honeycomb icon contains 37 hexagons, compared with Flower World's seven.
+The style panel contains Lifezones, Satellite, Elevation, Political, Gray neutral, and Ivory, with thumbnails rendered from their actual settings. Styles restore their complete lighting, material, river, and overlay settings without changing the projection, format, orientation, interaction mode, or viewport. Format buttons likewise preserve the selected styling. Elevation resets sea level to 105; Political uses a dark blue background with no graticules or dot grid; Lifezones uses the hex subgrid without dots. The Infinite honeycomb icon contains 37 hexagons, compared with Flower World's seven.
 
 Lifezones' 1,440 × 720 encoded image contains land classifications from a 0.5° source and ocean temperature zones from a 1° source. Upscaling cannot add classification detail. The display samples those classes at hexagonal cell centers, using the sixth generation of the same Gosper grid as the subgrid (radius 1/343 of a parent hexagon). This is the first even generation whose nominal spherical cell diameter fits the land source resolution. The cells stay aligned with the map during pan, zoom, and grid rotation, and use the current projection to sample geography. Relief and rivers retain their original sampling detail. This changes the visible pixel shape, not the information in the source data.
 
@@ -108,4 +108,12 @@ To refresh thumbnails, run `python3 scripts/save-style-thumbnails.py` alongside 
 
 Runtime assets are included under `dist/`. The original downloaded inputs under `data/` are retained locally and ignored by Git; the offline preparation scripts use them to regenerate the derived assets. Source attribution and processing details are recorded in `dist/maps/sources.json` and `dist/maps/height/manifest.json`.
 
-The **Background color** picker in **Map source & colors** sets the full map workspace and the ground beneath relief shadows. It persists in shared URLs and PNG exports, and remains independent of style and format selections.
+The **Background color** picker in **Map source & colors** sets the full map workspace and the ground beneath relief shadows. It persists in shared URLs and PNG exports, and remains independent of format selections. Styles can explicitly include a background color; Political uses #2b4b5f.
+
+New maps start with **Lifezones + Spaceship Earth**. Formats are ordered Spaceship Earth, Felv, Flower World, 4Hexes, Infinite Honeycomb; styles are ordered Lifezones, Satellite, Elevation, Political, Gray neutral, Ivory. Saved URLs retain their chosen settings.
+
+## Compact controls and masthead
+
+The initial interface has a floating bottom-left controller: two horizontal thumbnail strips and Customize. Customize expands the existing controls without duplicating form state; the collapse button returns to the compact controller. The selected controller mode is stored in shared links. Thumbnail buttons retain accessible names and native hover titles when their visible labels are hidden.
+
+The masthead reads “Hexagonal World” in Baskerville Italic, with the uppercase subtitle set in Gotham Bold when installed (Avenir Next/Arial fallback). It aligns with the compact controller and moves right of the expanded column. Pan, zoom, and layout changes check the actual convex map pieces against the title rectangle; the title fades out on overlap and returns when the rectangle clears. Infinite maps always occupy it. When it is covered or cannot fit on screen, the expanded column shows the title above the introductory copy. Heading contrast follows the background color; reduced-motion preferences disable the fade.
