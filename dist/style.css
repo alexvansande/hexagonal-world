@@ -63,7 +63,7 @@ aside > details{flex-shrink:0}
 .map-heading{position:fixed;z-index:6;top:30px;left:24px;width:max-content;max-width:calc(100vw - 48px);pointer-events:none;color:var(--heading-ink,#193c49);opacity:1;transition:opacity .35s ease}
 .map-heading h1,.sidebar-title{font-family:Baskerville,'Baskerville Old Face','Palatino Linotype',Georgia,serif;font-style:normal;font-weight:400;letter-spacing:-2px;line-height:1.08}
 .map-heading h1{font-size:clamp(46px,5.7vw,82px);margin:0 0 15px}
-.map-heading p{font-family:Gotham,'Avenir Next',Arial,sans-serif;font-size:11px;font-style:normal;font-weight:700;letter-spacing:2.1px;text-transform:uppercase;line-height:1.6;margin:0}
+.map-heading p{font-family:Gotham,'Avenir Next',Arial,sans-serif;font-size:14px;font-style:normal;font-weight:700;letter-spacing:2.1px;text-transform:uppercase;line-height:1.6;margin:0}
 .map-heading[data-obscured=true]{opacity:0}
 .customizing .map-heading{left:382px}
 aside{box-shadow:0 8px 30px #193a4518;background:#ffffffed;backdrop-filter:blur(20px);border-color:#ffffffb3}
@@ -87,7 +87,7 @@ body:not(.customizing) #customize:hover{background:#dfeaed}
 @media(max-width:700px){
  .map-heading{top:24px;left:12px;max-width:calc(100vw - 24px)}
  .map-heading h1{font-size:48px;letter-spacing:-1.7px}
- .map-heading p{font-size:9px;letter-spacing:1.4px}
+ .map-heading p{font-size:10px;letter-spacing:1.4px}
  .customizing .map-heading{left:382px}
  .customizing aside{left:12px;right:12px;top:12px;bottom:auto;width:auto;height:44dvh;max-height:44dvh;padding:25px 20px}
  body:not(.customizing) aside{left:12px;bottom:76px;max-width:calc(100vw - 24px)}
