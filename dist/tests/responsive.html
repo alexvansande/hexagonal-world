@@ -1,0 +1,9 @@
+<!doctype html><html lang="en"><meta charset="utf-8"><title>Responsive map preview</title>
+<style>body{margin:0;background:#dce5e8}iframe{display:block;border:0}</style>
+<iframe title="Responsive map"></iframe>
+<script>
+const query=new URLSearchParams(location.search),frame=document.querySelector('iframe');
+frame.width=Math.max(280,Math.min(1600,Number(query.get('width'))||390));
+frame.height=Math.max(300,Math.min(1200,Number(query.get('height'))||844));
+frame.src='../index.html?responsive-preview='+encodeURIComponent(location.search);
+</script></html>

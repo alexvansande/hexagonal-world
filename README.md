@@ -189,3 +189,11 @@ The masthead reads “Hexagonal World” in Baskerville Italic, with the upperca
 Ivory uses a #8b9992 background with latitude/longitude lines. **Layout & grids** provides separate colors for hex borders, the hex subgrid, and latitude/longitude lines. Borders retain their weight slider; both grids have thickness multipliers (1× matches the original weight). Zero thickness hides the corresponding lines. Grid appearance is restored by presets, saved in map links, and included in PNG exports; mismatch markers remain red.
 
 Spaceship Earth uses the revised globe orientation from the supplied map: longitude −169.74621893297788°, latitude 34.99467419672773°, roll −13.80296086449369°. Format selection fits the map to the current viewport; saved links retain their own orientation and view.
+
+## Sharing, icons and phone layouts
+
+The canonical URL is https://hexagonal.earth/. Static Open Graph and Twitter card tags use the 1200 × 630 Lifezones / Spaceship Earth image; URL fragments cannot select a different social preview. SVG and PNG favicons, an Apple touch icon, and 192/512-pixel manifest icons use a simplified four-hexagon mark. The home-screen manifest opens the app in standalone mode; it does not provide offline map data.
+
+To regenerate artwork, start the app and `python3 scripts/save-site-assets.py`, then open `/tests/site-assets.html?save=1`. Stop the writer when rendering finishes. The local-only renderer uses the app's actual map layers and a system Baskerville font with a Georgia fallback. Test pages are excluded from publication.
+
+`/tests/responsive.html?width=320&height=568` previews exact viewport sizes. Phone layouts respect safe-area insets, provide 44px toolbar targets, keep the collapse button reachable while scrolling, and hide the floating legend on short screens. Landscape fitting places the map beside the compact controller. Real-device touch, download and memory testing remains separate from these browser layout checks.

@@ -1,0 +1,15 @@
+{
+  "id": "/",
+  "name": "Hexagonal World",
+  "short_name": "Hexagonal",
+  "description": "A collection of hexagon based maps.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#ebebeb",
+  "theme_color": "#234b59",
+  "icons": [
+    {"src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any"},
+    {"src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable"}
+  ]
+}
