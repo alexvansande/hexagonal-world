@@ -1,4 +1,4 @@
-import {layoutOptions,styleOptions} from './map-options.mjs?v=topographic-1';
+import {layoutOptions,styleOptions} from './map-options.mjs?v=felv-position-2';
 export const formatSlugs={dymaxion:'spaceship-earth',felv:'felv',bighex:'flower-world',gosper:'gosper-fractal',flower:'4hexes',infinite:'infinite-honeycomb',single:'rus-one',double:'rus-two'};
 export const shareCombinations=styleOptions.flatMap(style=>layoutOptions.map(layout=>({style,layout,path:`/${style.id}/${formatSlugs[layout.arrangement]}/`,image:`/social/${style.id}-${formatSlugs[layout.arrangement]}.jpg`})));
 export function readSharePath(path){return shareCombinations.find(pair=>pair.path===path.replace(/\/?$/,'/'))||null;}
