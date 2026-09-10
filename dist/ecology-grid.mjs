@@ -82,6 +82,14 @@ function overlapsCell(origin,normal){
   return Math.min(Math.max(...a),Math.max(...b))-Math.max(Math.min(...a),Math.min(...b))>1e-9;
  });
 }
+const tripleCondition=(origin,i)=>{
+ const ids=[i,(i+1)%6,(i+2)%6].map(j=>cellIndex(origin.map((n,k)=>n+directions[j][k]))),[a,b,c]=ids,o=cellIndex(origin);
+ return `valid[${o}]&&valid[${a}]&&valid[${b}]&&valid[${c}]&&!ecologySame(colors[${o}],colors[${a}])&&ecologySame(colors[${a}],colors[${b}])&&ecologySame(colors[${a}],colors[${c}])`;
+};
+// Rule 2 replaces bridges attached to a reshaped endpoint, including the
+// bridge tips outside that endpoint. Merely painting over half its hex leaves
+// those tips behind as detached spikes.
+const affectedCode=[[0,0],...directions].map(origin=>`affected[${cellIndex(origin)}]=${directions.map((_,i)=>`(${tripleCondition(origin,i)})`).join('||')};`).join('\n');
 const rectangles=[[0,0],...directions].flatMap(origin=>directions.map((_,i)=>{
  const ids=[i,(i+1)%6,(i+2)%6].map(j=>cellIndex(origin.map((n,k)=>n+directions[j][k]))),a=ids[0],b=ids[1],c=ids[2],o=cellIndex(origin),normal=point(directions[(i+1)%6]).map(n=>n/Math.sqrt(3));
  if(!overlapsCell(point(origin),normal))return '';
@@ -90,8 +98,8 @@ const rectangles=[[0,0],...directions].flatMap(origin=>directions.map((_,i)=>{
  delta=offset-${vec(point(origin))};normal=${vec(normal)};
  along=dot(delta,normal);across=dot(delta,vec2(-normal.y,normal.x));
  if(along>=0.&&along<=sqrt(3.)&&abs(across)<=1.){
-  distance=dot(delta-sqrt(3.)*normal,delta-sqrt(3.)*normal);
-  if(distance<best){best=distance;patched=colors[${a}];}
+  priority=vec3(axial+${vec(origin)},${i.toFixed(1)});
+  if(priority.x>best.x||(priority.x==best.x&&(priority.y>best.y||(priority.y==best.y&&priority.z>best.z)))){best=priority;patched=colors[${a}];}
  }
  }`;
 })).join('\n');
@@ -124,14 +132,17 @@ vec3 ecologyBridgedColor(vec2 p,vec2 center,vec3 original){
  ${sampleCode}
  if(${neighbors.map(n=>`valid[${n}]&&ecologySame(colors[${n}],original)`).join('&&')})return original;
  ${outerSamples}
- vec3 patched=original,nearestColor=original;bool isolated=true,complete=true;
- float nearest=-2.;
- ${neighbors.map((n,i)=>`complete=complete&&valid[${n}];if(valid[${n}]&&ecologySame(colors[${n}],original))isolated=false;
- if(valid[${n}]&&dot(offset,hexCorner(${(i+.5).toFixed(1)}))>nearest){nearest=dot(offset,hexCorner(${(i+.5).toFixed(1)}));nearestColor=colors[${n}];}`).join('\n')}
- ${neighbors.map((n,i)=>{const other=neighbors[(i+5)%6];return `if(dot(offset,hexCorner(${i.toFixed(1)}))>.75&&valid[${n}]&&valid[${other}]&&ecologySame(colors[${n}],colors[${other}]))patched=colors[${n}];`;}).join('\n')}
- bool hasPatch=false;float best=100.,along,across,distance;vec2 delta,normal;
+ bool affected[19];
+ ${affectedCode}
+ vec3 patched=original;bool isolated=true,complete=true;
+ ${neighbors.map(n=>`complete=complete&&valid[${n}];if(valid[${n}]&&ecologySame(colors[${n}],original))isolated=false;`).join('\n')}
+ ${neighbors.map((n,i)=>{const other=neighbors[(i+5)%6];return `if(dot(offset,hexCorner(${i.toFixed(1)}))>.75&&valid[${n}]&&valid[${other}]&&!affected[${n}]&&!affected[${other}]&&ecologySame(colors[${n}],colors[${other}]))patched=colors[${n}];`;}).join('\n')}
+ // Global lattice order makes each rectangle one layer across cell boundaries.
+ vec2 axial=floor(vec2(2.*center.x/3.,-center.x/3.+center.y/sqrt(3.))/radius+.5);
+ bool hasPatch=false;float along,across;vec2 delta,normal;vec3 best=vec3(-1.e9),priority;
  ${rectangles}
- if(hasPatch&&isolated&&complete)return dot(offset,offset)<=.75?original:nearestColor;
+ // Rule 3 is a circle overlay, not a second classification outside the circle.
+ if(hasPatch&&isolated&&complete&&dot(offset,offset)<=.75)return original;
  return patched;
 }
 `;
