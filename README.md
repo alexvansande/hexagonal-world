@@ -92,7 +92,7 @@ outlines at 10%, 20%, 40%, and the final outer boundary at 80%. Each elementary
 edge uses its strongest level so overlapping strokes do not compound opacity.
 The existing hex-grid color and thickness controls also style these outlines.
 Selecting the format enables this grid and clears the regular subgrid and dots;
-selecting a style restores that style's overlays. The eighth style is deferred.
+selecting a style restores that style's overlays. The Topographic style pairs this grid with terrain, white outlines and a pale blue-gray background (#cedbde).
 
 The map uses clipped source triangles with their original interpolation weights,
 so geography and terrain keep the existing projection. This is a new map cut,
@@ -150,17 +150,17 @@ All collapsible sections are siblings: Projection method, Layout & grids, Globe 
 
 ## Curated styles and hexagonal Lifezones
 
-The style panel contains Lifezones, Satellite, Elevation, Political, Gray neutral, Ivory, and Distortion Analysis, with thumbnails rendered from their actual settings. Styles restore their complete lighting, material, river, and overlay settings without changing the projection, format, orientation, interaction mode, or viewport. Format buttons likewise preserve the selected styling. Elevation resets sea level to 105; Political uses a dark blue background with no graticules or dot grid; Lifezones uses a light gray hex subgrid at 0.2× thickness, white dots, and a #ebebeb background. The Infinite honeycomb icon contains 37 hexagons, compared with Flower World's seven.
+The style panel contains Lifezones, Satellite, Elevation, Political, Topographic, Gray neutral, Ivory, and Distortion Analysis, with thumbnails rendered from their actual settings. Styles restore their complete lighting, material, river, and overlay settings without changing the projection, format, orientation, interaction mode, or viewport. Format buttons likewise preserve the selected styling. Elevation resets sea level to 105; Political uses a dark blue background with no graticules or dot grid; Lifezones uses a light gray hex subgrid at 0.2× thickness, white dots, and a #ebebeb background. The Infinite honeycomb icon contains 37 hexagons, compared with Flower World's seven.
 
 Lifezones' 1,440 × 720 encoded image contains land classifications from a 0.5° source and ocean temperature zones from a 1° source. Upscaling cannot add classification detail. The display samples those classes at hexagonal cell centers, using the sixth generation of the same Gosper grid as the subgrid (radius 1/343 of a parent hexagon). This is the first even generation whose nominal spherical cell diameter fits the land source resolution. The cells stay aligned with the map during pan, zoom, and grid rotation, and use the current projection to sample geography. Relief and rivers retain their original sampling detail. This changes the visible pixel shape, not the information in the source data.
 
-To refresh thumbnails, run `python3 scripts/save-style-thumbnails.py` alongside the app and open `/tests/style-thumbnails.html?save=1`. It renders all seven styles with a common map view and saves 480 × 272 PNGs locally. Stop the thumbnail writer afterward.
+To refresh thumbnails, run `python3 scripts/save-style-thumbnails.py` alongside the app and open `/tests/style-thumbnails.html?save=1`. It renders all eight styles with a common map view and saves 480 × 272 PNGs locally. Stop the thumbnail writer afterward.
 
 Runtime assets are included under `dist/`. The original downloaded inputs under `data/` are retained locally and ignored by Git; the offline preparation scripts use them to regenerate the derived assets. Source attribution and processing details are recorded in `dist/maps/sources.json` and `dist/maps/height/manifest.json`.
 
 The **Background color** picker in **Map source & colors** sets the full map workspace and the ground beneath relief shadows. It persists in shared URLs and PNG exports, and remains independent of format selections. Styles can explicitly include a background color; Political uses #2b4b5f. Gray neutral uses #a2bac1, a white dot grid, and zero border weight.
 
-New maps start with **Lifezones + Spaceship Earth**. Formats are ordered Spaceship Earth, Felv, Flower World, Gosper Fractal, 4Hexes, Infinite Honeycomb, Rus One, Rus Two; styles are ordered Lifezones, Satellite, Elevation, Political, Gray neutral, Ivory, Distortion Analysis. Saved URLs retain their chosen settings.
+New maps start with **Lifezones + Spaceship Earth**. Formats are ordered Spaceship Earth, Felv, Flower World, Gosper Fractal, 4Hexes, Infinite Honeycomb, Rus One, Rus Two; styles are ordered Lifezones, Satellite, Elevation, Political, Topographic, Gray neutral, Ivory, Distortion Analysis. Saved URLs retain their chosen settings.
 
 ## Compact controls and masthead
 

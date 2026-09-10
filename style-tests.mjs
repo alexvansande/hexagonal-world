@@ -4,7 +4,7 @@ import {layoutOptions,styleOptions} from './dist/map-options.mjs';
 import {ecologyCellCenter,ecologyHexRadius,ecologyGridLevel} from './dist/ecology-grid.mjs';
 import {nestedHexLevels} from './dist/subgrid.mjs';
 assert.deepEqual(layoutOptions.map(s=>s.name),['Spaceship Earth','Felv','Flower World','Gosper Fractal','4Hexes','Infinite Honeycomb','Rus One','Rus Two']);
-assert.deepEqual(styleOptions.map(s=>s.name),['Lifezones','Satellite','Elevation','Political','Gray neutral','Ivory','Distortion Analysis']);
+assert.deepEqual(styleOptions.map(s=>s.name),['Lifezones','Satellite','Elevation','Political','Topographic','Gray neutral','Ivory','Distortion Analysis']);
 for(const style of styleOptions){
  for(const key of ['method','arrangement','lon','lat','roll','gridRotation','bias','height','zoom','panX','panY'])assert(!(key in style.state),'Style must not contain '+key);
  assert(existsSync('dist/'+style.thumbnail),'Missing rendered thumbnail '+style.id);
@@ -30,4 +30,4 @@ for(let i=0;i<2000;i++){
  assert(Math.hypot(p[0]-c[0],p[1]-c[1])<=ecologyHexRadius+1e-10,'Snapping must stay within one hex radius');
  assert.deepEqual(ecologyCellCenter(c),c,'Cell centers must remain fixed when resampled');
 }
-console.log('Styles: seven render thumbnails, geography-independent settings, requested corrections, and Gosper-aligned ecology cells pass.');
+console.log('Styles: eight render thumbnails, geography-independent settings, requested corrections, and Gosper-aligned ecology cells pass.');

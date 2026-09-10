@@ -1,5 +1,5 @@
 import {decodeMapState,encodeMapState} from '../map-state.mjs?v=gosper-1';
-import {layoutOptions,styleOptions} from '../map-options.mjs?v=gosper-1';
+import {layoutOptions,styleOptions} from '../map-options.mjs?v=topographic-1';
 const frame=document.querySelector('iframe'),list=document.querySelector('#checks'),result=document.querySelector('#result');
 const errors=[];let checks=0;
 const delay=ms=>new Promise(resolve=>setTimeout(resolve,ms));
@@ -57,6 +57,7 @@ try{
   if(option.viewOffset){const v=decodeMapState(win.location.hash.slice(3)).view;assert(Math.abs(v.panX/v.scale-option.viewOffset[0])<1e-10&&Math.abs(v.panY/v.scale-option.viewOffset[1])<1e-10,'Infinite view did not retain its Africa-centered offset');}
   assert(doc.querySelectorAll('.style-preset-card[aria-pressed="true"]').length===1,'Styles sharing a source are selected together');
   if(option.id==='distortion-analysis'){assert($('distortion').checked&&+$('distortionOpacity').value===.9&&$('indicatrix').value==='4x49'&&$('dotgrid').checked&&+$('line').value===0&&!$('relief-enabled').checked&&$('background-color').value==='#eff4f5','Distortion Analysis omitted saved settings');await until(()=>$('indicatrix-status').textContent==='','analysis circles');}
+  for(const [id,value] of Object.entries(option.controls)){const el=$(id);if(el.type==='checkbox')assert(el.checked===value,'Style omitted '+id);else if(el.type==='color')assert(el.value===value,'Style omitted '+id);}
   pass(option.name+' switches and renders');
  }
  doc.querySelector('[data-source="ecology"]').click();await settle();
