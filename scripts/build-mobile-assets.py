@@ -1,4 +1,4 @@
-"""Build bounded-size map textures for phones; lighting is built by build-lighting.py."""
+"""Build bounded-size map textures for phones."""
 from pathlib import Path
 from PIL import Image
 import numpy as np

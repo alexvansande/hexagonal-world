@@ -1,0 +1,31 @@
+<!doctype html><meta charset="utf-8"><title>Lighting layer checks</title>
+<style>body{margin:0}iframe{border:0}</style><iframe title="Lighting preview"></iframe><pre id="debug"></pre><pre id="result">Loading…</pre>
+<script>
+const frame=document.querySelector('iframe'),desktop=new URLSearchParams(location.search).has('desktop');frame.width=desktop?1200:390;frame.height=desktop?900:844;frame.src='../index.html?lighting-check=5';
+setInterval(()=>{const d=frame.contentDocument;if(d?.getElementById('relief-status'))document.getElementById('debug').textContent=JSON.stringify({status:d.getElementById('relief-status').textContent,bakes:d.getElementById('map').dataset.lightingBakes,errors:d.getElementById('error').textContent,script:d.querySelector('script[type=module]').src,preset:d.getElementById('lighting-preset')?.value});},1000);
+frame.onload=async()=>{
+ const d=frame.contentDocument,w=frame.contentWindow,results=[],pause=ms=>new Promise(r=>setTimeout(r,ms));
+ const until=async predicate=>{for(let i=0;i<300;i++){if(predicate())return;await pause(100);}throw Error('Timed out: '+d.querySelector('#relief-status').textContent);};
+ const check=(ok,message)=>{if(!ok)throw Error(message);results.push(message);};
+ const change=(id,value,type='change')=>{const e=d.getElementById(id);e.value=value;e.dispatchEvent(new w.Event(type,{bubbles:true}));};
+ try{
+ await until(()=>d.querySelector('#map').dataset.lightingBakes&&d.querySelector('#map-loading').textContent==='');await pause(1000);
+ const c=d.getElementById('map'),bakes=()=>+c.dataset.lightingBakes;
+ check(!d.getElementById('error').textContent,'Renderer started');
+ check([...d.getElementById('lighting-preset').options].map(o=>o.value).join(',')===`sculpted,dramatic,gentle,${desktop?'custom':'none'}`,'Correct four lighting choices');
+ for(const preset of ['dramatic','gentle','sculpted']){const n=bakes();change('lighting-preset',preset);await pause(500);check(bakes()>=n,'Preset cache is reusable');check(c.toDataURL().length>10000,preset+' produces map pixels');}
+ let n=bakes(),image=c.toDataURL();change('shadowOpacity',0,'input');change('lightOpacity',0,'input');await pause(300);check(bakes()===n,'Opacity changes reuse lighting layers');check(image!==c.toDataURL(),'Opacity changes rendered appearance');
+ d.getElementById('zoom-in').click();await pause(300);check(bakes()===n,'Zoom reuses lighting layers');
+ change('reliefColorFade',.8,'input');await pause(200);check(bakes()===n,'Color fade reuses lighting layers');
+ if(desktop){change('lighting-preset','custom');await until(()=>bakes()>n);n=bakes();change('reliefAzimuth',120,'input');await pause(300);check(bakes()===n,'Custom adjustments wait for Apply');d.getElementById('apply-lighting').click();await until(()=>bakes()>n);check(true,'Apply prepares custom lighting once');}
+ else {change('lighting-preset','none');await pause(200);check(!d.getElementById('relief-enabled').checked,'None disables phone lighting');}
+ d.getElementById('customize').click();d.getElementById('relief-panel').open=true;change('lighting-preset','gentle');await pause(200);check(d.getElementById('shadowOpacity').getBoundingClientRect().height>0,'Opacity controls are visible');check(d.getElementById('relief-custom').hidden,'Preset mode hides Custom controls');change('shadowOpacity',1,'input');change('lightOpacity',1,'input');
+ for(const card of d.querySelectorAll('.layout-preset-card')){card.click();await pause(600);check(d.getElementById('relief-enabled').checked&&d.getElementById('error').hidden,card.getAttribute('aria-label')+' lighting rendered');}
+ const infinite=d.querySelector('[data-arrangement=infinite]');infinite.click();await pause(600);n=bakes();d.getElementById('zoom-in').click();await pause(250);check(bakes()===n,'Infinite zoom reuses its repeating layer');
+ c.dispatchEvent(new w.WheelEvent('wheel',{clientX:50,clientY:50,deltaY:-300,bubbles:true,cancelable:true}));await pause(300);check(bakes()===n,'Infinite pan reuses its repeating layer');
+ for(const card of d.querySelectorAll('.style-preset-card')){card.click();await until(()=>d.getElementById('map-loading').textContent==='');await pause(200);check(d.getElementById('error').hidden,card.getAttribute('aria-label')+' style rendered');}
+ check(!w.performance.getEntriesByType('resource').some(r=>/maps\/height\/[01]-[012]/.test(r.name)),'No large detailed elevation tiles');
+ document.querySelector('#result').textContent='PASS\n'+results.join('\n');document.title='PASS — Lighting layer checks';
+ }catch(e){document.querySelector('#result').textContent='FAIL '+e.stack+'\n'+results.join('\n');document.title='FAIL — Lighting layer checks';}
+};
+</script>

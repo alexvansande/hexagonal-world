@@ -1,4 +1,5 @@
-import {ReliefRenderer,reliefDefaults} from '../relief.mjs?v=export-2';
+import {ProjectedLighting} from '../projected-lighting.mjs?v=layers-4';
+import {ReliefRenderer,reliefDefaults} from '../relief.mjs?v=layers-4';
 
 const results=document.querySelector('#results'),images=document.querySelector('#images');
 const lines=[];let failures=0;
@@ -26,7 +27,7 @@ try{
  const rect={left:130,right:350,bottom:103,top:257};
  function render(overrides={},label){
   const s={...state,...overrides};const start=performance.now();
-  r.render({width:480,height:360,dpr:1,unit:110,state:s,blend:0,clip:null,material:'ivory',treatment:'atlas',tone:'warm',background:s.background,signature:JSON.stringify([s.panX,s.panY]),seams:[],refined:true,
+  r.render({width:480,height:360,dpr:1,unit:110,state:s,blend:0,clip:null,material:s.material||'ivory',lightingPass:s.lightingPass||0,treatment:'atlas',tone:'warm',background:s.background,signature:JSON.stringify([s.panX,s.panY]),seams:[],refined:true,
     drawColor:(w,h)=>{gl.useProgram(cp);gl.uniform2f(gl.getUniformLocation(cp,'size'),w,h);gl.uniform3f(gl.getUniformLocation(cp,'view'),110,s.panX,s.panY);gl.uniform1f(gl.getUniformLocation(cp,'gridRotation'),0);draw(cp);},drawGeometry:draw});
   const data=new Uint8Array(480*360*4);gl.readPixels(0,0,480,360,gl.RGBA,gl.UNSIGNED_BYTE,data);
   check(gl.getError()===gl.NO_ERROR,`${label}: no GPU errors`);
@@ -52,6 +53,19 @@ try{
  check([18,52,86].every((value,i)=>Math.abs(colored[i]-value)<=1),'Background color reaches the relief canvas');
  const coloredFlat=render({reliefHeight:0,reliefThickness:0,background:'#123456'},'Custom background without shadow');
  check(difference(coloredFlat,colored,[354,125,375,235])>2,'Exterior shadows retain the chosen background color');
+ const layers=new ProjectedLighting(gl),options={material:'source',reliefColorFade:0,reliefHeight:1.7,reliefShadows:.85,background:'#123456'};
+ const original=render(options,'Original source lighting');
+ render({...options,lightingPass:1},'Cached diffuse and shadow layer');const gain=layers.snapshot();
+ render({...options,lightingPass:2},'Cached highlight layer');const light=layers.snapshot();
+ function base(){gl.clearColor(18/255,52/255,86/255,1);gl.clear(gl.COLOR_BUFFER_BIT);gl.useProgram(cp);gl.uniform2f(gl.getUniformLocation(cp,'size'),480,360);gl.uniform3f(gl.getUniformLocation(cp,'view'),110,0,0);draw(cp);}
+ const entry={textures:[gain,light],rect:[-240/110,-180/110,480/110,360/110]};layers.store('test',entry);
+ base();layers.composite(entry,480,360,110,0,0,1,1);
+ const composed=new Uint8Array(original.length);gl.readPixels(0,0,480,360,gl.RGBA,gl.UNSIGNED_BYTE,composed);
+ let error=0,values=0;for(let y=0;y<360;y++)for(let x=0;x<480;x++){if(Math.abs(x-rect.left)<3||Math.abs(x-rect.right)<3||Math.abs(y-rect.bottom)<3||Math.abs(y-rect.top)<3)continue;for(let k=0;k<3;k++){error+=Math.abs(original[(y*480+x)*4+k]-composed[(y*480+x)*4+k]);values++;}}
+ check(error/values<1.5,'Cached layers reproduce original lighting (mean channel error '+(error/values).toFixed(3)+')');
+ base();const unlit=new Uint8Array(original.length);gl.readPixels(0,0,480,360,gl.RGBA,gl.UNSIGNED_BYTE,unlit);layers.composite(entry,480,360,110,0,0,0,0);gl.readPixels(0,0,480,360,gl.RGBA,gl.UNSIGNED_BYTE,composed);
+ check(unlit.every((v,i)=>v===composed[i]),'Both opacities at zero reproduce the unlit image exactly');
+ check(gl.getError()===gl.NO_ERROR,'Layer composition has no GPU errors');
  const img=new Image();img.src=canvas.toDataURL('image/png');await img.decode();check(img.width===480&&img.height===360,'Rendered relief can be exported to PNG');
  lines.push(`\n${failures?`${failures} FAILURES`:'ALL GPU CHECKS PASSED'}`);results.textContent=lines.join('\n');document.title=failures?'FAIL — Relief checks':'PASS — Relief checks';
 }catch(error){results.textContent+='\nERROR: '+error.stack;document.title='FAIL — Relief checks';console.error(error);}

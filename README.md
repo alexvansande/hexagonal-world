@@ -37,25 +37,31 @@ See [AUDIT.md](AUDIT.md) for the September 2026 diagnosis, repairs, performance 
 
 The supplied name “rhombic icosahedron” is interpreted as **rhombic dodecahedron** because the requested solid has 12 rhombic faces.
 
-## Precomputed lighting
+## Cached lighting layers
 
-Standard styles use an image lookup for multiply shadows and screen highlights,
-including mobile and exports. `scripts/build-lighting.py` (Python, Pillow, NumPy,
-and Node) bakes the layers from the elevation overview and `styleOptions`.
-Rebuild them whenever a style's lighting parameters change. The checked-in
-manifest records the baked settings. The RGB JPEG stores shadow opacity,
-highlight opacity, and an approximate display height in its three channels;
-it is a visual asset, not a scientific elevation dataset. Desktop layers are
-4096 × 2048; phone layers are 1920 × 960. Only the active style loads, with a
-two-image decoded cache and one reusable GPU texture.
+Sculpted, Dramatic and Gentle use the original `ReliefRenderer` settings and
+shaders. The renderer prepares two projected image layers containing diffuse
+shading/cast shadows and highlights, including the panel's exterior shadow.
+Normal frames composite these images with independent Dark and Light opacity
+controls. They do not run the terrain-lighting or horizon passes. Color fade
+stays independent and also updates the legend.
 
-Light is fixed to geographic coordinates and follows globe rotation. Panel
-outlines use a lightweight 2D drop shadow; the bake does not reproduce displaced
-terrain silhouettes or projection-specific cast shadows. Custom desktop lighting
-controls retain the live relief renderer. Returning to a standard style releases
-its intermediate render targets. Mobile always uses baked lighting, with style,
-gentle, sculpted, dramatic, and off choices. Browser regression checks are at
-`/tests/baked-lighting-checks.html` and `?desktop=1`.
+Layers are prepared **on demand**, not shipped as offline images: selecting an
+uncached preset, changing geometry/globe orientation, or applying Custom lighting
+prepares a new pair. Desktop Custom edits wait for **Apply lighting**. Mobile
+replaces Custom with None. Pan and zoom reuse the pair, including in the infinite
+honeycomb, whose lighting repeats with the tiling's rectangular period.
+
+The cache keeps at most three pairs. Phone layers have a maximum dimension of
+1,000 pixels (2,200 on desktop); intermediate render targets are released after
+preparation. Only a resized elevation overview is loaded, never the six large
+height tiles. Print/PNG exports reuse the same lighting layers, so the map
+texture can be sharper than its lighting at very large export sizes.
+
+Browser checks: `/tests/relief-render.html` compares the original renderer with
+composited layers; `/tests/projected-lighting-checks.html` checks the phone UI,
+and `?desktop` runs its desktop equivalent, including Custom, every format/style,
+opacity/zoom reuse, and repeating honeycomb lighting.
 
 ## Geometry and limitations
 

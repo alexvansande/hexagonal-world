@@ -81,7 +81,7 @@ const lightingFragment=`precision highp float;
 varying vec2 uv;uniform sampler2D colorMap;uniform sampler2D field;uniform sampler2D horizon;
 uniform vec2 fieldSize;uniform vec2 outputSize;uniform vec2 offset;uniform int localColor;
 uniform vec3 light;uniform float unit;uniform float depth;uniform float sea;uniform float ocean;
-uniform float base;uniform float maximum;
+uniform float base;uniform float maximum;uniform int lightingPass;
 uniform float contrast;uniform float highlights;uniform float ambient;uniform float strength;
 uniform float softness;uniform float cavity;uniform float colorFade;uniform int material;uniform int treatment;uniform int tone;uniform vec3 background;
 float rawHeight(vec4 f){return f.r+f.g/255.;}
@@ -110,7 +110,10 @@ void main(){
     contact+=coverage(sampleField(p+vec2(r,0.)));contact+=coverage(sampleField(p-vec2(r,0.)));
     contact+=coverage(sampleField(p+vec2(0.,r)));contact+=coverage(sampleField(p-vec2(0.,r)));
     ground=mix(ground,paper*shadowTint,clamp(shadow*.75+contact*.045*strength,0.,.85));
-    gl_FragColor=vec4(ground,clamp(shadow*.75+contact*.045*strength,0.,.85));return;
+    float exterior=clamp(shadow*.75+contact*.045*strength,0.,.85);
+    if(lightingPass==1){gl_FragColor=vec4(mix(vec3(1.),shadowTint,exterior)*.5019607843,exterior);return;}
+    if(lightingPass==2){gl_FragColor=vec4(0.);return;}
+    gl_FragColor=vec4(ground,exterior);return;
   }
   float dx=(neighbor(p+vec2(1.,0.),f)-neighbor(p-vec2(1.,0.),f))*.5;
   float dy=(neighbor(p+vec2(0.,1.),f)-neighbor(p-vec2(0.,1.),f))*.5;
@@ -138,6 +141,9 @@ void main(){
     vec3 earth=mix(low,high,smoothstep(.2,.65,altitude));
     source=mix(mix(vec3(.22,.43,.52),vec3(.65,.79,.78),clamp(h/max(sea,.01),0.,1.)),earth,land);
   }
+  vec3 multiplier=mix(vec3(ambient),sunlight,value*(1.-ambient)+ambient*.35);
+  multiplier*=1.-ao*cavity*.75;
+  multiplier*=mix(vec3(1.),shadowTint,shadow*(1.-ambient*.45));
   vec3 shaded=source*mix(vec3(ambient),sunlight,value*(1.-ambient)+ambient*.35);
   shaded*=1.-ao*cavity*.75;
   shaded=mix(shaded,shaded*shadowTint,shadow*(1.-ambient*.45));
@@ -147,13 +153,16 @@ void main(){
   float edge=0.;vec2 lightEdge=direction*1.25;
   edge=1.-coverage(sampleField(p-lightEdge));
   shaded+=sunlight*edge*highlights*.035;
+  vec3 additive=sunlight*(ridge*highlights*.32*(1.-shadow)+edge*highlights*.035);
+  if(lightingPass==1){gl_FragColor=vec4(mix(mix(vec3(1.),shadowTint,shadow*.75),multiplier,mask)*.5019607843,shadow*.75);return;}
+  if(lightingPass==2){gl_FragColor=vec4(additive*mask,0.);return;}
   shaded=clamp(shaded,0.,1.);
   ground=mix(ground,paper*shadowTint,shadow*.75);
   gl_FragColor=vec4(mix(ground,shaded,mask),shadow*.75);
 }`;
 const blitFragment=`precision highp float;varying vec2 uv;
 uniform sampler2D image;uniform sampler2D field;uniform vec2 fieldSize;uniform vec2 outputSize;uniform vec2 offset;uniform vec2 texel;
-uniform float blur;uniform float sea;uniform int treatment;uniform int tone;uniform vec3 background;
+uniform int lightingPass;uniform float blur;uniform float sea;uniform int treatment;uniform int tone;uniform vec3 background;
 void main(){
   vec4 f=texture2D(field,(offset+uv*outputSize)/fieldSize);
   float mask=f.a*(treatment==1?smoothstep(sea-.002,sea+.002,f.r+f.g/255.):1.);
@@ -166,7 +175,9 @@ void main(){
     }
     vec3 paper=background;
     vec3 tint=tone==1?vec3(.38,.44,.49):tone==2?vec3(.22,.32,.49):vec3(.40,.34,.49);
-    color=mix(mix(paper,paper*tint,shadow/total),color,mask);
+    if(lightingPass==1)color=mix(mix(vec3(.5019607843),vec3(.5019607843)*tint,shadow/total),color,mask);
+    else if(lightingPass==2)color*=mask;
+    else color=mix(mix(paper,paper*tint,shadow/total),color,mask);
   }
   gl_FragColor=vec4(color,1.);
 }`;
@@ -214,7 +225,7 @@ export class ReliefRenderer {
   bindTexture(texture,slot){const gl=this.gl;gl.activeTexture(gl.TEXTURE0+slot);gl.bindTexture(gl.TEXTURE_2D,texture);}
   async upload(url,slot,signal){
     const response=await fetch(url,{signal});if(!response.ok)throw Error('Elevation image could not load');
-    const bitmap=await createImageBitmap(await response.blob(),{colorSpaceConversion:'none',premultiplyAlpha:'none'});
+    const bitmap=await createImageBitmap(await response.blob(),{colorSpaceConversion:'none',premultiplyAlpha:'none',...(this.maxSourceWidth?{resizeWidth:this.maxSourceWidth,resizeQuality:'high'}:{})});
     try{
       const gl=this.gl,max=gl.getParameter(gl.MAX_TEXTURE_SIZE);let source=bitmap;
       if(bitmap.width>max||bitmap.height>max){
@@ -290,7 +301,7 @@ export class ReliefRenderer {
     }
     this.horizonKey=horizonKey;this.horizonRefined=refined;this.horizonTexture=buffers[current].texture;return this.horizonTexture;
   }
-  render({width,height,dpr,unit,state,blend,clip,material,treatment,tone,background=null,signature,drawColor,drawGeometry,seams,riverTexture=null,riverVisible=false,riverDepth=0,pixelBudget=3000000,refined=false,highResolution=false}){
+  render({width,height,dpr,unit,state,blend,clip,material,treatment,tone,background=null,signature,drawColor,drawGeometry,seams,riverTexture=null,riverVisible=false,riverDepth=0,pixelBudget=3000000,refined=false,highResolution=false,lightingPass=0}){
     const gl=this.gl,pad=this.padding(state,unit),cssWidth=width+pad*2,cssHeight=height+pad*2;
     const max=gl.getParameter(gl.MAX_TEXTURE_SIZE);
     const ratio=Math.min(dpr,Math.sqrt(pixelBudget/(cssWidth*cssHeight)),max/cssWidth,max/cssHeight);
@@ -326,7 +337,7 @@ export class ReliefRenderer {
     const dimensions=reliefDimensions(state),pixelUnit=unit*ratio,reach=Math.min(shadowReach(state)*unit,pad-8)*ratio;
     const horizon=state.reliefShadows>.001?this.buildHorizon(field,dimensions,pixelUnit,state,treatment,reach,cacheKey,refined):field.texture;
     const backgroundRGB=/^#[0-9a-f]{6}$/i.test(background||'')?[1,3,5].map(i=>parseInt(background.slice(i,i+2),16)/255):tone==='neutral'?[.89,.92,.93]:tone==='cool'?[.77,.83,.88]:[.94,.92,.89];
-    const p=this.lightProgram;gl.bindFramebuffer(gl.FRAMEBUFFER,output.fbo);gl.viewport(0,0,ow,oh);gl.useProgram(p);this.v3(p,'background',...backgroundRGB);
+    const p=this.lightProgram;gl.useProgram(p);this.i(p,'lightingPass',lightingPass);gl.bindFramebuffer(gl.FRAMEBUFFER,output.fbo);gl.viewport(0,0,ow,oh);gl.useProgram(p);this.v3(p,'background',...backgroundRGB);
     this.bindTexture(color.texture,0);this.i(p,'colorMap',0);this.i(p,'localColor',highResolution?1:0);this.bindTexture(field.texture,1);this.i(p,'field',1);
     this.bindTexture(horizon,2);this.i(p,'horizon',2);
     this.v2(p,'fieldSize',fw,fh);this.v2(p,'outputSize',width/cssWidth*fw,height/cssHeight*fh);this.v2(p,'offset',pad/cssWidth*fw,pad/cssHeight*fh);
@@ -338,7 +349,7 @@ export class ReliefRenderer {
     this.i(p,'material',['source','ivory','elevation'].indexOf(material));this.i(p,'treatment',treatment==='land'?1:0);this.i(p,'tone',['warm','neutral','cool'].indexOf(tone));
     this.drawQuad(p);
     gl.bindFramebuffer(gl.FRAMEBUFFER,null);gl.viewport(0,0,gl.canvas.width,gl.canvas.height);gl.useProgram(this.blitProgram);
-    const bp=this.blitProgram;this.v3(bp,'background',...backgroundRGB);this.bindTexture(output.texture,0);this.i(bp,'image',0);this.bindTexture(field.texture,1);this.i(bp,'field',1);
+    const bp=this.blitProgram;this.i(bp,'lightingPass',lightingPass);this.v3(bp,'background',...backgroundRGB);this.bindTexture(output.texture,0);this.i(bp,'image',0);this.bindTexture(field.texture,1);this.i(bp,'field',1);
     this.v2(bp,'fieldSize',fw,fh);this.v2(bp,'outputSize',width/cssWidth*fw,height/cssHeight*fh);this.v2(bp,'offset',pad/cssWidth*fw,pad/cssHeight*fh);this.v2(bp,'texel',1/ow,1/oh);
     this.f(bp,'blur',state.reliefSoftness*(2+pixelUnit*.055)*(highResolution?dpr/ratio:1));this.f(bp,'sea',dimensions.sea);this.i(bp,'treatment',treatment==='land'?1:0);this.i(bp,'tone',['warm','neutral','cool'].indexOf(tone));
     this.drawQuad(bp);gl.activeTexture(gl.TEXTURE0);

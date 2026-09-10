@@ -1,6 +1,6 @@
 import {fadedLegendColor} from './legend-colors.mjs';
-import {bakedStyle,bakedStrength,bakedTints,loadBakedLayer} from './baked-relief.mjs';
-import {compactDevice,mobileShadows,mobileFitRect} from './device-profile.mjs';
+import {ProjectedLighting,lightingSettings,lightingKey} from './projected-lighting.mjs?v=layers-4';
+import {compactDevice,mobileFitRect} from './device-profile.mjs';
 import {readSharePath,sharePair,inferSharePair,presetSettings} from './share-routes.mjs';
 import {initAnalytics,trackEvent} from './analytics.mjs';
 import {pngFromTiles,printPDF} from './map-export.mjs?v=legend-fade-1';
@@ -10,7 +10,7 @@ import {circularMode} from './circular-projections.mjs';
 import {polygonOverlapsRect} from './interface-layout.mjs';
 import {ecologyGridGLSL} from './ecology-grid.mjs?v=circular-2';
 import {gosperScale,rotateLocal,subgridLevels} from './subgrid.mjs';
-import {decodeMapState,encodeMapState,distortionEnabled,restorePanelStates} from './map-state.mjs?v=gosper-1';
+import {decodeMapState,encodeMapState,distortionEnabled,restorePanelStates} from './map-state.mjs?v=layers-1';
 import {sphereAt,followPoint,geographicPoint} from './globe-drag.mjs?v=circular-2';
 import {makeArrangement,arrangementNames} from './arrangements.mjs?v=gosper-1';
 import {mapSource,landLegends,landRows,oceanLegend,oceanRows,missing,riverMask} from './map-layers.mjs?v=baked-1';
@@ -18,14 +18,14 @@ import {searchPresets} from './search-presets.mjs?v=rus-search-1';
 import {visibleTiles} from './tiling.mjs';
 import {makeGeometry,layouts,matching,canvasWorld,hex,world} from './geometry.mjs?v=circular-2';
 import {projectionGLSL} from './projection-shader.mjs?v=circular-2';
-import {ReliefRenderer,reliefRanges,reliefDefaults,reliefLooks} from './relief.mjs?v=mobile-2';
+import {ReliefRenderer,reliefRanges,reliefDefaults,reliefLooks} from './relief.mjs?v=layers-4';
 import {layoutOptions,styleOptions,layoutIcon} from './map-options.mjs?v=topographic-1';
 const $=id=>document.getElementById(id), canvas=$('map'),overlay=$('overlay'),ctx=overlay.getContext('2d');
 const classOptions=[3,6,10,15];
 const classCount=id=>classOptions[Math.max(0,Math.min(3,Math.round(+$(id).value)))];
 function syncClassControl(id,count){const el=$(id);if(!el)return;const index=classOptions.indexOf(+count);if(index>=0)el.value=index;$(id+'-value').value=classOptions[+el.value];}
 const rangeSuffixes={riverWidth:'×',subgridWidth:'×',graticuleWidth:'×'};
-const state={method:'tetra',lon:0,lat:0,roll:0,bias:1,height:1.5,grid:30,line:0.8,subgridWidth:1,graticuleWidth:1,distortionOpacity:.7,clearance:0,riverWidth:1,riverLevels:6,layout:0,gridRotation:0,zoom:1,panX:0,panY:0,mode:'pan',arrangement:'infinite',sidebarExpanded:false,interpolation:0,...reliefDefaults};
+const state={method:'tetra',lon:0,lat:0,roll:0,bias:1,height:1.5,grid:30,line:0.8,subgridWidth:1,graticuleWidth:1,shadowOpacity:1,lightOpacity:1,distortionOpacity:.7,clearance:0,riverWidth:1,riverLevels:6,layout:0,gridRotation:0,zoom:1,panX:0,panY:0,mode:'pan',arrangement:'infinite',sidebarExpanded:false,interpolation:0,...reliefDefaults};
 let exporting=false;
 let shareSelection=readSharePath(location.pathname)||inferSharePair(readMapStateFromUrl());
 let persistenceReady=false,saveTimer=null,restoredView=null,headingBounds=null;
@@ -33,9 +33,9 @@ let displayedSource='continents',mapRequest=0;
 let arrangement,tiling,visible=[],meshSignature=null,geometryKey=null,edgeLabels=[];
 const arrangementCache=new Map();
 let ecologyVertices,tiles,nets,net,scale=1,w=1,h=1,dpr=1,ready=false,queued=false,buffer,count=0,texture,heightTexture,riverTexture;
-let bakedSelection=null,bakedReadyKey='',bakedPendingKey='',bakedRequest=0,bakedTexture=null;
-let relief=null,reliefRefineTimer=null,colorGeneration=0,riverGeneration=0,riverRequest=0,riverTimer=null,uploadedRiverKey=null;
-const INTERACTIVE_RELIEF_PIXELS=3000000,EXPORT_RELIEF_PIXELS=12000000;
+let projectedLighting=null,customApplied=null;
+let relief=null,riverGeneration=0,riverRequest=0,riverTimer=null,uploadedRiverKey=null;
+
 const notes={'lambert-one':'The whole world in one equal-area hexagon: a Lambert disk reshaped without changing area. The entire perimeter is the opposite pole. Inspired by Rus’s minimal hexagonal maps; this is not his triangular fold.', 'lambert-two':'Two equal-area hemispheres, each reshaped from a Lambert disk into a hexagon. All six boundary edges have matching counterparts. Rotate the globe to move the hemispheres.',tetra:'Four spherical triangles, each expanded into a six-sided region. Alternating corners preserve the original vertices and edge midpoints.',octa:'Four intact octants. Four divided octants. Each hexagon combines one central triangle with three neighboring pieces.',rhombic:'Twelve rhombi become four groups of three. Each diamond is stretched into a pair of equilateral triangles.',tetrakis:'Six pyramids on a cube create 24 triangles. Six triangles meet inside each hexagon; adjust the pyramid tips below.'};
 function range(parent,id,label,min,max,step,value,suffix=''){
  const el=document.createElement('label');el.className='range';el.innerHTML=`<span class="range-head"><span>${label}</span><output id="${id}-value">${value}${suffix}</output></span><input id="${id}" aria-label="${label}" type="range" min="${min}" max="${max}" step="${step}" value="${value}">`;$(parent).append(el);$(id).addEventListener('input',()=>{if(id==='gridRotation'){const a=(+$(id).value-state[id])*Math.PI/180,c=Math.cos(a),sn=Math.sin(a);[state.panX,state.panY]=[c*state.panX-sn*state.panY,sn*state.panX+c*state.panY];}state[id]=+$(id).value;$(id+'-value').value=Number(state[id].toFixed(2))+suffix;if(id==='height')rebuild(false);if(id.startsWith('relief'))updateRelief();draw();});
@@ -45,15 +45,18 @@ range('clearance-control','clearance','Minimum distance from land',0,9,1,0,'°')
 range('orientation','lon','Longitude',-180,180,1,0,'°');range('orientation','lat','Latitude',-90,90,1,0,'°');range('orientation','roll','Roll',-180,180,1,0,'°');range('shape-controls','bias','Shape bias',.4,2.5,.01,1);range('shape-controls','height','Pyramid tip distance',1.01,2,.01,1.5);range('display-controls','gridRotation','Grid rotation',-180,180,1,0,'°');range('graticule-controls','grid','Grid interval',10,60,5,30,'°');range('border-controls','line','Border weight',0,2,.1,.8);
 range('hex-grid-controls','subgridWidth','Hex grid thickness',0,5,.1,1,'×');range('graticule-controls','graticuleWidth','Latitude / longitude thickness',0,5,.1,1,'×');
 range('river-controls','riverWidth','River width',.5,3,.25,1,'×');range('river-controls','riverLevels','Tributary levels',1,12,1,6);
-for(const spec of reliefRanges){const id=spec[0];range(['reliefHeight','reliefAzimuth','reliefAltitude','reliefThickness'].includes(id)?'relief-main-controls':'relief-fine-controls',...spec);}
+for(const spec of reliefRanges){const id=spec[0];range(id==='reliefColorFade'?'lighting-opacity-controls':['reliefHeight','reliefAzimuth','reliefAltitude','reliefThickness'].includes(id)?'relief-main-controls':'relief-fine-controls',...spec);}
+range('lighting-opacity-controls','shadowOpacity','Dark opacity',0,1,.01,1);
+range('lighting-opacity-controls','lightOpacity','Light opacity',0,1,.01,1);
+const customOption=$('lighting-preset').querySelector('[value=custom]');if(compactDevice){customOption.value='none';customOption.textContent='None';}
 const gl=canvas.getContext('webgl',{antialias:true,alpha:true,preserveDrawingBuffer:true});
 function fail(message){$('error').hidden=false;$('error').textContent=message;$('status').textContent='Rendering unavailable';}
 const vs=`attribute vec2 regionPosition;attribute float region;varying vec2 localPosition;varying float regionIndex;varying vec2 flatPosition;attribute float opacity;varying float tileAlpha;attribute vec2 position;attribute vec3 bary;attribute vec3 va;attribute vec3 vb;attribute vec3 vc;uniform vec2 size;uniform vec3 view;uniform float gridRotation;varying vec3 weights;varying vec3 a;varying vec3 b;varying vec3 c;void main(){localPosition=regionPosition;regionIndex=region;flatPosition=position;float cr=cos(gridRotation),sr=sin(gridRotation);vec2 rotated=vec2(cr*position.x-sr*position.y,sr*position.x+cr*position.y);vec2 p=(rotated*view.x+view.yz)/size*2.0;gl_Position=vec4(p.x,-p.y,0.,1.);tileAlpha=opacity;weights=bary;a=va;b=vb;c=vc;}`;
 const derivativeSupport=!!gl?.getExtension('OES_standard_derivatives');
-const fs=`${derivativeSupport?'#extension GL_OES_standard_derivatives : enable\n#define HAS_DERIVATIVES 1\n':'#define HAS_DERIVATIVES 0\n'}precision highp float;varying vec2 flatPosition;uniform int felvClip;varying float tileAlpha;varying vec3 weights;varying vec3 a;varying vec3 b;varying vec3 c;uniform sampler2D map;uniform sampler2D heightMap;uniform sampler2D bakedMap;uniform int bakedEnabled;uniform float bakedAmount;uniform float bakedFade;uniform vec3 bakedShadowTint;uniform vec3 bakedLightTint;uniform sampler2D riverMap;uniform vec3 angles;uniform float bias;uniform float blend;uniform float grid;uniform float gridWidth;uniform vec3 gridColor;uniform int palette;uniform int material;uniform float materialSea;uniform int riversVisible;uniform int distortion;uniform float distortionOpacity;uniform float pixelScale;const float PI=3.141592653589793;
+const fs=`${derivativeSupport?'#extension GL_OES_standard_derivatives : enable\n#define HAS_DERIVATIVES 1\n':'#define HAS_DERIVATIVES 0\n'}precision highp float;varying vec2 flatPosition;uniform int felvClip;varying float tileAlpha;varying vec3 weights;varying vec3 a;varying vec3 b;varying vec3 c;uniform sampler2D map;uniform sampler2D heightMap;uniform float colorFade;uniform int landCutout;uniform vec3 background;uniform sampler2D riverMap;uniform vec3 angles;uniform float bias;uniform float blend;uniform float grid;uniform float gridWidth;uniform vec3 gridColor;uniform int palette;uniform int material;uniform float materialSea;uniform int riversVisible;uniform int distortion;uniform float distortionOpacity;uniform float pixelScale;const float PI=3.141592653589793;
 ${projectionGLSL}
 ${ecologyGridGLSL}
-uniform int overlayOnly;uniform sampler2D overlayMask;uniform vec2 overlayFieldSize;uniform vec2 overlayMapSize;uniform vec2 overlayOffset;uniform vec2 overlayViewport;uniform int overlayLand;uniform float overlaySea;
+uniform int overlayOnly;
 void main(){if(felvClip==1){float fy=-flatPosition.y;float fx=flatPosition.x-sqrt(3.)*fy;if(fy<0.||fy>sqrt(3.)||fx< -1.||fx>5.)discard;}vec3 p=mapSphere(localPosition,regionIndex,weights,a,b,c,bias,blend);
  vec3 distortionColor=vec3(1.);
  #if HAS_DERIVATIVES
@@ -72,24 +75,25 @@ void main(){if(felvClip==1){float fy=-flatPosition.y;float fx=flatPosition.x-sqr
  vec3 source=texture2D(map,sourceUV).rgb;float sea=smoothstep(.17,.8,source.r);vec3 color=source;
  if(palette==0)color=mix(vec3(.14,.30,.35),vec3(.75,.86,.89),sea);
  if(palette==2)color=mix(vec3(.30,.64,.72),vec3(.075,.14,.20),sea);
- vec3 baked=texture2D(bakedMap,uv).rgb;float surfaceHeight=bakedEnabled==1?baked.b:texture2D(heightMap,uv).r;
+ float surfaceHeight=texture2D(heightMap,uv).r;
  if(material==1)color=mix(vec3(.65,.75,.77),vec3(.88,.865,.80),smoothstep(materialSea-.003,materialSea+.003,surfaceHeight));
  if(material==2){float h=surfaceHeight;float land=smoothstep(materialSea-.003,materialSea+.003,h);float altitude=clamp((h-materialSea)/max(1.-materialSea,.01),0.,1.);vec3 low=mix(vec3(.49,.61,.46),vec3(.80,.76,.56),smoothstep(0.,.35,altitude));vec3 high=mix(vec3(.77,.70,.57),vec3(.97,.95,.88),smoothstep(.45,.95,altitude));vec3 earth=mix(low,high,smoothstep(.2,.65,altitude));color=mix(mix(vec3(.22,.43,.52),vec3(.65,.79,.78),clamp(h/max(materialSea,.01),0.,1.)),earth,land);}
- if(bakedEnabled==1){if(material==0){float luma=dot(color,vec3(.299,.587,.114));color=mix(color,mix(vec3(luma),vec3(.78,.77,.72),.55),bakedFade);}color*=mix(vec3(1.),bakedShadowTint,clamp(baked.r*bakedAmount,0.,1.));color=1.-(1.-color)*(1.-bakedLightTint*clamp(baked.g*bakedAmount,0.,1.));}
+
  if(riversVisible==1){float river=texture2D(riverMap,uv).a;color=mix(color,vec3(.08,.34,.47),river*.78);}
+ if(material==0){float luma=dot(color,vec3(.299,.587,.114));color=mix(color,mix(vec3(luma),vec3(.78,.77,.72),.55),colorFade);}
+ if(landCutout==1)color=mix(background,color,smoothstep(materialSea-.002,materialSea+.002,surfaceHeight));
  if(distortion>0)color=mix(color,distortionColor,distortionOpacity);
  float lineAlpha=0.;vec3 lineColor=gridColor;
  if(grid>0.&&gridWidth>0.){float lo=abs(mod(lon+grid*.5,grid)-grid*.5)*max(.12,cos(lat));float la=abs(mod(lat+grid*.5,grid)-grid*.5);lineAlpha=(1.-smoothstep(gridWidth*.4,gridWidth,min(lo,la)))*.35;color=mix(color,lineColor,lineAlpha);}
  if(overlayOnly==1){
-  vec4 field=texture2D(overlayMask,(overlayOffset+gl_FragCoord.xy/overlayViewport*overlayMapSize)/overlayFieldSize);
-  float coverage=field.a*(overlayLand==1?smoothstep(overlaySea-.002,overlaySea+.002,field.r+field.g/255.):1.);
+  float coverage=landCutout==1?smoothstep(materialSea-.002,materialSea+.002,surfaceHeight):1.;
   float da=distortion>0?distortionOpacity:0.;float alpha=da+lineAlpha*(1.-da);
   vec3 ink=(distortionColor*da*(1.-lineAlpha)+lineColor*lineAlpha)/max(alpha,.0001);
   gl_FragColor=vec4(ink,alpha*coverage);
  }else gl_FragColor=vec4(color*tileAlpha,tileAlpha);
 }`;
 let program,uniforms={};
-if(gl){try{function shader(type,source){const s=gl.createShader(type);gl.shaderSource(s,source);gl.compileShader(s);if(!gl.getShaderParameter(s,gl.COMPILE_STATUS))throw Error(gl.getShaderInfoLog(s));return s;}program=gl.createProgram();gl.attachShader(program,shader(gl.VERTEX_SHADER,vs));gl.attachShader(program,shader(gl.FRAGMENT_SHADER,fs));gl.linkProgram(program);if(!gl.getProgramParameter(program,gl.LINK_STATUS))throw Error(gl.getProgramInfoLog(program));gl.useProgram(program);for(const u of ['size','view','gridRotation','angles','bias','blend','grid','gridWidth','gridColor','palette','map','heightMap','bakedMap','bakedEnabled','bakedAmount','bakedFade','bakedShadowTint','bakedLightTint','material','materialSea','riverMap','riversVisible','distortion','distortionOpacity','pixelScale','felvClip','overlayOnly','circularMode','ecologyHex','ecologyOcta','ecologyVertices[0]'])uniforms[u]=gl.getUniformLocation(program,u);buffer=gl.createBuffer();heightTexture=gl.createTexture();gl.activeTexture(gl.TEXTURE3);gl.bindTexture(gl.TEXTURE_2D,heightTexture);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);gl.texImage2D(gl.TEXTURE_2D,0,gl.LUMINANCE,1,1,0,gl.LUMINANCE,gl.UNSIGNED_BYTE,new Uint8Array([105]));riverTexture=gl.createTexture();gl.activeTexture(gl.TEXTURE1);gl.bindTexture(gl.TEXTURE_2D,riverTexture);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);gl.texImage2D(gl.TEXTURE_2D,0,gl.LUMINANCE,1,1,0,gl.LUMINANCE,gl.UNSIGNED_BYTE,new Uint8Array([0]));gl.activeTexture(gl.TEXTURE0);}catch(e){fail('The map renderer could not start: '+e.message);}}else fail('WebGL is unavailable. Enable hardware acceleration or open this app in a WebGL-capable browser.');
+if(gl){try{function shader(type,source){const s=gl.createShader(type);gl.shaderSource(s,source);gl.compileShader(s);if(!gl.getShaderParameter(s,gl.COMPILE_STATUS))throw Error(gl.getShaderInfoLog(s));return s;}program=gl.createProgram();gl.attachShader(program,shader(gl.VERTEX_SHADER,vs));gl.attachShader(program,shader(gl.FRAGMENT_SHADER,fs));gl.linkProgram(program);if(!gl.getProgramParameter(program,gl.LINK_STATUS))throw Error(gl.getProgramInfoLog(program));gl.useProgram(program);for(const u of ['size','view','gridRotation','angles','bias','blend','grid','gridWidth','gridColor','palette','map','heightMap','colorFade','landCutout','background','material','materialSea','riverMap','riversVisible','distortion','distortionOpacity','pixelScale','felvClip','overlayOnly','circularMode','ecologyHex','ecologyOcta','ecologyVertices[0]'])uniforms[u]=gl.getUniformLocation(program,u);buffer=gl.createBuffer();heightTexture=gl.createTexture();gl.activeTexture(gl.TEXTURE3);gl.bindTexture(gl.TEXTURE_2D,heightTexture);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);gl.texImage2D(gl.TEXTURE_2D,0,gl.LUMINANCE,1,1,0,gl.LUMINANCE,gl.UNSIGNED_BYTE,new Uint8Array([105]));riverTexture=gl.createTexture();gl.activeTexture(gl.TEXTURE1);gl.bindTexture(gl.TEXTURE_2D,riverTexture);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);gl.texImage2D(gl.TEXTURE_2D,0,gl.LUMINANCE,1,1,0,gl.LUMINANCE,gl.UNSIGNED_BYTE,new Uint8Array([0]));gl.activeTexture(gl.TEXTURE0);}catch(e){fail('The map renderer could not start: '+e.message);}}else fail('WebGL is unavailable. Enable hardware acceleration or open this app in a WebGL-capable browser.');
 function rebuild(fit=true){
  const cm=circularMode(state.method);
  if(cm)state.arrangement=cm===1?'single':'double';
@@ -116,7 +120,7 @@ function viewBounds(padding=0){
 }
 function updateVisibleMesh(){
  const unit=scale*state.zoom;
- const bounds=viewBounds(!bakedSelection&&relief?.ready&&$('relief-enabled').checked?relief.padding(state,unit):0);
+ const bounds=viewBounds(relief?.ready&&$('relief-enabled').checked?relief.padding(appliedLighting(),unit):0);
  const next=tiling?visibleTiles(tiling,bounds):net,signature=state.arrangement+next.map(t=>`${t.id},${t.r},${t.x},${t.y}`).join(';');
  if(signature===meshSignature)return;meshSignature=signature;visible=next;
  const verts=[];for(const t of visible)for(const p of (t.drawPatches||tiles[t.id].patches))for(let i=0;i<3;i++)verts.push(...canvasWorld(p.xy[i],t),...(p.weights?p.weights[i]:[0,1,2].map(j=>j===i?1:0)),...p.v.flat(),t.opacity,...p.xy[i],t.id);
@@ -228,24 +232,20 @@ function drawIndicatrixes(){
  }
 }
 function materialMode(){return displayedSource==='ivory'?'ivory':displayedSource==='elevation'?'elevation':'source';}
-function bindMaterialUniforms(){gl.uniform1i(uniforms.circularMode,circularMode(state.method));gl.uniform1i(uniforms.ecologyHex,displayedSource==='ecology'?1:0);gl.uniform1i(uniforms.ecologyOcta,state.method==='octa'?1:0);gl.uniform3fv(uniforms['ecologyVertices[0]'],ecologyVertices);const bakedReady=bakedSelection&&bakedReadyKey===bakedSelection.id&&displayedSource===bakedSelection.source;const mode=compactDevice&&!bakedReady?'source':materialMode();gl.activeTexture(gl.TEXTURE4);gl.bindTexture(gl.TEXTURE_2D,bakedTexture||heightTexture);gl.uniform1i(uniforms.bakedMap,4);gl.uniform1i(uniforms.bakedEnabled,bakedReady?1:0);gl.uniform1f(uniforms.bakedAmount,$('relief-enabled').checked?(compactDevice?(bakedStrength[$('mobile-shadow').value]??1):1):0);gl.uniform1f(uniforms.bakedFade,$('relief-enabled').checked?(bakedSelection?.state.reliefColorFade||0):0);const tint=bakedTints[bakedSelection?.controls['relief-tone']||'neutral'];gl.uniform3fv(uniforms.bakedShadowTint,tint.shadow);gl.uniform3fv(uniforms.bakedLightTint,tint.light);gl.uniform1i(uniforms.material,['source','ivory','elevation'].indexOf(mode));gl.uniform1f(uniforms.materialSea,state.reliefSeaLevel/255);gl.activeTexture(gl.TEXTURE3);gl.bindTexture(gl.TEXTURE_2D,heightTexture||relief?.heightTextures[0]);gl.uniform1i(uniforms.heightMap,3);gl.activeTexture(gl.TEXTURE0);}
+function bindMaterialUniforms(){
+ gl.uniform1i(uniforms.circularMode,circularMode(state.method));gl.uniform1i(uniforms.ecologyHex,displayedSource==='ecology'?1:0);gl.uniform1i(uniforms.ecologyOcta,state.method==='octa'?1:0);gl.uniform3fv(uniforms['ecologyVertices[0]'],ecologyVertices);
+ gl.uniform1f(uniforms.colorFade,legendFade());gl.uniform1i(uniforms.landCutout,$('relief-enabled').checked&&lightingControls().treatment==='land'&&relief?.ready?1:0);
+ gl.uniform3fv(uniforms.background,[1,3,5].map(i=>parseInt($('background-color').value.slice(i,i+2),16)/255));
+ gl.uniform1i(uniforms.material,['source','ivory','elevation'].indexOf(relief?.ready?materialMode():'source'));gl.uniform1f(uniforms.materialSea,appliedLighting().reliefSeaLevel/255);gl.activeTexture(gl.TEXTURE3);gl.bindTexture(gl.TEXTURE_2D,heightTexture);gl.uniform1i(uniforms.heightMap,3);gl.activeTexture(gl.TEXTURE0);
+}
 function bindRiverUniforms(){gl.uniform1i(uniforms.riversVisible,$('rivers-visible').checked?1:0);gl.activeTexture(gl.TEXTURE1);gl.bindTexture(gl.TEXTURE_2D,riverTexture);gl.uniform1i(uniforms.riverMap,1);gl.activeTexture(gl.TEXTURE0);}
-function render(refined=false,exportMode=false){if(exporting&&!exportMode)return;queued=false;document.documentElement.style.setProperty('--map-background',$('background-color').value);const background=$('background-color').value,brightness=[1,3,5].reduce((sum,i,k)=>sum+parseInt(background.slice(i,i+2),16)*[.299,.587,.114][k],0);document.documentElement.style.setProperty('--heading-ink',brightness>145?'#193c49':'#f6f4ed');for(const id of ['background-color','border-color','hex-grid-color','graticule-color'])$(id+'-value').value=$(id).value;syncOptionCards();updateDistortionLegend();refined=refined===true;clearTimeout(reliefRefineTimer);$('zoom-value').textContent=Math.round(state.zoom*100)+'%';if(!ready||!gl||!program)return;updateVisibleMesh();if(!exportMode)updateHeadingVisibility();gl.bindFramebuffer(gl.FRAMEBUFFER,null);gl.viewport(0,0,canvas.width,canvas.height);gl.clearColor(0,0,0,0);gl.clear(gl.COLOR_BUFFER_BIT);gl.useProgram(program);gl.uniform1f(uniforms.gridRotation,state.gridRotation*Math.PI/180);gl.uniform2f(uniforms.size,w,h);gl.uniform3f(uniforms.view,scale*state.zoom,state.panX,state.panY);gl.uniform3f(uniforms.angles,state.lon*Math.PI/180,state.lat*Math.PI/180,state.roll*Math.PI/180);gl.uniform1f(uniforms.bias,state.bias);gl.uniform1f(uniforms.blend,+$('interpolation').value);gl.uniform1f(uniforms.grid,$('graticule').checked?state.grid*Math.PI/180:0);gl.uniform1f(uniforms.gridWidth,.6*state.graticuleWidth/(scale*state.zoom));gl.uniform3fv(uniforms.gridColor,[1,3,5].map(i=>parseInt($('graticule-color').value.slice(i,i+2),16)/255));gl.uniform1i(uniforms.palette,displayedSource==='continents'?['atlas','original','night'].indexOf($('palette').value):1);gl.uniform1i(uniforms.distortion,derivativeSupport?($('distortion').checked?3:0):0);gl.uniform1f(uniforms.distortionOpacity,state.distortionOpacity);gl.uniform1f(uniforms.pixelScale,scale*state.zoom*dpr);gl.uniform1i(uniforms.map,0);gl.uniform1i(uniforms.felvClip,arrangement.clip?1:0);
- const drawColor=(width=w,height=h,baseOnly=false)=>{gl.useProgram(program);gl.uniform1i(uniforms.overlayOnly,0);gl.uniform1f(uniforms.grid,!baseOnly&&$('graticule').checked?state.grid*Math.PI/180:0);gl.uniform1i(uniforms.distortion,!baseOnly&&derivativeSupport?($('distortion').checked?3:0):0);gl.uniform2f(uniforms.size,width,height);bindMaterialUniforms();bindRiverUniforms();gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,texture);drawGeometry(program);};
- if(!bakedSelection&&!compactDevice&&relief?.ready&&$('relief-enabled').checked){
-  const seams=[];for(const t of visible)for(let e=0;e<6;e++)if(t.bad[e]){const local=(e-t.r+6)%6;seams.push([canvasWorld(hex[local],t),canvasWorld(hex[(local+1)%6],t)]);}
-  for(const edge of arrangement.seams||[])if(edge.error>1e-6)seams.push([[edge.a[0],-edge.a[1]],[edge.b[0],-edge.b[1]]]);
-  const signature=JSON.stringify([state.method,meshSignature,colorGeneration,riverGeneration,$('rivers-visible').checked,state.reliefSeaLevel,state.reliefOcean,state.reliefRiverDepth,state.lon,state.lat,state.roll,state.bias,state.gridRotation,scale,state.zoom,state.panX,state.panY,state.height,$('interpolation').value,$('graticule').checked,state.grid,$('palette').value,$('distortion').checked,state.distortionOpacity]);
-  try{relief.render({width:w,height:h,dpr,unit:scale*state.zoom,state,blend:+$('interpolation').value,clip:arrangement.clip,material:materialMode(),treatment:$('relief-treatment').value,tone:$('relief-tone').value,background:$('background-color').value,signature,drawColor:(width,height)=>drawColor(width,height,true),drawGeometry,seams,riverTexture,riverVisible:$('rivers-visible').checked,riverDepth:state.reliefRiverDepth,pixelBudget:exportMode?EXPORT_RELIEF_PIXELS:INTERACTIVE_RELIEF_PIXELS,refined,highResolution:exportMode});
-   if($('graticule').checked||$('distortion').checked){
-    gl.useProgram(program);gl.uniform2f(uniforms.size,w,h);gl.uniform1i(uniforms.overlayOnly,1);
-    gl.uniform1f(uniforms.grid,$('graticule').checked?state.grid*Math.PI/180:0);gl.uniform1i(uniforms.distortion,derivativeSupport?($('distortion').checked?3:0):0);
-    gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,texture);relief.bindOverlayMask(program);
-    gl.enable(gl.BLEND);gl.blendFuncSeparate(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA,gl.ONE,gl.ONE_MINUS_SRC_ALPHA);drawGeometry(program);gl.disable(gl.BLEND);gl.uniform1i(uniforms.overlayOnly,0);gl.activeTexture(gl.TEXTURE0);
-   }
-   if(!refined)reliefRefineTimer=setTimeout(()=>render(true),180);
-  }catch(error){if(exportMode)throw error;console.warn('Relief renderer:',error);$('relief-enabled').checked=false;$('relief-status').textContent='Relief could not render on this device. The flat map is still available.';gl.colorMask(true,true,true,true);gl.bindFramebuffer(gl.FRAMEBUFFER,null);gl.viewport(0,0,canvas.width,canvas.height);drawColor();}
- }else drawColor();
+function render(refined=false,exportMode=false){if(exporting&&!exportMode)return;queued=false;document.documentElement.style.setProperty('--map-background',$('background-color').value);const background=$('background-color').value,brightness=[1,3,5].reduce((sum,i,k)=>sum+parseInt(background.slice(i,i+2),16)*[.299,.587,.114][k],0);document.documentElement.style.setProperty('--heading-ink',brightness>145?'#193c49':'#f6f4ed');for(const id of ['background-color','border-color','hex-grid-color','graticule-color'])$(id+'-value').value=$(id).value;syncOptionCards();updateDistortionLegend();$('zoom-value').textContent=Math.round(state.zoom*100)+'%';if(!ready||!gl||!program)return;const lighting=$('relief-enabled').checked&&relief?.ready?cachedLighting():null;updateVisibleMesh();if(!exportMode)updateHeadingVisibility();gl.bindFramebuffer(gl.FRAMEBUFFER,null);gl.viewport(0,0,canvas.width,canvas.height);gl.clearColor(...[1,3,5].map(i=>parseInt(background.slice(i,i+2),16)/255),1);gl.clear(gl.COLOR_BUFFER_BIT);gl.useProgram(program);gl.uniform1f(uniforms.gridRotation,state.gridRotation*Math.PI/180);gl.uniform2f(uniforms.size,w,h);gl.uniform3f(uniforms.view,scale*state.zoom,state.panX,state.panY);gl.uniform3f(uniforms.angles,state.lon*Math.PI/180,state.lat*Math.PI/180,state.roll*Math.PI/180);gl.uniform1f(uniforms.bias,state.bias);gl.uniform1f(uniforms.blend,+$('interpolation').value);gl.uniform1f(uniforms.grid,$('graticule').checked?state.grid*Math.PI/180:0);gl.uniform1f(uniforms.gridWidth,.6*state.graticuleWidth/(scale*state.zoom));gl.uniform3fv(uniforms.gridColor,[1,3,5].map(i=>parseInt($('graticule-color').value.slice(i,i+2),16)/255));gl.uniform1i(uniforms.palette,displayedSource==='continents'?['atlas','original','night'].indexOf($('palette').value):1);gl.uniform1i(uniforms.distortion,derivativeSupport?($('distortion').checked?3:0):0);gl.uniform1f(uniforms.distortionOpacity,state.distortionOpacity);gl.uniform1f(uniforms.pixelScale,scale*state.zoom*dpr);gl.uniform1i(uniforms.map,0);gl.uniform1i(uniforms.felvClip,arrangement.clip?1:0);
+ const drawColor=(width=w,height=h,baseOnly=false,overlayOnly=false)=>{gl.useProgram(program);gl.uniform1i(uniforms.overlayOnly,overlayOnly?1:0);gl.uniform1f(uniforms.grid,!baseOnly&&$('graticule').checked?state.grid*Math.PI/180:0);gl.uniform1i(uniforms.distortion,!baseOnly&&derivativeSupport?($('distortion').checked?3:0):0);gl.uniform2f(uniforms.size,width,height);bindMaterialUniforms();bindRiverUniforms();gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,texture);drawGeometry(program);};
+ drawColor(w,h,!!lighting);
+ if(lighting){projectedLighting.composite(lighting,w,h,scale*state.zoom,state.panX,state.panY,state.shadowOpacity,state.lightOpacity);
+  if($('graticule').checked||$('distortion').checked){gl.enable(gl.BLEND);gl.blendFuncSeparate(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA,gl.ONE,gl.ONE_MINUS_SRC_ALPHA);drawColor(w,h,false,true);gl.disable(gl.BLEND);}
+ }
+
  ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,w,h);ctx.lineJoin='round';
  ctx.save();
  if(arrangement.outline){traceOutline();ctx.clip();}
@@ -269,44 +269,56 @@ for(const b of document.querySelectorAll('.method'))b.onclick=()=>{state.method=
 $('layout').onchange=()=>{state.arrangement=$('layout').value;rebuild();if($('optimize').checked)applySearch();};for(const id of ['interpolation','graticule','construction','subgrid','dotgrid','fractalgrid','labels','palette','distortion','indicatrix'])$(id).onchange=draw;$('quality').onchange=resize;
 $('fractalgrid').addEventListener('change',()=>{if($('fractalgrid').checked){$('subgrid').checked=false;$('dotgrid').checked=false;}draw();});
 for(const id of ['subgrid','dotgrid'])$(id).addEventListener('change',()=>{if($(id).checked)$('fractalgrid').checked=false;draw();});
-function ensureRelief(){if(compactDevice||!gl||!program)return;if(!relief){relief=new ReliefRenderer(gl,vs,draw,message=>$('relief-status').textContent=message);heightTexture=relief.heightTextures[0];}relief.load();}
-async function prepareBakedLighting(selection){
- if(!selection||!gl||selection.id===bakedReadyKey||selection.id===bakedPendingKey)return;
- const request=++bakedRequest;bakedPendingKey=selection.id;$('relief-status').textContent='Loading precomputed lighting…';
+function ensureRelief(){if(!gl||!program)return;if(!relief){relief=new ReliefRenderer(gl,vs,draw,message=>$('relief-status').textContent=message);relief.maxSourceWidth=compactDevice?1536:4096;heightTexture=relief.heightTextures[0];}relief.load();}
+function lightingControls(){return $('lighting-preset').value==='custom'&&customApplied?customApplied:{treatment:$('relief-treatment').value,tone:$('relief-tone').value};}
+function appliedLighting(){return lightingSettings($('lighting-preset').value,{...state,...($('lighting-preset').value==='custom'?customApplied:null)});}
+function cachedLighting(){
+ const settings=appliedLighting(),preset=$('lighting-preset').value,controls=lightingControls();
+ if(preset==='none')return null;
+ if(!projectedLighting)projectedLighting=new ProjectedLighting(gl);
+ // Finite maps use a whole-map image; the honeycomb repeats a rectangular
+ // period of its axial tiling, so even unlimited panning reuses one image.
+ let b=bounds(),patch=[];
+ if(tiling){b=[0,0,3*tiling.size,Math.sqrt(3)*tiling.size];patch=b;}
+
+ const key=lightingKey(settings,preset,[$('interpolation').value,controls.treatment,controls.tone,$('rivers-visible').checked,riverGeneration,...patch]);
+ const cached=projectedLighting.entries.get(key);if(cached)return cached;
+ if(dragging)return null;
+ const saved={w,h,scale,dpr,zoom:state.zoom,panX:state.panX,panY:state.panY,cw:canvas.width,ch:canvas.height,gridRotation:state.gridRotation};
+ let entry;
  try{
-  let image=await loadBakedLayer(selection.id,compactDevice);if(request!==bakedRequest||bakedSelection?.id!==selection.id)return;
-  const max=gl.getParameter(gl.MAX_TEXTURE_SIZE);if(image.width>max){const resized=document.createElement('canvas');resized.width=max;resized.height=Math.round(image.height*max/image.width);resized.getContext('2d').drawImage(image,0,0,resized.width,resized.height);image=resized;}
-  if(!bakedTexture)bakedTexture=gl.createTexture();gl.activeTexture(gl.TEXTURE4);gl.bindTexture(gl.TEXTURE_2D,bakedTexture);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGB,gl.RGB,gl.UNSIGNED_BYTE,image);gl.activeTexture(gl.TEXTURE0);bakedReadyKey=selection.id;$('relief-status').textContent='Precomputed shadows & highlights · '+selection.name;draw();
- }catch(error){if(request===bakedRequest){$('relief-status').textContent='Lighting could not load. Select the style again to retry.';console.warn(error);}}
- finally{if(request===bakedRequest)bakedPendingKey='';}
+  if(tiling){settings.reliefAzimuth+=state.gridRotation;settings.gridRotation=0;state.gridRotation=0;}
+  const pad=tiling?0:relief.padding(settings,100)/100+.15,rect=[b[0]-pad,-b[3]-pad,b[2]-b[0]+pad*2,b[3]-b[1]+pad*2];
+  scale=(compactDevice?1000:2200)/Math.max(rect[2],rect[3]);state.zoom=1;dpr=1;w=Math.ceil(rect[2]*scale);h=Math.ceil(rect[3]*scale);
+  rect[2]=w/scale;rect[3]=h/scale;state.panX=-rect[0]*scale-w/2;state.panY=-rect[1]*scale-h/2;canvas.width=w;canvas.height=h;meshSignature=null;updateVisibleMesh();
+  const seams=[];for(const t of visible)for(let e=0;e<6;e++)if(t.bad[e]){const local=(e-t.r+6)%6;seams.push([canvasWorld(hex[local],t),canvasWorld(hex[(local+1)%6],t)]);}
+  for(const edge of arrangement.seams||[])if(edge.error>1e-6)seams.push([[edge.a[0],-edge.a[1]],[edge.b[0],-edge.b[1]]]);
+  entry={rect,textures:[],repeat:!!tiling,angle:saved.gridRotation*Math.PI/180};
+  for(const lightingPass of [1,2]){
+   relief.render({width:w,height:h,dpr:1,unit:scale,state:{...settings,panX:state.panX,panY:state.panY},blend:+$('interpolation').value,clip:arrangement.clip,material:'source',treatment:controls.treatment,tone:controls.tone,signature:key,drawColor:()=>{},drawGeometry,seams,riverTexture,riverVisible:$('rivers-visible').checked,riverDepth:settings.reliefRiverDepth,pixelBudget:compactDevice?1200000:5500000,refined:true,lightingPass});
+   entry.textures.push(projectedLighting.snapshot());
+  }
+  projectedLighting.store(key,entry);canvas.dataset.lightingBakes=projectedLighting.bakes;$('relief-status').textContent='Lighting layers ready';
+  return entry;
+ }catch(error){for(const t of entry?.textures||[])gl.deleteTexture(t);$('relief-enabled').checked=false;$('relief-status').textContent='Lighting could not be prepared on this device.';console.warn('Lighting layers:',error);return null;}
+ finally{w=saved.w;h=saved.h;scale=saved.scale;dpr=saved.dpr;state.zoom=saved.zoom;state.panX=saved.panX;state.panY=saved.panY;state.gridRotation=saved.gridRotation;canvas.width=saved.cw;canvas.height=saved.ch;meshSignature=null;relief.releaseDetail();}
 }
 function updateRelief(){
- const previous=bakedSelection;bakedSelection=bakedStyle(state,{source:$('map-source').value,treatment:$('relief-treatment').value,tone:$('relief-tone').value},compactDevice,shareSelection.style.id);
- updateLegendFade();
- if(previous?.id!==bakedSelection?.id){++bakedRequest;bakedPendingKey='';if(bakedSelection)relief?.releaseDetail();}
- if(bakedSelection){
-  if($('relief-enabled').checked||['ivory','elevation'].includes($('map-source').value))prepareBakedLighting(bakedSelection);
-  if(compactDevice){if(!$('relief-enabled').checked)$('mobile-shadow').value='off';else if($('mobile-shadow').value==='off')$('mobile-shadow').value='style';}
-  canvas.style.filter=$('relief-enabled').checked?mobileShadows[compactDevice?$('mobile-shadow').value:'sculpted']||mobileShadows.sculpted:'none';
-  $('relief-options').hidden=!$('relief-enabled').checked;
-  $('relief-source-note').hidden=!$('relief-enabled').checked||!['terrain','marble'].includes($('map-source').value);
-  if(bakedReadyKey===bakedSelection.id)$('relief-status').textContent='Precomputed shadows & highlights · '+bakedSelection.name;
-  $('relief-panel-note').textContent='Shadows and highlights are stored as image layers. Light follows the geography; adjust a lighting control for custom desktop lighting.';draw();return;
- }
- canvas.style.filter='none';
- if(compactDevice){if(!$('relief-enabled').checked)$('mobile-shadow').value='off';else if($('mobile-shadow').value==='off')$('mobile-shadow').value='gentle';canvas.style.filter=mobileShadows[$('mobile-shadow').value];$('relief-status').textContent='Lightweight terrain shading and panel shadows';draw();return;}
- const enabled=$('relief-enabled').checked,materialSource=['ivory','elevation'].includes($('map-source').value);$('relief-options').hidden=!enabled;
- if((enabled||materialSource)&&gl&&program){try{ensureRelief();}catch(error){$('relief-status').textContent='Relief is unavailable on this device; the flat map is still available.';if(enabled)$('relief-enabled').checked=false;console.warn('Relief initialization:',error);}}
+ if(compactDevice&&!$('relief-enabled').checked)$('lighting-preset').value='none';
+ const enabled=$('relief-enabled').checked,preset=$('lighting-preset').value;
+ if(preset==='custom'&&!customApplied)customApplied={...Object.fromEntries(Object.keys(reliefDefaults).filter(k=>k!=='reliefColorFade').map(k=>[k,state[k]])),treatment:$('relief-treatment').value,tone:$('relief-tone').value};
+ $('relief-custom').hidden=compactDevice||preset!=='custom';$('lighting-opacity-controls').hidden=!enabled;
+ canvas.style.filter='none';updateLegendFade();
+ if(enabled||['ivory','elevation'].includes($('map-source').value))ensureRelief();
  $('relief-source-note').hidden=!enabled||!['terrain','marble'].includes($('map-source').value);
- $('relief-panel-note').textContent=$('relief-treatment').value==='land'?'Land rises above the table and casts coastline shadows. Sea level sets the cutout boundary.':state.arrangement==='infinite'?'Infinite maps have no outer panel edge. Choose a finite arrangement to see its shadow.':'The whole outline is a raised panel; matching internal joins remain flush.';
- $('floating-legend').hidden=$('map-source').value!=='ecology';
+ $('relief-panel-note').textContent='Opacity adjusts the saved lighting layers. Custom lighting changes take effect when you press Apply.';
  draw();
 }
-for(const id of ['relief-enabled','relief-treatment','relief-tone'])$(id).addEventListener('change',updateRelief);
-for(const button of document.querySelectorAll('[data-relief-look]'))button.onclick=()=>{
- for(const [id,value] of Object.entries(reliefLooks[button.dataset.reliefLook])){state[id]=value;$(id).value=value;const spec=reliefRanges.find(s=>s[0]===id);$(id+'-value').value=value+spec[6];}
- $('relief-enabled').checked=true;updateRelief();
-};
+$('lighting-preset').onchange=()=>{$('relief-enabled').checked=$('lighting-preset').value!=='none';if($('lighting-preset').value==='custom')customApplied=null;updateRelief();};
+$('apply-lighting').onclick=()=>{customApplied=null;updateRelief();scheduleSave();};
+$('relief-enabled').onchange=updateRelief;
+for(const id of ['relief-treatment','relief-tone'])$(id).onchange=()=>{if($('lighting-preset').value==='custom')$('relief-status').textContent='Apply lighting to update the layers.';else updateRelief();};
+
 function mode(value){state.mode=value;$('pan').classList.toggle('selected',value==='pan');$('rotate').classList.toggle('selected',value==='rotate');scheduleSave();} $('pan').onclick=()=>mode('pan');$('rotate').onclick=()=>mode('rotate');$('fit').onclick=fitView;
 function zoom(factor,x=w/2,y=h/2){const old=state.zoom;state.zoom=Math.min(12,Math.max(.25,old*factor));const r=state.zoom/old;state.panX=(state.panX-(x-w/2))*r+(x-w/2);state.panY=(state.panY-(y-h/2))*r+(y-h/2);draw();}
 $('zoom-in').onclick=()=>zoom(1.25);$('zoom-out').onclick=()=>zoom(.8);canvas.addEventListener('wheel',e=>{e.preventDefault();const r=canvas.getBoundingClientRect();zoom(Math.exp(-e.deltaY*.0015),e.clientX-r.left,e.clientY-r.top);},{passive:false});
@@ -338,7 +350,7 @@ canvas.onpointermove=e=>{
   leaveSearch();setRotation(followPoint(state,sample,grabbed));
  }else{grabbed=null;state.panX+=dx;state.panY+=dy;draw();}
 };
-function end(e){pointers.delete(e.pointerId);pinchDistance=0;grabbed=null;dragging=pointers.size?{x:[...pointers.values()][0][0],y:[...pointers.values()][0][1]}:null;}
+function end(e){draw();pointers.delete(e.pointerId);pinchDistance=0;grabbed=null;dragging=pointers.size?{x:[...pointers.values()][0][0],y:[...pointers.values()][0][1]}:null;}
 canvas.onpointerup=end;canvas.onpointercancel=end;
 
 $('reset').onclick=()=>{for(const [id,value] of Object.entries({lon:0,lat:0,roll:0,bias:1,height:1.5})){state[id]=value;$(id).value=value;$(id+'-value').value=value+(['lon','lat','roll'].includes(id)?'°':'');}$('interpolation').value='0';rebuild();};
@@ -351,16 +363,17 @@ async function exportMap(){
  const out=document.createElement('canvas'),context=out.getContext('2d',{willReadFrequently:true});
  const cancel=()=>control.abort(new DOMException('Export cancelled','AbortError'));
  $('export-cancel').onclick=cancel;dialog.oncancel=event=>{event.preventDefault();cancel();};
- updateMapUrl();clearTimeout(saveTimer);clearTimeout(reliefRefineTimer);exporting=true;button.disabled=true;main.inert=true;dialog.showModal();progress.textContent='Preparing…';
+ updateMapUrl();clearTimeout(saveTimer);exporting=true;button.disabled=true;main.inert=true;dialog.showModal();progress.textContent='Preparing…';
  try{
   const deadline=performance.now()+120000;
-  if(!bakedSelection&&!compactDevice&&relief&&$('relief-enabled').checked)await relief.load(true,control.signal);
-  while(bakedPendingKey||$('map-loading').textContent==='Loading map…'||($('relief-enabled').checked&&!bakedSelection&&relief?.loading&&!relief.detailed)||$('indicatrix-status').textContent==='Preparing circles…'){control.signal.throwIfAborted();if(performance.now()>deadline)throw Error('Map assets are still loading; please retry when they finish');await new Promise(resolve=>setTimeout(resolve,100));}
- if(isPDF&&!tiling){const b=bounds(),unit=scale*state.zoom,pad=($('relief-enabled').checked&&!bakedSelection&&relief?.ready?relief.padding(state,unit):0)+12;crop.x=saved.w/2+saved.panX+b[0]*unit-pad;crop.y=saved.h/2+saved.panY-b[3]*unit-pad;crop.topInset=pad;crop.width=(b[2]-b[0])*unit+2*pad;crop.height=(b[3]-b[1])*unit+2*pad;}
+  if(relief&&$('relief-enabled').checked)await relief.load(false,control.signal);
+  if($('relief-enabled').checked&&relief?.ready)cachedLighting();
+  while($('map-loading').textContent==='Loading map…'||($('relief-enabled').checked&&relief?.loading)||$('indicatrix-status').textContent==='Preparing circles…'){control.signal.throwIfAborted();if(performance.now()>deadline)throw Error('Map assets are still loading; please retry when they finish');await new Promise(resolve=>setTimeout(resolve,100));}
+ if(isPDF&&!tiling){const b=bounds(),unit=scale*state.zoom,pad=($('relief-enabled').checked&&relief?.ready?relief.padding(appliedLighting(),unit):0)+12;crop.x=saved.w/2+saved.panX+b[0]*unit-pad;crop.y=saved.h/2+saved.panY-b[3]*unit-pad;crop.topInset=pad;crop.width=(b[2]-b[0])*unit+2*pad;crop.height=(b[3]-b[1])*unit+2*pad;}
   const renderTile=async(x,y,width,height,ratio=factor)=>{
    control.signal.throwIfAborted();
    // Overlap tiles enough to include antialiasing and the relief shadow blur.
-   const bleed=(compactDevice||bakedSelection)?Math.ceil(30*ratio)+4:Math.ceil(($('relief-enabled').checked?(4+scale*state.zoom*.11)*state.reliefSoftness:0)*ratio)+4;
+   const bleed=4;
    const maxDimension=Math.min(gl.getParameter(gl.MAX_TEXTURE_SIZE),gl.getParameter(gl.MAX_RENDERBUFFER_SIZE));
    if(Math.max(width,height)+2*bleed>maxDimension)throw Error('Shadow softness at this zoom exceeds the device tile limit; reduce zoom or softness and retry');
    w=(width+2*bleed)/ratio;h=(height+2*bleed)/ratio;dpr=ratio;
@@ -369,7 +382,7 @@ async function exportMap(){
    if(gl.drawingBufferWidth!==canvas.width||gl.drawingBufferHeight!==canvas.height)throw Error('This device could not allocate an export tile');
    render(true,true);
    out.width=width;out.height=height;context.fillStyle=$('background-color').value;context.fillRect(0,0,width,height);
-   context.save();if(compactDevice||bakedSelection){const preset=$('relief-enabled').checked?(compactDevice?$('mobile-shadow').value:'sculpted'):'off';const values={style:[1,6,4,.31],off:[0,0,0,0],gentle:[0,3,3,.19],sculpted:[1,6,4,.31],dramatic:[3,10,5,.44]}[preset];context.shadowOffsetX=values[0]*ratio;context.shadowOffsetY=values[1]*ratio;context.shadowBlur=values[2]*ratio;context.shadowColor=`rgba(22,52,66,${values[3]})`;}context.drawImage(canvas,-bleed,-bleed);context.restore();context.drawImage(overlay,-bleed,-bleed);
+   context.drawImage(canvas,-bleed,-bleed);context.drawImage(overlay,-bleed,-bleed);
    return context.getImageData(0,0,width,height).data;
   };
   const onProgress=value=>progress.textContent=`Rendering ${isPDF?'PDF':`PNG ${factor}×`} · ${Math.round(value*100)}%`;
@@ -394,7 +407,7 @@ function applySearch(){
  if(!$('optimize').checked)return;
  const preset=searchPresets[state.method]?.[state.arrangement];
  if(circularMode(state.method)||!preset?.results?.length){$('optimize').checked=false;updateOptimizerUI();return;}
- // Each baked rotation belongs to the geometry it was optimized for.
+ // Each saved rotation belongs to the geometry it was optimized for.
  state.bias=preset.config.bias;$('bias').value=state.bias;$('bias-value').value=state.bias;
  $('interpolation').value=String(preset.config.blend);
  if(state.method==='tetrakis'&&state.height!==preset.config.height){state.height=preset.config.height;$('height').value=state.height;$('height-value').value=state.height;rebuild(false);}
@@ -412,7 +425,7 @@ function restoreSettings(provided){
   if(typeof ss.sidebarExpanded==='boolean')state.sidebarExpanded=ss.sidebarExpanded;
   if(Object.hasOwn(arrangementNames,ss.arrangement))state.arrangement=ss.arrangement;
   if(['tetra','octa','rhombic','tetrakis','lambert-one','lambert-two'].includes(ss.method))state.method=ss.method;
-  for(const id of ['lon','lat','roll','bias','height','gridRotation','grid','line','clearance','distortionOpacity','riverWidth','riverLevels','subgridWidth','graticuleWidth',...reliefRanges.map(s=>s[0])]){
+  for(const id of ['lon','lat','roll','bias','height','gridRotation','grid','line','clearance','distortionOpacity','riverWidth','riverLevels','subgridWidth','graticuleWidth','shadowOpacity','lightOpacity',...reliefRanges.map(s=>s[0])]){
    const el=$(id),value=ss[id];if(typeof value!=='number'||!Number.isFinite(value))continue;
    state[id]=Math.max(+el.min,Math.min(+el.max,id==='clearance'?Math.round(value):value));el.value=state[id];
    $(id+'-value').value=Number(state[id].toFixed(2))+(reliefRanges.find(s=>s[0]===id)?.[6]??rangeSuffixes[id]??(['lon','lat','roll','gridRotation','grid','clearance'].includes(id)?'°':''));
@@ -446,7 +459,8 @@ function restoreSettings(provided){
 }
 function captureSettings(){
  const controls={};document.querySelectorAll('aside input[type=checkbox],aside select,aside input[type=range],aside input[type=color]').forEach(el=>{controls[el.id]=el.type==='checkbox'?el.checked:['land-classes','ocean-classes'].includes(el.id)?classCount(el.id):el.value;});
- return {version:1,state:{...state},controls,view:{scale,zoom:state.zoom,panX:state.panX,panY:state.panY},details:Object.fromEntries([...document.querySelectorAll('aside > details')].map(el=>[el.id,el.open]))};
+ const applied=$('lighting-preset').value==='custom'?customApplied:null;if(applied){controls['relief-treatment']=applied.treatment;controls['relief-tone']=applied.tone;}
+ return {version:1,state:{...state,...applied},controls,view:{scale,zoom:state.zoom,panX:state.panX,panY:state.panY},details:Object.fromEntries([...document.querySelectorAll('aside > details')].map(el=>[el.id,el.open]))};
 }
 function readMapStateFromUrl(){const hash=location.hash;if(!hash.startsWith('#m=')&&!hash.startsWith('#p='))return null;try{return decodeMapState(hash.slice(3));}catch{return null;}}
 function updateMapUrl(){if(!persistenceReady||exporting)return;clearTimeout(saveTimer);try{const url=new URL(location.href);if(!location.pathname.startsWith('/tests/'))url.pathname=shareSelection.path;url.hash='m='+encodeMapState(captureSettings());history.replaceState(null,'',url);}catch{}}
@@ -497,7 +511,7 @@ async function updateRiverLayer(){
  catch(error){console.warn('River layer:',error);$('status').textContent='River data could not load; the map remains available.';}
 }
 for(const id of ['riverWidth','riverLevels'])$(id).addEventListener('input',()=>{++riverRequest;clearTimeout(riverTimer);riverTimer=setTimeout(updateRiverLayer,100);});$('rivers-visible').addEventListener('change',()=>{updateRiverLayer();draw();});
-function legendFade(){return $('relief-enabled').checked?(bakedSelection?.state.reliefColorFade??state.reliefColorFade):0;}
+function legendFade(){return $('relief-enabled').checked?state.reliefColorFade:0;}
 function updateLegendFade(){
  const amount=legendFade();
  for(const swatch of document.querySelectorAll('#floating-legend [data-legend-color],#ecology-controls [data-legend-color]')){
@@ -513,7 +527,7 @@ function syncMobileLegend(){
 $('legend-toggle').onclick=()=>{$('mobile-legend-dialog').showModal();syncMobileLegend();};
 $('close-legend').onclick=()=>$('mobile-legend-dialog').close();
 $('mobile-legend-dialog').onclick=e=>{if(e.target===$('mobile-legend-dialog')){const r=e.target.getBoundingClientRect();if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)e.target.close();}};
-$('mobile-shadow').onchange=()=>{$('relief-enabled').checked=$('mobile-shadow').value!=='off';updateRelief();updateMapSource();};
+
 function updateMapUI(){
  const type=$('map-source').value;$('floating-legend').hidden=type!=='ecology';$('floating-legend-tip').hidden=true;$('ecology-controls').hidden=type!=='ecology';$('palette').closest('label').hidden=!['continents'].includes(type);
  if(type==='ecology'){const landCount=classCount('land-classes'),oceanCount=classCount('ocean-classes');syncClassControl('land-classes',landCount);syncClassControl('ocean-classes',oceanCount);floatingLegend('floating-land',landRows(landCount),['Arid','Humid']);floatingLegend('floating-ocean',oceanRows(oceanCount),['Cold','Warm']);hexLegend('land-legend',landLegends[landCount]);hexLegend('ocean-legend',oceanLegend(oceanCount));hexLegend('missing-legend',[missing]);}
@@ -529,8 +543,8 @@ async function updateMapSource(){
  try{let source=await mapSource(type,classCount('land-classes'),classCount('ocean-classes'));if(request!==mapRequest)return;
   const originalWidth=source.width,originalHeight=source.height,max=gl.getParameter(gl.MAX_TEXTURE_SIZE);
   if(source.width>max){const resized=document.createElement('canvas');resized.width=max;resized.height=Math.round(source.height*max/source.width);const c=resized.getContext('2d');c.imageSmoothingEnabled=type!=='ecology';c.drawImage(source,0,0,resized.width,resized.height);source=resized;}
-  gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,texture);const filter=type==='ecology'?gl.NEAREST:gl.LINEAR;gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,filter);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,filter);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,source);colorGeneration++;
-  displayedSource=type;$('map-loading').textContent='';$('source-name').textContent={continents:'continents.png',marble:'Blue Marble · bluemarble-high.jpg',countries:'Natural Earth · 1:50m · de facto country boundaries.',terrain:'Shaded topographic map',ivory:'Ivory · sculpted paper',elevation:'Elevation · earth & sea',ecology:'Holdridge + marine zones'}[type];$('source-detail').textContent=type==='ecology'?'0.5° land · 1° ocean temperature · hexagonal cells':['ivory','elevation'].includes(type)?(compactDevice?'Precomputed terrain shading · 1,920 × 960':bakedSelection?'Precomputed surface & lighting · 4,096 × 2,048':'Derived from supplied heightfield · 5,400 × 2,700 overview'):`${originalWidth.toLocaleString()} × ${originalHeight.toLocaleString()} · equirectangular`;
+  gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,texture);const filter=type==='ecology'?gl.NEAREST:gl.LINEAR;gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,filter);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,filter);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,source);
+  displayedSource=type;$('map-loading').textContent='';$('source-name').textContent={continents:'continents.png',marble:'Blue Marble · bluemarble-high.jpg',countries:'Natural Earth · 1:50m · de facto country boundaries.',terrain:'Shaded topographic map',ivory:'Ivory · sculpted paper',elevation:'Elevation · earth & sea',ecology:'Holdridge + marine zones'}[type];$('source-detail').textContent=type==='ecology'?'0.5° land · 1° ocean temperature · hexagonal cells':['ivory','elevation'].includes(type)?'Derived from supplied heightfield':`${originalWidth.toLocaleString()} × ${originalHeight.toLocaleString()} · equirectangular`;
   draw();
  }catch(error){if(request!==mapRequest)return;$('map-source').value=displayedSource;updateMapUI();updateRelief();$('map-loading').textContent='Map could not load. Previous layer retained; select again to retry.';scheduleSave();}
 }
@@ -564,6 +578,7 @@ function applyMapOption(option,type){
   }else{
     for(const [id,value] of Object.entries(option.state))setOptionRange(id,value);
     for(const [id,value] of Object.entries(option.controls))setOptionControl(id,value);
+    $('lighting-preset').value=state.reliefHeight<=.8?'gentle':state.reliefHeight>=1.4?'dramatic':'sculpted';customApplied=null;
     updateMapSource();updateRelief();updateRiverLayer();draw();
   }
   syncOptionCards();
