@@ -2,25 +2,25 @@ import {renderLifezonesLegend} from './lifezones-legend.mjs?v=waves-1';
 import {fadedLegendColor} from './legend-colors.mjs';
 import {ProjectedLighting,lightingSettings,lightingKey,lightingPlan,lightingCovers} from './projected-lighting.mjs?v=zoom-layers-1';
 import {compactDevice,mobileFitRect} from './device-profile.mjs';
-import {readSharePath,sharePair,inferSharePair,presetSettings} from './share-routes.mjs?v=lifezones-bg-1';
+import {readSharePath,sharePair,inferSharePair,presetSettings} from './share-routes.mjs?v=ivory-rivers-1';
 import {initAnalytics,trackEvent} from './analytics.mjs';
 import {pngFromTiles,printPDF} from './map-export.mjs?v=pdf-resolution-1';
-import {fractalRegion,fractalOpacities,edgeKey} from './fractal-grid.mjs';
+import {fractalRegion,fractalEdgeOwners,visibleFractalLines,fractalDetailPlan,fineFractalTiles,fractalFineScale,fractalOpacities,edgeKey} from './fractal-grid.mjs?v=fractal-zoom-10';
 import {pointInLoops} from './gosper-fractal.mjs';
 import {circularMode} from './circular-projections.mjs';
 import {polygonOverlapsRect} from './interface-layout.mjs';
-import {ecologyGridGLSL,ecologyBridgeGLSL} from './ecology-grid.mjs?v=bridges-13';
+import {ecologyGridGLSL,ecologyBridgeGLSL} from './ecology-grid.mjs?v=river-detail-1';
 import {gosperScale,rotateLocal,subgridLevels} from './subgrid.mjs';
 import {decodeMapState,encodeMapState,distortionEnabled,restorePanelStates} from './map-state.mjs?v=layers-1';
 import {sphereAt,followPoint,geographicPoint} from './globe-drag.mjs?v=circular-2';
 import {makeArrangement,arrangementNames} from './arrangements.mjs?v=gosper-1';
-import {mapSource,landLegends,oceanLegend,missing,riverMask} from './map-layers.mjs?v=antarctic-polar-1-waves-1';
+import {mapSource,landLegends,oceanLegend,missing,riverMask} from './map-layers.mjs?v=antarctic-polar-1-waves-1-fills-1-river-solid-1';
 import {searchPresets} from './search-presets.mjs?v=rus-search-1';
 import {visibleTiles} from './tiling.mjs';
 import {makeGeometry,layouts,matching,canvasWorld,hex,world} from './geometry.mjs?v=circular-2';
 import {projectionGLSL} from './projection-shader.mjs?v=circular-2';
 import {ReliefRenderer,reliefRanges,reliefDefaults,reliefLooks} from './relief.mjs?v=layers-4';
-import {layoutOptions,styleOptions,layoutIcon} from './map-options.mjs?v=lifezones-bg-1';
+import {layoutOptions,styleOptions,layoutIcon} from './map-options.mjs?v=ivory-rivers-1';
 const $=id=>document.getElementById(id), canvas=$('map'),overlay=$('overlay'),ctx=overlay.getContext('2d');
 const classOptions=[3,6,10,15];
 const classCount=id=>classOptions[Math.max(0,Math.min(3,Math.round(+$(id).value)))];
@@ -61,6 +61,7 @@ ${projectionGLSL}
 ${ecologyGridGLSL}
 ${ecologyBridgeGLSL}
 uniform int overlayOnly;
+uniform int hexCategorical;
 void main(){if(felvClip==1){float fy=-flatPosition.y;float fx=flatPosition.x-sqrt(3.)*fy;if(fy<0.||fy>sqrt(3.)||fx< -1.||fx>5.)discard;}vec3 p=mapSphere(localPosition,regionIndex,weights,a,b,c,bias,blend);
  vec3 distortionColor=vec3(1.);
  #if HAS_DERIVATIVES
@@ -75,9 +76,10 @@ void main(){if(felvClip==1){float fy=-flatPosition.y;float fx=flatPosition.x-sqr
  distortionColor=mix(areaColor,vec3(.69,.12,.79),clamp(angular/90.,0.,1.)*.85);
  #endif
  vec2 uv=geographicUV(p,angles);float lon=(uv.x-.5)*2.*PI;float lat=(.5-uv.y)*PI;
- vec2 sourceUV=ecologyHex==1?geographicUV(ecologySphere(ecologyCenter(localPosition)),angles):uv;
+ bool useHex=ecologyHex==1||hexCategorical==1;
+ vec2 sourceUV=useHex?geographicUV(ecologySphere(ecologyCenter(localPosition)),angles):uv;
  vec3 source=texture2D(map,sourceUV).rgb;
- if(ecologyHex==1&&ecologyBridges>0)source=ecologyBridgedColor(localPosition,ecologyCenter(localPosition),source);
+ if(useHex&&ecologyBridges>0)source=ecologyBridgedColor(localPosition,ecologyCenter(localPosition),source);
  float sea=smoothstep(.17,.8,source.r);vec3 color=source;
  if(palette==0)color=mix(vec3(.14,.30,.35),vec3(.75,.86,.89),sea);
  if(palette==2)color=mix(vec3(.30,.64,.72),vec3(.075,.14,.20),sea);
@@ -85,7 +87,7 @@ void main(){if(felvClip==1){float fy=-flatPosition.y;float fx=flatPosition.x-sqr
  if(material==1)color=mix(vec3(.65,.75,.77),vec3(.88,.865,.80),smoothstep(materialSea-.003,materialSea+.003,surfaceHeight));
  if(material==2){float h=surfaceHeight;float land=smoothstep(materialSea-.003,materialSea+.003,h);float altitude=clamp((h-materialSea)/max(1.-materialSea,.01),0.,1.);vec3 low=mix(vec3(.49,.61,.46),vec3(.80,.76,.56),smoothstep(0.,.35,altitude));vec3 high=mix(vec3(.77,.70,.57),vec3(.97,.95,.88),smoothstep(.45,.95,altitude));vec3 earth=mix(low,high,smoothstep(.2,.65,altitude));color=mix(mix(vec3(.22,.43,.52),vec3(.65,.79,.78),clamp(h/max(materialSea,.01),0.,1.)),earth,land);}
 
- if(riversVisible==1){float river=texture2D(riverMap,uv).a;color=mix(color,vec3(.08,.34,.47),river*.78);}
+ if(riversVisible==1){vec2 riverUV=useHex?geographicUV(ecologySphere(riverCenter(localPosition)),angles):uv;float river=step(.5,texture2D(riverMap,riverUV).a);color=mix(color,vec3(.08,.34,.47),river);}
  if(material==0){float luma=dot(color,vec3(.299,.587,.114));color=mix(color,mix(vec3(luma),vec3(.78,.77,.72),.55),colorFade);}
  if(landCutout==1)color=mix(background,color,smoothstep(materialSea-.002,materialSea+.002,surfaceHeight));
  if(distortion>0)color=mix(color,distortionColor,distortionOpacity);
@@ -99,7 +101,7 @@ void main(){if(felvClip==1){float fy=-flatPosition.y;float fx=flatPosition.x-sqr
  }else gl_FragColor=vec4(color*tileAlpha,tileAlpha);
 }`;
 let program,uniforms={};
-if(gl){try{function shader(type,source){const s=gl.createShader(type);gl.shaderSource(s,source);gl.compileShader(s);if(!gl.getShaderParameter(s,gl.COMPILE_STATUS))throw Error(gl.getShaderInfoLog(s));return s;}program=gl.createProgram();gl.attachShader(program,shader(gl.VERTEX_SHADER,vs));gl.attachShader(program,shader(gl.FRAGMENT_SHADER,fs));gl.linkProgram(program);if(!gl.getProgramParameter(program,gl.LINK_STATUS))throw Error(gl.getProgramInfoLog(program));gl.useProgram(program);for(const u of ['size','view','gridRotation','angles','bias','blend','grid','gridWidth','gridColor','palette','map','heightMap','colorFade','landCutout','background','material','materialSea','riverMap','riversVisible','distortion','distortionOpacity','pixelScale','felvClip','overlayOnly','circularMode','ecologyHex','ecologyBridges','ecologyOcta','ecologyVertices[0]'])uniforms[u]=gl.getUniformLocation(program,u);buffer=gl.createBuffer();heightTexture=gl.createTexture();gl.activeTexture(gl.TEXTURE3);gl.bindTexture(gl.TEXTURE_2D,heightTexture);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);gl.texImage2D(gl.TEXTURE_2D,0,gl.LUMINANCE,1,1,0,gl.LUMINANCE,gl.UNSIGNED_BYTE,new Uint8Array([105]));riverTexture=gl.createTexture();gl.activeTexture(gl.TEXTURE1);gl.bindTexture(gl.TEXTURE_2D,riverTexture);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);gl.texImage2D(gl.TEXTURE_2D,0,gl.LUMINANCE,1,1,0,gl.LUMINANCE,gl.UNSIGNED_BYTE,new Uint8Array([0]));gl.activeTexture(gl.TEXTURE0);}catch(e){fail('The map renderer could not start: '+e.message);}}else fail('WebGL is unavailable. Enable hardware acceleration or open this app in a WebGL-capable browser.');
+if(gl){try{function shader(type,source){const s=gl.createShader(type);gl.shaderSource(s,source);gl.compileShader(s);if(!gl.getShaderParameter(s,gl.COMPILE_STATUS))throw Error(gl.getShaderInfoLog(s));return s;}program=gl.createProgram();gl.attachShader(program,shader(gl.VERTEX_SHADER,vs));gl.attachShader(program,shader(gl.FRAGMENT_SHADER,fs));gl.linkProgram(program);if(!gl.getProgramParameter(program,gl.LINK_STATUS))throw Error(gl.getProgramInfoLog(program));gl.useProgram(program);for(const u of ['size','view','gridRotation','angles','bias','blend','grid','gridWidth','gridColor','palette','map','heightMap','colorFade','landCutout','background','material','materialSea','riverMap','riversVisible','distortion','distortionOpacity','pixelScale','felvClip','overlayOnly','hexCategorical','circularMode','ecologyHex','ecologyBridges','ecologyOcta','ecologyVertices[0]'])uniforms[u]=gl.getUniformLocation(program,u);buffer=gl.createBuffer();heightTexture=gl.createTexture();gl.activeTexture(gl.TEXTURE3);gl.bindTexture(gl.TEXTURE_2D,heightTexture);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);gl.texImage2D(gl.TEXTURE_2D,0,gl.LUMINANCE,1,1,0,gl.LUMINANCE,gl.UNSIGNED_BYTE,new Uint8Array([105]));riverTexture=gl.createTexture();gl.activeTexture(gl.TEXTURE1);gl.bindTexture(gl.TEXTURE_2D,riverTexture);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);gl.texImage2D(gl.TEXTURE_2D,0,gl.LUMINANCE,1,1,0,gl.LUMINANCE,gl.UNSIGNED_BYTE,new Uint8Array([0]));gl.activeTexture(gl.TEXTURE0);}catch(e){fail('The map renderer could not start: '+e.message);}}else fail('WebGL is unavailable. Enable hardware acceleration or open this app in a WebGL-capable browser.');
 function rebuild(fit=true){
  const cm=circularMode(state.method);
  if(cm)state.arrangement=cm===1?'single':'double';
@@ -160,22 +162,42 @@ function resize(){if(exporting)return;headingBounds=null;const rect=$('stage').g
  if(!persistenceReady){if(restoredView&&!compactDevice){scale=restoredView.scale;state.zoom=restoredView.zoom;state.panX=restoredView.panX;state.panY=restoredView.panY;}else{fitView();const offset=shareSelection.layout.viewOffset;if(offset&&!compactDevice){state.panX=offset[0]*scale;state.panY=offset[1]*scale;}}persistenceReady=true;}else if(rotated&&!state.sidebarExpanded)fitView();draw();}
 function point(p,t){const v=rotateScreen(canvasWorld(p,t));return [w/2+v[0]*scale*state.zoom+state.panX,h/2+v[1]*scale*state.zoom+state.panY];}
 function draw(){if(exporting)return;scheduleSave();if(queued)return;queued=true;requestAnimationFrame(render);}
-let fractalGridKey=null,fractalPaths=[];
+let fractalGridKey=null,fractalPaths=[],fineFractalPaths=[],fineFractalBounds=null,fineFractalMask='';
 function drawFractalGrid(){
  if(!$('fractalgrid').checked||state.subgridWidth<=0)return;
- if(fractalGridKey!==meshSignature){
-  fractalGridKey=meshSignature;const strongest=new Map();
-  for(const t of arrangement.gridParents||visible)fractalRegion().lines.forEach((edges,level)=>{
-   for(const [a,b] of edges){const p=world(a,t),q=world(b,t),id=edgeKey(p,q),old=strongest.get(id);if(!old||level>old.level)strongest.set(id,{p,q,level});}
+ const detail=fractalDetailPlan(state.zoom),large=detail.large.some(a=>a>0),fine=detail.fine.some(a=>a>0),largeKey=meshSignature+'|'+fractalEdgeOwners(detail.large),fineMask=fractalEdgeOwners(detail.fine).join(',');
+ if(large>0&&fractalGridKey!==largeKey){
+  fractalGridKey=largeKey;const strongest=new Map();
+  const largeLines=visibleFractalLines(detail.large);
+  for(const t of arrangement.gridParents||visible)largeLines.forEach((edges,level)=>{
+   if(detail.large[level]===0)return;
+   for(const [a,b] of edges){const p=world(a,t),q=world(b,t),id=edgeKey(p,q),old=strongest.get(id);if(!old||detail.large[level]>detail.large[old.level])strongest.set(id,{p,q,level});}
   });
-  for(const [p,q] of arrangement.outlineEdges||[])strongest.set(edgeKey(p,q),{p,q,level:4});
   fractalPaths=fractalOpacities.map(()=>new Path2D());
   for(const {p,q,level} of strongest.values()){fractalPaths[level].moveTo(...p);fractalPaths[level].lineTo(...q);}
  }
+ if(fine>0){
+  const v=viewBounds(0),b=fineFractalBounds,vw=v.right-v.left,vh=v.top-v.bottom;
+  // Retain a margin around the viewport: normal dragging reuses all paths.
+  // Shrink the cache after a substantial zoom-in to keep stroke work bounded.
+  if(!b||fineMask!==fineFractalMask||v.left<b.left||v.right>b.right||v.bottom<b.bottom||v.top>b.top||(b.right-b.left)*(b.top-b.bottom)>4*vw*vh){
+   fineFractalMask=fineMask;
+   fineFractalBounds={left:v.left-vw*.2,right:v.right+vw*.2,bottom:v.bottom-vh*.2,top:v.top+vh*.2};
+   const strongest=new Map();
+   const fineLines=visibleFractalLines(detail.fine);
+   for(const t of fineFractalTiles(fineFractalBounds))fineLines.forEach((edges,level)=>{
+    if(detail.fine[level]===0)return;
+    for(const [a,b] of edges){const p=[a[0]*fractalFineScale+t.x,a[1]*fractalFineScale+t.y],q=[b[0]*fractalFineScale+t.x,b[1]*fractalFineScale+t.y],id=edgeKey(p,q),old=strongest.get(id);if(!old||detail.fine[level]>detail.fine[old.level])strongest.set(id,{p,q,level});}
+   });
+   fineFractalPaths=fractalOpacities.map(()=>new Path2D());
+   for(const {p,q,level} of strongest.values()){fineFractalPaths[level].moveTo(...p);fineFractalPaths[level].lineTo(...q);}
+  }
+ }
  const unit=scale*state.zoom;
  ctx.save();ctx.translate(w/2+state.panX,h/2+state.panY);ctx.rotate(state.gridRotation*Math.PI/180);ctx.scale(unit,-unit);
- ctx.strokeStyle=$('hex-grid-color').value;ctx.lineWidth=state.subgridWidth*Math.max(.65,unit*.0025)/unit;
- fractalPaths.forEach((path,level)=>{ctx.globalAlpha=fractalOpacities[level];ctx.stroke(path);});ctx.restore();
+ ctx.strokeStyle=$('hex-grid-color').value;ctx.lineWidth=Math.max(.75,state.subgridWidth*1.25)/unit;
+ if(large>0)fractalPaths.forEach((path,level)=>{if(detail.large[level]===0)return;ctx.globalAlpha=detail.large[level];ctx.stroke(path);});
+ if(fine>0)fineFractalPaths.forEach((path,level)=>{if(detail.fine[level]===0)return;ctx.globalAlpha=detail.fine[level];ctx.stroke(path);});ctx.restore();
 }
 function traceOutline(){ctx.beginPath();for(const loop of arrangement.outline){loop.forEach((p,i)=>i?ctx.lineTo(...point(p,{x:0,y:0,r:0})):ctx.moveTo(...point(p,{x:0,y:0,r:0})));ctx.closePath();}}
 function drawSubgrid(){
@@ -239,7 +261,8 @@ function drawIndicatrixes(){
 }
 function materialMode(){return displayedSource==='ivory'?'ivory':displayedSource==='elevation'?'elevation':'source';}
 function bindMaterialUniforms(){
- gl.uniform1i(uniforms.circularMode,circularMode(state.method));gl.uniform1i(uniforms.ecologyHex,displayedSource==='ecology'?1:0);gl.uniform1i(uniforms.ecologyBridges,hexBridgesEnabled);gl.uniform1i(uniforms.ecologyOcta,state.method==='octa'?1:0);gl.uniform3fv(uniforms['ecologyVertices[0]'],ecologyVertices);
+ const categoricalHex=state.zoom>=1.5&&(displayedSource==='continents'||displayedSource==='countries');
+ gl.uniform1i(uniforms.circularMode,circularMode(state.method));gl.uniform1i(uniforms.ecologyHex,displayedSource==='ecology'?1:0);gl.uniform1i(uniforms.hexCategorical,categoricalHex?1:0);gl.uniform1i(uniforms.ecologyBridges,hexBridgesEnabled);gl.uniform1i(uniforms.ecologyOcta,state.method==='octa'?1:0);gl.uniform3fv(uniforms['ecologyVertices[0]'],ecologyVertices);
  gl.uniform1f(uniforms.colorFade,legendFade());gl.uniform1i(uniforms.landCutout,$('relief-enabled').checked&&lightingControls().treatment==='land'&&relief?.ready?1:0);
  gl.uniform3fv(uniforms.background,[1,3,5].map(i=>parseInt($('background-color').value.slice(i,i+2),16)/255));
  gl.uniform1i(uniforms.material,['source','ivory','elevation'].indexOf(relief?.ready?materialMode():'source'));gl.uniform1f(uniforms.materialSea,appliedLighting().reliefSeaLevel/255);gl.activeTexture(gl.TEXTURE3);gl.bindTexture(gl.TEXTURE_2D,heightTexture);gl.uniform1i(uniforms.heightMap,3);gl.activeTexture(gl.TEXTURE0);
@@ -543,8 +566,8 @@ async function updateMapSource(){
  const request=++mapRequest,type=$('map-source').value;$('map-loading').textContent='Loading map…';
  try{let source=await mapSource(type,classCount('land-classes'),classCount('ocean-classes'));if(request!==mapRequest)return;
   const originalWidth=source.width,originalHeight=source.height,max=gl.getParameter(gl.MAX_TEXTURE_SIZE);
-  if(source.width>max){const resized=document.createElement('canvas');resized.width=max;resized.height=Math.round(source.height*max/source.width);const c=resized.getContext('2d');c.imageSmoothingEnabled=type!=='ecology';c.drawImage(source,0,0,resized.width,resized.height);source=resized;}
-  gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,texture);const filter=type==='ecology'?gl.NEAREST:gl.LINEAR;gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,filter);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,filter);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,source);
+  if(source.width>max){const resized=document.createElement('canvas');resized.width=max;resized.height=Math.round(source.height*max/source.width);const c=resized.getContext('2d');c.imageSmoothingEnabled=!['ecology','continents','countries'].includes(type);c.drawImage(source,0,0,resized.width,resized.height);source=resized;}
+  gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,texture);const filter=['ecology','continents','countries'].includes(type)?gl.NEAREST:gl.LINEAR;gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,filter);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,filter);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,source);
   displayedSource=type;$('map-loading').textContent='';$('source-name').textContent={continents:'continents.png',marble:'Blue Marble · bluemarble-high.jpg',countries:'Natural Earth · 1:50m · de facto country boundaries.',terrain:'Shaded topographic map',ivory:'Ivory · sculpted paper',elevation:'Elevation · earth & sea',ecology:'Holdridge + marine zones'}[type];$('source-detail').textContent=type==='ecology'?'0.5° land · 1° ocean temperature · 0.8° wave exposure':['ivory','elevation'].includes(type)?'Derived from supplied heightfield':`${originalWidth.toLocaleString()} × ${originalHeight.toLocaleString()} · equirectangular`;
   draw();
  }catch(error){if(request!==mapRequest)return;$('map-source').value=displayedSource;updateMapUI();updateRelief();$('map-loading').textContent='Map could not load. Previous layer retained; select again to retry.';scheduleSave();}

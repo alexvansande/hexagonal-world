@@ -6,6 +6,12 @@ import {gosperScale} from './subgrid.mjs';
 const sourceDegrees=.5,averageSphereScale=Math.sqrt(Math.PI/(3*Math.sqrt(3)/2));
 export const ecologyGridLevel=2*Math.ceil(Math.log(2*averageSphereScale/(sourceDegrees*Math.PI/180))/Math.log(7));
 export const ecologyHexRadius=gosperScale**ecologyGridLevel;
+// Two more Gosper subdivisions: seven times smaller across, same orientation.
+export const riverGridRefinement=7;
+export const riverHexRadius=ecologyHexRadius/riverGridRefinement;
+export function riverCellCenter(p){
+ return ecologyCellCenter(p.map(v=>v*riverGridRefinement)).map(v=>v/riverGridRefinement);
+}
 
 export function ecologyCellCenter([x,y]){
  const q=2*x/(3*ecologyHexRadius),r=(-x/3+y/Math.sqrt(3))/ecologyHexRadius,s=-q-r;
@@ -31,6 +37,7 @@ vec2 ecologyCenter(vec2 p){
  else if(error.y>error.z)rounded.y=-rounded.x-rounded.z;
  return radius*vec2(1.5*rounded.x,sqrt(3.)*(rounded.y+rounded.x*.5));
 }
+vec2 riverCenter(vec2 p){return ecologyCenter(p*${riverGridRefinement.toFixed(1)})/${riverGridRefinement.toFixed(1)};}
 vec2 hexCorner(float index){float angle=index*1.047197551197;return vec2(cos(angle),sin(angle));}
 vec3 planarWeights(vec2 p,vec2 a,vec2 b,vec2 c){
  float det=(b.y-c.y)*(a.x-c.x)+(c.x-b.x)*(a.y-c.y);

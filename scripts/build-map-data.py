@@ -35,22 +35,10 @@ with Dataset(ROOT/'data/sst.nc') as nc:
  thermal=np.where(np.isnan(temperatures),0,1+np.rint((np.clip(np.nan_to_num(temperatures),-5,58.5)+5)*4)).astype('uint8')
 packed=np.stack([hold,bathy,thermal],axis=-1)
 Image.fromarray(packed).save(OUT/'ecology-data-v2.png')
-# Country map: detailed source polygons, coherent color groups and explicit borders.
+# Reuse the standalone categorical builder; never paint borders into samples.
+import runpy
+runpy.run_path(str(ROOT/'scripts/build-country-map.py'))['build_country_map']()
 CW,CH=4320,2160
-palette=['#d8dfbb','#d8bca6','#c2d8d0','#dccb91','#b9cce0','#c5b9d2','#d3d7b1','#a8c5bd','#dec5c9']
-ids=raster([(s.shape.__geo_interface__,i+1) for i,s in enumerate(countries.iterShapeRecords())],CW,CH,'uint16')
-colors=np.zeros((len(countries)+1,3),dtype='uint8');colors[0]=[43,75,95]
-for i,rec in enumerate(countries.records(),1):
- color=palette[(int(rec['MAPCOLOR9'])-1)%9];colors[i]=[int(color[j:j+2],16) for j in [1,3,5]]
-image=Image.fromarray(colors[ids]);draw=ImageDraw.Draw(image)
-for shape in countries.shapes():
- parts=list(shape.parts)+[len(shape.points)]
- for lo,hi in zip(parts,parts[1:]):
-  points=shape.points[lo:hi]
-  for a,b in zip(points,points[1:]):
-   if abs(a[0]-b[0])>180:continue
-   draw.line([((a[0]+180)*CW/360,(90-a[1])*CH/180),((b[0]+180)*CW/360,(90-b[1])*CH/180)],fill='#456370',width=1)
-image.save(OUT/'countries.png')
 labels={int(rec['zone']):rec['desc_'] for rec in shapefile.Reader(str(hold_path)).records()}
 metadata={
  'ecologySize':[W,H], 'countrySize':[CW,CH], 'holdridgeClasses':labels,

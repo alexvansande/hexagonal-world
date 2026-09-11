@@ -139,18 +139,18 @@ export async function riverMask(levels=6,widthScale=1){
  const width=compactDevice?1440:4320,height=width/2;
  if(!riverCanvas){riverCanvas=document.createElement('canvas');riverCanvas.width=width;riverCanvas.height=height;}
  const canvas=riverCanvas,context=canvas.getContext('2d');context.clearRect(0,0,width,height);context.lineJoin='round';context.lineCap='round';
- for(const [rank,points] of paths){if(rank>levels)continue;context.globalAlpha=1;context.strokeStyle=`rgba(255,255,255,${rank<=3?1:rank<=6?.82:.62})`;context.lineWidth=widthScale*(width/4320)*(rank<=3?2.4:rank<=6?1.55:.95);context.beginPath();points.forEach(([lon,lat],i)=>{const x=(lon+180)/360*width,y=(90-lat)/180*height;i?context.lineTo(x,y):context.moveTo(x,y);});context.stroke();}
+ for(const [rank,points] of paths){if(rank>levels)continue;context.globalAlpha=1;context.strokeStyle='#ffffff';context.lineWidth=widthScale*(width/4320)*(rank<=3?2.4:rank<=6?1.55:.95);context.beginPath();points.forEach(([lon,lat],i)=>{const x=(lon+180)/360*width,y=(90-lat)/180*height;i?context.lineTo(x,y):context.moveTo(x,y);});context.stroke();}
  riverMaskKey=key;return canvas;
 }
 export async function mapSource(type,landCount=10,oceanCount=6){
  if(compactDevice){
-  const source=type==='ecology'?await ecologySource(landCount,oceanCount):await loadImage('maps/mobile/'+({terrain:'terrain.jpg',marble:'satellite.jpg',countries:'countries.png',ivory:'ivory.png',elevation:'elevation.png'}[type]||'continents.png'));
+  const source=type==='ecology'?await ecologySource(landCount,oceanCount):await loadImage('maps/mobile/'+({terrain:'terrain.jpg',marble:'satellite.jpg',countries:'countries.png?v=fills-1',ivory:'ivory.png',elevation:'elevation.png'}[type]||'continents.png'));
   return source;
  }
  return desktopSource(type,landCount,oceanCount);
 }
 async function desktopSource(type,landCount,oceanCount){
- if(type!=='ecology')return loadImage(type==='terrain'?'maps/topography.jpg':type==='marble'?'maps/bluemarble-high.jpg':type==='countries'?'maps/countries.png':'continents.png');
+ if(type!=='ecology')return loadImage(type==='terrain'?'maps/topography.jpg':type==='marble'?'maps/bluemarble-high.jpg':type==='countries'?'maps/countries.png?v=fills-1':'continents.png');
  return ecologySource(landCount,oceanCount);
 }
 async function ecologySource(landCount,oceanCount){

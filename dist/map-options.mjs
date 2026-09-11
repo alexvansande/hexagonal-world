@@ -346,7 +346,7 @@ export const styleOptions=[
       "line": 0.1,
       "grid": 30,
       "distortionOpacity": 0.75,
-      "riverWidth": 2.5,
+      "riverWidth": 1.25,
       "riverLevels": 12,
       "subgridWidth": 1,
       "graticuleWidth": 1

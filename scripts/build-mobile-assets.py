@@ -4,7 +4,7 @@ from PIL import Image
 import numpy as np
 root=Path(__file__).resolve().parents[1]/'dist'; out=root/'maps/mobile';out.mkdir(exist_ok=True)
 for source,name in [('continents.png','continents.png'),('maps/bluemarble-high.jpg','satellite.jpg'),('maps/topography.jpg','terrain.jpg'),('maps/countries.png','countries.png')]:
- im=Image.open(root/source).convert('RGB');im.thumbnail((1920,960),Image.Resampling.LANCZOS);im.save(out/name,**({'quality':86,'optimize':True} if name.endswith('.jpg') else {}))
+ im=Image.open(root/source).convert('RGB');im.thumbnail((1920,960),Image.Resampling.NEAREST if name=="countries.png" else Image.Resampling.LANCZOS);im.save(out/name,**({'quality':86,'optimize':True} if name.endswith('.jpg') else {}))
 h=Image.open(root/'maps/height/overview.png').convert('L').resize((1920,960),Image.Resampling.LANCZOS)
 z=np.asarray(h,dtype=float)
 # Lightweight source colours for the procedural desktop materials.
