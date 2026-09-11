@@ -2,9 +2,9 @@ const ns='http://www.w3.org/2000/svg',root=Math.sqrt(3),directions=[[1,0],[0,1],
 const key=([q,r])=>`${q},${r}`,add=(a,b)=>a.map((v,i)=>v+b[i]),position=([q,r])=>[root*(q+r/2),1.5*r],offset=(col,row)=>[col-Math.floor(row/2),row];
 const corners=Array.from({length:6},(_,i)=>[Math.cos((i-.5)*Math.PI/3),Math.sin((i-.5)*Math.PI/3)]),mid=i=>corners[i%6].map((v,k)=>(v+corners[(i+1)%6][k])/2);
 const triples=[offset(3,2),add(offset(3,2),[1,0]),add(offset(3,2),[0,1])],small=offset(6,3),pair=[offset(10,3),offset(11,3)],lake=offset(15,3),island=offset(12,10),pale=new Set([...triples,...pair,small,lake,...directions.map(d=>add(lake,d))].map(key));
-function classification(axial){if(key(axial)===key(island))return 0;if(pale.has(key(axial)))return 1;const [q,r]=axial,col=q+Math.floor(r/2);return +(r>=7&&col>=6||r>=9&&r<=11&&col>=3&&col<=6||r===8&&col===4);}
+function classification(axial){const [q,r]=axial,col=q+Math.floor(r/2);if(col<0||col>19||r<0||r>12)return 0;if(key(axial)===key(island))return 0;if(pale.has(key(axial)))return 1;return +(r>=7&&col>=6||r>=9&&r<=11&&col>=3&&col<=6||r===8&&col===4);}
 function patches(axial){const own=classification(axial),ring=directions.map(d=>classification(add(axial,d))),runs=ring.map((color,start)=>{let length=0;while(color!==own&&length<6&&ring[(start+length)%6]===color)length++;return {color,start,length};}),longest=Math.max(...runs.map(r=>r.length));return runs.filter(r=>r.length>=2&&r.length===longest).slice(0,longest===6?1:6);}
-const cells=[];for(let row=0;row<=12;row++)for(let col=0;col<20;col++)cells.push(offset(col,row));
+const cells=[];for(let row=0;row<=13;row++)for(let col=-1;col<=20;col++)cells.push(offset(col,row));
 let selected=triples[0];const scene=document.querySelector('#scene'),detail=document.querySelector('#detail'),view=document.querySelector('#view');
 function element(name,attrs={}){const el=document.createElementNS(ns,name);for(const [k,v] of Object.entries(attrs))el.setAttribute(k,v);return el;}
 function polygon(parent,points,attrs){const el=element('polygon',{points:points.map(p=>p.join(',')).join(' '),...attrs});parent.append(el);return el;}
@@ -22,7 +22,7 @@ function drawCell(parent,axial,at,{interactive=false,baseOnly=false,outline=fals
  if(interactive){const hit=polygon(g,corners,{class:'cell',fill:'transparent',tabindex:0,role:'button','aria-label':`Hex ${key(axial)}: ${own?'pale':'green'}, ${runs[0]?.length??0}-neighbor patch`});hit.addEventListener('click',()=>{selected=axial;render();});hit.addEventListener('keydown',event=>{if(event.key==='Enter'||event.key===' '){event.preventDefault();selected=axial;render();}});}
  return g;
 }
-const features=[['Three-hex lake',triples[0]],['Detached patch',add(triples[0],[-1,1])],['Two-hex lake',pair[0]],['Single-hex lake',small],['Seven-hex lake',lake],['Vertical run',offset(6,8)],['Horizontal run',offset(11,7)],['Island',island]];
+const features=[['Three-hex lake',triples[0]],['Detached patch',add(triples[0],[-1,1])],['Two-hex lake',pair[0]],['Single-hex lake',small],['Seven-hex lake',lake],['Vertical run',offset(6,8)],['Horizontal run',offset(11,7)],['Right boundary',offset(19,10)],['Bottom boundary',offset(14,12)],['Island',island]];
 for(const [name,axial] of features){const button=document.createElement('button');button.textContent=name;button.addEventListener('click',()=>{selected=axial;render();});document.querySelector('#features').append(button);}
 function render(){
  scene.replaceChildren();const totals={};
