@@ -75,6 +75,36 @@ export function oceanClass(exposure,thermal,count){
  if(!Number.isInteger(exposure)||exposure<0||exposure>4)return -1;
  return row*(row+1)/2+exposureCuts[row+1].filter(cut=>exposure>=cut).length;
 }
+// Fill display gaps once, before palette classification. A breadth-first flood
+// copies the nearest valid source field on this raster, wrapping longitude but
+// never latitude. Land, sea temperature and wave exposure use separate donors.
+export function fillEcologyGaps(pixels,width,height){
+ if(!Number.isInteger(width)||!Number.isInteger(height)||width<1||height<1||pixels.length!==width*height*4)throw Error('Invalid ecology raster dimensions');
+ const out=new Uint8ClampedArray(pixels),size=width*height;
+ let owner,queue;
+ const fill=(channel,isTarget,isValid)=>{
+  let remaining=0;for(let p=0;p<size;p++)if(isTarget(p*4)&&!isValid(p*4))remaining++;
+  if(!remaining)return;
+  owner??=new Int32Array(size);queue??=new Int32Array(size);owner.fill(0);
+  let head=0,tail=0;
+  for(let p=0;p<size;p++)if(isTarget(p*4)&&isValid(p*4)){owner[p]=p+1;queue[tail++]=p;}
+  const visit=(next,source)=>{
+   if(owner[next])return;
+   owner[next]=source;queue[tail++]=next;
+   const i=next*4;
+   if(isTarget(i)&&!isValid(i)){out[i+channel]=pixels[(source-1)*4+channel];remaining--;}
+  };
+  while(head<tail&&remaining){const p=queue[head++],x=p%width,source=owner[p];
+   visit(x? p-1:p+width-1,source);visit(x<width-1?p+1:p-width+1,source);
+   if(p>=width)visit(p-width,source);if(p+width<size)visit(p+width,source);
+  }
+ };
+ fill(0,i=>pixels[i]!==0,i=>pixels[i]>=1&&pixels[i]<=39);
+ fill(2,i=>pixels[i]===0,i=>pixels[i+2]>0);
+ fill(1,i=>pixels[i]===0,i=>pixels[i+1]<=4);
+ return out;
+}
+
 export const missing={name:'No source data',color:'#999ca3',detail:'Unmapped land or unavailable marine data; not a life-zone class'};
 const rgb=hex=>[1,3,5].map(i=>parseInt(hex.slice(i,i+2),16));
 export function paintEcology(pixels,landCount,oceanCount){
@@ -115,7 +145,7 @@ async function desktopSource(type,landCount,oceanCount){
 }
 async function ecologySource(landCount,oceanCount){
  const img=await loadImage('maps/ecology-waves.png'),canvas=document.createElement('canvas');canvas.width=img.width;canvas.height=img.height;const context=canvas.getContext('2d');
- if(!ecologyPixels){context.drawImage(img,0,0);ecologyPixels=context.getImageData(0,0,img.width,img.height).data;}
+ if(!ecologyPixels){context.drawImage(img,0,0);ecologyPixels=fillEcologyGaps(context.getImageData(0,0,img.width,img.height).data,img.width,img.height);}
  context.putImageData(new ImageData(paintEcology(ecologyPixels,landCount,oceanCount),img.width,img.height),0,0);
  return canvas;
 }

@@ -93,6 +93,14 @@ const midpointPatches=Array.from({length:6},(_,i)=>`
  }
 `).join('');
 
+const stackDirections=[[1,0],[0,1],[-1,1],[-1,0],[0,-1],[1,-1]];
+const stackCells=[];for(let q=-2;q<=2;q++)for(let r=-2;r<=2;r++)if(Math.max(Math.abs(q),Math.abs(r),Math.abs(q+r))<=2)stackCells.push([q,r]);
+const stackIndex=([q,r])=>stackCells.findIndex(c=>c[0]===q&&c[1]===r);
+const stackSample=stackCells.map(([q,r],i)=>`location=center+radius*vec2(${(1.5*q).toFixed(12)},${(Math.sqrt(3)*(r+q/2)).toFixed(12)});colors[${i}]=ecologyInside(location)?ecologySample(location):original;weights[${i}]=0.;`).join('\n');
+const stackWeights=stackDirections.map((_,i)=>`if(sector==${i}){${[[0,0],stackDirections[i],stackDirections[(i+1)%6]].map((origin,j)=>{
+ const weight=['wc','wa','wb'][j];return `weights[${stackIndex(origin)}]+=2.*${weight};`+stackDirections.map(d=>`weights[${stackIndex(d.map((v,k)=>v+origin[k]))}]+=${weight};`).join('');
+}).join('')}}`).join('\n');
+
 export const ecologyBridgeGLSL=`
 bool ecologyInside(vec2 p){p=abs(p);return p.y<=sqrt(3.)*.5&&sqrt(3.)*.5*p.x+.5*p.y<=sqrt(3.)*.5;}
 bool ecologySame(vec3 a,vec3 b){return all(lessThan(abs(a-b),vec3(.5/255.)));}
@@ -112,6 +120,21 @@ vec3 ecologyPairColor(vec2 p,vec2 center,vec3 original){
   }
  }
  return original;
+}
+// Shared linear class votes include every contributing color. An edge gets
+// the same result from either triangle, including at multi-color junctions.
+vec3 ecologyStraightColor(vec2 center,vec3 original,float radius,int sector,float wc,float wa,float wb){
+ vec3 colors[19];float weights[19];vec2 location;
+ ${stackSample}
+ ${stackWeights}
+ vec3 best=original;float bestScore=-1.;float bestKey=1.e9;
+ for(int candidate=0;candidate<19;candidate++){
+  float score=0.;
+  for(int sampleIndex=0;sampleIndex<19;sampleIndex++)if(ecologySame(colors[candidate],colors[sampleIndex]))score+=weights[sampleIndex];
+  float key=dot(colors[candidate],vec3(65536.,256.,1.));
+  if(score>bestScore||(score==bestScore&&key<bestKey)){best=colors[candidate];bestScore=score;bestKey=key;}
+ }
+ return best;
 }
 vec3 ecologyBridgedColor(vec2 p,vec2 center,vec3 original){
  if(ecologyBridges<2)return ecologyPairColor(p,center,original);
@@ -145,6 +168,7 @@ vec3 ecologyBridgedColor(vec2 p,vec2 center,vec3 original){
    // The island is replaced by its circle: no leftover original-color corners.
    if(circle)return wa>=wb?ca:cb;
    float wc=1.-wa-wb;
+   if(ecologyBridges==4)return ecologyStraightColor(center,original,radius,i,wc,wa,wb);
    float own=wc+(ecologySame(original,ca)?wa:0.)+(ecologySame(original,cb)?wb:0.);
    float sa=wa+(ecologySame(ca,original)?wc:0.)+(ecologySame(ca,cb)?wb:0.);
    float sb=wb+(ecologySame(cb,original)?wc:0.)+(ecologySame(cb,ca)?wa:0.);

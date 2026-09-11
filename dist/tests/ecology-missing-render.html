@@ -1,12 +1,16 @@
-<!doctype html><meta charset="utf-8"><title>Coastal climate data check</title><p id="result">Running…</p><script type="module">
-import {paintEcology} from '../map-layers.mjs?v=missing-land-1-waves-1';
+<!doctype html><meta charset="utf-8"><title>Climate gap filling check</title><p id="result">Running…</p><script type="module">
+import {paintEcology,fillEcologyGaps,landClass,oceanClass} from '../map-layers.mjs?v=neighbor-filled-1-waves-1';
 try{
  const image=new Image();image.src='../maps/ecology-waves.png';await image.decode();const canvas=document.createElement('canvas');canvas.width=image.width;canvas.height=image.height;const ctx=canvas.getContext('2d',{willReadFrequently:true});ctx.drawImage(image,0,0);
- // Mauritanian coast: native missing-land code must survive browser decoding
- // and must be shown as missing, not as an interpolated or polar class.
- const x=Math.floor((-16.125+180)/360*image.width),y=Math.floor((90-18.875)/180*image.height),raw=ctx.getImageData(x,y,1,1).data;
- if(raw[0]!==254)throw Error('Unexpected coastal raw class: '+raw[0]);
- for(const count of [3,6,10,15]){const result=paintEcology(raw,count,6);if(result[0]!==153||result[1]!==156||result[2]!==163)throw Error('Missing coast incorrectly classified');}
- document.querySelector('#result').textContent='PASS · Actual Mauritanian coastal pixel decodes as missing land (254) and stays gray in all four palettes.';
+ const raw=ctx.getImageData(0,0,image.width,image.height).data,start=performance.now(),filled=fillEcologyGaps(raw,image.width,image.height),elapsed=performance.now()-start;let repaired=0;
+ for(let i=0;i<raw.length;i+=4){
+  if(raw[i]!==filled[i]||raw[i+1]!==filled[i+1]||raw[i+2]!==filled[i+2])repaired++;
+  if(raw[i]>=1&&raw[i]<=39&&raw[i]!==filled[i])throw Error('Valid climate changed');
+  if((raw[i]===0)!==(filled[i]===0))throw Error('Land/sea mask changed');
+  for(const count of [3,6,10,15])if(filled[i]===0?oceanClass(filled[i+1],filled[i+2],count)<0:landClass(filled[i],count)<0)throw Error('Unfilled class at '+i/4);
+ }
+ const x=Math.floor((-16.125+180)/360*image.width),y=Math.floor((90-18.875)/180*image.height),offset=(y*image.width+x)*4;
+ if(raw[offset]!==254||filled[offset]<1||filled[offset]>39)throw Error('Coastal donor missing');
+ document.querySelector('#result').textContent='PASS · '+repaired+' source pixels filled in '+Math.round(elapsed)+' ms; no missing display classes in any palette, valid climates and land/sea mask preserved.';
 }catch(error){document.querySelector('#result').textContent='FAIL · '+error.message;}
 </script>

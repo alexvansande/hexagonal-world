@@ -1,0 +1,44 @@
+<!doctype html><meta charset="utf-8"><title>Straight stack checks</title><style>body{font:14px system-ui;color:#193c49}section{display:flex;gap:12px}canvas{width:220px;height:340px;object-fit:cover}h2{font-size:15px}</style><p id="result">Running…</p><script type="module">
+import {ecologyBridgeGLSL,ecologyHexRadius as radius} from '../ecology-grid.mjs?v=bridges-11';
+const size=480,root=Math.sqrt(3),colors=['#7e9e60','#5374af'],hex=Array.from({length:6},(_,i)=>[Math.cos(i*Math.PI/3),Math.sin(i*Math.PI/3)]);
+let checked=0;
+try{
+for(const pointUp of [false,true]){
+ const section=document.createElement('section');document.body.append(section);
+ const tilt=pointUp?Math.PI/6:0;
+ const source=document.createElement('canvas');source.width=source.height=1024;const ctx=source.getContext('2d');ctx.translate(512,512);ctx.scale(1024/48,1024/48);
+ for(let q=-20;q<=20;q++)for(let r=-20;r<=20;r++){
+  ctx.beginPath();hex.forEach(([x,y],i)=>{const p=[x+1.5*q,y+root*(r+q/2)];i?ctx.lineTo(...p):ctx.moveTo(...p);});ctx.closePath();ctx.fillStyle=colors[(pointUp?q-r:q)<0?0:1];ctx.fill();
+ }
+ for(const mode of [0,2,3,4]){
+  const box=document.createElement('div'),title=document.createElement('h2'),canvas=document.createElement('canvas');canvas.width=canvas.height=size;
+  title.textContent=(pointUp?'Point-up':'Flat-top')+' · '+['Original','', 'Shared','Midpoint','Straight stacks'][mode];box.append(title,canvas);section.append(box);
+ const gl=canvas.getContext('webgl',{preserveDrawingBuffer:true,antialias:false});
+ const compile=(type,code)=>{const s=gl.createShader(type);gl.shaderSource(s,code);gl.compileShader(s);if(!gl.getShaderParameter(s,gl.COMPILE_STATUS))throw Error(gl.getShaderInfoLog(s));return s;};
+ const fs=`precision highp float;varying vec2 point;uniform sampler2D map;uniform int circularMode;uniform int ecologyBridges;uniform vec3 angles;uniform float tilt;
+ vec2 hexCorner(float i){float a=i*1.047197551197;return vec2(cos(a),sin(a));}
+ vec3 ecologySphere(vec2 p){return vec3(p/${radius},0.);}
+ vec2 geographicUV(vec3 p,vec3 angles){return (p.xy+24.)/48.;}
+ ${ecologyBridgeGLSL}
+ void main(){vec2 screen=point*6.;vec2 p=vec2(cos(tilt)*screen.x+sin(tilt)*screen.y,-sin(tilt)*screen.x+cos(tilt)*screen.y);vec3 cube=vec3(2.*p.x/3.,-p.x/3.+p.y/sqrt(3.),0.);cube.z=-cube.x-cube.y;vec3 rounded=floor(cube+.5),error=abs(cube-rounded);if(error.x>error.y&&error.x>error.z)rounded.x=-rounded.y-rounded.z;else if(error.y>error.z)rounded.y=-rounded.x-rounded.z;
+ vec2 center=vec2(1.5*rounded.x,sqrt(3.)*(rounded.y+rounded.x*.5))*${radius};gl_FragColor=vec4(ecologyBridges==0?ecologySample(center):ecologyBridgedColor(p*${radius},center,ecologySample(center)),1.);}`;
+ const program=gl.createProgram();gl.attachShader(program,compile(gl.VERTEX_SHADER,'attribute vec2 position;varying vec2 point;void main(){point=position;gl_Position=vec4(position,0.,1.);}'));gl.attachShader(program,compile(gl.FRAGMENT_SHADER,fs));gl.linkProgram(program);if(!gl.getProgramParameter(program,gl.LINK_STATUS))throw Error(gl.getProgramInfoLog(program));gl.useProgram(program);
+ gl.uniform1i(gl.getUniformLocation(program,'ecologyBridges'),mode);gl.uniform1f(gl.getUniformLocation(program,'tilt'),tilt);gl.bindBuffer(gl.ARRAY_BUFFER,gl.createBuffer());gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,1,-1,-1,1,1,1]),gl.STATIC_DRAW);const attr=gl.getAttribLocation(program,'position');gl.enableVertexAttribArray(attr);gl.vertexAttribPointer(attr,2,gl.FLOAT,false,0,0);
+ gl.bindTexture(gl.TEXTURE_2D,gl.createTexture());for(const setting of [gl.TEXTURE_MIN_FILTER,gl.TEXTURE_MAG_FILTER])gl.texParameteri(gl.TEXTURE_2D,setting,gl.NEAREST);for(const setting of [gl.TEXTURE_WRAP_S,gl.TEXTURE_WRAP_T])gl.texParameteri(gl.TEXTURE_2D,setting,gl.CLAMP_TO_EDGE);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,source);gl.drawArrays(gl.TRIANGLE_STRIP,0,4);
+
+  if(mode===4){
+   const pixels=new Uint8Array(size*size*4);gl.readPixels(0,0,size,size,gl.RGBA,gl.UNSIGNED_BYTE,pixels);
+   const boundary=pointUp?-root/4:-.75,rgb=colors.map(c=>[1,3,5].map(i=>parseInt(c.slice(i,i+2),16)));
+   for(let y=20;y<size-20;y++)for(let x=20;x<size-20;x++){
+    const worldX=(x+.5)*12/size-6;if(Math.abs(worldX-boundary)<.03)continue;
+    const expected=rgb[worldX<boundary?0:1],offset=(y*size+x)*4;
+    if(expected.some((v,k)=>Math.abs(pixels[offset+k]-v)>1))throw Error((pointUp?'Point-up':'Flat-top')+' stack bent at '+x+','+y);
+    checked++;
+   }
+  }
+
+ }
+}
+document.querySelector('#result').textContent='PASS · '+checked+' pixels: both point-up and flat-top stacks form a single vertical boundary in Straight stacks.';
+}catch(error){document.querySelector('#result').textContent='FAIL · '+error.message;console.error(error);}
+</script>

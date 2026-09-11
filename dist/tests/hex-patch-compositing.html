@@ -1,5 +1,5 @@
 <!doctype html><meta charset="utf-8"><title>Hex patch compositing check</title><style>body{font:14px system-ui}canvas{width:480px;height:480px}section{display:flex;gap:12px}</style><p id="result">Running…</p><section><div>GPU map rules<br><canvas id="gpu" width="480" height="480"></canvas></div><div>Independent polygon drawing<br><canvas id="reference" width="480" height="480"></canvas></div></section><script type="module">
-import {ecologyBridgeGLSL,ecologyHexRadius as radius} from '../ecology-grid.mjs?v=bridges-9';
+import {ecologyBridgeGLSL,ecologyHexRadius as radius} from '../ecology-grid.mjs?v=bridges-11';
 const mode=new URLSearchParams(location.search).get('mode')==='3'?3:2;
 const result=document.querySelector('#result'),size=480,extent=6,root=Math.sqrt(3),dirs=[[1,0],[0,1],[-1,1],[-1,0],[0,-1],[1,-1]],pos=([q,r])=>[1.5*q,root*(r+q/2)],add=(a,b)=>a.map((v,i)=>v+b[i]),colors=['#42ad61','#5d88c9','#e0b358'];
 const key=([q,r])=>q+','+r,classification=([q,r])=>q===3&&r===-2?0:q===0&&r===0?2:q===-3&&(r===1||r===2)?1:q<0?0:1;

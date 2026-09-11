@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import {landClass,oceanClass,landLegends,landRows,oceanRows,oceanLegend,paintEcology} from './dist/map-layers.mjs';
+import {landClass,oceanClass,landLegends,landRows,oceanRows,oceanLegend,paintEcology,fillEcologyGaps} from './dist/map-layers.mjs';
 for(const n of [3,6,10,15]){assert.equal(landLegends[n].length,n);for(let raw=1;raw<=39;raw++)assert(landClass(raw,n)>=0&&landClass(raw,n)<n);assert.equal(landClass(254,n),-1);}
 for(const n of [3,6,10,15]){assert.equal(oceanLegend(n).length,n);for(let d=0;d<5;d++)for(let t=1;t<256;t++)assert(oceanClass(d,t,n)>=0&&oceanClass(d,t,n)<n);}
 const px=new Uint8ClampedArray([1,0,0,255,0,0,1,255,0,4,3,255,254,0,0,255]);const out=paintEcology(px,10,6);assert.equal(out.length,px.length);for(let i=0;i<out.length;i+=4)assert.equal(out[i+3],255);assert(out[0]!==1||out[1]!==0||out[2]!==0);
@@ -24,3 +24,15 @@ for(const count of [3,6,10,15]){
 }
 
 console.log('Triangular classes: row counts, complete land partitions, all ocean classes reachable, cold convergence and missing-data handling pass.');
+
+const rgba=values=>new Uint8ClampedArray(values.flatMap(v=>[...v,255]));
+const gaps=rgba([[25,0,0],[254,0,0],[0,4,100],[0,255,0],[0,1,80],[254,0,0]]),saved=new Uint8ClampedArray(gaps),filled=fillEcologyGaps(gaps,6,1);
+assert.deepEqual(gaps,saved,'Gap filling must not mutate source data');
+assert.equal(filled[4],25,'Land borrows a valid land class, not adjoining water');
+assert.equal(filled[20],25,'Donors wrap around the longitude seam');
+assert.equal(filled[13],4);assert.equal(filled[14],100);
+for(const p of [0,2,4])assert.deepEqual(filled.slice(p*4,p*4+4),gaps.slice(p*4,p*4+4),'Valid data stays unchanged');
+assert.deepEqual(fillEcologyGaps(rgba([[254,0,0]]),1,1),rgba([[254,0,0]]),'No donor means no invented class');
+assert.deepEqual([...fillEcologyGaps(rgba([[25,0,0],[254,0,0],[254,0,0],[254,0,0],[254,0,0]]),5,1)].filter((_,i)=>i%4===0),[25,25,25,25,25],'Flood crosses multi-cell gaps');
+assert.throws(()=>fillEcologyGaps(gaps,2,2));
+console.log('Ecology gaps: nearest valid fields, longitude wrapping, multiple-cell gaps, realm separation and unchanged source data pass.');
