@@ -1,0 +1,19 @@
+<!doctype html><meta charset="utf-8"><title>Lighting zoom check</title><p id="result">Running…</p><iframe style="width:900px;height:650px;border:0" src="../satellite/spaceship-earth/?lighting-check=1"></iframe><script type="module">
+const frame=document.querySelector('iframe'),result=document.querySelector('#result'),sleep=ms=>new Promise(r=>setTimeout(r,ms));
+if(new URLSearchParams(location.search).has('mobile'))frame.style.width='390px';
+const wait=async check=>{for(let i=0;i<300;i++){if(check())return;await sleep(100);}throw Error('Timed out: '+frame.contentDocument.querySelector('#relief-status')?.textContent);};
+try{
+ await wait(()=>frame.contentDocument?.querySelector('#map')?.dataset.lightingBakes);
+ const doc=frame.contentDocument,map=doc.querySelector('#map');
+ doc.querySelector('#fit').click();await wait(()=>doc.querySelector('#zoom-value').textContent==='100%');await sleep(700);
+ const overview=+map.dataset.lightingLevel;
+ for(let i=0;i<12;i++)doc.querySelector('#zoom-in').click();
+ await wait(()=>+map.dataset.lightingLevel>overview);await sleep(700);
+ const detail=+map.dataset.lightingLevel,bakes=+map.dataset.lightingBakes;
+ doc.querySelector('#shadowOpacity').value='.6';doc.querySelector('#shadowOpacity').dispatchEvent(new Event('input',{bubbles:true}));await sleep(500);
+ if(+map.dataset.lightingBakes!==bakes)throw Error('Opacity rebaked lighting');
+ doc.querySelector('#fit').click();await wait(()=>doc.querySelector('#zoom-value').textContent==='100%');await sleep(500);
+ if(+map.dataset.lightingBakes!==bakes)throw Error('Overview was not reused');
+ result.textContent=`PASS · overview level ${overview}, close-up level ${detail} (${2**detail}× density), ${bakes} bakes; opacity and returning to overview reuse cached images.`;
+}catch(e){result.textContent='FAIL · '+e.message;}
+</script>

@@ -1,6 +1,6 @@
 import {renderLifezonesLegend} from './lifezones-legend.mjs?v=waves-1';
 import {fadedLegendColor} from './legend-colors.mjs';
-import {ProjectedLighting,lightingSettings,lightingKey} from './projected-lighting.mjs?v=layers-4';
+import {ProjectedLighting,lightingSettings,lightingKey,lightingPlan,lightingCovers} from './projected-lighting.mjs?v=zoom-layers-1';
 import {compactDevice,mobileFitRect} from './device-profile.mjs';
 import {readSharePath,sharePair,inferSharePair,presetSettings} from './share-routes.mjs?v=lifezones-bg-1';
 import {initAnalytics,trackEvent} from './analytics.mjs';
@@ -34,7 +34,7 @@ let displayedSource='continents',mapRequest=0;
 let arrangement,tiling,visible=[],meshSignature=null,geometryKey=null,edgeLabels=[];
 const arrangementCache=new Map();
 let ecologyVertices,tiles,nets,net,scale=1,w=1,h=1,dpr=1,ready=false,queued=false,buffer,count=0,texture,heightTexture,riverTexture;
-let projectedLighting=null,customApplied=null;
+let projectedLighting=null,customApplied=null,lightingRefineTimer=null,lightingRefineKey=null,lightingReadyKey=null;
 let relief=null,riverGeneration=0,riverRequest=0,riverTimer=null,uploadedRiverKey=null;
 
 const notes={'lambert-one':'The whole world in one equal-area hexagon: a Lambert disk reshaped without changing area. The entire perimeter is the opposite pole. Inspired by Rus’s minimal hexagonal maps; this is not his triangular fold.', 'lambert-two':'Two equal-area hemispheres, each reshaped from a Lambert disk into a hexagon. All six boundary edges have matching counterparts. Rotate the globe to move the hemispheres.',tetra:'Four spherical triangles, each expanded into a six-sided region. Alternating corners preserve the original vertices and edge midpoints.',octa:'Four intact octants. Four divided octants. Each hexagon combines one central triangle with three neighboring pieces.',rhombic:'Twelve rhombi become four groups of three. Each diamond is stretched into a pair of equilateral triangles.',tetrakis:'Six pyramids on a cube create 24 triangles. Six triangles meet inside each hexagon; adjust the pyramid tips below.'};
@@ -282,29 +282,44 @@ function cachedLighting(){
  const settings=appliedLighting(),preset=$('lighting-preset').value,controls=lightingControls();
  if(preset==='none')return null;
  if(!projectedLighting)projectedLighting=new ProjectedLighting(gl);
- // Finite maps use a whole-map image; the honeycomb repeats a rectangular
- // period of its axial tiling, so even unlimited panning reuses one image.
+ // The overview covers finite maps or one repeating honeycomb period.
+ // Close-ups use bounded, non-repeating image windows at higher density.
  let b=bounds(),patch=[];
  if(tiling){b=[0,0,3*tiling.size,Math.sqrt(3)*tiling.size];patch=b;}
 
- const key=lightingKey(settings,preset,[$('interpolation').value,controls.treatment,controls.tone,$('rivers-visible').checked,riverGeneration,...patch]);
- const cached=projectedLighting.entries.get(key);if(cached)return cached;
- if(dragging)return null;
+ const baseKey=lightingKey(settings,preset,[$('interpolation').value,controls.treatment,controls.tone,$('rivers-visible').checked,riverGeneration,...patch]);
+ const pad=tiling?0:relief.padding(settings,100)/100+.15;
+ const baseRect=[b[0]-pad,-b[3]-pad,b[2]-b[0]+pad*2,b[3]-b[1]+pad*2];
+ const view={unit:scale*state.zoom,width:w,height:h,dpr,panX:state.panX,panY:state.panY};
+ let plan=lightingPlan(baseRect,{...view,compact:compactDevice,maxSize:Math.min(gl.getParameter(gl.MAX_TEXTURE_SIZE),gl.getParameter(gl.MAX_RENDERBUFFER_SIZE)),repeat:!!tiling});
+ const planKey=p=>baseKey+'/'+JSON.stringify([p.level,...p.rect]);
+ let key=planKey(plan);
+ const cached=projectedLighting.get(key);if(cached){canvas.dataset.lightingLevel=plan.level;return cached;}
+ const overviewKey=planKey({...plan,level:0,rect:baseRect});
+ const overview=projectedLighting.get(overviewKey);
+ const fallback=[...projectedLighting.entries.values()].filter(e=>e.baseKey===baseKey&&lightingCovers(e,view)).sort((a,b)=>b.level-a.level)[0]||overview;
+ if(dragging)return fallback||null;
+ // Keep the overview visible until zooming settles, then bake only the new view.
+ if(plan.level>0&&!exporting&&lightingReadyKey!==key){
+  if(lightingRefineKey!==key){clearTimeout(lightingRefineTimer);const requestedKey=key;lightingRefineKey=key;lightingRefineTimer=setTimeout(()=>{lightingReadyKey=requestedKey;lightingRefineKey=null;draw();},180);}
+  if(fallback)return fallback;
+  plan={level:0,density:Math.min(compactDevice?1000:2200,gl.getParameter(gl.MAX_TEXTURE_SIZE),gl.getParameter(gl.MAX_RENDERBUFFER_SIZE))/Math.max(baseRect[2],baseRect[3]),rect:baseRect,repeat:!!tiling};key=overviewKey;
+ }
  const saved={w,h,scale,dpr,zoom:state.zoom,panX:state.panX,panY:state.panY,cw:canvas.width,ch:canvas.height,gridRotation:state.gridRotation};
  let entry;
  try{
-  if(tiling){settings.reliefAzimuth+=state.gridRotation;settings.gridRotation=0;state.gridRotation=0;}
-  const pad=tiling?0:relief.padding(settings,100)/100+.15,rect=[b[0]-pad,-b[3]-pad,b[2]-b[0]+pad*2,b[3]-b[1]+pad*2];
-  scale=(compactDevice?1000:2200)/Math.max(rect[2],rect[3]);state.zoom=1;dpr=1;w=Math.ceil(rect[2]*scale);h=Math.ceil(rect[3]*scale);
+  if(plan.repeat){settings.reliefAzimuth+=state.gridRotation;settings.gridRotation=0;state.gridRotation=0;}
+  const rect=[...plan.rect];
+  scale=plan.density;state.zoom=1;dpr=1;w=Math.ceil(rect[2]*scale);h=Math.ceil(rect[3]*scale);
   rect[2]=w/scale;rect[3]=h/scale;state.panX=-rect[0]*scale-w/2;state.panY=-rect[1]*scale-h/2;canvas.width=w;canvas.height=h;meshSignature=null;updateVisibleMesh();
   const seams=[];for(const t of visible)for(let e=0;e<6;e++)if(t.bad[e]){const local=(e-t.r+6)%6;seams.push([canvasWorld(hex[local],t),canvasWorld(hex[(local+1)%6],t)]);}
   for(const edge of arrangement.seams||[])if(edge.error>1e-6)seams.push([[edge.a[0],-edge.a[1]],[edge.b[0],-edge.b[1]]]);
-  entry={rect,textures:[],repeat:!!tiling,angle:saved.gridRotation*Math.PI/180};
+  entry={rect,textures:[],repeat:plan.repeat,level:plan.level,baseKey,angle:saved.gridRotation*Math.PI/180};
   for(const lightingPass of [1,2]){
    relief.render({width:w,height:h,dpr:1,unit:scale,state:{...settings,panX:state.panX,panY:state.panY},blend:+$('interpolation').value,clip:arrangement.clip,material:'source',treatment:controls.treatment,tone:controls.tone,signature:key,drawColor:()=>{},drawGeometry,seams,riverTexture,riverVisible:$('rivers-visible').checked,riverDepth:settings.reliefRiverDepth,pixelBudget:compactDevice?1200000:5500000,refined:true,lightingPass});
    entry.textures.push(projectedLighting.snapshot());
   }
-  projectedLighting.store(key,entry);canvas.dataset.lightingBakes=projectedLighting.bakes;$('relief-status').textContent='Lighting layers ready';
+  projectedLighting.store(key,entry);canvas.dataset.lightingBakes=projectedLighting.bakes;canvas.dataset.lightingLevel=plan.level;canvas.dataset.lightingResolution=w+'×'+h;$('relief-status').textContent=plan.level?'Close-up lighting layers ready':'Lighting layers ready';
   return entry;
  }catch(error){for(const t of entry?.textures||[])gl.deleteTexture(t);$('relief-enabled').checked=false;$('relief-status').textContent='Lighting could not be prepared on this device.';console.warn('Lighting layers:',error);return null;}
  finally{w=saved.w;h=saved.h;scale=saved.scale;dpr=saved.dpr;state.zoom=saved.zoom;state.panX=saved.panX;state.panY=saved.panY;state.gridRotation=saved.gridRotation;canvas.width=saved.cw;canvas.height=saved.ch;meshSignature=null;relief.releaseDetail();}
