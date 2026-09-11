@@ -80,6 +80,19 @@ const chains=Array.from({length:6},(_,i)=>`
  }
 `).join('');
 
+// Midpoint experiment: keep all tied longest runs. Their smaller patches
+// occupy separate corners/sides, so competing colors need not overwrite them.
+const midpointPatches=Array.from({length:6},(_,i)=>`
+ if(valid[${i}]&&!ecologySame(colors[${i}],original)){
+  count=1;continuing=true;
+  ${Array.from({length:2},(_,j)=>{const n=(i+j+1)%6;return `continuing=continuing&&valid[${n}]&&ecologySame(colors[${i}],colors[${n}]);if(continuing)count++;`;}).join('')}
+  if(count==longest){
+   if(longest==2&&dot(offset,hexCorner(${i+1}.))>=.75)return colors[${i}];
+   if(longest==3&&dot(offset,hexCorner(${i+1.5}))>=sqrt(3.)*.25)return colors[${i}];
+  }
+ }
+`).join('');
+
 export const ecologyBridgeGLSL=`
 bool ecologyInside(vec2 p){p=abs(p);return p.y<=sqrt(3.)*.5&&sqrt(3.)*.5*p.x+.5*p.y<=sqrt(3.)*.5;}
 bool ecologySame(vec3 a,vec3 b){return all(lessThan(abs(a-b),vec3(.5/255.)));}
@@ -111,6 +124,11 @@ vec3 ecologyBridgedColor(vec2 p,vec2 center,vec3 original){
  ${chains}
  bool circle=longest>=3&&isolated&&complete;
  if(circle&&dot(offset,offset)<=.75)return original;
+ if(ecologyBridges==3&&!circle&&longest<=3){
+  ${midpointPatches}
+  return original;
+ }
+
  // Every three neighboring centers share one triangle. Sum their barycentric
  // weights by source class, so both sides choose the very same dividing line.
  // Independent, oversized cutouts can exchange colors across a shared edge.

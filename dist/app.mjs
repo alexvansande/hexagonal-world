@@ -9,7 +9,7 @@ import {fractalRegion,fractalOpacities,edgeKey} from './fractal-grid.mjs';
 import {pointInLoops} from './gosper-fractal.mjs';
 import {circularMode} from './circular-projections.mjs';
 import {polygonOverlapsRect} from './interface-layout.mjs';
-import {ecologyGridGLSL,ecologyBridgeGLSL} from './ecology-grid.mjs?v=bridges-8';
+import {ecologyGridGLSL,ecologyBridgeGLSL} from './ecology-grid.mjs?v=bridges-9';
 import {gosperScale,rotateLocal,subgridLevels} from './subgrid.mjs';
 import {decodeMapState,encodeMapState,distortionEnabled,restorePanelStates} from './map-state.mjs?v=layers-1';
 import {sphereAt,followPoint,geographicPoint} from './globe-drag.mjs?v=circular-2';
@@ -51,7 +51,7 @@ range('lighting-opacity-controls','shadowOpacity','Dark opacity',0,1,.01,1);
 range('lighting-opacity-controls','lightOpacity','Light opacity',0,1,.01,1);
 const customOption=$('lighting-preset').querySelector('[value=custom]');if(compactDevice)customOption.remove();
 const hexBridgeMode=new URLSearchParams(location.search).get('hex-bridges');
-const hexBridgesEnabled=hexBridgeMode==='0'?0:hexBridgeMode==='2'?2:1;
+const hexBridgesEnabled=hexBridgeMode==='0'?0:hexBridgeMode==='3'?3:hexBridgeMode==='2'?2:1;
 const gl=canvas.getContext('webgl',{antialias:true,alpha:true,preserveDrawingBuffer:true});
 function fail(message){$('error').hidden=false;$('error').textContent=message;$('status').textContent='Rendering unavailable';}
 const vs=`attribute vec2 regionPosition;attribute float region;varying vec2 localPosition;varying float regionIndex;varying vec2 flatPosition;attribute float opacity;varying float tileAlpha;attribute vec2 position;attribute vec3 bary;attribute vec3 va;attribute vec3 vb;attribute vec3 vc;uniform vec2 size;uniform vec3 view;uniform float gridRotation;varying vec3 weights;varying vec3 a;varying vec3 b;varying vec3 c;void main(){localPosition=regionPosition;regionIndex=region;flatPosition=position;float cr=cos(gridRotation),sr=sin(gridRotation);vec2 rotated=vec2(cr*position.x-sr*position.y,sr*position.x+cr*position.y);vec2 p=(rotated*view.x+view.yz)/size*2.0;gl_Position=vec4(p.x,-p.y,0.,1.);tileAlpha=opacity;weights=bary;a=va;b=vb;c=vc;}`;

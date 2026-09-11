@@ -1,9 +1,10 @@
 <!doctype html><html><head><meta charset="utf-8"><title>Connected hexes experiment</title><style>
 body{margin:0;background:#d9d3d3;color:#193c49;font:14px system-ui}header{height:64px;box-sizing:border-box;padding:10px 20px;display:flex;align-items:center;gap:20px}h1{font-size:18px;margin:0}p{margin:0}button,a{color:inherit}button{padding:8px 12px}iframe{border:0;width:100%;height:calc(100vh - 64px)}
-</style></head><body><header><h1>Connected hexes</h1><label>Compare <select id="mode"><option value="2">Shared boundaries + circles</option><option value="1">Bridges only</option><option value="0">Original hexes</option></select></label><p id="status">Preparing close-up…</p></header><iframe title="Interactive hex bridge preview"></iframe><script type="module">
+</style></head><body><header><h1>Connected hexes</h1><label>Compare <select id="mode"><option value="3">Midpoint patches + circles</option><option value="2" selected>Shared boundaries + circles</option><option value="1">Bridges only</option><option value="0">Original hexes</option></select></label><p id="status">Preparing close-up…</p></header><iframe title="Interactive hex bridge preview"></iframe><script type="module">
 import {encodeMapState,decodeMapState} from '../map-state.mjs';
 const frame=document.querySelector('iframe'),choice=document.querySelector('select'),status=document.querySelector('#status');let first=true;
-frame.src='../index.html?hex-bridges=2';
+const initialMode=new URLSearchParams(location.search).get('mode')==='3'?'3':'2';choice.value=initialMode;
+frame.src='../index.html?hex-bridges='+initialMode;
 const delay=ms=>new Promise(r=>setTimeout(r,ms));
 frame.onload=async()=>{
  const win=frame.contentWindow,doc=win.document;
@@ -13,7 +14,7 @@ frame.onload=async()=>{
   // and decorative grids obscuring the cell boundary comparison.
   const saved=decodeMapState(win.location.hash.slice(3));saved.controls['relief-enabled']=false;saved.controls['rivers-visible']=false;saved.controls.subgrid=false;saved.controls.dotgrid=false;saved.state.reliefColorFade=0;
   saved.view.zoom=12;saved.view.panX*=12;saved.view.panY*=12;
-  frame.src='../index.html?hex-bridges=2#m='+encodeMapState(saved);return;
+  frame.src='../index.html?hex-bridges='+choice.value+'#m='+encodeMapState(saved);return;
  }
  status.textContent='Pan and zoom to explore · comparison keeps your position';
 };
