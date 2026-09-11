@@ -103,8 +103,8 @@ const drawnPatches=Array.from({length:6},(_,i)=>`
    if(longest==2&&dot(offset,hexCorner(${i+1}.))>=.75)return colors[${i}];
    if(longest==3&&dot(offset,hexCorner(${i+1.5}))>=sqrt(3.)*.25)return colors[${i}];
    if(longest==4||longest==5){
-    float angle=mod(atan(offset.y,offset.x)-${i}. *1.047197551197+12.56637061436,6.28318530718);
-    if(dot(offset,offset)<1.e-12||angle<=float(longest)*1.047197551197)return colors[${i}];
+    float angle=mod(atan(offset.y,offset.x)-${i+.5}*1.047197551197+12.56637061436,6.28318530718);
+    if(dot(offset,offset)<1.e-12||angle<=float(longest-1)*1.047197551197)return colors[${i}];
    }
   }
  }

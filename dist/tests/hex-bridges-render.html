@@ -1,5 +1,5 @@
 <!doctype html><meta charset="utf-8"><title>Hex bridge checks</title><p id="result">Running…</p><canvas width="128" height="128"></canvas><script type="module">
-import {ecologyBridgeGLSL,ecologyHexRadius as r} from '../ecology-grid.mjs?v=bridges-12';
+import {ecologyBridgeGLSL,ecologyHexRadius as r} from '../ecology-grid.mjs?v=bridges-13';
 const result=document.querySelector('p'),gl=document.querySelector('canvas').getContext('webgl',{preserveDrawingBuffer:true});
 const assert=(v,m)=>{if(!v)throw Error(m);};
 try{
@@ -82,7 +82,7 @@ try{
   }):null;
   const drawnPolygons=mode===5?runs.filter(r=>r.length===run.length&&r.length>=2).map(r=>{
    const mid=i=>corner(i).map((v,k)=>(v+corner(i+1)[k])/2);
-   const points=r.length<=3?[mid(r.start),...Array.from({length:r.length-1},(_,i)=>corner(r.start+i+1)),mid(r.start+r.length-1)]:[[0,0],...Array.from({length:r.length+1},(_,i)=>corner(r.start+i))];
+   const points=r.length===6?Array.from({length:6},(_,i)=>corner(i)):[...(r.length>=4?[[0,0]]:[]),mid(r.start),...Array.from({length:r.length-1},(_,i)=>corner(r.start+i+1)),mid(r.start+r.length-1)];
    return {color:r.color,points};
   }):null;
   for(let y=0;y<128;y+=2)for(let x=0;x<128;x+=2){
