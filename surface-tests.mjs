@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import {existsSync} from 'node:fs';
 import {layoutOptions,styleOptions} from './dist/map-options.mjs';
-import {surfacePreset,surfaceLevel,surfaceTileRect,clipSurfaceTriangle} from './dist/precomputed-surfaces.mjs';
+import {PrecomputedSurfaces,surfacePreset,surfaceLevel,surfaceTileRect,clipSurfaceTriangle} from './dist/precomputed-surfaces.mjs';
 for(const layout of layoutOptions)for(const style of styleOptions){
  const state={...layout.state,...style.state};
  const entry=surfacePreset(state,style.source,style.controls['land-classes'],style.controls['ocean-classes']);
@@ -31,3 +31,31 @@ for(let level=0;level<=4;level++){
  assert(Math.abs(area-2)<1e-10,'Clipped tiles retain triangle area and projection attributes');
 }
 console.log('Default surfaces: all 64 presets, complete zoom pyramids, custom fallback and gap-free clipped geometry pass.');
+// Hold network responses so the order is deterministic, including rapid switches.
+const originalFetch=globalThis.fetch,originalBitmap=globalThis.createImageBitmap;
+const requests=[],responses=[];
+const gpu={createTexture:()=>({}),activeTexture(){},bindTexture(){},texParameteri(){},texImage2D(){},deleteTexture(){}};
+try{
+ globalThis.fetch=url=>{requests.push(url);return new Promise(resolve=>responses.push(()=>resolve({ok:true,blob:async()=>({})})));};
+ globalThis.createImageBitmap=async()=>({close(){}});
+ const cache=new PrecomputedSurfaces(gpu,()=>{}),entry={path:'first',regions:4};
+ assert.equal(cache.prepare(entry),false);
+ assert.equal(requests.length,4);assert(requests.every(url=>url.endsWith('/0/0-0.webp')),'All regions start with previews');
+ cache.get(entry,0,0,0,0);assert.equal(requests.length,4,'Pending preview requests are deduplicated');
+ for(const resolve of responses.splice(0))resolve();
+ await new Promise(resolve=>setImmediate(resolve));
+ assert.equal(cache.prepare(entry),true);
+ assert.deepEqual(cache.get(entry,0,2,1,1).rect,[-1,-1,2,2],'Preview remains visible while detail loads');
+ for(let x=0;x<4;x++)cache.get(entry,0,2,x,2);
+ assert(cache.queue.length>0);
+ const next={path:'next',regions:2};cache.prepare(next);
+ assert(cache.queue.every(job=>job.key.startsWith('next/')),'Switching styles drops obsolete queued detail');
+ assert(![...cache.pending].some(key=>key.startsWith('first/')&&cache.queue.some(job=>job.key===key)));
+ for(const resolve of responses.splice(0))resolve();
+ await new Promise(resolve=>setImmediate(resolve));
+ assert(requests.slice(-2).every(url=>url.startsWith('maps/surfaces/next/')),'New previews take priority over old detail');
+ for(const resolve of responses.splice(0))resolve();
+ await new Promise(resolve=>setImmediate(resolve));
+ assert.equal(cache.pending.size,0);
+ console.log('Progressive surfaces: previews first, detail fallback, deduplication and style-switch priority pass.');
+}finally{globalThis.fetch=originalFetch;globalThis.createImageBitmap=originalBitmap;}

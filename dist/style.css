@@ -107,7 +107,8 @@ body:not(.customizing) #customize:hover{background:#dfeaed}
 aside{overscroll-behavior:contain}
 @media(max-width:700px){
  .map-heading{top:calc(24px + env(safe-area-inset-top));left:calc(12px + env(safe-area-inset-left));max-width:calc(100vw - 24px - env(safe-area-inset-left) - env(safe-area-inset-right))}
- .map-heading h1{font-size:clamp(30px,8.5vw,42px)}
+ .map-heading h1{font-size:clamp(36px,11vw,56px)}
+ .map-heading p{font-size:clamp(11px,3vw,14px)}
  .view-tools{left:calc(12px + env(safe-area-inset-left));right:calc(12px + env(safe-area-inset-right));bottom:calc(12px + env(safe-area-inset-bottom));max-width:none;justify-content:space-between}
  .view-tools button{min-height:44px;min-width:44px;padding:8px}
  .view-tools .segmented{padding-right:4px;margin-right:0}
@@ -179,5 +180,9 @@ aside{overscroll-behavior:contain}
  #error button{display:block;margin-top:12px}
 }
 @media(max-width:700px),(max-width:1000px) and (max-height:500px){.customizing #legend-toggle{display:none}}
+@media(max-width:700px) and (orientation:portrait){
+ body:not(.customizing) aside{right:calc(12px + env(safe-area-inset-right));width:auto}
+ #legend-toggle:not([hidden]){top:calc(150px + env(safe-area-inset-top))}
+}
 
 .floating-legend-clusters.lifezones-legend{display:block;width:440px;max-width:100%;box-sizing:border-box}#mobile-legend-content .lifezones-legend svg{width:100%}

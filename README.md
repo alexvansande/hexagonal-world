@@ -198,7 +198,7 @@ The style panel contains Lifezones, Satellite, Elevation, Political, Topographic
 
 Lifezones' 1,440 × 720 encoded image contains land classifications from a 0.5° source and ocean temperature zones from a 1° source. Upscaling cannot add classification detail. The display samples those classes at hexagonal cell centers, using the sixth generation of the same Gosper grid as the subgrid (radius 1/343 of a parent hexagon). This is the first even generation whose nominal spherical cell diameter fits the land source resolution. The cells stay aligned with the map during pan, zoom, and grid rotation, and use the current projection to sample geography. Relief and rivers retain their original sampling detail. This changes the visible pixel shape, not the information in the source data.
 
-To refresh thumbnails, run `python3 scripts/save-style-thumbnails.py` alongside the app and open `/tests/style-thumbnails.html?save=1`. It renders all eight styles with a common map view and saves 480 × 272 PNGs locally. Stop the thumbnail writer afterward.
+To refresh thumbnails, run `python3 scripts/save-style-thumbnails.py` alongside the app and open `/tests/style-thumbnails.html?save=1`. It renders all eight styles with a common map view and saves 480 × 272 PNGs locally. Stop the thumbnail writer afterward, then run `python3 scripts/build-style-thumbnails-webp.py`. The site serves the resulting 240px and 480px WebP images according to the card size and screen density, loading the larger version when the options panel needs it.
 
 Runtime assets are included under `dist/`. The original downloaded inputs under `data/` are retained locally and ignored by Git; the offline preparation scripts use them to regenerate the derived assets. Source attribution and processing details are recorded in `dist/maps/sources.json` and `dist/maps/height/manifest.json`.
 
@@ -266,6 +266,12 @@ Projection/orientation, interpolation, bridge rules, or Lifezones classification
 changes use the original live renderer. Returning to a default restores the
 pre-rendered path. Background, opacity and overlay changes can reuse base tiles.
 The manifest records the baked projection settings to reject stale orientations.
+
+The renderer starts without downloading an unrelated continent texture. All
+regions load their 256px overview tiles before requesting sharper visible tiles;
+the overview stays visible during refinement. Switching presets removes obsolete
+queued detail requests and prioritizes the new previews. Phone portrait controls
+span the screen with equal safe-area margins, and the title/subtitle are enlarged.
 
 To regenerate, run the local preview on port 4173, install Playwright for Node
 and Pillow + NumPy for Python, then run `node scripts/build-surface-tiles.mjs`.

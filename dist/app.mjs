@@ -1,4 +1,4 @@
-import {PrecomputedSurfaces,surfacePreset,surfaceLevel,surfaceTileRect,clipSurfaceTriangle} from './precomputed-surfaces.mjs?v=1';
+import {PrecomputedSurfaces,surfacePreset,surfaceLevel,surfaceTileRect,clipSurfaceTriangle} from './precomputed-surfaces.mjs?v=preview-first-1';
 import {renderLifezonesLegend} from './lifezones-legend.mjs?v=waves-1';
 import {fadedLegendColor} from './legend-colors.mjs';
 import {ProjectedLighting,lightingSettings,lightingKey,lightingPlan,lightingCovers} from './projected-lighting.mjs?v=zoom-layers-1';
@@ -273,7 +273,9 @@ function selectedSurface(){return surfacePreset(state,displayedSource,classCount
 function drawPrecomputedSurface(){
  const entry=selectedSurface();if(!entry||(new URLSearchParams(location.search).has('bake-surfaces')||new URLSearchParams(location.search).get('surface')==='live')){canvas.dataset.surface='live';return false;}
  if(!surfaceCache)surfaceCache=new PrecomputedSurfaces(gl,draw);
- const level=surfaceLevel(scale*state.zoom*dpr,entry.maxLevel),n=2**level;
+ const previewsReady=surfaceCache.prepare(entry);
+ const level=previewsReady?surfaceLevel(scale*state.zoom*dpr,entry.maxLevel):0,n=2**level;
+ canvas.dataset.surfacePreview=String(!previewsReady);
  canvas.dataset.surface='precomputed';canvas.dataset.surfaceLevel=level;
  const savedBuffer=buffer,savedCount=count;
  gl.uniform1i(uniforms.bakedOn,1);
@@ -487,7 +489,15 @@ async function exportMap(){
  finally{w=saved.w;h=saved.h;dpr=saved.dpr;state.panX=saved.panX;state.panY=saved.panY;out.width=out.height=1;relief?.releaseDetail();exporting=false;main.inert=false;dialog.close();button.disabled=false;meshSignature=null;resize();}
 }
 $('export').onclick=exportMap;
-const img=new Image();img.onload=()=>{if(!gl||!program)return;texture=gl.createTexture();gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,texture);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);let source=img;const max=gl.getParameter(gl.MAX_TEXTURE_SIZE);if(img.width>max){source=document.createElement('canvas');source.width=max;source.height=Math.round(img.height*max/img.width);source.getContext('2d').drawImage(img,0,0,source.width,source.height);}gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,source);ready=true;updateOptimizerUI();if($('optimize').checked)applySearch();updateRiverLayer();updateMapSource();draw();};img.onerror=()=>fail('The continent texture could not be loaded. Reload the app to try again.');img.src=compactDevice?'maps/mobile/continents.png':'continents.png';
+function initializeMapTexture(){
+ if(!gl||!program)return;
+ // The selected source loads below; an unrelated continent image must not block it.
+ texture=gl.createTexture();gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,texture);
+ for(const name of [gl.TEXTURE_WRAP_S,gl.TEXTURE_WRAP_T])gl.texParameteri(gl.TEXTURE_2D,name,gl.CLAMP_TO_EDGE);
+ for(const name of [gl.TEXTURE_MIN_FILTER,gl.TEXTURE_MAG_FILTER])gl.texParameteri(gl.TEXTURE_2D,name,gl.LINEAR);
+ gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,1,1,0,gl.RGBA,gl.UNSIGNED_BYTE,new Uint8Array([0,0,0,0]));
+ ready=true;updateOptimizerUI();if($('optimize').checked)applySearch();updateRiverLayer();updateMapSource();draw();
+}
 canvas.addEventListener('webglcontextlost',e=>{e.preventDefault();ready=false;fail('Graphics were interrupted. Your map settings are saved.');const retry=document.createElement('button');retry.textContent='Restore map';retry.onclick=()=>location.reload();$('error').append(retry);});
 
 function setRotation(angles){for(const id of ['lon','lat','roll']){state[id]=angles[id];$(id).value=angles[id];$(id+'-value').value=angles[id].toFixed(2)+'°';}draw();}
@@ -666,14 +676,14 @@ function installColumnOptions(){
   const layoutBox=document.createElement('div');layoutBox.className='layout-presets';layoutBox.setAttribute('aria-label','Map format options');
   const styleBox=document.createElement('div');styleBox.className='style-presets';styleBox.setAttribute('aria-label','Map style options');
   for(const option of layoutOptions){const card=document.createElement('button');card.type='button';card.className='layout-preset-card';card.title='Use '+option.name+' format';card.dataset.arrangement=option.arrangement;card.setAttribute('aria-label',option.name);card.append(layoutIcon(option));const label=document.createElement('b');label.textContent=option.name;card.append(label);card.onclick=()=>applyMapOption(option,'layout');layoutBox.append(card);}
-  for(const option of styleOptions){const card=document.createElement('button');card.type='button';card.className='style-preset-card';card.title='Use '+option.name+' style';card.dataset.source=option.source;card.dataset.style=option.id;card.setAttribute('aria-label',option.name);const thumb=document.createElement('img');thumb.className='style-thumb';thumb.src=option.thumbnail+(option.id==='lifezones'?'?v=waves-2':'?v=triangular-1');thumb.alt='';thumb.loading='lazy';thumb.width=240;thumb.height=136;const label=document.createElement('b');label.textContent=option.name;card.append(thumb,label);card.onclick=()=>applyMapOption(option,'style');styleBox.append(card);}
+  for(const option of styleOptions){const card=document.createElement('button');card.type='button';card.className='style-preset-card';card.title='Use '+option.name+' style';card.dataset.source=option.source;card.dataset.style=option.id;card.setAttribute('aria-label',option.name);const thumb=document.createElement('img');thumb.className='style-thumb';thumb.loading='lazy';thumb.decoding='async';thumb.sizes='86px';thumb.srcset=option.thumbnail.replace('.png','-240.webp')+' 240w, '+option.thumbnail.replace('.png','-480.webp')+' 480w';thumb.src=option.thumbnail.replace('.png','-240.webp');thumb.alt='';thumb.width=240;thumb.height=136;const label=document.createElement('b');label.textContent=option.name;card.append(thumb,label);card.onclick=()=>applyMapOption(option,'style');styleBox.append(card);}
   intro.after(layoutHeading,layoutBox,styleHeading,styleBox);
   document.querySelectorAll('aside details').forEach(el=>{el.open=false;});
 }
 installColumnOptions();
 
 restoreSettings(readMapStateFromUrl()||presetSettings(shareSelection));
-initAnalytics(shareSelection.path);setSidebarExpanded(state.sidebarExpanded,false);rebuild(false);
+initAnalytics(shareSelection.path);setSidebarExpanded(state.sidebarExpanded,false);rebuild(false);initializeMapTexture();
 document.querySelectorAll('aside details').forEach(el=>el.addEventListener('toggle',scheduleSave));
 new ResizeObserver(resize).observe($('stage'));
 updateRelief();
@@ -693,6 +703,7 @@ function syncOptionCards(){
 function setSidebarExpanded(expanded,focus=true){
  state.sidebarExpanded=expanded;document.body.classList.toggle('customizing',expanded);
  $('customize').setAttribute('aria-expanded',String(expanded));headingBounds=null;
+ document.querySelectorAll('.style-thumb').forEach(image=>{image.sizes=expanded?'(max-width: 700px) calc((100vw - 72px) / 2), (max-width: 1000px) and (max-height: 500px) calc((100vw - 72px) / 2), 140px':'86px';});
  if(focus){$(expanded?'collapse-customize':'customize').focus();draw();}
 }
 $('customize').onclick=()=>setSidebarExpanded(true);

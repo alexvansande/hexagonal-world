@@ -16,10 +16,22 @@ export function surfaceLevel(density,maxLevel){return Math.min(maxLevel,Math.max
 export function surfaceTileRect(level,x,y){const span=2/(2**level);return [-1+x*span,1-(y+1)*span,span,span];}
 export class PrecomputedSurfaces{
  constructor(gl,redraw){this.gl=gl;this.redraw=redraw;this.cache=new Map();this.pending=new Set();this.queue=[];this.active=0;this.clock=0;this.requests=0;this.failures=new Set();}
+ prepare(entry){
+  // Give every region a low-resolution image before spending bandwidth on detail.
+  if(this.entryPath!==entry.path){
+   this.entryPath=entry.path;
+   this.queue=this.queue.filter(job=>{if(job.key.startsWith(entry.path+'/'))return true;this.pending.delete(job.key);return false;});
+  }
+  let ready=true;
+  for(let region=0;region<entry.regions;region++){
+   if(!this.tile(entry,region,0,0,0)&&!this.failures.has(`${entry.path}/${region}/0/0-0`))ready=false;
+  }
+  return ready;
+ }
  tile(entry,region,level,x,y){
   const key=`${entry.path}/${region}/${level}/${x}-${y}`;
   const cached=this.cache.get(key);if(cached){cached.used=++this.clock;return cached;}
-  if(!this.pending.has(key)&&!this.failures.has(key)){this.pending.add(key);this.queue.push({key});this.pump();}
+  if(!this.pending.has(key)&&!this.failures.has(key)){this.pending.add(key);if(level===0)this.queue.unshift({key});else this.queue.push({key});this.pump();}
   return null;
  }
  pump(){while(this.active<4&&this.queue.length){const {key}=this.queue.shift();this.active++;this.requests++;
