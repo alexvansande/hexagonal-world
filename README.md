@@ -273,6 +273,13 @@ the overview stays visible during refinement. Switching presets removes obsolete
 queued detail requests and prioritizes the new previews. Phone portrait controls
 span the screen with equal safe-area margins, and the title/subtitle are enlarged.
 
+Tile detail is chosen from both screen density and the visible texture budget.
+Large Retina views step down a detail level when needed to fit the 120-texture
+cache; zoomed views can still use the highest resolution. Current previews and
+visible detail tiles are protected from eviction, including when responses from
+an older view arrive. `scripts/check-surface-stability.mjs` checks large Retina
+views for stable pixels and completed requests, then exercises zoom and Fit.
+
 To regenerate, run the local preview on port 4173, install Playwright for Node
 and Pillow + NumPy for Python, then run `node scripts/build-surface-tiles.mjs`.
 Set `PLAYWRIGHT_PATH`, `CHROME_PATH`, or `SURFACE_PYTHON` to use an existing local

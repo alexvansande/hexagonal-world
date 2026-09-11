@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import {existsSync} from 'node:fs';
 import {layoutOptions,styleOptions} from './dist/map-options.mjs';
-import {PrecomputedSurfaces,surfacePreset,surfaceLevel,surfaceTileRect,clipSurfaceTriangle} from './dist/precomputed-surfaces.mjs';
+import {PrecomputedSurfaces,surfacePreset,surfaceLevel,surfacePlan,surfaceTileBudget,surfaceTileRect,clipSurfaceTriangle} from './dist/precomputed-surfaces.mjs';
 for(const layout of layoutOptions)for(const style of styleOptions){
  const state={...layout.state,...style.state};
  const entry=surfacePreset(state,style.source,style.controls['land-classes'],style.controls['ocean-classes']);
@@ -14,6 +14,12 @@ for(const layout of layoutOptions)for(const style of styleOptions){
 }
 assert.equal(surfacePreset(layoutOptions[0].state,'ecology',15,6),null,'Custom lifezone classes use live rendering');
 assert.equal(surfaceLevel(128,4),0);assert.equal(surfaceLevel(256,4),1);assert.equal(surfaceLevel(10000,4),4);
+const fullView=level=>Array.from({length:4*4**level},(_,i)=>({region:Math.floor(i/4**level),x:i%2**level,y:Math.floor(i/2**level)%2**level}));
+const retina=surfacePlan(3,4,fullView);
+assert.equal(retina.level,2,'A full Retina map must fit its visible tiles and previews in memory');
+assert(retina.tiles.length+4<=surfaceTileBudget);
+assert.equal(surfacePlan(4,4,()=>[{region:0,x:3,y:5}]).level,4,'A close-up keeps maximum detail when visible tiles fit');
+assert.equal(surfacePlan(4,4,()=>Array(200).fill({region:0,x:3,y:5})).level,4,'Repeated map copies share a texture budget');
 for(let level=0;level<=4;level++){
  const n=2**level;let area=0;
  for(let y=0;y<n;y++)for(let x=0;x<n;x++){const r=surfaceTileRect(level,x,y);area+=r[2]*r[3];if(x+1<n)assert.equal(r[0]+r[2],surfaceTileRect(level,x+1,y)[0]);}
@@ -57,5 +63,16 @@ try{
  for(const resolve of responses.splice(0))resolve();
  await new Promise(resolve=>setImmediate(resolve));
  assert.equal(cache.pending.size,0);
+ // A late response from an old view must not evict a current preview, even
+ // when that preview is older than every other cached texture.
+ const pinned=new PrecomputedSurfaces(gpu,()=>{}),protectedKey='protected/0/0/0-0';
+ pinned.cache.set(protectedKey,{texture:{},used:-1});
+ for(let i=1;i<surfaceTileBudget;i++)pinned.cache.set(`old/${i}`,{texture:{},used:i});
+ pinned.prepare({path:'protected',regions:1});
+ pinned.tile({path:'late'},0,1,0,0);
+ for(const resolve of responses.splice(0))resolve();
+ await new Promise(resolve=>setImmediate(resolve));
+ assert(pinned.cache.has(protectedKey),'Current preview survives cache pressure');
+ assert.equal(pinned.cache.size,surfaceTileBudget,'Protecting previews does not increase the memory limit');
  console.log('Progressive surfaces: previews first, detail fallback, deduplication and style-switch priority pass.');
 }finally{globalThis.fetch=originalFetch;globalThis.createImageBitmap=originalBitmap;}

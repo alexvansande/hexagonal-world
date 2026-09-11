@@ -1,4 +1,4 @@
-import {PrecomputedSurfaces,surfacePreset,surfaceLevel,surfaceTileRect,clipSurfaceTriangle} from './precomputed-surfaces.mjs?v=preview-first-1';
+import {PrecomputedSurfaces,surfacePreset,surfaceLevel,surfacePlan,surfaceTileRect,clipSurfaceTriangle} from './precomputed-surfaces.mjs?v=stable-cache-1';
 import {renderLifezonesLegend} from './lifezones-legend.mjs?v=waves-1';
 import {fadedLegendColor} from './legend-colors.mjs';
 import {ProjectedLighting,lightingSettings,lightingKey,lightingPlan,lightingCovers} from './projected-lighting.mjs?v=zoom-layers-1';
@@ -270,20 +270,27 @@ let surfaceCache=null,liveSourceKey=null;
 const surfaceMeshes=new Map();
 function sourceKey(type){return [type,classCount('land-classes'),classCount('ocean-classes')].join('/');}
 function selectedSurface(){return surfacePreset(state,displayedSource,classCount('land-classes'),classCount('ocean-classes'),+$('interpolation').value,hexBridgesEnabled);}
+function visibleSurfaceTiles(level){
+ const n=2**level,result=[];
+ for(const t of visible)for(let y=0;y<n;y++)for(let x=0;x<n;x++){
+  const rect=surfaceTileRect(level,x,y),[rx,ry,rw,rh]=rect;
+  const corners=[[rx,ry],[rx+rw,ry],[rx+rw,ry+rh],[rx,ry+rh]].map(p=>point(p,t));
+  if(Math.max(...corners.map(p=>p[0]))<0||Math.min(...corners.map(p=>p[0]))>w||Math.max(...corners.map(p=>p[1]))<0||Math.min(...corners.map(p=>p[1]))>h)continue;
+  result.push({t,region:t.id,x,y,rect});
+ }
+ return result;
+}
 function drawPrecomputedSurface(){
  const entry=selectedSurface();if(!entry||(new URLSearchParams(location.search).has('bake-surfaces')||new URLSearchParams(location.search).get('surface')==='live')){canvas.dataset.surface='live';return false;}
  if(!surfaceCache)surfaceCache=new PrecomputedSurfaces(gl,draw);
- const previewsReady=surfaceCache.prepare(entry);
- const level=previewsReady?surfaceLevel(scale*state.zoom*dpr,entry.maxLevel):0,n=2**level;
+ const plan=surfacePlan(surfaceLevel(scale*state.zoom*dpr,entry.maxLevel),entry.regions,visibleSurfaceTiles);
+ const previewsReady=surfaceCache.prepare(entry,plan.tiles,plan.level);
+ const level=previewsReady?plan.level:0,drawTiles=previewsReady?plan.tiles:visibleSurfaceTiles(0);
  canvas.dataset.surfacePreview=String(!previewsReady);
  canvas.dataset.surface='precomputed';canvas.dataset.surfaceLevel=level;
  const savedBuffer=buffer,savedCount=count;
  gl.uniform1i(uniforms.bakedOn,1);
- for(const t of visible){
-  for(let y=0;y<n;y++)for(let x=0;x<n;x++){
-   const rect=surfaceTileRect(level,x,y),[rx,ry,rw,rh]=rect;
-   const corners=[[rx,ry],[rx+rw,ry],[rx+rw,ry+rh],[rx,ry+rh]].map(p=>point(p,t));
-   if(Math.max(...corners.map(p=>p[0]))<0||Math.min(...corners.map(p=>p[0]))>w||Math.max(...corners.map(p=>p[1]))<0||Math.min(...corners.map(p=>p[1]))>h)continue;
+ for(const {t,x,y,rect} of drawTiles){
    const key=[geometryKey,state.arrangement,t.id,t.x,t.y,t.r,t.opacity,level,x,y].join('/');
    let mesh=surfaceMeshes.get(key);
    if(!mesh){
@@ -300,7 +307,6 @@ function drawPrecomputedSurface(){
    const tile=surfaceCache.get(entry,t.id,level,x,y);if(!tile)continue;
    gl.uniform4fv(uniforms.bakedRect,tile.rect);gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,tile.texture);
    buffer=mesh.buffer;count=mesh.count;drawGeometry(program);
-  }
  }
  buffer=savedBuffer;count=savedCount;gl.uniform1i(uniforms.bakedOn,0);canvas.dataset.surfacePending=surfaceCache.pending.size;canvas.dataset.surfaceTiles=surfaceCache.cache.size;canvas.dataset.surfaceFailures=surfaceCache.failures.size;return true;
 }

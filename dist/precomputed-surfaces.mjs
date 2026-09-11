@@ -11,17 +11,27 @@ export function surfacePreset(state,source,land=10,ocean=6,blend=0,bridges=5){
  return entry?.signature===signature?entry:null;
 }
 export function surfaceLevel(density,maxLevel){return Math.min(maxLevel,Math.max(0,Math.ceil(Math.log2(Math.max(1,density)*2/256))));}
+export const surfaceTileBudget=120;
+export function surfacePlan(level,regions,collect){
+ while(true){
+  const tiles=collect(level),keys=new Set(tiles.map(tile=>`${tile.region}/${tile.x}/${tile.y}`));
+  // Count unique image tiles: repeated copies of a hex share the same texture.
+  if(level===0||keys.size+regions<=surfaceTileBudget)return {level,tiles};
+  level--;
+ }
+}
 // Tiles include a one-pixel gutter on all sides. The UVs address pixel edges,
 // so bilinear filtering reads the adjoining tile's pixels without a seam.
 export function surfaceTileRect(level,x,y){const span=2/(2**level);return [-1+x*span,1-(y+1)*span,span,span];}
 export class PrecomputedSurfaces{
  constructor(gl,redraw){this.gl=gl;this.redraw=redraw;this.cache=new Map();this.pending=new Set();this.queue=[];this.active=0;this.clock=0;this.requests=0;this.failures=new Set();}
- prepare(entry){
+ prepare(entry,tiles=[],level=0){
   // Give every region a low-resolution image before spending bandwidth on detail.
-  if(this.entryPath!==entry.path){
-   this.entryPath=entry.path;
-   this.queue=this.queue.filter(job=>{if(job.key.startsWith(entry.path+'/'))return true;this.pending.delete(job.key);return false;});
-  }
+  this.required=new Set(Array.from({length:entry.regions},(_,region)=>`${entry.path}/${region}/0/0-0`));
+  for(const tile of tiles)this.required.add(`${entry.path}/${tile.region}/${level}/${tile.x}-${tile.y}`);
+  // Drop obsolete queued work after a pan, zoom, or preset change. In-flight
+  // responses may finish, but cannot evict any texture needed by this view.
+  this.queue=this.queue.filter(job=>{if(this.required.has(job.key))return true;this.pending.delete(job.key);return false;});
   let ready=true;
   for(let region=0;region<entry.regions;region++){
    if(!this.tile(entry,region,0,0,0)&&!this.failures.has(`${entry.path}/${region}/0/0-0`))ready=false;
@@ -41,7 +51,7 @@ export class PrecomputedSurfaces{
    for(const name of [g.TEXTURE_WRAP_S,g.TEXTURE_WRAP_T])g.texParameteri(g.TEXTURE_2D,name,g.CLAMP_TO_EDGE);
    g.texImage2D(g.TEXTURE_2D,0,g.RGBA,g.RGBA,g.UNSIGNED_BYTE,image);image.close();this.cache.set(key,{texture,used:++this.clock});
    // About 32 MB of decoded tile textures, independent of total pyramid size.
-   while(this.cache.size>120){let oldest;for(const pair of this.cache)if(!oldest||pair[1].used<oldest[1].used)oldest=pair;g.deleteTexture(oldest[1].texture);this.cache.delete(oldest[0]);}
+   while(this.cache.size>surfaceTileBudget){let oldest;for(const pair of this.cache)if(!this.required?.has(pair[0])&&(!oldest||pair[1].used<oldest[1].used))oldest=pair;if(!oldest)break;g.deleteTexture(oldest[1].texture);this.cache.delete(oldest[0]);}
   }).catch(()=>this.failures.add(key)).finally(()=>{this.pending.delete(key);this.active--;this.pump();this.redraw();});
  }}
  get(entry,region,level,x,y){const overview=this.tile(entry,region,0,0,0);const exact=this.tile(entry,region,level,x,y);if(exact)return {...exact,rect:surfaceTileRect(level,x,y)};
