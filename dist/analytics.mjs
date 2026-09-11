@@ -1,5 +1,5 @@
 // Public counting endpoint only: no API key or account credentials belong here.
-export const goatCounterEndpoint='';
+export const goatCounterEndpoint='https://hexagonal-earth.goatcounter.com/count';
 const formats=['dymaxion','felv','bighex','gosper','flower','infinite','single','double'];
 const styles=['lifezones','satellite','elevation','political','topographic','gray-neutral','ivory','distortion-analysis'];
 export function eventPayload(kind,value){
