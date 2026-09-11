@@ -1,6 +1,6 @@
 <!doctype html><html><head><meta charset="utf-8"><title>Connected hexes experiment</title><style>
 body{margin:0;background:#d9d3d3;color:#193c49;font:14px system-ui}header{height:64px;box-sizing:border-box;padding:10px 20px;display:flex;align-items:center;gap:20px}h1{font-size:18px;margin:0}p{margin:0}button,a{color:inherit}button{padding:8px 12px}iframe{border:0;width:100%;height:calc(100vh - 64px)}
-</style></head><body><header><h1>Connected hexes</h1><label>Compare <select id="mode"><option value="2">Bridges + half fills + circles</option><option value="1">Bridges only</option><option value="0">Original hexes</option></select></label><p id="status">Preparing close-up…</p></header><iframe title="Interactive hex bridge preview"></iframe><script type="module">
+</style></head><body><header><h1>Connected hexes</h1><label>Compare <select id="mode"><option value="2">Longest-chain patches + circles</option><option value="1">Bridges only</option><option value="0">Original hexes</option></select></label><p id="status">Preparing close-up…</p></header><iframe title="Interactive hex bridge preview"></iframe><script type="module">
 import {encodeMapState,decodeMapState} from '../map-state.mjs';
 const frame=document.querySelector('iframe'),choice=document.querySelector('select'),status=document.querySelector('#status');let first=true;
 frame.src='../index.html?hex-bridges=2';

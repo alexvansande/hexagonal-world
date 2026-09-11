@@ -1,5 +1,5 @@
 <!doctype html><meta charset="utf-8"><title>Hex bridge checks</title><p id="result">Running…</p><canvas width="128" height="128"></canvas><script type="module">
-import {ecologyBridgeGLSL,ecologyHexRadius as r} from '../ecology-grid.mjs?v=bridges-6';
+import {ecologyBridgeGLSL,ecologyHexRadius as r} from '../ecology-grid.mjs?v=bridges-7';
 const result=document.querySelector('p'),gl=document.querySelector('canvas').getContext('webgl',{preserveDrawingBuffer:true});
 const assert=(v,m)=>{if(!v)throw Error(m);};
 try{
@@ -38,12 +38,23 @@ try{
  gl.uniform1i(gl.getUniformLocation(program,'ecologyBridges'),2);
  const red=[255,0,0,255],green=[0,255,0,255],blue=[0,0,255,255];
  const neighborDirs=Array.from({length:6},(_,i)=>[Math.cos((i+.5)*Math.PI/3),Math.sin((i+.5)*Math.PI/3)]);
- const cases=[{name:'triple excludes opposite pair across whole cell',ring:[green,green,green,blue,blue,red]},
- {name:'three consecutive, connected center',ring:[green,green,green,blue,red,blue]},
- {name:'isolated with three consecutive',ring:[green,green,green,blue,blue,blue]},
+ const cases=[
+ {name:'two-neighbor triangle',ring:[green,green,red,blue,red,blue]},
+ {name:'three-neighbor half',ring:[green,green,green,blue,red,blue]},
+ {name:'four-neighbor concave patch',ring:[green,green,green,green,red,blue]},
+ {name:'five-neighbor concave patch',ring:[green,green,green,green,green,red]},
+ {name:'longest wins over pair',ring:[green,green,green,blue,blue,red]},
+ {name:'equal runs have a stable winner',ring:[green,green,blue,blue,red,red]},
+ {name:'isolated triple',ring:[green,green,green,blue,blue,blue]},
+ {name:'isolated four',ring:[green,green,green,green,blue,blue]},
+ {name:'isolated five',ring:[green,green,green,green,green,blue]},
  {name:'fully surrounded island',ring:Array(6).fill(green)},
- {name:'no triple, no circle',ring:[green,blue,green,blue,green,blue]},
+ {name:'no chain, no circle',ring:[green,blue,green,blue,green,blue]},
  {name:'uniform field',ring:Array(6).fill(red)}];
+ const corner=i=>[Math.cos(i*Math.PI/3),Math.sin(i*Math.PI/3)];
+ const contains=(p,polygon)=>{let inside=false;for(let i=0,j=polygon.length-1;i<polygon.length;j=i++){
+  const a=polygon[i],b=polygon[j];if((a[1]>p[1])!==(b[1]>p[1])&&p[0]<(b[0]-a[0])*(p[1]-a[1])/(b[1]-a[1])+a[0])inside=!inside;
+ }return inside;};
  for(const test of cases)for(let rotation=0;rotation<6;rotation++){
   const ring=test.ring.map((_,i)=>test.ring[(i+rotation)%6]),texture=new Uint8Array(64*64*4);
   for(let y=0;y<64;y++)for(let x=0;x<64;x++){
@@ -53,28 +64,20 @@ try{
   }
   gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,64,64,0,gl.RGBA,gl.UNSIGNED_BYTE,texture);gl.drawArrays(gl.TRIANGLE_STRIP,0,4);
   const pixels=new Uint8Array(128*128*4);gl.readPixels(0,0,128,128,gl.RGBA,gl.UNSIGNED_BYTE,pixels);
-  const triples=ring.map((c,i)=>c!==red&&c===ring[(i+1)%6]&&c===ring[(i+2)%6]?i:-1).filter(i=>i>=0),circle=triples.length&&!ring.includes(red);
+  const runs=ring.map((color,start)=>{let length=0;while(color!==red&&length<6&&ring[(start+length)%6]===color)length++;return {start,length,color};}).sort((a,b)=>b.length-a.length||a.start-b.start);
+  const run=runs[0],circle=run.length>=3&&!ring.includes(red);
+  const polygon=run.length<2?[]:[...(run.length>=3?[[0,0]]:[]),...Array.from({length:run.length+1},(_,i)=>corner(run.start+i))];
   for(let y=0;y<128;y+=2)for(let x=0;x<128;x+=2){
    const p=[(x+.5)/64-1,(y+.5)/64-1],dot=d=>p[0]*d[0]+p[1]*d[1];
    if(Math.abs(p[1])>Math.sqrt(3)/2||Math.sqrt(3)/2*Math.abs(p[0])+.5*Math.abs(p[1])>Math.sqrt(3)/2)continue;
-   let expected=red;
-   const neighborCenters=neighborDirs.map(d=>d.map(v=>v*Math.sqrt(3))),colorAt=p=>{const i=neighborCenters.findIndex(c=>Math.hypot(c[0]-p[0],c[1]-p[1])<.01);return i<0?red:ring[i];};
-   const affected=origin=>neighborCenters.some((_,i)=>{const cs=[i,(i+1)%6,(i+2)%6].map(j=>colorAt(origin.map((n,k)=>n+neighborCenters[j][k])));return cs[0]!==colorAt(origin)&&cs[0]===cs[1]&&cs[0]===cs[2];});
-   for(let i=0;i<6;i++)if(!triples.length&&dot([Math.cos(i*Math.PI/3),Math.sin(i*Math.PI/3)])>.75&&ring[(i+5)%6]===ring[i]&&!affected(neighborCenters[i])&&!affected(neighborCenters[(i+5)%6]))expected=ring[i];
-   const origins=[[0,0],...neighborCenters].sort((a,b)=>Math.round(2*a[0]/3)-Math.round(2*b[0]/3)||Math.round(-a[0]/3+a[1]/Math.sqrt(3))-Math.round(-b[0]/3+b[1]/Math.sqrt(3)));
-   for(const origin of origins)for(let i=0;i<6;i++){
-    const cs=[i,(i+1)%6,(i+2)%6].map(j=>colorAt(origin.map((n,k)=>n+neighborCenters[j][k])));
-    if(cs[0]===colorAt(origin)||cs[0]!==cs[1]||cs[0]!==cs[2])continue;
-    const normal=neighborDirs[(i+1)%6],delta=p.map((n,k)=>n-origin[k]),along=delta[0]*normal[0]+delta[1]*normal[1],across=-delta[0]*normal[1]+delta[1]*normal[0];
-    if(along>=0&&along<=Math.sqrt(3)&&Math.abs(across)<=1)expected=cs[0];
-   }
+   let expected=contains(p,polygon)?run.color:red;
    if(circle&&dot(p)<=.75)expected=red;
-   // Exact boundaries may choose either touching class after float rounding.
-   if(neighborDirs.some(d=>Math.abs(dot(d))<.0001)||Math.abs(dot(p)-.75)<.0001)continue;
+   // Exclude the exact polygon/circle boundaries from float comparison.
+   if(polygon.some((a,i)=>{const b=polygon[(i+1)%polygon.length];return Math.abs((p[0]-a[0])*(b[1]-a[1])-(p[1]-a[1])*(b[0]-a[0]))<.0001;})||Math.abs(dot(p)-.75)<.0001)continue;
    const actual=pixels.slice((y*128+x)*4,(y*128+x)*4+3);
    assert(actual.every((c,i)=>c===expected[i]),test.name+' rotation '+rotation+' at '+p);
   }
  }
- assert(gl.getError()===gl.NO_ERROR,'WebGL error');result.textContent='PASS · Pair rectangles plus 36 rotated exclusive-patch/island fixtures pass: isolated circles survive, connected cells and unpatched islands retain their shape.';
+ assert(gl.getError()===gl.NO_ERROR,'WebGL error');result.textContent='PASS · Pair rectangles plus 72 rotated longest-chain fixtures pass: chain lengths 2–6, cyclic runs, ties, concave patches and protected islands.';
 }catch(error){result.textContent='FAIL · '+error.message;console.error(error);}
 </script>

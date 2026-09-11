@@ -61,48 +61,24 @@ vec3 ecologySphere(vec2 p){
 }
 `;
 
-// Generate constant array indices for WebGL 1. A complete rectangle can enter
-// an adjacent cell, so consider patch origins in its first ring and read the
-// original colors out to ring two (19 shared samples, never recursive fills).
-const directions=[[1,0],[0,1],[-1,1],[-1,0],[0,-1],[1,-1]];
-const cells=[];for(let q=-2;q<=2;q++)for(let r=-2;r<=2;r++)if(Math.max(Math.abs(q),Math.abs(r),Math.abs(q+r))<=2)cells.push([q,r]);
-const cellIndex=([q,r])=>cells.findIndex(c=>c[0]===q&&c[1]===r);
-const point=([q,r])=>[1.5*q,Math.sqrt(3)*(r+q/2)];
-const vec=([x,y])=>`vec2(${x.toFixed(12)},${y.toFixed(12)})`;
-const neighbors=directions.map(cellIndex);
-const originIndex=cellIndex([0,0]);
-const sampleCell=(c,i)=>i===originIndex?`colors[${i}]=original;valid[${i}]=true;`:`location=center+radius*${vec(point(c))};valid[${i}]=ecologyInside(location);colors[${i}]=valid[${i}]?ecologySample(location):original;`;
-const sampleCode=cells.map((c,i)=>neighbors.includes(i)||i===originIndex?sampleCell(c,i):'').join('\n');
-const outerSamples=cells.map((c,i)=>neighbors.includes(i)||i===originIndex?'':sampleCell(c,i)).join('\n');
-const hexVertices=Array.from({length:6},(_,i)=>[Math.cos(i*Math.PI/3),Math.sin(i*Math.PI/3)]);
-function overlapsCell(origin,normal){
- const tangent=[-normal[1],normal[0]],rect=[0,Math.sqrt(3)].flatMap(along=>[-1,1].map(across=>origin.map((v,k)=>v+along*normal[k]+across*tangent[k])));
- return [normal,tangent,...directions.map(d=>point(d))].every(axis=>{
-  const a=hexVertices.map(p=>p[0]*axis[0]+p[1]*axis[1]),b=rect.map(p=>p[0]*axis[0]+p[1]*axis[1]);
-  return Math.min(Math.max(...a),Math.max(...b))-Math.max(Math.min(...a),Math.min(...b))>1e-9;
- });
-}
-const tripleCondition=(origin,i)=>{
- const ids=[i,(i+1)%6,(i+2)%6].map(j=>cellIndex(origin.map((n,k)=>n+directions[j][k]))),[a,b,c]=ids,o=cellIndex(origin);
- return `valid[${o}]&&valid[${a}]&&valid[${b}]&&valid[${c}]&&!ecologySame(colors[${o}],colors[${a}])&&ecologySame(colors[${a}],colors[${b}])&&ecologySame(colors[${a}],colors[${c}])`;
-};
-// Rule 2 replaces bridges attached to a reshaped endpoint, including the
-// bridge tips outside that endpoint. Merely painting over half its hex leaves
-// those tips behind as detached spikes.
-const affectedCode=[[0,0],...directions].map(origin=>`affected[${cellIndex(origin)}]=${directions.map((_,i)=>`(${tripleCondition(origin,i)})`).join('||')};`).join('\n');
-const rectangles=[[0,0],...directions].flatMap(origin=>directions.map((_,i)=>{
- const ids=[i,(i+1)%6,(i+2)%6].map(j=>cellIndex(origin.map((n,k)=>n+directions[j][k]))),a=ids[0],b=ids[1],c=ids[2],o=cellIndex(origin),normal=point(directions[(i+1)%6]).map(n=>n/Math.sqrt(3));
- if(!overlapsCell(point(origin),normal))return '';
- return `if(valid[${o}]&&valid[${a}]&&valid[${b}]&&valid[${c}]&&!ecologySame(colors[${o}],colors[${a}])&&ecologySame(colors[${a}],colors[${b}])&&ecologySame(colors[${a}],colors[${c}])){
- if(!ecologySame(colors[${a}],original))hasPatch=true;
- delta=offset-${vec(point(origin))};normal=${vec(normal)};
- along=dot(delta,normal);across=dot(delta,vec2(-normal.y,normal.x));
- if(along>=0.&&along<=sqrt(3.)&&abs(across)<=1.){
-  priority=vec3(axial+${vec(origin)},${i.toFixed(1)});
-  if(priority.x>best.x||(priority.x==best.x&&(priority.y>best.y||(priority.y==best.y&&priority.z>best.z)))){best=priority;patched=colors[${a}];}
+// Unroll neighbor access so this remains compatible with WebGL 1. Every
+// decision uses the original six source colors, never a previously patched cell.
+const samples=Array.from({length:6},(_,i)=>`
+ location=center+radius*sqrt(3.)*hexCorner(${i+.5});
+ valid[${i}]=ecologyInside(location);
+ colors[${i}]=valid[${i}]?ecologySample(location):original;
+ complete=complete&&valid[${i}];
+ if(valid[${i}]&&ecologySame(colors[${i}],original))isolated=false;
+`).join('');
+const chains=Array.from({length:6},(_,i)=>`
+ if(valid[${i}]&&!ecologySame(colors[${i}],original)){
+  count=1;continuing=true;
+  ${Array.from({length:5},(_,j)=>{const n=(i+j+1)%6;return `
+  continuing=continuing&&valid[${n}]&&ecologySame(colors[${i}],colors[${n}]);
+  if(continuing)count++;`;}).join('')}
+  if(count>longest){longest=count;start=${i}.;patchColor=colors[${i}];}
  }
- }`;
-})).join('\n');
+`).join('');
 
 export const ecologyBridgeGLSL=`
 bool ecologyInside(vec2 p){p=abs(p);return p.y<=sqrt(3.)*.5&&sqrt(3.)*.5*p.x+.5*p.y<=sqrt(3.)*.5;}
@@ -128,26 +104,22 @@ vec3 ecologyBridgedColor(vec2 p,vec2 center,vec3 original){
  if(ecologyBridges<2)return ecologyPairColor(p,center,original);
  float radius=${ecologyHexRadius.toFixed(12)}/(circularMode>0?7.:1.);
  vec2 offset=(p-center)/radius,location;
- vec3 colors[19];bool valid[19];
- ${sampleCode}
- if(${neighbors.map(n=>`valid[${n}]&&ecologySame(colors[${n}],original)`).join('&&')})return original;
- ${outerSamples}
- bool affected[19];
- ${affectedCode}
- vec3 patched=original;bool isolated=true,complete=true;
- ${neighbors.map(n=>`complete=complete&&valid[${n}];if(valid[${n}]&&ecologySame(colors[${n}],original))isolated=false;`).join('\n')}
-
- // Global lattice order makes each rectangle one layer across cell boundaries.
- vec2 axial=floor(vec2(2.*center.x/3.,-center.x/3.+center.y/sqrt(3.))/radius+.5);
- bool hasPatch=false;float along,across;vec2 delta,normal;vec3 best=vec3(-1.e9),priority;
- ${rectangles}
- // Choose one patch family for the whole cell, before testing this pixel.
- // A qualifying rectangle excludes pair bridges even in its uncovered half.
- if(!hasPatch){
- ${neighbors.map((n,i)=>{const other=neighbors[(i+5)%6];return `if(dot(offset,hexCorner(${i.toFixed(1)}))>.75&&valid[${n}]&&valid[${other}]&&!affected[${n}]&&!affected[${other}]&&ecologySame(colors[${n}],colors[${other}]))patched=colors[${n}];`;}).join('\n')}
+ vec3 colors[6];bool valid[6];bool isolated=true,complete=true;
+ ${samples}
+ int longest=1,count;float start=0.;bool continuing;vec3 patchColor=original;
+ // Strictly greater keeps equal-length ties deterministic in ring order.
+ ${chains}
+ if(longest<2)return original;
+ // Protect an isolated cell only when a half-cell or larger patch is present.
+ if(longest>=3&&isolated&&complete&&dot(offset,offset)<=.75)return original;
+ if(longest==2){
+  // The chord between the run's outer vertices cuts off one corner triangle.
+  return dot(offset,hexCorner(start+1.))>=.5?patchColor:original;
  }
- // Rule 3 is a circle overlay, not a second classification outside the circle.
- if(hasPatch&&isolated&&complete&&dot(offset,offset)<=.75)return original;
- return patched;
+ // Longer runs follow the shared-side arc, closing through the cell center.
+ // This retains the concave corner in the four- and five-neighbor sketches.
+ float sector=mod(atan(offset.y,offset.x)-start*1.047197551197+12.56637061436,6.28318530718);
+ if(longest==6||dot(offset,offset)<1.e-12||sector<=float(longest)*1.047197551197)return patchColor;
+ return original;
 }
 `;

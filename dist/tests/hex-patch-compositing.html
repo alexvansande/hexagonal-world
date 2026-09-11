@@ -1,31 +1,23 @@
-<!doctype html><meta charset="utf-8"><title>Hex patch compositing check</title><style>body{font:14px system-ui}canvas{width:480px;height:480px}section{display:flex;gap:12px}</style><p id="result">Running…</p><section><div>GPU map rules<br><canvas id="gpu" width="480" height="480"></canvas></div><div>Independent rectangle drawing<br><canvas id="reference" width="480" height="480"></canvas></div></section><script type="module">
-import {ecologyBridgeGLSL,ecologyHexRadius as radius} from '../ecology-grid.mjs?v=bridges-6';
+<!doctype html><meta charset="utf-8"><title>Hex patch compositing check</title><style>body{font:14px system-ui}canvas{width:480px;height:480px}section{display:flex;gap:12px}</style><p id="result">Running…</p><section><div>GPU map rules<br><canvas id="gpu" width="480" height="480"></canvas></div><div>Independent polygon drawing<br><canvas id="reference" width="480" height="480"></canvas></div></section><script type="module">
+import {ecologyBridgeGLSL,ecologyHexRadius as radius} from '../ecology-grid.mjs?v=bridges-7';
 const result=document.querySelector('#result'),size=480,extent=6,root=Math.sqrt(3),dirs=[[1,0],[0,1],[-1,1],[-1,0],[0,-1],[1,-1]],pos=([q,r])=>[1.5*q,root*(r+q/2)],add=(a,b)=>a.map((v,i)=>v+b[i]),colors=['#42ad61','#5d88c9','#e0b358'];
 const key=([q,r])=>q+','+r,classification=([q,r])=>q===3&&r===-2?0:q===0&&r===0?2:q===-3&&(r===1||r===2)?1:q<0?0:1;
 const cells=[];for(let q=-10;q<=10;q++)for(let r=-10;r<=10;r++)cells.push({axial:[q,r],center:pos([q,r]),color:classification([q,r])});
 const hex=Array.from({length:6},(_,i)=>[Math.cos(i*Math.PI/3),Math.sin(i*Math.PI/3)]);
 function poly(ctx,points,color){ctx.beginPath();points.forEach((p,i)=>i?ctx.lineTo(...p):ctx.moveTo(...p));ctx.closePath();ctx.fillStyle=colors[color];ctx.fill();}
-const rectangle=(origin,direction,length,halfWidth)=>{const n=direction.map(v=>v/root),t=[-n[1],n[0]];return [[0,-halfWidth],[length,-halfWidth],[length,halfWidth],[0,halfWidth]].map(([a,b])=>origin.map((v,i)=>v+a*n[i]+b*t[i]));};
 try{
  const reference=document.querySelector('#reference'),ctx=reference.getContext('2d',{willReadFrequently:true});ctx.translate(size/2,size/2);ctx.scale(size/(2*extent),-size/(2*extent));
  const source=document.createElement('canvas');source.width=source.height=1024;const sourceCtx=source.getContext('2d');sourceCtx.translate(512,512);sourceCtx.scale(1024/48,1024/48);
  for(const c of cells){poly(ctx,hex.map(p=>add(p,c.center)),c.color);poly(sourceCtx,hex.map(p=>add(p,c.center)),c.color);}
- // Literal painter's algorithm: complete hexes, pair rectangles, then triple
- // rectangles in global q/r/direction order, then protective circles.
- const affected=axial=>dirs.some((_,i)=>{const cs=[i,(i+1)%6,(i+2)%6].map(j=>classification(add(axial,dirs[j])));return cs[0]!==classification(axial)&&cs.every(c=>c===cs[0]);});
- for(const c of cells)for(let i=0;i<3;i++)if(!affected(c.axial)&&!affected(add(c.axial,dirs[i]))&&c.color===classification(add(c.axial,dirs[i])))poly(ctx,rectangle(c.center,pos(dirs[i]),root,.75),c.color);
- const patches=[];
- for(const c of cells)for(let i=0;i<6;i++){
-  const values=[i,(i+1)%6,(i+2)%6].map(j=>classification(add(c.axial,dirs[j])));
-  if(values[0]!==c.color&&values.every(v=>v===values[0])){const polygon=rectangle(c.center,pos(dirs[(i+1)%6]),root,1);patches.push({origin:c,polygon,color:values[0]});}
+ // Independently draw each sketch as a polygon contained in its target hex.
+ for(const c of cells){
+  const ring=dirs.map(d=>classification(add(c.axial,d)));
+  const runs=ring.map((color,start)=>{let length=0;while(color!==c.color&&length<6&&ring[(start+length)%6]===color)length++;return {start,length,color};}).sort((a,b)=>b.length-a.length||a.start-b.start),run=runs[0];
+  if(run.length<2)continue;
+  const polygon=[...(run.length>=3?[[0,0]]:[]),...Array.from({length:run.length+1},(_,i)=>hex[(run.start+i)%6])];
+  poly(ctx,polygon.map(p=>add(p,c.center)),run.color);
+  if(run.length>=3&&!ring.includes(c.color)){ctx.beginPath();ctx.arc(...c.center,root/2,0,2*Math.PI);ctx.fillStyle=colors[c.color];ctx.fill();}
  }
- // Exclusivity is cell-wide: remove all pair contributions from cells with
- // any qualifying rectangle before drawing the rectangle layer.
- const overlaps=(a,b)=>[...a,...b].every((p,i,all)=>{const polygon=i<a.length?a:b,j=i<a.length?i:i-a.length,next=polygon[(j+1)%polygon.length],axis=[p[1]-next[1],next[0]-p[0]],project=poly=>poly.map(v=>v[0]*axis[0]+v[1]*axis[1]),x=project(a),y=project(b);return Math.min(Math.max(...x),Math.max(...y))-Math.max(Math.min(...x),Math.min(...y))>1e-8;});
- const qualifying=new Set();
- for(const c of cells){const polygon=hex.map(p=>add(p,c.center));if(patches.some(p=>p.color!==c.color&&overlaps(polygon,p.polygon))){qualifying.add(key(c.axial));poly(ctx,polygon,c.color);}}
- for(const p of patches)poly(ctx,p.polygon,p.color);
- for(const c of cells)if(dirs.every(d=>classification(add(c.axial,d))!==c.color)&&qualifying.has(key(c.axial))){ctx.beginPath();ctx.arc(...c.center,root/2,0,2*Math.PI);ctx.fillStyle=colors[c.color];ctx.fill();}
  const gl=document.querySelector('#gpu').getContext('webgl',{preserveDrawingBuffer:true,antialias:false});
  const compile=(type,code)=>{const s=gl.createShader(type);gl.shaderSource(s,code);gl.compileShader(s);if(!gl.getShaderParameter(s,gl.COMPILE_STATUS))throw Error(gl.getShaderInfoLog(s));return s;};
  const fs=`precision highp float;varying vec2 point;uniform sampler2D map;uniform int circularMode;uniform int ecologyBridges;uniform vec3 angles;
@@ -45,6 +37,6 @@ try{
   if([-size,size,-1,1].some(d=>[0,1,2].some(k=>expected[i+k]!==expected[i+4*d+k])))continue;
   checked++;if([0,1,2].some(k=>Math.abs(actual[j+k]-expected[i+k])>1))mismatch++;
  }
- result.textContent=(mismatch?'FAIL':'PASS')+' · '+mismatch+' mismatches across '+checked+' interior pixels; whole-grid drawing tests patch overlap, cell boundaries and circle precedence.';
+ result.textContent=(mismatch?'FAIL':'PASS')+' · '+mismatch+' mismatches across '+checked+' interior pixels; whole-grid drawing tests longest-chain polygons, cell boundaries and circle precedence.';
 }catch(error){result.textContent='FAIL · '+error.message;console.error(error);}
 </script>
