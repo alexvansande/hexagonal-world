@@ -1,5 +1,5 @@
 <!doctype html><meta charset="utf-8"><title>Hex bridge checks</title><p id="result">Running…</p><canvas width="128" height="128"></canvas><script type="module">
-import {ecologyBridgeGLSL,ecologyHexRadius as r} from '../ecology-grid.mjs?v=bridges-5';
+import {ecologyBridgeGLSL,ecologyHexRadius as r} from '../ecology-grid.mjs?v=bridges-6';
 const result=document.querySelector('p'),gl=document.querySelector('canvas').getContext('webgl',{preserveDrawingBuffer:true});
 const assert=(v,m)=>{if(!v)throw Error(m);};
 try{
@@ -38,7 +38,8 @@ try{
  gl.uniform1i(gl.getUniformLocation(program,'ecologyBridges'),2);
  const red=[255,0,0,255],green=[0,255,0,255],blue=[0,0,255,255];
  const neighborDirs=Array.from({length:6},(_,i)=>[Math.cos((i+.5)*Math.PI/3),Math.sin((i+.5)*Math.PI/3)]);
- const cases=[{name:'three consecutive, connected center',ring:[green,green,green,blue,red,blue]},
+ const cases=[{name:'triple excludes opposite pair across whole cell',ring:[green,green,green,blue,blue,red]},
+ {name:'three consecutive, connected center',ring:[green,green,green,blue,red,blue]},
  {name:'isolated with three consecutive',ring:[green,green,green,blue,blue,blue]},
  {name:'fully surrounded island',ring:Array(6).fill(green)},
  {name:'no triple, no circle',ring:[green,blue,green,blue,green,blue]},
@@ -59,7 +60,7 @@ try{
    let expected=red;
    const neighborCenters=neighborDirs.map(d=>d.map(v=>v*Math.sqrt(3))),colorAt=p=>{const i=neighborCenters.findIndex(c=>Math.hypot(c[0]-p[0],c[1]-p[1])<.01);return i<0?red:ring[i];};
    const affected=origin=>neighborCenters.some((_,i)=>{const cs=[i,(i+1)%6,(i+2)%6].map(j=>colorAt(origin.map((n,k)=>n+neighborCenters[j][k])));return cs[0]!==colorAt(origin)&&cs[0]===cs[1]&&cs[0]===cs[2];});
-   for(let i=0;i<6;i++)if(dot([Math.cos(i*Math.PI/3),Math.sin(i*Math.PI/3)])>.75&&ring[(i+5)%6]===ring[i]&&!affected(neighborCenters[i])&&!affected(neighborCenters[(i+5)%6]))expected=ring[i];
+   for(let i=0;i<6;i++)if(!triples.length&&dot([Math.cos(i*Math.PI/3),Math.sin(i*Math.PI/3)])>.75&&ring[(i+5)%6]===ring[i]&&!affected(neighborCenters[i])&&!affected(neighborCenters[(i+5)%6]))expected=ring[i];
    const origins=[[0,0],...neighborCenters].sort((a,b)=>Math.round(2*a[0]/3)-Math.round(2*b[0]/3)||Math.round(-a[0]/3+a[1]/Math.sqrt(3))-Math.round(-b[0]/3+b[1]/Math.sqrt(3)));
    for(const origin of origins)for(let i=0;i<6;i++){
     const cs=[i,(i+1)%6,(i+2)%6].map(j=>colorAt(origin.map((n,k)=>n+neighborCenters[j][k])));
@@ -74,6 +75,6 @@ try{
    assert(actual.every((c,i)=>c===expected[i]),test.name+' rotation '+rotation+' at '+p);
   }
  }
- assert(gl.getError()===gl.NO_ERROR,'WebGL error');result.textContent='PASS · Pair rectangles plus 30 rotated half-fill/island fixtures pass: isolated circles survive, connected cells and unpatched islands retain their shape.';
+ assert(gl.getError()===gl.NO_ERROR,'WebGL error');result.textContent='PASS · Pair rectangles plus 36 rotated exclusive-patch/island fixtures pass: isolated circles survive, connected cells and unpatched islands retain their shape.';
 }catch(error){result.textContent='FAIL · '+error.message;console.error(error);}
 </script>

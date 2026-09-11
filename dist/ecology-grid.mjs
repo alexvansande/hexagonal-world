@@ -136,11 +136,16 @@ vec3 ecologyBridgedColor(vec2 p,vec2 center,vec3 original){
  ${affectedCode}
  vec3 patched=original;bool isolated=true,complete=true;
  ${neighbors.map(n=>`complete=complete&&valid[${n}];if(valid[${n}]&&ecologySame(colors[${n}],original))isolated=false;`).join('\n')}
- ${neighbors.map((n,i)=>{const other=neighbors[(i+5)%6];return `if(dot(offset,hexCorner(${i.toFixed(1)}))>.75&&valid[${n}]&&valid[${other}]&&!affected[${n}]&&!affected[${other}]&&ecologySame(colors[${n}],colors[${other}]))patched=colors[${n}];`;}).join('\n')}
+
  // Global lattice order makes each rectangle one layer across cell boundaries.
  vec2 axial=floor(vec2(2.*center.x/3.,-center.x/3.+center.y/sqrt(3.))/radius+.5);
  bool hasPatch=false;float along,across;vec2 delta,normal;vec3 best=vec3(-1.e9),priority;
  ${rectangles}
+ // Choose one patch family for the whole cell, before testing this pixel.
+ // A qualifying rectangle excludes pair bridges even in its uncovered half.
+ if(!hasPatch){
+ ${neighbors.map((n,i)=>{const other=neighbors[(i+5)%6];return `if(dot(offset,hexCorner(${i.toFixed(1)}))>.75&&valid[${n}]&&valid[${other}]&&!affected[${n}]&&!affected[${other}]&&ecologySame(colors[${n}],colors[${other}]))patched=colors[${n}];`;}).join('\n')}
+ }
  // Rule 3 is a circle overlay, not a second classification outside the circle.
  if(hasPatch&&isolated&&complete&&dot(offset,offset)<=.75)return original;
  return patched;

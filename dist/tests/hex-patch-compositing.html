@@ -1,5 +1,5 @@
 <!doctype html><meta charset="utf-8"><title>Hex patch compositing check</title><style>body{font:14px system-ui}canvas{width:480px;height:480px}section{display:flex;gap:12px}</style><p id="result">Running…</p><section><div>GPU map rules<br><canvas id="gpu" width="480" height="480"></canvas></div><div>Independent rectangle drawing<br><canvas id="reference" width="480" height="480"></canvas></div></section><script type="module">
-import {ecologyBridgeGLSL,ecologyHexRadius as radius} from '../ecology-grid.mjs?v=bridges-5';
+import {ecologyBridgeGLSL,ecologyHexRadius as radius} from '../ecology-grid.mjs?v=bridges-6';
 const result=document.querySelector('#result'),size=480,extent=6,root=Math.sqrt(3),dirs=[[1,0],[0,1],[-1,1],[-1,0],[0,-1],[1,-1]],pos=([q,r])=>[1.5*q,root*(r+q/2)],add=(a,b)=>a.map((v,i)=>v+b[i]),colors=['#42ad61','#5d88c9','#e0b358'];
 const key=([q,r])=>q+','+r,classification=([q,r])=>q===3&&r===-2?0:q===0&&r===0?2:q===-3&&(r===1||r===2)?1:q<0?0:1;
 const cells=[];for(let q=-10;q<=10;q++)for(let r=-10;r<=10;r++)cells.push({axial:[q,r],center:pos([q,r]),color:classification([q,r])});
@@ -17,9 +17,15 @@ try{
  const patches=[];
  for(const c of cells)for(let i=0;i<6;i++){
   const values=[i,(i+1)%6,(i+2)%6].map(j=>classification(add(c.axial,dirs[j])));
-  if(values[0]!==c.color&&values.every(v=>v===values[0])){const polygon=rectangle(c.center,pos(dirs[(i+1)%6]),root,1);patches.push({origin:c,polygon,color:values[0]});poly(ctx,polygon,values[0]);}
+  if(values[0]!==c.color&&values.every(v=>v===values[0])){const polygon=rectangle(c.center,pos(dirs[(i+1)%6]),root,1);patches.push({origin:c,polygon,color:values[0]});}
  }
- for(const c of cells)if(dirs.every(d=>classification(add(c.axial,d))!==c.color)&&patches.some(p=>key(p.origin.axial)===key(c.axial))){ctx.beginPath();ctx.arc(...c.center,root/2,0,2*Math.PI);ctx.fillStyle=colors[c.color];ctx.fill();}
+ // Exclusivity is cell-wide: remove all pair contributions from cells with
+ // any qualifying rectangle before drawing the rectangle layer.
+ const overlaps=(a,b)=>[...a,...b].every((p,i,all)=>{const polygon=i<a.length?a:b,j=i<a.length?i:i-a.length,next=polygon[(j+1)%polygon.length],axis=[p[1]-next[1],next[0]-p[0]],project=poly=>poly.map(v=>v[0]*axis[0]+v[1]*axis[1]),x=project(a),y=project(b);return Math.min(Math.max(...x),Math.max(...y))-Math.max(Math.min(...x),Math.min(...y))>1e-8;});
+ const qualifying=new Set();
+ for(const c of cells){const polygon=hex.map(p=>add(p,c.center));if(patches.some(p=>p.color!==c.color&&overlaps(polygon,p.polygon))){qualifying.add(key(c.axial));poly(ctx,polygon,c.color);}}
+ for(const p of patches)poly(ctx,p.polygon,p.color);
+ for(const c of cells)if(dirs.every(d=>classification(add(c.axial,d))!==c.color)&&qualifying.has(key(c.axial))){ctx.beginPath();ctx.arc(...c.center,root/2,0,2*Math.PI);ctx.fillStyle=colors[c.color];ctx.fill();}
  const gl=document.querySelector('#gpu').getContext('webgl',{preserveDrawingBuffer:true,antialias:false});
  const compile=(type,code)=>{const s=gl.createShader(type);gl.shaderSource(s,code);gl.compileShader(s);if(!gl.getShaderParameter(s,gl.COMPILE_STATUS))throw Error(gl.getShaderInfoLog(s));return s;};
  const fs=`precision highp float;varying vec2 point;uniform sampler2D map;uniform int circularMode;uniform int ecologyBridges;uniform vec3 angles;
