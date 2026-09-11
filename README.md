@@ -243,3 +243,29 @@ Phone layouts hide the navigation bar and use touch panning/pinching. A Legend b
 Phones use precomputed neutral terrain shading, small source textures (at most 1,920 × 960), and composited panel shadows with None/Gentle/Sculpted/Dramatic choices. These are simplified illustrations, not the desktop physical relief simulation. Screen pixel ratio is capped at 1.5; river masks are one ninth the desktop pixel count, and decoded image caching is bounded to three entries. `python scripts/build-mobile-assets.py` rebuilds the lightweight assets from existing maps (Pillow and NumPy). Desktop elevation now loads only the overview for interaction; detailed tiles load on export and are released afterward, along with large render targets. Export cancellation aborts detail fetches.
 
 Run `/tests/mobile-checks.html` for browser checks covering all eight styles/formats, legend controls, title fitting, shadow presets, landscape rotation and absence of heavy elevation/satellite requests. `?legend=1` leaves the modal open for visual inspection. Browser checks cannot reproduce every iPhone memory limit; physical-device testing is still useful.
+
+### Pre-rendered default surfaces
+
+Default layouts use lossless WebP zoom tiles in `dist/maps/surfaces/`. The
+base color/hex-patch result is baked offline, without shadows, relief,
+background, grid lines, labels, or other overlays. Color treatments and the
+separate river and lighting layers are still composited by the viewer.
+The five source pyramids are shared across the eight styles; Flower World and
+Gosper share their identical regional projections. Only visible tiles load,
+with a 120-texture LRU budget (about 32 MB). Low-resolution tiles remain visible
+while close-up tiles arrive. PNG/PDF exports wait for their required detail.
+
+Projection/orientation, interpolation, bridge rules, or Lifezones classification
+changes use the original live renderer. Returning to a default restores the
+pre-rendered path. Background, opacity and overlay changes can reuse base tiles.
+The manifest records the baked projection settings to reject stale orientations.
+
+To regenerate, run the local preview on port 4173, install Playwright for Node
+and Pillow + NumPy for Python, then run `node scripts/build-surface-tiles.mjs`.
+Set `PLAYWRIGHT_PATH`, `CHROME_PATH`, or `SURFACE_PYTHON` to use an existing local
+installation. The generator resumes completed regions; remove the corresponding
+version directory before regenerating changed source data or patch rules, and
+bump the asset version for publishing. Do not publish partial manifests.
+`node surface-tests.mjs` checks every preset's asset pyramid and mesh clipping;
+`scripts/check-surface-tiles.mjs` additionally checks a local browser, mobile
+zoom, live fallback, default restoration, visual comparison captures and export.

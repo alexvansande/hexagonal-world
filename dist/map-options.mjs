@@ -343,13 +343,13 @@ export const styleOptions=[
       "reliefOcean": 0.4,
       "reliefRiverDepth": 0.2,
       "reliefSeaLevel": 105,
-      "line": 0.1,
-      "grid": 30,
+      "line": 1,
+      "grid": 10,
       "distortionOpacity": 0.75,
       "riverWidth": 1.25,
       "riverLevels": 12,
-      "subgridWidth": 1,
-      "graticuleWidth": 1
+      "subgridWidth": 5,
+      "graticuleWidth": 1.5
     },
     "controls": {
       "lighting-preset": "gentle",

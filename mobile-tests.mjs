@@ -1,6 +1,8 @@
 import assert from 'node:assert/strict';
-import {mobileFitRect} from './dist/device-profile.mjs';
+import {mobileFitRect,maximumZoom} from './dist/device-profile.mjs';
 import {ReliefRenderer} from './dist/relief.mjs';
+for(const scale of [35,60,100,220])assert.equal(scale*maximumZoom(scale),2640,'Small screens reach the desktop close-up scale');
+assert.equal(maximumZoom(300),12,'Larger desktop views keep their existing zoom range');
 for(const [w,h,title,panel,right] of [[390,844,96,620,356],[320,568,90,390,308],[844,390,86,172,310]]){
  const r=mobileFitRect(w,h,title,panel,right);assert(r.top>title);assert(r.bottom>r.top);assert(r.right>r.left);assert(r.left>=0&&r.right<=w&&r.bottom<=h);
 }
