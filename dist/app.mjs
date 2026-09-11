@@ -28,6 +28,7 @@ const classCount=id=>classOptions[Math.max(0,Math.min(3,Math.round(+$(id).value)
 function syncClassControl(id,count){const el=$(id);if(!el)return;const index=classOptions.indexOf(+count);if(index>=0)el.value=index;$(id+'-value').value=classOptions[+el.value];}
 const rangeSuffixes={riverWidth:'×',subgridWidth:'×',graticuleWidth:'×'};
 const state={method:'tetra',lon:0,lat:0,roll:0,bias:1,height:1.5,grid:30,line:0.8,subgridWidth:1,graticuleWidth:1,shadowOpacity:1,lightOpacity:1,distortionOpacity:.7,clearance:0,riverWidth:1,riverLevels:6,layout:0,gridRotation:0,zoom:1,panX:0,panY:0,mode:'pan',arrangement:'infinite',sidebarExpanded:false,interpolation:0,...reliefDefaults};
+let mobileRepositioning=false;
 let exporting=false;
 let shareSelection=readSharePath(location.pathname)||inferSharePair(readMapStateFromUrl());
 let persistenceReady=false,saveTimer=null,restoredView=null,headingBounds=null;
@@ -159,6 +160,7 @@ function fitView(){
  let top=state.sidebarExpanded&&!wide?Math.min(h-100,panel.bottom+20):!state.sidebarExpanded&&wide?24:Math.min(h*.25,156);
  let right=w-24,bottom=state.sidebarExpanded||wide?h-84:Math.max(top+80,panel.top-24);
  if(compactDevice&&!state.sidebarExpanded){({left,right,top,bottom}=mobileFitRect(w,h,$('map-heading').getBoundingClientRect().bottom,panel.top,panel.right));}
+ if(mobileRepositioning){left=16;right=w-16;top=Math.min(h-120,$('map-heading').getBoundingClientRect().bottom+20);bottom=Math.max(top+40,document.querySelector('.view-tools').getBoundingClientRect().top-16);}
  scale=Math.max(1,Math.min(Math.max(40,right-left)/(b[2]-b[0]),Math.max(40,bottom-top)/(b[3]-b[1])));
  state.zoom=1;state.panX=(left+right-w)/2-(b[0]+b[2])/2*scale;state.panY=(top+bottom-h)/2+(b[1]+b[3])/2*scale;draw();
 }
@@ -695,6 +697,43 @@ function setSidebarExpanded(expanded,focus=true){
 }
 $('customize').onclick=()=>setSidebarExpanded(true);
 $('collapse-customize').onclick=()=>setSidebarExpanded(false);
+const customizationWarning=$('mobile-customization-warning');
+const warningPreferenceKey='hexagonal-earth:skip-customization-warning';
+let skipCustomizationWarning=false,pendingCustomization=null;
+try{skipCustomizationWarning=localStorage.getItem(warningPreferenceKey)==='true';}catch{}
+function confirmCustomization(action){
+ if(!compactDevice||skipCustomizationWarning){action();return;}
+ pendingCustomization=action;$('customization-dont-alert').checked=false;customizationWarning.showModal();
+}
+function rememberWarningPreference(){
+ if(!$('customization-dont-alert').checked)return;
+ skipCustomizationWarning=true;
+ try{localStorage.setItem(warningPreferenceKey,'true');}catch{}
+}
+function startRepositioning(){
+ mobileRepositioning=true;document.body.classList.add('repositioning');
+ setSidebarExpanded(false,false);mode('rotate');fitView();$('rotate').focus();
+}
+function finishRepositioning(){
+ mobileRepositioning=false;document.body.classList.remove('repositioning');mode('pan');
+ setSidebarExpanded(true,false);$('reposition-globe').focus();draw();
+}
+$('reposition-globe').onclick=()=>confirmCustomization(startRepositioning);
+$('reposition-done').onclick=finishRepositioning;
+document.querySelectorAll('aside details > summary').forEach(summary=>summary.addEventListener('click',event=>{
+ if(summary.parentElement.open||!compactDevice||skipCustomizationWarning)return;
+ event.preventDefault();confirmCustomization(()=>{summary.parentElement.open=true;summary.focus();});
+}));
+$('customization-continue').onclick=()=>{
+ rememberWarningPreference();const action=pendingCustomization;pendingCustomization=null;customizationWarning.close();action?.();
+};
+$('customization-defaults').onclick=()=>{
+ rememberWarningPreference();pendingCustomization=null;customizationWarning.close();
+ document.querySelectorAll('aside details').forEach(panel=>{panel.open=false;});
+ mobileRepositioning=false;document.body.classList.remove('repositioning');mode('pan');setSidebarExpanded(false);
+ const {layout,style}=shareSelection;applyMapOption(layout,'layout');applyMapOption(style,'style');fitView();
+};
+customizationWarning.addEventListener('cancel',()=>{pendingCustomization=null;});
 new ResizeObserver(()=>{headingBounds=null;draw();}).observe($('map-heading'));
 function updateHeadingVisibility(){
  const title=$('map-heading');

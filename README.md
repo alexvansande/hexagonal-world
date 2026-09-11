@@ -208,7 +208,14 @@ New maps start with **Lifezones + Spaceship Earth**. Formats are ordered Spacesh
 
 ## Compact controls and masthead
 
-The initial interface has a floating bottom-left controller: two horizontal thumbnail strips and Customize. Customize expands the existing controls without duplicating form state; the collapse button returns to the compact controller. The selected controller mode is stored in shared links. Thumbnail buttons retain accessible names and native hover titles when their visible labels are hidden.
+The initial interface has a floating bottom-left controller: two horizontal thumbnail strips and More options. More options expands the existing controls without duplicating form state; the large close button returns to the compact controller. On phones the options panel fills the screen. The selected controller mode is stored in shared links. Thumbnail buttons retain accessible names and native hover titles when their visible labels are hidden.
+
+On phones, Reposition Globe sits above Download and opens the map with Pan,
+Reposition, zoom, Fit, and Done controls. Done restores the options panel and
+returns dragging to pan mode. Opening a settings section or entering reposition
+mode first shows a memory warning. Continue applies to that action; Don't alert
+me again persists on the device, separately from shared map links. Go back to
+default styles restores the selected format/style presets and compact picker.
 
 The masthead reads “Hexagonal World” in Baskerville Italic, with the uppercase subtitle set in Gotham Bold when installed (Avenir Next/Arial fallback). It aligns with the compact controller and moves right of the expanded column. Pan, zoom, and layout changes check the actual convex map pieces against the title rectangle; the title fades out on overlap and returns when the rectangle clears. Infinite maps always occupy it. When it is covered or cannot fit on screen, the expanded column shows the title above the introductory copy. Heading contrast follows the background color; reduced-motion preferences disable the fade.
 
