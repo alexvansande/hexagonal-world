@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import {landClass,oceanClass,landLegends,landRows,oceanRows,oceanLegend,paintEcology,fillEcologyGaps} from './dist/map-layers.mjs';
+import {landClass,oceanClass,landLegends,landRows,oceanRows,oceanLegend,paintEcology,fillEcologyGaps,prepareEcologyRaster} from './dist/map-layers.mjs';
 for(const n of [3,6,10,15]){assert.equal(landLegends[n].length,n);for(let raw=1;raw<=39;raw++)assert(landClass(raw,n)>=0&&landClass(raw,n)<n);assert.equal(landClass(254,n),-1);}
 for(const n of [3,6,10,15]){assert.equal(oceanLegend(n).length,n);for(let d=0;d<5;d++)for(let t=1;t<256;t++)assert(oceanClass(d,t,n)>=0&&oceanClass(d,t,n)<n);}
 const px=new Uint8ClampedArray([1,0,0,255,0,0,1,255,0,4,3,255,254,0,0,255]);const out=paintEcology(px,10,6);assert.equal(out.length,px.length);for(let i=0;i<out.length;i+=4)assert.equal(out[i+3],255);assert(out[0]!==1||out[1]!==0||out[2]!==0);
@@ -36,3 +36,13 @@ assert.deepEqual(fillEcologyGaps(rgba([[254,0,0]]),1,1),rgba([[254,0,0]]),'No do
 assert.deepEqual([...fillEcologyGaps(rgba([[25,0,0],[254,0,0],[254,0,0],[254,0,0],[254,0,0]]),5,1)].filter((_,i)=>i%4===0),[25,25,25,25,25],'Flood crosses multi-cell gaps');
 assert.throws(()=>fillEcologyGaps(gaps,2,2));
 console.log('Ecology gaps: nearest valid fields, longitude wrapping, multiple-cell gaps, realm separation and unchanged source data pass.');
+
+// A global raster: final row is 75°S, preceding row is 45°S.
+const antarctic=rgba(Array.from({length:24},(_,i)=>i===21?[254,0,0]:i===22?[0,4,80]:[25,0,0]));
+const antarcticSaved=new Uint8ClampedArray(antarctic),prepared=prepareEcologyRaster(antarctic,4,6);
+assert.deepEqual(antarctic,antarcticSaved,'Antarctic override must not mutate the source');
+for(const p of [20,21,23])assert.equal(prepared[p*4],1,'Antarctic land is Polar, including missing and classified cells');
+assert.deepEqual(prepared.slice(88,92),antarctic.slice(88,92),'Southern ocean stays ocean');
+assert.deepEqual(prepared.slice(0,80),antarctic.slice(0,80),'Non-Antarctic climates stay unchanged');
+for(const count of [3,6,10,15])for(const p of [20,21,23])assert.equal(landClass(prepared[p*4],count),0);
+console.log('Antarctica: Polar in every palette, ocean and northern land preserved.');

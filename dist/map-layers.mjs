@@ -105,6 +105,16 @@ export function fillEcologyGaps(pixels,width,height){
  return out;
 }
 
+// Explicit cartographic convention: Antarctic land is Polar. The climate raster
+// has gaps there; a nearest-donor flood otherwise extends distant climates south.
+export function prepareEcologyRaster(pixels,width,height){
+ const out=fillEcologyGaps(pixels,width,height);
+ for(let y=0;y<height;y++)if(90-(y+.5)*180/height < -60){
+  for(let x=0;x<width;x++){const i=(y*width+x)*4;if(pixels[i]!==0)out[i]=1;}
+ }
+ return out;
+}
+
 export const missing={name:'No source data',color:'#999ca3',detail:'Unmapped land or unavailable marine data; not a life-zone class'};
 const rgb=hex=>[1,3,5].map(i=>parseInt(hex.slice(i,i+2),16));
 export function paintEcology(pixels,landCount,oceanCount){
@@ -145,7 +155,7 @@ async function desktopSource(type,landCount,oceanCount){
 }
 async function ecologySource(landCount,oceanCount){
  const img=await loadImage('maps/ecology-waves.png'),canvas=document.createElement('canvas');canvas.width=img.width;canvas.height=img.height;const context=canvas.getContext('2d');
- if(!ecologyPixels){context.drawImage(img,0,0);ecologyPixels=fillEcologyGaps(context.getImageData(0,0,img.width,img.height).data,img.width,img.height);}
+ if(!ecologyPixels){context.drawImage(img,0,0);ecologyPixels=prepareEcologyRaster(context.getImageData(0,0,img.width,img.height).data,img.width,img.height);}
  context.putImageData(new ImageData(paintEcology(ecologyPixels,landCount,oceanCount),img.width,img.height),0,0);
  return canvas;
 }

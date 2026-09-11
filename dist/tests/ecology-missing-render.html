@@ -1,16 +1,18 @@
 <!doctype html><meta charset="utf-8"><title>Climate gap filling check</title><p id="result">Running…</p><script type="module">
-import {paintEcology,fillEcologyGaps,landClass,oceanClass} from '../map-layers.mjs?v=neighbor-filled-1-waves-1';
+import {paintEcology,prepareEcologyRaster,landClass,oceanClass} from '../map-layers.mjs?v=antarctic-polar-1-waves-1';
 try{
  const image=new Image();image.src='../maps/ecology-waves.png';await image.decode();const canvas=document.createElement('canvas');canvas.width=image.width;canvas.height=image.height;const ctx=canvas.getContext('2d',{willReadFrequently:true});ctx.drawImage(image,0,0);
- const raw=ctx.getImageData(0,0,image.width,image.height).data,start=performance.now(),filled=fillEcologyGaps(raw,image.width,image.height),elapsed=performance.now()-start;let repaired=0;
+ const raw=ctx.getImageData(0,0,image.width,image.height).data,start=performance.now(),filled=prepareEcologyRaster(raw,image.width,image.height),elapsed=performance.now()-start;let repaired=0;
  for(let i=0;i<raw.length;i+=4){
   if(raw[i]!==filled[i]||raw[i+1]!==filled[i+1]||raw[i+2]!==filled[i+2])repaired++;
-  if(raw[i]>=1&&raw[i]<=39&&raw[i]!==filled[i])throw Error('Valid climate changed');
+  const antarctic=90-(Math.floor(i/4/image.width)+.5)*180/image.height < -60;
+  if(antarctic&&raw[i]!==0&&filled[i]!==1)throw Error('Antarctic land not Polar');
+  if(!antarctic&&raw[i]>=1&&raw[i]<=39&&raw[i]!==filled[i])throw Error('Valid climate changed');
   if((raw[i]===0)!==(filled[i]===0))throw Error('Land/sea mask changed');
   for(const count of [3,6,10,15])if(filled[i]===0?oceanClass(filled[i+1],filled[i+2],count)<0:landClass(filled[i],count)<0)throw Error('Unfilled class at '+i/4);
  }
  const x=Math.floor((-16.125+180)/360*image.width),y=Math.floor((90-18.875)/180*image.height),offset=(y*image.width+x)*4;
  if(raw[offset]!==254||filled[offset]<1||filled[offset]>39)throw Error('Coastal donor missing');
- document.querySelector('#result').textContent='PASS · '+repaired+' source pixels filled in '+Math.round(elapsed)+' ms; no missing display classes in any palette, valid climates and land/sea mask preserved.';
+ document.querySelector('#result').textContent='PASS · '+repaired+' source pixels filled in '+Math.round(elapsed)+' ms; no missing display classes in any palette, Antarctica Polar, other valid climates and land/sea mask preserved.';
 }catch(error){document.querySelector('#result').textContent='FAIL · '+error.message;}
 </script>
