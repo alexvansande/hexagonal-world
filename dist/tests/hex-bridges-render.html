@@ -1,5 +1,5 @@
 <!doctype html><meta charset="utf-8"><title>Hex bridge checks</title><p id="result">Running…</p><canvas width="128" height="128"></canvas><script type="module">
-import {ecologyBridgeGLSL,ecologyHexRadius as r} from '../ecology-grid.mjs?v=bridges-7';
+import {ecologyBridgeGLSL,ecologyHexRadius as r} from '../ecology-grid.mjs?v=bridges-8';
 const result=document.querySelector('p'),gl=document.querySelector('canvas').getContext('webgl',{preserveDrawingBuffer:true});
 const assert=(v,m)=>{if(!v)throw Error(m);};
 try{
@@ -39,12 +39,12 @@ try{
  const red=[255,0,0,255],green=[0,255,0,255],blue=[0,0,255,255];
  const neighborDirs=Array.from({length:6},(_,i)=>[Math.cos((i+.5)*Math.PI/3),Math.sin((i+.5)*Math.PI/3)]);
  const cases=[
- {name:'two-neighbor triangle',ring:[green,green,red,blue,red,blue]},
- {name:'three-neighbor half',ring:[green,green,green,blue,red,blue]},
- {name:'four-neighbor concave patch',ring:[green,green,green,green,red,blue]},
- {name:'five-neighbor concave patch',ring:[green,green,green,green,green,red]},
- {name:'longest wins over pair',ring:[green,green,green,blue,blue,red]},
- {name:'equal runs have a stable winner',ring:[green,green,blue,blue,red,red]},
+ {name:'two-neighbor shared boundary',ring:[green,green,red,blue,red,blue]},
+ {name:'three-neighbor shared boundary',ring:[green,green,green,blue,red,blue]},
+ {name:'four-neighbor shared boundary',ring:[green,green,green,green,red,blue]},
+ {name:'five-neighbor shared boundary',ring:[green,green,green,green,green,red]},
+ {name:'triple and opposite pair',ring:[green,green,green,blue,blue,red]},
+ {name:'equal runs share borders',ring:[green,green,blue,blue,red,red]},
  {name:'isolated triple',ring:[green,green,green,blue,blue,blue]},
  {name:'isolated four',ring:[green,green,green,green,blue,blue]},
  {name:'isolated five',ring:[green,green,green,green,green,blue]},
@@ -66,18 +66,28 @@ try{
   const pixels=new Uint8Array(128*128*4);gl.readPixels(0,0,128,128,gl.RGBA,gl.UNSIGNED_BYTE,pixels);
   const runs=ring.map((color,start)=>{let length=0;while(color!==red&&length<6&&ring[(start+length)%6]===color)length++;return {start,length,color};}).sort((a,b)=>b.length-a.length||a.start-b.start);
   const run=runs[0],circle=run.length>=3&&!ring.includes(red);
-  const polygon=run.length<2?[]:[...(run.length>=3?[[0,0]]:[]),...Array.from({length:run.length+1},(_,i)=>corner(run.start+i))];
+  const regions=[];
+  for(let i=0;i<6;i++){
+   const a=neighborDirs[i].map(v=>v*Math.sqrt(3)),b=neighborDirs[(i+1)%6].map(v=>v*Math.sqrt(3)),ma=a.map(v=>v/2),mb=b.map(v=>v/2),mid=a.map((v,k)=>(v+b[k])/2),centroid=a.map((v,k)=>(v+b[k])/3),ca=ring[i],cb=ring[(i+1)%6];
+   if(ca===cb&&ca!==red){regions.push({color:ca,points:[ma,a,b,mb]},{color:red,points:[[0,0],ma,mb]});}
+   else if(ca===red&&cb!==red){regions.push({color:cb,points:[b,mb,mid]},{color:red,points:[[0,0],a,mid,mb]});}
+   else if(cb===red&&ca!==red){regions.push({color:ca,points:[a,mid,ma]},{color:red,points:[[0,0],ma,mid,b]});}
+   else if(ca===red&&cb===red)regions.push({color:red,points:[[0,0],a,b]});
+   else regions.push({color:red,points:[[0,0],ma,centroid,mb]},{color:ca,points:[a,mid,centroid,ma]},{color:cb,points:[b,mb,centroid,mid]});
+  }
   for(let y=0;y<128;y+=2)for(let x=0;x<128;x+=2){
    const p=[(x+.5)/64-1,(y+.5)/64-1],dot=d=>p[0]*d[0]+p[1]*d[1];
    if(Math.abs(p[1])>Math.sqrt(3)/2||Math.sqrt(3)/2*Math.abs(p[0])+.5*Math.abs(p[1])>Math.sqrt(3)/2)continue;
-   let expected=contains(p,polygon)?run.color:red;
-   if(circle&&dot(p)<=.75)expected=red;
-   // Exclude the exact polygon/circle boundaries from float comparison.
-   if(polygon.some((a,i)=>{const b=polygon[(i+1)%polygon.length];return Math.abs((p[0]-a[0])*(b[1]-a[1])-(p[1]-a[1])*(b[0]-a[0]))<.0001;})||Math.abs(dot(p)-.75)<.0001)continue;
+   let expected=regions.find(region=>contains(p,region.points))?.color??red;
+   if(circle){
+    if(dot(p)<=.75)expected=red;
+    else expected=ring[neighborDirs.map(d=>Math.hypot(p[0]-Math.sqrt(3)*d[0],p[1]-Math.sqrt(3)*d[1])).reduce((best,d,i,all)=>d<all[best]?i:best,0)];
+   }
+   if(regions.some(({points:polygon})=>polygon.some((a,i)=>{const b=polygon[(i+1)%polygon.length];return Math.abs((p[0]-a[0])*(b[1]-a[1])-(p[1]-a[1])*(b[0]-a[0]))<.0001;}))||Math.abs(dot(p)-.75)<.0001)continue;
    const actual=pixels.slice((y*128+x)*4,(y*128+x)*4+3);
    assert(actual.every((c,i)=>c===expected[i]),test.name+' rotation '+rotation+' at '+p);
   }
  }
- assert(gl.getError()===gl.NO_ERROR,'WebGL error');result.textContent='PASS · Pair rectangles plus 72 rotated longest-chain fixtures pass: chain lengths 2–6, cyclic runs, ties, concave patches and protected islands.';
+ assert(gl.getError()===gl.NO_ERROR,'WebGL error');result.textContent='PASS · Pair rectangles plus 72 rotated shared-boundary fixtures pass: chains 2–6, cyclic runs, multiple colors and complete circles without corner remnants.';
 }catch(error){result.textContent='FAIL · '+error.message;console.error(error);}
 </script>

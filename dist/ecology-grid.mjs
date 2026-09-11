@@ -76,7 +76,7 @@ const chains=Array.from({length:6},(_,i)=>`
   ${Array.from({length:5},(_,j)=>{const n=(i+j+1)%6;return `
   continuing=continuing&&valid[${n}]&&ecologySame(colors[${i}],colors[${n}]);
   if(continuing)count++;`;}).join('')}
-  if(count>longest){longest=count;start=${i}.;patchColor=colors[${i}];}
+  if(count>longest)longest=count;
  }
 `).join('');
 
@@ -106,20 +106,34 @@ vec3 ecologyBridgedColor(vec2 p,vec2 center,vec3 original){
  vec2 offset=(p-center)/radius,location;
  vec3 colors[6];bool valid[6];bool isolated=true,complete=true;
  ${samples}
- int longest=1,count;float start=0.;bool continuing;vec3 patchColor=original;
- // Strictly greater keeps equal-length ties deterministic in ring order.
+ int longest=1,count;bool continuing;
+ // Chain length determines whether this isolated cell needs a circle.
  ${chains}
- if(longest<2)return original;
- // Protect an isolated cell only when a half-cell or larger patch is present.
- if(longest>=3&&isolated&&complete&&dot(offset,offset)<=.75)return original;
- if(longest==2){
-  // The chord between the run's outer vertices cuts off one corner triangle.
-  return dot(offset,hexCorner(start+1.))>=.5?patchColor:original;
+ bool circle=longest>=3&&isolated&&complete;
+ if(circle&&dot(offset,offset)<=.75)return original;
+ // Every three neighboring centers share one triangle. Sum their barycentric
+ // weights by source class, so both sides choose the very same dividing line.
+ // Independent, oversized cutouts can exchange colors across a shared edge.
+ for(int i=0;i<6;i++){
+  vec2 a=sqrt(3.)*hexCorner(float(i)+.5);
+  vec2 b=sqrt(3.)*hexCorner(float(i)+1.5);
+  float det=a.x*b.y-a.y*b.x;
+  float wa=(offset.x*b.y-offset.y*b.x)/det;
+  float wb=(a.x*offset.y-a.y*offset.x)/det;
+  if(wa>=-.000001&&wb>=-.000001){
+   vec3 ca=original,cb=original;bool va=false,vb=false;
+   ${Array.from({length:6},(_,i)=>`if(i==${i}){ca=colors[${i}];cb=colors[${(i+1)%6}];va=valid[${i}];vb=valid[${(i+1)%6}];}`).join('\n')}
+   if(!va||!vb)return original;
+   // The island is replaced by its circle: no leftover original-color corners.
+   if(circle)return wa>=wb?ca:cb;
+   float wc=1.-wa-wb;
+   float own=wc+(ecologySame(original,ca)?wa:0.)+(ecologySame(original,cb)?wb:0.);
+   float sa=wa+(ecologySame(ca,original)?wc:0.)+(ecologySame(ca,cb)?wb:0.);
+   float sb=wb+(ecologySame(cb,original)?wc:0.)+(ecologySame(cb,ca)?wa:0.);
+   if(own>=sa&&own>=sb)return original;
+   return sa>=sb?ca:cb;
+  }
  }
- // Longer runs follow the shared-side arc, closing through the cell center.
- // This retains the concave corner in the four- and five-neighbor sketches.
- float sector=mod(atan(offset.y,offset.x)-start*1.047197551197+12.56637061436,6.28318530718);
- if(longest==6||dot(offset,offset)<1.e-12||sector<=float(longest)*1.047197551197)return patchColor;
  return original;
 }
 `;
