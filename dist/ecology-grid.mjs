@@ -93,6 +93,23 @@ const midpointPatches=Array.from({length:6},(_,i)=>`
  }
 `).join('');
 
+// Literal sketch mode has no fallback to interpolated/shared boundaries.
+const drawnPatches=Array.from({length:6},(_,i)=>`
+ if(valid[${i}]&&!ecologySame(colors[${i}],original)){
+  count=1;continuing=true;
+  ${Array.from({length:5},(_,j)=>{const n=(i+j+1)%6;return `continuing=continuing&&valid[${n}]&&ecologySame(colors[${i}],colors[${n}]);if(continuing)count++;`;}).join('')}
+  if(count==longest){
+   if(longest==6)return dot(offset,offset)<=4./9.?original:colors[${i}];
+   if(longest==2&&dot(offset,hexCorner(${i+1}.))>=.75)return colors[${i}];
+   if(longest==3&&dot(offset,hexCorner(${i+1.5}))>=sqrt(3.)*.25)return colors[${i}];
+   if(longest==4||longest==5){
+    float angle=mod(atan(offset.y,offset.x)-${i}. *1.047197551197+12.56637061436,6.28318530718);
+    if(dot(offset,offset)<1.e-12||angle<=float(longest)*1.047197551197)return colors[${i}];
+   }
+  }
+ }
+`).join('');
+
 const stackDirections=[[1,0],[0,1],[-1,1],[-1,0],[0,-1],[1,-1]];
 const stackCells=[];for(let q=-2;q<=2;q++)for(let r=-2;r<=2;r++)if(Math.max(Math.abs(q),Math.abs(r),Math.abs(q+r))<=2)stackCells.push([q,r]);
 const stackIndex=([q,r])=>stackCells.findIndex(c=>c[0]===q&&c[1]===r);
@@ -145,6 +162,10 @@ vec3 ecologyBridgedColor(vec2 p,vec2 center,vec3 original){
  int longest=1,count;bool continuing;
  // Chain length determines whether this isolated cell needs a circle.
  ${chains}
+ if(ecologyBridges==5){
+  ${drawnPatches}
+  return original;
+ }
  bool circle=longest>=3&&isolated&&complete;
  if(circle&&dot(offset,offset)<=.75)return original;
  if(ecologyBridges==3&&!circle&&longest<=3){

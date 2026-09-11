@@ -1,6 +1,6 @@
 <!doctype html><meta charset="utf-8"><title>Hex patch compositing check</title><style>body{font:14px system-ui}canvas{width:480px;height:480px}section{display:flex;gap:12px}</style><p id="result">Running…</p><section><div>GPU map rules<br><canvas id="gpu" width="480" height="480"></canvas></div><div>Independent polygon drawing<br><canvas id="reference" width="480" height="480"></canvas></div></section><script type="module">
-import {ecologyBridgeGLSL,ecologyHexRadius as radius} from '../ecology-grid.mjs?v=bridges-11';
-const mode=new URLSearchParams(location.search).get('mode')==='3'?3:2;
+import {ecologyBridgeGLSL,ecologyHexRadius as radius} from '../ecology-grid.mjs?v=bridges-12';
+const mode=Number(new URLSearchParams(location.search).get('mode'))||2;
 const result=document.querySelector('#result'),size=480,extent=6,root=Math.sqrt(3),dirs=[[1,0],[0,1],[-1,1],[-1,0],[0,-1],[1,-1]],pos=([q,r])=>[1.5*q,root*(r+q/2)],add=(a,b)=>a.map((v,i)=>v+b[i]),colors=['#42ad61','#5d88c9','#e0b358'];
 const key=([q,r])=>q+','+r,classification=([q,r])=>q===3&&r===-2?0:q===0&&r===0?2:q===-3&&(r===1||r===2)?1:q<0?0:1;
 const cells=[];for(let q=-10;q<=10;q++)for(let r=-10;r<=10;r++)cells.push({axial:[q,r],center:pos([q,r]),color:classification([q,r])});
@@ -39,6 +39,16 @@ try{
   }
  }
  for(const c of cells)if(island(c.axial)){ctx.beginPath();ctx.arc(...c.center,root/2,0,2*Math.PI);ctx.fillStyle=colors[c.color];ctx.fill();}
+ if(mode===5)for(const c of cells){
+  poly(ctx,hex.map(p=>add(p,c.center)),c.color);
+  const ring=dirs.map(d=>classification(add(c.axial,d))),runs=ring.map((color,start)=>{let length=0;while(color!==c.color&&length<6&&ring[(start+length)%6]===color)length++;return {start,length,color};}),longest=Math.max(...runs.map(r=>r.length));
+  for(const r of runs)if(r.length===longest&&r.length>=2){
+   const mid=i=>midpoint(hex[i%6],hex[(i+1)%6]);
+   const polygon=r.length<=3?[mid(r.start),...Array.from({length:r.length-1},(_,i)=>hex[(r.start+i+1)%6]),mid(r.start+r.length-1)]:[[0,0],...Array.from({length:r.length+1},(_,i)=>hex[(r.start+i)%6])];
+   poly(ctx,polygon.map(p=>add(p,c.center)),r.color);
+  }
+  if(longest===6){ctx.beginPath();ctx.arc(...c.center,2/3,0,2*Math.PI);ctx.fillStyle=colors[c.color];ctx.fill();}
+ }
  const gl=document.querySelector('#gpu').getContext('webgl',{preserveDrawingBuffer:true,antialias:false});
  const compile=(type,code)=>{const s=gl.createShader(type);gl.shaderSource(s,code);gl.compileShader(s);if(!gl.getShaderParameter(s,gl.COMPILE_STATUS))throw Error(gl.getShaderInfoLog(s));return s;};
  const fs=`precision highp float;varying vec2 point;uniform sampler2D map;uniform int circularMode;uniform int ecologyBridges;uniform vec3 angles;
