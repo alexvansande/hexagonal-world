@@ -1,27 +1,28 @@
-import {PrecomputedSurfaces,surfacePreset,surfaceLevel,surfacePlan,surfaceTileRect,clipSurfaceTriangle} from './precomputed-surfaces.mjs?v=stable-cache-1';
+import {referenceSources,sourceAttribution} from './reference-sources.mjs';
+import {PrecomputedSurfaces,surfacePreset,surfaceLevel,surfacePlan,surfaceTileRect,clipSurfaceTriangle} from './precomputed-surfaces.mjs?v=felv-position-3';
 import {renderLifezonesLegend} from './lifezones-legend.mjs?v=waves-1';
 import {fadedLegendColor} from './legend-colors.mjs';
 import {ProjectedLighting,lightingSettings,lightingKey,lightingPlan,lightingCovers} from './projected-lighting.mjs?v=zoom-layers-1';
 import {compactDevice,mobileFitRect,maximumZoom} from './device-profile.mjs?v=zoom-scale-1';
-import {readSharePath,sharePair,inferSharePair,presetSettings} from './share-routes.mjs?v=ivory-lines-1';
+import {readSharePath,sharePair,inferSharePair,presetSettings} from './share-routes.mjs?v=felv-position-3';
 import {initAnalytics,trackEvent} from './analytics.mjs';
-import {pngFromTiles,printPDF} from './map-export.mjs?v=pdf-resolution-1';
+import {pngFromTiles,printPDF} from './map-export.mjs?v=source-credits-1';
 import {fractalRegion,fractalEdgeOwners,visibleFractalLines,fractalDetailPlan,fineFractalTiles,fractalFineScale,fractalOpacities,edgeKey} from './fractal-grid.mjs?v=fractal-zoom-10';
 import {pointInLoops} from './gosper-fractal.mjs';
 import {circularMode} from './circular-projections.mjs';
 import {polygonOverlapsRect} from './interface-layout.mjs';
 import {ecologyGridGLSL,ecologyBridgeGLSL} from './ecology-grid.mjs?v=river-detail-1';
-import {gosperScale,rotateLocal,subgridLevels} from './subgrid.mjs';
-import {decodeMapState,encodeMapState,distortionEnabled,restorePanelStates} from './map-state.mjs?v=layers-1';
+import {gosperScale,rotateLocal,subgridLevels,subgridArea,dotGridArea} from './subgrid.mjs?v=dot-area-1';
+import {decodeMapState,encodeMapState,distortionEnabled,restorePanelStates} from './map-state.mjs?v=panels-2';
 import {sphereAt,followPoint,geographicPoint} from './globe-drag.mjs?v=circular-2';
 import {makeArrangement,arrangementNames} from './arrangements.mjs?v=gosper-1';
-import {mapSource,landLegends,oceanLegend,missing,riverMask} from './map-layers.mjs?v=antarctic-polar-1-waves-1-fills-1-river-solid-1';
+import {mapSource,landLegends,oceanLegend,missing,riverMask} from './map-layers.mjs?v=wikipedia-sources-2';
 import {searchPresets} from './search-presets.mjs?v=rus-search-1';
 import {visibleTiles} from './tiling.mjs';
 import {makeGeometry,layouts,matching,canvasWorld,hex,world} from './geometry.mjs?v=circular-2';
 import {projectionGLSL} from './projection-shader.mjs?v=circular-2';
 import {ReliefRenderer,reliefRanges,reliefDefaults,reliefLooks} from './relief.mjs?v=layers-4';
-import {layoutOptions,styleOptions,layoutIcon} from './map-options.mjs?v=ivory-lines-1';
+import {layoutOptions,styleOptions,layoutIcon} from './map-options.mjs?v=felv-position-3';
 const $=id=>document.getElementById(id), canvas=$('map'),overlay=$('overlay'),ctx=overlay.getContext('2d');
 const classOptions=[3,6,10,15];
 const classCount=id=>classOptions[Math.max(0,Math.min(3,Math.round(+$(id).value)))];
@@ -31,6 +32,7 @@ const state={method:'tetra',lon:0,lat:0,roll:0,bias:1,height:1.5,grid:30,line:0.
 let mobileRepositioning=false;
 let exporting=false;
 let shareSelection=readSharePath(location.pathname)||inferSharePair(readMapStateFromUrl());
+let urlDefaults=null,defaultView=null;
 let persistenceReady=false,saveTimer=null,restoredView=null,headingBounds=null;
 let displayedSource='continents',mapRequest=0;
 let arrangement,tiling,visible=[],meshSignature=null,geometryKey=null,edgeLabels=[];
@@ -165,7 +167,7 @@ function fitView(){
  state.zoom=1;state.panX=(left+right-w)/2-(b[0]+b[2])/2*scale;state.panY=(top+bottom-h)/2+(b[1]+b[3])/2*scale;draw();
 }
 function resize(){if(exporting)return;headingBounds=null;const rect=$('stage').getBoundingClientRect(),rotated=compactDevice&&persistenceReady&&(w>h)!==(rect.width>rect.height);w=rect.width;h=rect.height;dpr=Math.min(window.devicePixelRatio||1,+$('quality').value,compactDevice?1.5:3);const pixelWidth=Math.round(w*dpr),pixelHeight=Math.round(h*dpr);if(canvas.width!==pixelWidth||canvas.height!==pixelHeight){canvas.width=pixelWidth;canvas.height=pixelHeight;overlay.width=pixelWidth;overlay.height=pixelHeight;}
- if(!persistenceReady){if(restoredView&&!compactDevice){scale=restoredView.scale;state.zoom=restoredView.zoom;state.panX=restoredView.panX;state.panY=restoredView.panY;}else{fitView();const offset=shareSelection.layout.viewOffset;if(offset&&!compactDevice){state.panX=offset[0]*scale;state.panY=offset[1]*scale;}}persistenceReady=true;}else if(rotated&&!state.sidebarExpanded)fitView();draw();}
+ if(!persistenceReady){fitView();const offset=shareSelection.layout.viewOffset;if(offset&&!compactDevice){state.panX=offset[0]*scale;state.panY=offset[1]*scale;}defaultView={scale,zoom:state.zoom,panX:state.panX,panY:state.panY};if(restoredView&&!compactDevice){scale=restoredView.scale;state.zoom=restoredView.zoom;state.panX=restoredView.panX;state.panY=restoredView.panY;}persistenceReady=true;}else if(rotated&&!state.sidebarExpanded)fitView();draw();}
 function point(p,t){const v=rotateScreen(canvasWorld(p,t));return [w/2+v[0]*scale*state.zoom+state.panX,h/2+v[1]*scale*state.zoom+state.panY];}
 function draw(){if(exporting)return;scheduleSave();if(queued)return;queued=true;requestAnimationFrame(render);}
 let fractalGridKey=null,fractalPaths=[],fineFractalPaths=[],fineFractalBounds=null,fineFractalMask='';
@@ -343,6 +345,12 @@ function render(refined=false,exportMode=false){if(exporting&&!exportMode)return
  for(const edge of arrangement.seams||[])if(edge.error>1e-6){ctx.beginPath();ctx.moveTo(...point(edge.a,{x:0,y:0,r:0}));ctx.lineTo(...point(edge.b,{x:0,y:0,r:0}));ctx.stroke();}
  }
  ctx.restore();$('status').textContent=arrangementNames[state.arrangement]+(state.line>0?' · red edges mark mismatched joins':' · borders hidden');
+ $('height-credit').hidden=!$('relief-enabled').checked&&!['ivory','elevation'].includes($('map-source').value);
+ const dotInfo=$('dotgrid-area');dotInfo.hidden=!$('dotgrid').checked;
+ if(!dotInfo.hidden){const area=dotGridArea(state.method),format=new Intl.NumberFormat('en-US',{maximumSignificantDigits:3});dotInfo.textContent=`The area around each dot is equivalent to approximately ${format.format(area.km2)} km² (${format.format(area.mi2)} mi²) on average. Actual area varies with projection and location.`;}
+ const info=$('subgrid-area');info.hidden=!$('subgrid').checked||state.subgridWidth<=0;
+ if(!info.hidden){const area=subgridArea(state.method),format=new Intl.NumberFormat('en-US',{notation:'compact',compactDisplay:'long',maximumFractionDigits:2});info.textContent=`Each small subgrid hexagon represents approximately ${format.format(area.km2)} km² (${format.format(area.mi2)} mi²) on average. Actual area varies with projection and location; edge hexagons may be partial.`;}
+
 }
 for(const b of document.querySelectorAll('.method'))b.onclick=()=>{state.method=b.dataset.method;state.layout=0;document.querySelectorAll('.method').forEach(el=>el.classList.toggle('active',el===b));rebuild();};
 $('layout').onchange=()=>{state.arrangement=$('layout').value;rebuild();if($('optimize').checked)applySearch();};for(const id of ['interpolation','graticule','construction','subgrid','dotgrid','fractalgrid','labels','palette','distortion','indicatrix'])$(id).onchange=draw;$('quality').onchange=resize;
@@ -465,7 +473,8 @@ async function exportMap(){
   if(relief&&$('relief-enabled').checked)await relief.load(false,control.signal);
   if($('relief-enabled').checked&&relief?.ready)cachedLighting();
   while($('map-loading').textContent==='Loading map…'||($('relief-enabled').checked&&relief?.loading)||$('indicatrix-status').textContent==='Preparing circles…'){control.signal.throwIfAborted();if(performance.now()>deadline)throw Error('Map assets are still loading; please retry when they finish');await new Promise(resolve=>setTimeout(resolve,100));}
- if(isPDF&&!tiling){const b=bounds(),unit=scale*state.zoom,pad=($('relief-enabled').checked&&relief?.ready?relief.padding(appliedLighting(),unit):0)+12;crop.x=saved.w/2+saved.panX+b[0]*unit-pad;crop.y=saved.h/2+saved.panY-b[3]*unit-pad;crop.topInset=pad;crop.width=(b[2]-b[0])*unit+2*pad;crop.height=(b[3]-b[1])*unit+2*pad;}
+ if(!tiling){const b=bounds(),unit=scale*state.zoom,pad=($('relief-enabled').checked&&relief?.ready?relief.padding(appliedLighting(),unit):0)+12;crop.x=saved.w/2+saved.panX+b[0]*unit-pad;crop.y=saved.h/2+saved.panY-b[3]*unit-pad;crop.topInset=pad;crop.width=(b[2]-b[0])*unit+2*pad;crop.height=(b[3]-b[1])*unit+2*pad;}
+  if(!isPDF){const right=Math.min(saved.w,crop.x+crop.width),bottom=Math.min(saved.h,crop.y+crop.height);crop.x=Math.max(0,crop.x);crop.y=Math.max(0,crop.y);crop.width=right-crop.x;crop.height=bottom-crop.y;if(crop.width<=0||crop.height<=0)Object.assign(crop,{x:0,y:0,width:saved.w,height:saved.h});}
   const renderTile=async(x,y,width,height,ratio=factor)=>{
    control.signal.throwIfAborted();
    // Overlap tiles enough to include antialiasing and the relief shadow blur.
@@ -487,10 +496,12 @@ async function exportMap(){
    context.drawImage(canvas,-bleed,-bleed);context.drawImage(overlay,-bleed,-bleed);
    return context.getImageData(0,0,width,height).data;
   };
-  const onProgress=value=>progress.textContent=`Rendering ${isPDF?'PDF':'PNG'} ${factor}× · ${Math.round(value*100)}%`;
-  const blob=isPDF?await printPDF({rasterScale:factor,width:crop.width,height:crop.height,mapInsetTop:crop.topInset||0,renderTile,signal:control.signal,onProgress,background:$('background-color').value,lifezones:displayedSource==='ecology'?{colorFade:legendFade(),landCount:classCount('land-classes'),oceanCount:classCount('ocean-classes')}:null}):await pngFromTiles({width:Math.round(saved.w*factor),height:Math.round(saved.h*factor),renderTile,signal:control.signal,onProgress});
+  const onProgress=value=>progress.textContent=`Rendering ${isPDF?'PDF':'PNG'} ${factor===2?'Medium':'High'} · ${Math.round(value*100)}%`;
+  const attribution=[sourceAttribution(displayedSource),!$('height-credit').hidden?'Height imagery: NASA Earth Observatory / Jesse Allen, using GEBCO data from the British Oceanographic Data Centre. Height composite by Alex Van de Sande. '+'https://science.nasa.gov/earth/earth-observatory/blue-marble-next-generation/topography-bathymetry-maps/':''].filter(Boolean).join(' ');
+  const exportOptions={attribution,rasterScale:factor,width:crop.width,height:crop.height,mapInsetTop:crop.topInset||0,renderTile,signal:control.signal,onProgress,background:$('background-color').value};
+  const blob=isPDF?await printPDF({...exportOptions,lifezones:displayedSource==='ecology'?{colorFade:legendFade(),landCount:classCount('land-classes'),oceanCount:classCount('ocean-classes')}:null}):await pngFromTiles({attribution,width:Math.max(1,Math.round(crop.width*factor)),height:Math.max(1,Math.round(crop.height*factor)),renderTile,signal:control.signal,onProgress});
   control.signal.throwIfAborted();
-  const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=`hexagonal-world-${state.method}-${factor}x.${isPDF?'pdf':'png'}`;a.click();trackEvent('download',factor+'x-'+(isPDF?'pdf':'png'));setTimeout(()=>URL.revokeObjectURL(url),60000);
+  const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=`Hexagonal Earth by Alex Van de Sande - ${shareSelection.layout.name} - ${shareSelection.style.name}.${isPDF?'pdf':'png'}`;a.click();trackEvent('download',factor+'x-'+(isPDF?'pdf':'png'));setTimeout(()=>URL.revokeObjectURL(url),60000);
  }catch(error){if(error.name!=='AbortError'){console.warn('Map export:',error);$('relief-status').textContent='Export failed: '+error.message;}}
  finally{w=saved.w;h=saved.h;dpr=saved.dpr;state.panX=saved.panX;state.panY=saved.panY;out.width=out.height=1;relief?.releaseDetail();exporting=false;main.inert=false;dialog.close();button.disabled=false;meshSignature=null;resize();}
 }
@@ -573,7 +584,7 @@ function captureSettings(){
  return {version:1,state:{...state,...applied},controls,view:{scale,zoom:state.zoom,panX:state.panX,panY:state.panY},details:Object.fromEntries([...document.querySelectorAll('aside > details')].map(el=>[el.id,el.open]))};
 }
 function readMapStateFromUrl(){const hash=location.hash;if(!hash.startsWith('#m=')&&!hash.startsWith('#p='))return null;try{return decodeMapState(hash.slice(3));}catch{return null;}}
-function updateMapUrl(){if(!persistenceReady||exporting)return;clearTimeout(saveTimer);try{const url=new URL(location.href);if(!location.pathname.startsWith('/tests/'))url.pathname=shareSelection.path;url.hash='m='+encodeMapState(captureSettings());history.replaceState(null,'',url);}catch{}}
+function updateMapUrl(){if(!persistenceReady||exporting)return;clearTimeout(saveTimer);try{const url=new URL(location.href);if(!location.pathname.startsWith('/tests/'))url.pathname=shareSelection.path;const preset=presetSettings(shareSelection),defaults={state:{...urlDefaults.state,...preset.state},controls:{...urlDefaults.controls,...preset.controls},details:urlDefaults.details,view:defaultView};const encoded=encodeMapState(captureSettings(),defaults);url.hash=encoded?'m='+encoded:'';history.replaceState(null,'',url);}catch{}}
 function scheduleSave(){if(!persistenceReady)return;clearTimeout(saveTimer);saveTimer=setTimeout(updateMapUrl,180);}
 document.addEventListener('input',scheduleSave);document.addEventListener('change',scheduleSave);
 
@@ -621,7 +632,15 @@ function updateMapUI(){
  if(type==='ecology'){const landCount=classCount('land-classes'),oceanCount=classCount('ocean-classes');syncClassControl('land-classes',landCount);syncClassControl('ocean-classes',oceanCount);renderLifezonesLegend($('floating-legend').querySelector('.floating-legend-clusters'),landCount,oceanCount);hexLegend('land-legend',landLegends[landCount]);hexLegend('ocean-legend',oceanLegend(oceanCount));hexLegend('missing-legend',[missing]);}
  updateLegendFade();
  const credits={terrain:'Supplied shaded topographic map · baked-in terrain and seafloor relief; lighting is fixed.',ivory:'Generated sculpted-paper finish from the supplied heightfield.',elevation:'Generated earth-and-sea finish from the supplied heightfield.',continents:'Supplied silhouette. Cut-search mask is shared across all layers.',marble:'Supplied Blue Marble · brighter oceans and visible seafloor detail.',countries:'Natural Earth · 1:50m · de facto country boundaries.',ecology:'Leemans / UNEP-WCMC Holdridge (1992); NOAA OISST 1991–2020; Copernicus WAVERYS 2015–2024. Natural Earth 1:10m rivers. Hover swatches for class definitions.'};
- $('map-credit').textContent=credits[type];
+ const reference=referenceSources[type],credit=$('map-credit');
+ credit.textContent=credits[type]||'';
+ if(reference){
+  const sourceLink=document.createElement('a'),licenseLink=document.createElement('a');
+  sourceLink.href=reference.url;sourceLink.textContent=reference.author+' · Wikimedia Commons';
+  licenseLink.href=reference.licenseURL;licenseLink.textContent=reference.license;
+  for(const link of [sourceLink,licenseLink]){link.target='_blank';link.rel='noopener';}
+  credit.replaceChildren(sourceLink,' · ',licenseLink,'. '+reference.changes+(reference.note?' '+reference.note:''));
+ }
  $('relief-source-note').hidden=!$('relief-enabled').checked||!['terrain','marble'].includes(type);
 }
 async function updateMapSource(){
@@ -635,7 +654,7 @@ async function updateMapSource(){
   const originalWidth=source.width,originalHeight=source.height,max=gl.getParameter(gl.MAX_TEXTURE_SIZE);
   if(source.width>max){const resized=document.createElement('canvas');resized.width=max;resized.height=Math.round(source.height*max/source.width);const c=resized.getContext('2d');c.imageSmoothingEnabled=!['ecology','continents','countries'].includes(type);c.drawImage(source,0,0,resized.width,resized.height);source=resized;}
   gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,texture);const filter=['ecology','continents','countries'].includes(type)?gl.NEAREST:gl.LINEAR;gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,filter);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,filter);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,source);
-  liveSourceKey=sourceKey(type);displayedSource=type;$('map-loading').textContent='';$('source-name').textContent={continents:'continents.png',marble:'Blue Marble · bluemarble-high.jpg',countries:'Natural Earth · 1:50m · de facto country boundaries.',terrain:'Shaded topographic map',ivory:'Ivory · sculpted paper',elevation:'Elevation · earth & sea',ecology:'Holdridge + marine zones'}[type];$('source-detail').textContent=type==='ecology'?'0.5° land · 1° ocean temperature · 0.8° wave exposure':['ivory','elevation'].includes(type)?'Derived from supplied heightfield':`${originalWidth.toLocaleString()} × ${originalHeight.toLocaleString()} · equirectangular`;
+  liveSourceKey=sourceKey(type);displayedSource=type;$('map-loading').textContent='';$('source-name').textContent=referenceSources[type]?.name||{continents:'continents.png',marble:'Blue Marble · bluemarble-high.jpg',countries:'Natural Earth · 1:50m · de facto country boundaries.',terrain:'Shaded topographic map',ivory:'Ivory · sculpted paper',elevation:'Elevation · earth & sea',ecology:'Holdridge + marine zones'}[type];$('source-detail').textContent=type==='ecology'?'0.5° land · 1° ocean temperature · 0.8° wave exposure':['ivory','elevation'].includes(type)?'Derived from supplied heightfield':`${originalWidth.toLocaleString()} × ${originalHeight.toLocaleString()} · equirectangular`;
   draw();
  }catch(error){if(request!==mapRequest)return;$('map-source').value=displayedSource;updateMapUI();updateRelief();$('map-loading').textContent='Map could not load. Previous layer retained; select again to retry.';scheduleSave();}
 }
@@ -659,13 +678,18 @@ function setOptionControl(id,value){
   else if(el.matches('select')&&[...el.options].some(option=>option.value===String(value)))el.value=String(value);
 }
 function applyMapOption(option,type){
+  // Presets must resolve omitted fields just as a fresh URL does, rather than
+  // inheriting values from whichever preset happened to be selected before.
+  const options=type==='layout'?layoutOptions:styleOptions;
+  const complete=group=>Object.fromEntries([...new Set(options.flatMap(item=>Object.keys(item[group])))].map(key=>[key,option[group][key]??urlDefaults[group][key]]));
+  option={...option,state:complete('state'),controls:complete('controls')};
   shareSelection=type==='layout'?sharePair(shareSelection.style.id,option.arrangement):sharePair(option.id,state.arrangement);
   trackEvent(type==='layout'?'format':'style',type==='layout'?shareSelection.layout.arrangement:option.id);
   if(type==='layout'){
     for(const id of ['method','arrangement','lon','lat','roll','bias','height','clearance','gridRotation'])if(option.state[id]!==undefined){if(['method','arrangement'].includes(id))state[id]=option.state[id];else setOptionRange(id,option.state[id]);}
     for(const id of ['interpolation','optimize'])if(option.controls[id]!==undefined)setOptionControl(id,option.controls[id]);
     state.layout=0;document.querySelectorAll('.method').forEach(el=>el.classList.toggle('active',el.dataset.method===state.method));
-    rebuild();resize();if(option.viewOffset&&!compactDevice){state.panX=option.viewOffset[0]*scale;state.panY=option.viewOffset[1]*scale;draw();}updateRelief();
+    rebuild();resize();if(option.viewOffset&&!compactDevice){state.panX=option.viewOffset[0]*scale;state.panY=option.viewOffset[1]*scale;draw();}defaultView={scale,zoom:state.zoom,panX:state.panX,panY:state.panY};updateRelief();
   }else{
     for(const [id,value] of Object.entries(option.state))setOptionRange(id,value);
     for(const [id,value] of Object.entries(option.controls))setOptionControl(id,value);
@@ -688,7 +712,9 @@ function installColumnOptions(){
 }
 installColumnOptions();
 
-restoreSettings(readMapStateFromUrl()||presetSettings(shareSelection));
+urlDefaults=captureSettings();
+restoreSettings(presetSettings(shareSelection));
+restoreSettings(readMapStateFromUrl());
 initAnalytics(shareSelection.path);setSidebarExpanded(state.sidebarExpanded,false);rebuild(false);initializeMapTexture();
 document.querySelectorAll('aside details').forEach(el=>el.addEventListener('toggle',scheduleSave));
 new ResizeObserver(resize).observe($('stage'));

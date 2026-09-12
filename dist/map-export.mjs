@@ -4,9 +4,11 @@ import {loadPrintLettering,addPrintLettering} from './pdf-lettering.mjs?v=earth-
 const utf8=new TextEncoder();
 const crcTable=Uint32Array.from({length:256},(_,n)=>{for(let k=0;k<8;k++)n=n&1?0xedb88320^(n>>>1):n>>>1;return n>>>0;});
 function chunk(type,data){const name=utf8.encode(type),out=new Uint8Array(data.length+12),view=new DataView(out.buffer);view.setUint32(0,data.length);out.set(name,4);out.set(data,8);let crc=0xffffffff;for(let i=4;i<out.length-4;i++)crc=crcTable[(crc^out[i])&255]^(crc>>>8);view.setUint32(out.length-4,(crc^0xffffffff)>>>0);return out;}
-export async function pngFromTiles({width,height,tileSize=1024,renderTile,onProgress=()=>{},signal}){
+export async function pngFromTiles({width,height,tileSize=1024,renderTile,onProgress=()=>{},signal,attribution=''}){
  const ihdr=new Uint8Array(13),view=new DataView(ihdr.buffer);view.setUint32(0,width);view.setUint32(4,height);ihdr[8]=8;ihdr[9]=2;
  const parts=[new Uint8Array([137,80,78,71,13,10,26,10]),chunk('IHDR',ihdr)];
+ // Uncompressed UTF-8 international text keeps credits with downloaded PNGs.
+ if(attribution)parts.push(chunk('iTXt',utf8.encode('Copyright\0\0\0\0\0'+attribution)));
  const stream=new CompressionStream('deflate'),writer=stream.writable.getWriter();
  const reading=(async()=>{const reader=stream.readable.getReader();try{while(true){const {value,done}=await reader.read();if(done)break;parts.push(chunk('IDAT',value));}}finally{reader.releaseLock();}})();
  try{
@@ -31,7 +33,7 @@ export function printLayout(width,height){
  return {pageWidth,pageHeight,map:{x:(pageWidth-width*scale)/2,y:top,width:width*scale,height:height*scale},margin};
 }
 function pdfString(s){return '('+s.replaceAll('\\','\\\\').replaceAll('(','\\(').replaceAll(')','\\)')+')';}
-export async function printPDF({width,height,rasterScale=2,renderTile,signal,onProgress=()=>{},background='#ffffff',lifezones=null,mapInsetTop=0}){
+export async function printPDF({width,height,rasterScale=2,renderTile,signal,onProgress=()=>{},background='#ffffff',lifezones=null,mapInsetTop=0,attribution=''}){
  const fonts=await loadPrintLettering();signal?.throwIfAborted();
  // Match PNG pixels per canvas unit; paper size only controls placement.
  const layout=printLayout(width,height),factor=rasterScale,pxWidth=Math.round(width*factor),pxHeight=Math.round(height*factor);
@@ -49,7 +51,7 @@ export async function printPDF({width,height,rasterScale=2,renderTile,signal,onP
  const headingOffset=mapInsetTop*layout.map.width/width;
  const lettering=addPrintLettering({fonts,add,streamObject,pageHeight:layout.pageHeight,headingOffset,ink});commands.push(...lettering.commands);
  if(lifezones)commands.push(...addLifezonesLegend({...lifezones,lettering,pageWidth:layout.pageWidth,pageHeight:layout.pageHeight-headingOffset,ink}));
- const content=add(streamObject('',new Blob([commands.join('\n')]))),info=add(bytes('<< /Title '+pdfString('Hexagonal Earth')+' /Author '+pdfString('Alex Van de Sande')+' /Subject '+pdfString('A collection of hexagon based maps. | By Alex Van de Sande - hexagonal.earth')+' >>'));
+ const content=add(streamObject('',new Blob([commands.join('\n')]))),info=add(bytes('<< /Title '+pdfString('Hexagonal Earth')+' /Author '+pdfString('Alex Van de Sande')+' /Subject '+pdfString('A collection of hexagon based maps. | By Alex Van de Sande - hexagonal.earth'+(attribution?' | '+attribution:''))+' >>'));
  objects[catalog-1]=bytes(`<< /Type /Catalog /Pages ${pages} 0 R >>`);objects[pages-1]=bytes(`<< /Type /Pages /Kids [${page} 0 R] /Count 1 >>`);objects[page-1]=bytes(`<< /Type /Page /Parent ${pages} 0 R /MediaBox [0 0 ${layout.pageWidth} ${layout.pageHeight}] /Resources << /Font << ${lettering.resources} >> /XObject << ${resources.join(' ')} >> >> /Contents ${content} 0 R >>`);
  const output=[bytes('%PDF-1.4\n%\xE2\xE3\xCF\xD3\n')],offsets=[0];let offset=output[0].length;
  objects.forEach((object,i)=>{offsets.push(offset);const entry=new Blob([`${i+1} 0 obj\n`,object,'\nendobj\n']);output.push(entry);offset+=entry.size;});

@@ -45,3 +45,8 @@ const details=Object.fromEntries(panels.map(p=>[p.id,p.open]));
 const decoded=decodeMapState(encodeMapState({state:{},controls:{distortion:true},view:{scale:100,zoom:1,panX:0,panY:0},details}));
 assert.deepEqual(decoded.details,details);assert.equal(decoded.controls.distortion,true);
 console.log('Tissot: latitude-correct circles, exact inverse projection, seam splitting, shared grid centers; rotation preset and URL migrations pass.');
+const mergedPanels=['overlays-panel','positioning-panel','effects-panel'].map(id=>({id,open:false}));
+restorePanelStates(mergedPanels,{'layout-panel':true,'orientation-panel':true,'rivers-panel':true});
+assert(mergedPanels.every(panel=>panel.open));
+restorePanelStates(mergedPanels,{'overlays-panel':false,'layout-panel':true});
+assert.equal(mergedPanels[0].open,false,'Explicit new panel state overrides old aliases');

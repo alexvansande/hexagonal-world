@@ -1,5 +1,5 @@
-import {layoutOptions} from './map-options.mjs?v=ivory-lines-1';
-import manifest from './maps/surfaces/manifest.mjs';
+import {layoutOptions} from './map-options.mjs?v=felv-position-3';
+import manifest from './maps/surfaces/manifest.mjs?v=felv-position-3';
 export const surfaceSources=['ecology','countries','continents','marble','terrain'];
 export function surfacePreset(state,source,land=10,ocean=6,blend=0,bridges=5){
  if(blend!==0||bridges!==5||(source==='ecology'&&(land!==10||ocean!==6)))return null;

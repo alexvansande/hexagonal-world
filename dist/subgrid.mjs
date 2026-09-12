@@ -15,3 +15,13 @@ export function nestedHexLevels(depth){
  return levels;
 }
 export const subgridLevels=nestedHexLevels(3);
+
+// Nominal area per smallest outlined subhex, using Earth's mean radius in km.
+// Polyhedral projections are not equal-area; clipped edge cells may be partial.
+export function subgridArea(method){
+ const parents=method==='lambert-one'?1:method==='lambert-two'?2:4;
+ const km2=4*Math.PI*6371.0088**2/(parents*49);
+ return {km2,mi2:km2/2.589988110336};
+}
+
+export function dotGridArea(method){const {km2,mi2}=subgridArea(method);return {km2:km2/7,mi2:mi2/7};}

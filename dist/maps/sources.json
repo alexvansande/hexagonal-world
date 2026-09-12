@@ -105,9 +105,23 @@
       21600,
       10800
     ],
-    "description": "8-bit grayscale relative elevation including land and seafloor. Vertical units unspecified; initial sea level 105/255 is approximate and adjustable.",
+    "description": "User-supplied 8-bit grayscale composite of NASA Blue Marble topography and bathymetry in equirectangular projection, approximately 1.8 km per pixel at the equator. Relative brightness is not a calibrated elevation in metres.",
     "manifest": "height/manifest.json",
-    "processing": "scripts/prepare-heightmap.py preserves the original and packages a reduced overview plus six full-resolution grayscale tiles with wrapped one-pixel gutters."
+    "processing": "scripts/prepare-heightmap.py preserves the original and packages a reduced overview plus six full-resolution grayscale tiles with wrapped one-pixel gutters.",
+    "credit": "Jesse Allen, NASA Earth Observatory, using GEBCO data produced by the British Oceanographic Data Centre",
+    "compositeAuthor": "Alex Van de Sande",
+    "topography": "https://visibleearth.nasa.gov/images/73934/topography",
+    "bathymetry": "https://visibleearth.nasa.gov/images/73963/bathymetry",
+    "imageUsePolicy": "https://visibleearth.nasa.gov/image-use-policy",
+    "compositeProcessing": {
+      "source": "Processing description supplied by Alex Van de Sande",
+      "background": "#8f8f8f",
+      "seaLevelGray": 143,
+      "rationale": "Approximately 56% brightness, chosen to place sea level between the combined Everest-to-Mariana-Trench range.",
+      "bathymetryBlend": "Multiply",
+      "topographyBlend": "Screen",
+      "renderingNote": "The app uses an independently adjustable sea-level threshold; it is not the original composite background value."
+    }
   },
   "riverOverlay": {
     "source": "https://www.naturalearthdata.com/downloads/10m-physical-vectors/10m-rivers-lake-centerlines/",
@@ -121,5 +135,46 @@
     "nativeOceanTemperatureDegrees": 1,
     "limitation": "Changes the display pixel shape; does not add geographic information or increase native source resolution. Relief and rivers retain their original sampling."
   },
-  "ecologyFile": "ecology-data-v2.png"
+  "ecologyFile": "ecology-data-v2.png",
+  "wikipedia": {
+    "wikipedia-world": {
+      "name": "Wikipedia: Default",
+      "file": "maps/wikipedia/world.jpg",
+      "title": "Equirectangular projection SW",
+      "author": "Strebe",
+      "url": "https://commons.wikimedia.org/wiki/File:Equirectangular_projection_SW.jpg",
+      "license": "CC BY-SA 3.0",
+      "licenseURL": "https://creativecommons.org/licenses/by-sa/3.0/",
+      "changes": "Outer image frame removed and image resampled; reprojected and styled by Hexagonal Earth.",
+      "original": "https://upload.wikimedia.org/wikipedia/commons/8/83/Equirectangular_projection_SW.jpg",
+      "processing": "Crop original 2058 x 1036 image to rectangle [8, 8, 2050, 1028], removing the frame; resample to 2048 x 1024 JPEG."
+    },
+    "wikipedia-tissot": {
+      "name": "Wikipedia: Tissot",
+      "file": "maps/wikipedia/tissot.svg",
+      "title": "Plate Carree with Tissot's Indicatrices of Distortion",
+      "author": "Justin Kunimune",
+      "url": "https://commons.wikimedia.org/wiki/File:Plate_Carr%C3%A9e_with_Tissot%27s_Indicatrices_of_Distortion.svg",
+      "license": "CC BY-SA 4.0",
+      "licenseURL": "https://creativecommons.org/licenses/by-sa/4.0/",
+      "changes": "Rasterized, reprojected and styled by Hexagonal Earth.",
+      "note": "The grid and circles are part of the source image and move with the map.",
+      "original": "https://upload.wikimedia.org/wikipedia/commons/1/17/Plate_Carr%C3%A9e_with_Tissot%27s_Indicatrices_of_Distortion.svg",
+      "processing": "Original SVG preserved; rasterized on demand at 4096 x 2048 on desktop or 1600 x 800 on compact devices."
+    },
+    "wikipedia-marble": {
+      "name": "Wikipedia: Blue Marble",
+      "file": "maps/wikipedia/blue-marble.jpg",
+      "mobileFile": "maps/wikipedia/blue-marble-mobile.jpg",
+      "title": "Blue Marble 2002",
+      "author": "NASA / Reto Stockli and Robert Simmon; combined by Meow",
+      "url": "https://commons.wikimedia.org/wiki/File:Blue_Marble_2002.png",
+      "license": "Public domain (NASA)",
+      "licenseURL": "https://commons.wikimedia.org/wiki/File:Blue_Marble_2002.png#Licensing",
+      "changes": "Downsampled and converted to JPEG; reprojected and styled by Hexagonal Earth.",
+      "publicDomain": true,
+      "download": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/23/Blue_Marble_2002.png/3840px-Blue_Marble_2002.png",
+      "processing": "Wikimedia 3840 x 1920 thumbnail converted to JPEG quality 94; mobile copy resized to 1920 x 960 at quality 90."
+    }
+  }
 }

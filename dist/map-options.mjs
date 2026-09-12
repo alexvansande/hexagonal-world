@@ -3,7 +3,7 @@ import {makeArrangement} from './arrangements.mjs?v=gosper-1';
 
 export const layoutOptions=[
  {name:'Spaceship Earth',arrangement:'dymaxion',state:{method:'rhombic',arrangement:'dymaxion',lon:-170.01889457926154,lat:32.99273576349003,roll:-13.384930707514286,bias:1,height:1.5,clearance:0,gridRotation:31},controls:{interpolation:'0',optimize:false}},
- {name:'Felv',arrangement:'felv',state:{method:'rhombic',arrangement:'felv',lon:-2.7276554393284664,lat:-37.25798897192618,roll:-3.990496460873808,bias:1,height:1.5,clearance:3,gridRotation:0},controls:{interpolation:'0',optimize:false}},
+ {name:'Felv',arrangement:'felv',state:{method:'rhombic',arrangement:'felv',lon:5.190924769634733,lat:-36.21205325030689,roll:2.3232274432430753,bias:1,height:1.5,clearance:3,gridRotation:0},controls:{interpolation:'0',optimize:false}},
  {name:'Flower World',arrangement:'bighex',state:{method:'rhombic',arrangement:'bighex',lon:-19.196120097618845,lat:54.98466622358542,roll:-73.21086442098823,bias:1,height:1.5,gridRotation:60},controls:{interpolation:'0',optimize:false}},
  {name:'Gosper Fractal',arrangement:'gosper',state:{method:'rhombic',arrangement:'gosper',lon:-19.196120097618845,lat:54.98466622358542,roll:-73.21086442098823,bias:1,height:1.5,gridRotation:60},controls:{interpolation:'0',optimize:false}},
  {name:'4Hexes',arrangement:'flower',state:{method:'rhombic',arrangement:'flower',lon:132.47383515760305,lat:40.19079148977437,roll:87.45012620687487,bias:1,height:1.5,clearance:1,gridRotation:120},controls:{interpolation:'0',optimize:false}},

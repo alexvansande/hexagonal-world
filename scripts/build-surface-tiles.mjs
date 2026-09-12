@@ -24,7 +24,7 @@ try{
   for(const source of ['ecology','countries','continents','marble','terrain']){
    const maxLevel=['ecology','countries','continents'].includes(source)?4:3;
    const regions=layout.state.method==='lambert-one'?1:layout.state.method==='lambert-two'?2:4;
-   const path=`v1/${layout.arrangement}/${source}`;
+   const path=`${layout.arrangement==='felv'?'v3':'v1'}/${layout.arrangement}/${source}`;
    for(let region=0;region<regions;region++){
     const out=`${root}${path}/${region}`,marker=`${out}/complete.json`;
     try{await stat(marker);console.log('Reuse',path,region);continue;}catch{}

@@ -6,7 +6,7 @@ async function until(test,label){for(let i=0;i<900;i++){if(test())return;await d
 try{
  const only=new URLSearchParams(location.search).get('only'),selected=styleOptions.filter(s=>!only||s.id===only);
  let count=0;
- for(const layout of layoutOptions){
+ for(const layout of layoutOptions.filter(l=>!new URLSearchParams(location.search).get('layout')||l.arrangement===new URLSearchParams(location.search).get('layout'))){
   const polygons=layoutPolygons(layout),points=polygons.flat(),xs=points.map(p=>p[0]),ys=points.map(p=>p[1]),l=Math.min(...xs),r=Math.max(...xs),t=Math.min(...ys),b=Math.max(...ys);
   const scale=layout.arrangement==='infinite'?150:Math.min(970/(r-l),438/(b-t));
   const view={scale,zoom:1,panX:layout.arrangement==='infinite'?0:-(l+r)*scale/2,panY:layout.arrangement==='infinite'?0:58-(t+b)*scale/2};

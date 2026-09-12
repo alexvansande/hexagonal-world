@@ -1,3 +1,4 @@
+import {referenceSources} from './reference-sources.mjs';
 import {compactDevice} from './device-profile.mjs';
 // Custom triangular aggregations of the source's 39 Holdridge classes.
 // Each successive climate row adds one moisture distinction.
@@ -143,6 +144,14 @@ export async function riverMask(levels=6,widthScale=1){
  riverMaskKey=key;return canvas;
 }
 export async function mapSource(type,landCount=10,oceanCount=6){
+ const reference=referenceSources[type];
+ if(reference){
+  const image=await loadImage(compactDevice&&reference.mobileFile?reference.mobileFile:reference.file);
+  if(!reference.file.endsWith('.svg'))return image;
+  // Rasterize the vector source at texture resolution, not its nominal SVG size.
+  const canvas=document.createElement('canvas');canvas.width=compactDevice?1600:4096;canvas.height=canvas.width/2;
+  canvas.getContext('2d').drawImage(image,0,0,canvas.width,canvas.height);return canvas;
+ }
  if(compactDevice){
   const source=type==='ecology'?await ecologySource(landCount,oceanCount):await loadImage('maps/mobile/'+({terrain:'terrain.jpg',marble:'satellite.jpg',countries:'countries.png?v=fills-1',ivory:'ivory.png',elevation:'elevation.png'}[type]||'continents.png'));
   return source;

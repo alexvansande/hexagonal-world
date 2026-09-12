@@ -188,6 +188,12 @@ Graticules and distortion colors are composited after relief so they stay readab
 
 `npm test` covers relief parameter invariants, map-state compatibility, and the grayscale tile dimensions. Open `/tests/relief-render.html` with the server running to execute pixel-based GPU checks for external panel shadows, reversed light direction, terrain self-shadowing, zero-height behavior, pan consistency, shader errors, and PNG encoding.
 
+Download offers Current view - PNG Medium/High and Whole Map - PDF Medium/High.
+Medium uses 2× map resolution; High uses 10×. PNG captures the current map
+viewport without a print title frame. PDF includes full finite-map bounds,
+shadow padding, titles, and credits; infinite layouts use the visible area.
+Filenames include the site, author, selected map format, and style.
+
 ## Settings organization
 
 All collapsible sections are siblings: Projection method, Layout & grids, Globe orientation, Map source & colors, Rivers, Relief & lighting, and Distortion & Tissot. Panel states are saved by stable IDs; older positional panel states are migrated on load. Flower World presets use a 60° grid rotation.
@@ -289,3 +295,24 @@ bump the asset version for publishing. Do not publish partial manifests.
 `node surface-tests.mjs` checks every preset's asset pyramid and mesh clipping;
 `scripts/check-surface-tiles.mjs` additionally checks a local browser, mobile
 zoom, live fallback, default restoration, visual comparison captures and export.
+
+The Map source dropdown also includes three Wikipedia reference maps, independently
+of the style presets: [Strebe's world map](https://commons.wikimedia.org/wiki/File:Equirectangular_projection_SW.jpg)
+(CC BY-SA 3.0) and [Justin Kunimune's Tissot indicatrices](https://commons.wikimedia.org/wiki/File:Plate_Carr%C3%A9e_with_Tissot%27s_Indicatrices_of_Distortion.svg)
+(CC BY-SA 4.0), plus [Blue Marble 2002](https://commons.wikimedia.org/wiki/File:Blue_Marble_2002.png)
+(NASA, public domain). They are labeled Wikipedia: Default, Wikipedia: Tissot,
+and Wikipedia: Blue Marble. Local copies load only when selected. The world map's outer frame
+is removed for geographic alignment; the SVG is rasterized for the map texture.
+The indicatrices are embedded source imagery. Source links, changes and licenses
+appear below the source selector and in `dist/maps/sources.json`; exported PNG
+copyright metadata and PDF subject metadata retain the attribution and the
+corresponding ShareAlike license for the adapted imagery.
+
+Shared links store only differences from the style and format named in the URL.
+An unchanged preset has no state fragment. Custom settings and panel changes use
+an indexed version-2 payload; a changed view retains its full camera coordinates.
+Version-1 links remain readable and are shortened when opened. The key order in
+`dist/map-state.mjs` is part of the link format: append keys rather than reorder them.
+PNG current-view downloads trim the outer empty margins around finite maps,
+including padding for relief shadows. The crop stays inside the current viewport;
+PDF exports continue to include the whole map. Repeating maps keep the viewport.
