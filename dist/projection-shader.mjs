@@ -1,7 +1,10 @@
+import {tetraGLSL} from './tetra-projection.mjs?v=tetra-area-2';
 import {circularGLSL} from './circular-projections.mjs';
 // Both color and elevation use this exact inverse projection and orientation.
 export const projectionGLSL = `
+${tetraGLSL}
 vec3 atlasSphere(vec3 weights, vec3 a, vec3 b, vec3 c, float bias, float blend) {
+  if(tetraEqualArea>0)return tetraSphere(weights,a,b,c);
   vec3 ww = pow(max(weights, vec3(0.)), vec3(bias));
   ww /= ww.x + ww.y + ww.z;
   return normalize(mix(a,normalize(a),blend)*ww.x + mix(b,normalize(b),blend)*ww.y + mix(c,normalize(c),blend)*ww.z);

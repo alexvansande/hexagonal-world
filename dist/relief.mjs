@@ -1,5 +1,5 @@
 import {circularMode} from './circular-projections.mjs';
-import {projectionGLSL} from './projection-shader.mjs?v=circular-2';
+import {projectionGLSL} from './projection-shader.mjs?v=tetra-area-2';
 
 export const reliefRanges = [
   ['reliefHeight','Terrain height',0,2.5,.05,1.1,'×'],
@@ -317,7 +317,7 @@ export class ReliefRenderer {
       const hp=this.heightProgram;gl.useProgram(hp);
       this.v2(hp,'size',cssWidth,cssHeight);this.v3(hp,'view',unit,state.panX,state.panY);
       this.f(hp,'gridRotation',state.gridRotation*Math.PI/180);this.v3(hp,'angles',state.lon*Math.PI/180,state.lat*Math.PI/180,state.roll*Math.PI/180);
-      this.i(hp,'circularMode',circularMode(state.method));this.f(hp,'bias',state.bias);this.f(hp,'blend',blend);this.i(hp,'felvClip',clip?1:0);
+      this.i(hp,'circularMode',circularMode(state.method));this.i(hp,'tetraEqualArea',state.method==='tetra'?1:0);this.f(hp,'bias',state.bias);this.f(hp,'blend',blend);this.i(hp,'felvClip',clip?1:0);
       this.f(hp,'loaded',this.detailed?1:0);this.v2(hp,'tileSize',7200,5400);
       ['overview','h0','h1','h2','h3','h4','h5'].forEach((name,i)=>{this.bindTexture(this.heightTextures[i],i);this.i(hp,name,i);});this.bindTexture(riverTexture||this.riverTexture,7);this.i(hp,'riverMap',7);this.i(hp,'riversVisible',riverVisible?1:0);this.f(hp,'riverDepth',riverDepth);
       drawGeometry(hp);

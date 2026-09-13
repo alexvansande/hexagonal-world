@@ -1,6 +1,7 @@
+import {tetraWeights} from './tetra-projection.mjs?v=tetra-area-2';
 import {circularMode,sphereHex} from './circular-projections.mjs';
-import {norm,dot} from './geometry.mjs?v=circular-2';
-import {sphereAt} from './globe-drag.mjs?v=circular-2';
+import {norm,dot} from './geometry.mjs?v=tetra-area-2';
+import {sphereAt} from './globe-drag.mjs?v=tetra-area-2';
 import {subgridLevels} from './subgrid.mjs';
 
 const cross=(a,b)=>[a[1]*b[2]-a[2]*b[1],a[2]*b[0]-a[0]*b[2],a[0]*b[1]-a[1]*b[0]];
@@ -20,11 +21,11 @@ export function sphericalCircle(center,radius,steps=72){
 // are proportional to barycentric weights raised to bias; normalize after taking
 // the inverse power to recover planar coordinates.
 export function patchProjector(patch,bias=1,blend=0){
- const [a,b,c]=patch.v.map(v=>mix(v,norm(v),blend)),det=dot(a,cross(b,c));
+ const [a,b,c]=patch.v.map(v=>patch.equalAreaTetra?v:mix(v,norm(v),blend)),det=dot(a,cross(b,c));
  const inverse=[cross(b,c),cross(c,a),cross(a,b)].map(row=>row.map(v=>v/det));
  const coefficients=p=>inverse.map(row=>dot(row,p));
  const point=coeff=>{
-  const weights=coeff.map(v=>Math.max(0,v)**(1/bias)),sum=weights.reduce((s,v)=>s+v,0);
+  const weights=patch.equalAreaTetra?tetraWeights([0,1,2].map(j=>coeff.reduce((s,v,i)=>s+v*patch.v[i][j],0)),...patch.v):coeff.map(v=>Math.max(0,v)**(1/bias)),sum=weights.reduce((s,v)=>s+v,0);
   return [0,1].map(j=>weights.reduce((s,v,i)=>s+v*patch.xy[i][j]/sum,0));
  };
  return {coefficients,point};

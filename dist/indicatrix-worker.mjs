@@ -1,5 +1,5 @@
-import {makeGeometry} from './geometry.mjs?v=circular-2';
-import {indicatrixField} from './indicatrix.mjs?v=circular-2';
+import {makeGeometry} from './geometry.mjs?v=tetra-area-2';
+import {indicatrixField} from './indicatrix.mjs?v=tetra-area-2';
 
 self.onmessage=({data:job})=>{
  try{

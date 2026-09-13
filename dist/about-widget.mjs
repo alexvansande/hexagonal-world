@@ -1,7 +1,7 @@
-import {projectionChoices,otherConstruction} from './about-projections.mjs?v=direct-unfold-1';
+import {projectionChoices,otherConstruction} from './about-projections.mjs?v=tetra-area-2';
 import {initAboutRoute} from './about-route.mjs';
 import {construction,constructionMesh,rearrangementFrame,mix,sub,rotate} from './about-geometry.mjs?v=felv-paths-2';
-import {norm} from './geometry.mjs?v=circular-2';
+import {norm} from './geometry.mjs?v=tetra-area-2';
 const rhombicNames=['Sphere','Project','Unfold','Adjust','Rearrange'];
 const rhombicCaptions=['Earth, divided by twelve spherical rhombi.','The same continents, projected onto twelve flat rhombi.','The faces hinge open into the Spaceship Earth net.','A gentle stretch brings the rhombi into four regular hexagons.','Cut and turn the pieces to form the Felv map.'];
 export function initAboutWidget(){

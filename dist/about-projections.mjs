@@ -1,4 +1,5 @@
-import {makeGeometry,layouts,world,add,mul,dot,norm} from './geometry.mjs?v=circular-2';
+import {tetraSphere} from './tetra-projection.mjs?v=tetra-area-2';
+import {makeGeometry,layouts,world,add,mul,dot,norm} from './geometry.mjs?v=tetra-area-2';
 import {makeArrangement} from './arrangements.mjs?v=gosper-1';
 import {hexSphere} from './circular-projections.mjs';
 import {construction,rearrangementFrame,sub,cross,mix,rotate} from './about-geometry.mjs?v=felv-paths-2';
@@ -38,7 +39,7 @@ export function otherConstruction(method){
  faces.forEach(f=>f.adjusted=f.xy.map(p=>mul(sub(p,offset),scale)));
  const samples=[],edges=[],cuts=[],markers=[],marked=new Set();
  faces.forEach((f,id)=>{
-  const at=w=>{const p=weighted(f.v,w);return {f:id,w,p,earth:rhombicReference?rhombicReference.geography(p):p};};subdivide(at,16,samples);
+  const at=w=>{const p=method==='tetra'?tetraSphere(w,...f.v):weighted(f.v,w);return {f:id,w,p,earth:rhombicReference?rhombicReference.geography(p):p};};subdivide(at,16,samples);
   if(method==='tetra')f.v.forEach((p,j)=>{const key=f.tile+':'+p.join(',');if(Math.abs(Math.hypot(...p)-1)<1e-8&&!marked.has(key)){marked.add(key);markers.push(at([0,1,2].map(i=>i===j?1:0)));}});
   for(let e=0;e<3;e++){
    const partner=physical[id].find(p=>p.edge.includes(e)&&p.edge.includes((e+1)%3));

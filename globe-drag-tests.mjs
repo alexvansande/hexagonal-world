@@ -1,3 +1,4 @@
+import {tetraSphere} from './dist/tetra-projection.mjs';
 import assert from 'node:assert/strict';
 import {makeGeometry,world,norm} from './dist/geometry.mjs';
 import {sphereAt,followPoint,geographicPoint} from './dist/globe-drag.mjs';
@@ -7,7 +8,7 @@ for(const method of ['tetra','octa','rhombic','tetrakis'])for(const geometry of 
  const xy=[0,1].map(j=>patch.xy.reduce((s,p,i)=>s+w[i]*p[j],0));
  const sampled=sphereAt(world(xy,tile),tile,geometry,bias,blend);
  const pw=w.map(v=>v**bias),sum=pw.reduce((a,b)=>a+b);
- close(sampled,norm([0,1,2].map(j=>patch.v.reduce((s,p,i)=>s+pw[i]/sum*(p[j]*(1-blend)+norm(p)[j]*blend),0))));
+ close(sampled,method==='tetra'?tetraSphere(w,...patch.v):norm([0,1,2].map(j=>patch.v.reduce((s,p,i)=>s+pw[i]/sum*(p[j]*(1-blend)+norm(p)[j]*blend),0))));
  for(const angles of [{lon:170,lat:83,roll:-130},{lon:-90,lat:-90,roll:47}]){
   const anchor=geographicPoint(angles,sampled),next=norm([sampled[0]+.1,sampled[1]-.2,sampled[2]+.07]);
   close(geographicPoint(followPoint(angles,next,anchor),next),anchor);

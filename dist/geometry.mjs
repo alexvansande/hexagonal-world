@@ -28,7 +28,8 @@ export function makeGeometry(method,height=1.5){
  if(method==='octa'){
  patches=[{xy:[hex[0],hex[2],hex[4]],v:[ring[0],ring[2],ring[4]]}];for(let i=0;i<6;i+=2)patches.push({xy:[hex[i],hex[(i+1)%6],hex[(i+2)%6]],v:[ring[i],ring[(i+1)%6],ring[(i+2)%6]]});
  }else patches=hex.map((p,i)=>({xy:[[0,0],p,hex[(i+1)%6]],v:[center,ring[i],ring[(i+1)%6]]}));
- return {id,center,ring,patches};
+ if(method==='tetra')for(const patch of patches)patch.equalAreaTetra=true;
+ return {id,method,center,ring,patches};
  });
 }
 const rot=(p,r)=>{const a=r*Math.PI/3;return [p[0]*Math.cos(a)-p[1]*Math.sin(a),p[0]*Math.sin(a)+p[1]*Math.cos(a)];};

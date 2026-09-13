@@ -1,3 +1,4 @@
+import {tetraSphere} from './dist/tetra-projection.mjs';
 import assert from 'node:assert/strict';
 import {fractalRegion,visibleFractalLines,fractalLevelOpacities,fractalZoomBlend,fractalGridWeights,fractalDetailPlan,fineFractalTiles,edgeKey,fractalFineScale,fractalOpacities,unionEdges,edgeLoops} from './dist/fractal-grid.mjs';
 import {subgridLevels} from './dist/subgrid.mjs';
@@ -29,7 +30,7 @@ for(const method of ['tetra','octa','rhombic','tetrakis']){
   const center=world(patch.xy.reduce((s,p)=>s.map((v,j)=>v+p[j]/3),[0,0]),t);
   assert(pointInLoops(center,a.outline),'Mesh must stay within fractal cut');
   const weights=patch.weights[0];assert(Math.abs(weights.reduce((s,v)=>s+v,0)-1)<1e-10&&weights.every(v=>v>=-1e-8),'Clipping preserves valid barycentric attributes');
-  const projected=patch.v[0].map((_,j)=>patch.v.reduce((s,p,i)=>s+p[j]*weights[i],0)),length=Math.hypot(...projected),expected=sphereAt(world(patch.xy[0],t),t,tiles[t.id]);
+  const projected=method==='tetra'?tetraSphere(weights,...patch.v):patch.v[0].map((_,j)=>patch.v.reduce((s,p,i)=>s+p[j]*weights[i],0)),length=Math.hypot(...projected),expected=sphereAt(world(patch.xy[0],t),t,tiles[t.id]);
   assert(expected&&Math.hypot(...projected.map((v,i)=>v/length-expected[i]))<1e-7,'Cut must preserve the original projection');
  }
  assert(Math.abs(renderedArea-7*A)<1e-8,'Rendered cut covers exactly the full cell union');
