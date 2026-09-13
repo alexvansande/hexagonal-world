@@ -100,6 +100,7 @@ round trips, dragging and projected source circles.
 
 - Alex Van de Sande, *Gosper World: A Hexagonal Map Using Gosper Fractals*, Bridges 2024, pp. 507–510. https://archive.bridgesmathart.org/2024/bridges2024-507.pdf
 - PROJ, *Lambert Azimuthal Equal Area*. https://proj.org/en/stable/operations/projections/laea.html
+- Carlos A. Furuti, *World Map on a Rhombic Dodecahedron* (2014). Gnomonic map cited as reference [2] in Gosper World and used as its starting globe projection. https://geo20agostosbc.wordpress.com/wp-content/uploads/2018/03/pseudoglobo-rombicdodecaedro2.pdf
 - Jacob Rus, *Flowsnake Earth*, Bridges 2017, pp. 237–244. https://archive.bridgesmathart.org/2017/bridges2017-237.pdf
 - B. J. S. Cahill's original writings, collected by Gene Keyes: https://www.genekeyes.com/B.J.S._CAHILL_RESOURCE.html
 
