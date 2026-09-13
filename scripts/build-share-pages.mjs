@@ -15,7 +15,7 @@ export async function buildSharePages(output){
  }
  const aboutPages=[['/about/','About','rhombic-dodecahedron','Rhombic dodecahedron'],...aboutShapes.map(([id,slug,label])=>[aboutPath(id),label+' · About',slug,label])];
  for(const [path,heading,slug,label] of aboutPages){
-  const title=heading+' — Hexagonal Earth',url='https://hexagonal.earth'+path,image='https://hexagonal.earth/social/about-'+slug+'.jpg';
+  const title=heading+' — Hexagonal Earth',url='https://hexagonal.earth'+path,image='http://hexagonal.earth/social/about-'+slug+'.jpg';
   const circular=['one-hex','two-hexes'].includes(slug),description=circular?`See how Earth becomes ${label.toLowerCase()}, from a sphere to an equal-area hexagonal map.`:`See how the ${label.toLowerCase()} opens from a globe into a hexagonal map.`;
   const alt=label+': sphere and '+(circular?'hexagonal map':'unfolded faces')+' side by side.';
   let page=template.replace(/<title>.*?<\/title>/,`<title>${escape(title)}</title>`).replace(/(<link rel="canonical" href=")[^"]+/,`$1${url}`);

@@ -22,7 +22,7 @@ try{
   assert(html.includes('About this'));assert(html.includes('https://www.goatcounter.com/'));
  }
  for(const [path,slug] of [['/about/','rhombic-dodecahedron'],...aboutShapes.map(([id,slug])=>[aboutPath(id),slug])]){
-  const html=await readFile(join(directory,path,'index.html'),'utf8'),image=`https://hexagonal.earth/social/about-${slug}.jpg`;
+  const html=await readFile(join(directory,path,'index.html'),'utf8'),image=`http://hexagonal.earth/social/about-${slug}.jpg`;
   assert(html.includes(`property="og:url" content="https://hexagonal.earth${path}"`));
   assert(html.includes(`property="og:image" content="${image}"`));
   assert(html.includes(`name="twitter:image" content="${image}"`));
