@@ -1,3 +1,4 @@
+import {initSourcePicker} from './source-picker.mjs';
 import {isAboutPath} from './about-route.mjs?v=about-shapes-1';
 import {initAboutWidget} from './about-widget.mjs?v=about-shapes-1';
 import {referenceSources,sourceAttribution,mapLicense} from './reference-sources.mjs?v=licenses-1';
@@ -51,6 +52,7 @@ range('distortion-controls','distortionOpacity','Opacity',0,1,.05,.7);
 range('clearance-control','clearance','Minimum distance from land',0,9,1,0,'°');$('clearance').setAttribute('aria-label','Minimum distance from land');$('clearance-control').querySelector('.range-head').hidden=true;
 range('orientation','lon','Longitude',-180,180,1,0,'°');range('orientation','lat','Latitude',-90,90,1,0,'°');range('orientation','roll','Roll',-180,180,1,0,'°');range('shape-controls','bias','Shape bias',.4,2.5,.01,1);range('shape-controls','height','Pyramid tip distance',1.01,2,.01,1.5);range('display-controls','gridRotation','Grid rotation',-180,180,1,0,'°');range('graticule-controls','grid','Grid interval',10,60,5,30,'°');range('border-controls','line','Border weight',0,2,.1,.8);
 range('hex-grid-controls','subgridWidth','Hex grid thickness',0,5,.1,1,'×');range('graticule-controls','graticuleWidth','Latitude / longitude thickness',0,5,.1,1,'×');
+const syncSourceChoice=initSourcePicker({source:$('map-source'),palette:$('palette'),choice:$('map-source-choice')});
 range('river-controls','riverWidth','River width',.5,3,.25,1,'×');range('river-controls','riverLevels','Tributary levels',1,12,1,6);
 for(const spec of reliefRanges){const id=spec[0];range(id==='reliefColorFade'?'lighting-opacity-controls':['reliefHeight','reliefAzimuth','reliefAltitude','reliefThickness'].includes(id)?'relief-main-controls':'relief-fine-controls',...spec);}
 range('lighting-opacity-controls','shadowOpacity','Dark opacity',0,1,.01,1);
@@ -582,7 +584,7 @@ function restoreSettings(provided){
  }catch{/* Missing or damaged map links fall back to defaults. */}
 }
 function captureSettings(){
- const controls={};document.querySelectorAll('aside input[type=checkbox],aside select,aside input[type=range],aside input[type=color]').forEach(el=>{controls[el.id]=el.type==='checkbox'?el.checked:['land-classes','ocean-classes'].includes(el.id)?classCount(el.id):el.value;});
+ const controls={};document.querySelectorAll('aside input[type=checkbox],aside select,aside input[type=range],aside input[type=color]').forEach(el=>{if(el.id==='map-source-choice')return;controls[el.id]=el.type==='checkbox'?el.checked:['land-classes','ocean-classes'].includes(el.id)?classCount(el.id):el.value;});
  const applied=$('lighting-preset').value==='custom'?customApplied:null;if(applied){controls['relief-treatment']=applied.treatment;controls['relief-tone']=applied.tone;}
  return {version:1,state:{...state,...applied},controls,view:{scale,zoom:state.zoom,panX:state.panX,panY:state.panY},details:Object.fromEntries([...document.querySelectorAll('aside > details')].map(el=>[el.id,el.open]))};
 }
@@ -631,7 +633,7 @@ $('close-legend').onclick=()=>$('mobile-legend-dialog').close();
 $('mobile-legend-dialog').onclick=e=>{if(e.target===$('mobile-legend-dialog')){const r=e.target.getBoundingClientRect();if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)e.target.close();}};
 
 function updateMapUI(){
- const type=$('map-source').value;$('floating-legend').hidden=type!=='ecology';$('floating-legend-tip').hidden=true;$('ecology-controls').hidden=type!=='ecology';$('palette').closest('label').hidden=!['continents'].includes(type);
+ const type=$('map-source').value;$('floating-legend').hidden=type!=='ecology';$('floating-legend-tip').hidden=true;$('ecology-controls').hidden=type!=='ecology';syncSourceChoice();
  if(type==='ecology'){const landCount=classCount('land-classes'),oceanCount=classCount('ocean-classes');syncClassControl('land-classes',landCount);syncClassControl('ocean-classes',oceanCount);renderLifezonesLegend($('floating-legend').querySelector('.floating-legend-clusters'),landCount,oceanCount);hexLegend('land-legend',landLegends[landCount]);hexLegend('ocean-legend',oceanLegend(oceanCount));hexLegend('missing-legend',[missing]);}
  updateLegendFade();
  const credits={terrain:'Supplied shaded topographic map · baked-in terrain and seafloor relief; lighting is fixed.',ivory:'Generated sculpted-paper finish from the supplied heightfield.',elevation:'Generated earth-and-sea finish from the supplied heightfield.',continents:'Supplied silhouette. Cut-search mask is shared across all layers.',marble:'Supplied Blue Marble · brighter oceans and visible seafloor detail.',countries:'Natural Earth · 1:50m · de facto country boundaries.',ecology:'Leemans / UNEP-WCMC Holdridge (1992); NOAA OISST 1991–2020; Copernicus WAVERYS 2015–2024. HydroRIVERS v1 river network. Hover swatches for class definitions.'};

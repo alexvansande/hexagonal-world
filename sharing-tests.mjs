@@ -61,3 +61,15 @@ assert.equal(decodeMapState(encodeMapState(riverMap,baseline)).controls['river-c
 assert.equal(decodeMapState(encodeMapState(riverMap)).controls['river-color'],'#ff8800');
 assert.deepEqual(decodeMapState(btoa(JSON.stringify([2,[],[26,'none']]))).controls,{'lighting-preset':'none'});
 console.log('River colors survive compact and full map links; existing control positions remain compatible.');
+
+const {continentChoices,sourcePair,sourceChoice}=await import('./dist/source-picker.mjs');
+for(const [choice,,palette] of continentChoices){
+ const pair=sourcePair(choice);assert.deepEqual(pair,{source:'continents',palette});
+ const saved={...baseline,controls:{'map-source':pair.source,palette:pair.palette}};
+ const restored=decodeMapState(encodeMapState(saved));
+ assert.equal(sourceChoice(restored.controls['map-source'],restored.controls.palette),choice);
+}
+assert.deepEqual(sourcePair('ecology','night'),{source:'ecology',palette:'night'});
+assert.equal(sourceChoice('ecology','night'),'ecology');
+assert.equal(sourceChoice('continents',undefined),'continents-atlas');
+console.log('Combined source choices preserve all three palettes and existing source/palette map links.');
