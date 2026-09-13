@@ -54,3 +54,10 @@ assert.deepEqual(decodeMapState(encodeMapState(moved,baseline)).view,moved.view)
 for(const invalid of [[2,[999,1]],[2,[0]],[2,[],[],[1,2]],[2,[],{},[]]])assert.throws(()=>decodeMapState(btoa(JSON.stringify(invalid))));
 assert.equal(decodeMapState(encodeMapState(changed)).controls['map-source'],'wikipedia-tissot');
 console.log('Compact links: default omission, changed/false/zero values, panels, exact view, legacy compatibility and malformed input pass.');
+
+// Append new controls so old positional map links keep their meaning.
+const riverMap={...baseline,controls:{...baseline.controls,'river-color':'#ff8800'}};
+assert.equal(decodeMapState(encodeMapState(riverMap,baseline)).controls['river-color'],'#ff8800');
+assert.equal(decodeMapState(encodeMapState(riverMap)).controls['river-color'],'#ff8800');
+assert.deepEqual(decodeMapState(btoa(JSON.stringify([2,[],[26,'none']]))).controls,{'lighting-preset':'none'});
+console.log('River colors survive compact and full map links; existing control positions remain compatible.');
