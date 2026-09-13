@@ -18,7 +18,7 @@ import {gosperScale,rotateLocal,subgridLevels,subgridArea,dotGridArea} from './s
 import {decodeMapState,encodeMapState,distortionEnabled,restorePanelStates} from './map-state.mjs?v=panels-2';
 import {sphereAt,followPoint,geographicPoint} from './globe-drag.mjs?v=tetra-area-2';
 import {makeArrangement,arrangementNames} from './arrangements.mjs?v=gosper-1';
-import {mapSource,landLegends,oceanLegend,missing,riverMask} from './map-layers.mjs?v=wikipedia-sources-2';
+import {mapSource,landLegends,oceanLegend,missing,riverMask} from './map-layers.mjs?v=hydrorivers-1';
 import {searchPresets} from './search-presets.mjs?v=rus-search-1';
 import {visibleTiles} from './tiling.mjs';
 import {makeGeometry,layouts,matching,canvasWorld,hex,world} from './geometry.mjs?v=tetra-area-2';
@@ -610,7 +610,7 @@ async function updateRiverLayer(){
  if(!$('rivers-visible').checked)return;
  const riverKey=state.riverLevels+'/'+state.riverWidth;if(riverKey===uploadedRiverKey)return;
  try{const source=await riverMask(state.riverLevels,state.riverWidth);if(request!==riverRequest)return;gl.activeTexture(gl.TEXTURE1);gl.bindTexture(gl.TEXTURE_2D,riverTexture);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,source);gl.activeTexture(gl.TEXTURE0);riverGeneration++;uploadedRiverKey=riverKey;draw();}
- catch(error){console.warn('River layer:',error);$('status').textContent='River data could not load; the map remains available.';}
+ catch(error){if(error.name==='AbortError'||request!==riverRequest)return;console.warn('River layer:',error);$('status').textContent='River data could not load; the map remains available.';}
 }
 for(const id of ['riverWidth','riverLevels'])$(id).addEventListener('input',()=>{++riverRequest;clearTimeout(riverTimer);riverTimer=setTimeout(updateRiverLayer,100);});$('rivers-visible').addEventListener('change',()=>{updateRiverLayer();draw();});
 function legendFade(){return $('relief-enabled').checked?state.reliefColorFade:0;}
@@ -634,7 +634,7 @@ function updateMapUI(){
  const type=$('map-source').value;$('floating-legend').hidden=type!=='ecology';$('floating-legend-tip').hidden=true;$('ecology-controls').hidden=type!=='ecology';$('palette').closest('label').hidden=!['continents'].includes(type);
  if(type==='ecology'){const landCount=classCount('land-classes'),oceanCount=classCount('ocean-classes');syncClassControl('land-classes',landCount);syncClassControl('ocean-classes',oceanCount);renderLifezonesLegend($('floating-legend').querySelector('.floating-legend-clusters'),landCount,oceanCount);hexLegend('land-legend',landLegends[landCount]);hexLegend('ocean-legend',oceanLegend(oceanCount));hexLegend('missing-legend',[missing]);}
  updateLegendFade();
- const credits={terrain:'Supplied shaded topographic map · baked-in terrain and seafloor relief; lighting is fixed.',ivory:'Generated sculpted-paper finish from the supplied heightfield.',elevation:'Generated earth-and-sea finish from the supplied heightfield.',continents:'Supplied silhouette. Cut-search mask is shared across all layers.',marble:'Supplied Blue Marble · brighter oceans and visible seafloor detail.',countries:'Natural Earth · 1:50m · de facto country boundaries.',ecology:'Leemans / UNEP-WCMC Holdridge (1992); NOAA OISST 1991–2020; Copernicus WAVERYS 2015–2024. Natural Earth 1:10m rivers. Hover swatches for class definitions.'};
+ const credits={terrain:'Supplied shaded topographic map · baked-in terrain and seafloor relief; lighting is fixed.',ivory:'Generated sculpted-paper finish from the supplied heightfield.',elevation:'Generated earth-and-sea finish from the supplied heightfield.',continents:'Supplied silhouette. Cut-search mask is shared across all layers.',marble:'Supplied Blue Marble · brighter oceans and visible seafloor detail.',countries:'Natural Earth · 1:50m · de facto country boundaries.',ecology:'Leemans / UNEP-WCMC Holdridge (1992); NOAA OISST 1991–2020; Copernicus WAVERYS 2015–2024. HydroRIVERS v1 river network. Hover swatches for class definitions.'};
  const license=mapLicense(type),licenseLink=$('map-license-link');licenseLink.textContent=license.name;licenseLink.href=license.url;
  const reference=referenceSources[type],credit=$('map-credit');
  credit.textContent=credits[type]||'';

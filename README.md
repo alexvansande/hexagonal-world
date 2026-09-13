@@ -317,3 +317,25 @@ Version-1 links remain readable and are shortened when opened. The key order in
 PNG current-view downloads trim the outer empty margins around finite maps,
 including padding for relief shadows. The crop stays inside the current viewport;
 PDF exports continue to include the whole map. Repeating maps keep the viewport.
+
+## HydroRIVERS overlay
+
+The existing 1–12 tributary slider now selects cumulative HydroRIVERS v1
+mean-discharge thresholds: 10000, 5000, 2000, 1000, 500, 200, 100, 50, 30,
+20, 10 and 5 m³/s. The input contains 8,477,883 source reaches; flows below
+5 m³/s are omitted to prevent streams merging into solid patches at the
+current raster resolution. These are
+display detail levels, not Strahler or classical tributary-order values.
+
+`scripts/build-hydrorivers.py` reads the locally extracted global shapefile
+under `data/hydrorivers/extracted/` and creates 12 lossless distance masks
+for desktop (4320×2160) and mobile (1440×720). It requires NumPy, Pillow and
+SciPy. The original source remains local and excluded from deployment.
+`dist/maps/hydrorivers/v1/manifest.json` records counts, sizes and checksums.
+
+Only the selected level is downloaded. Width changes reuse its distance
+field; color remains a shader setting. Obsolete downloads are cancelled,
+and failed downloads can be retried. The raster matches the previous river
+texture resolution: adjacent streams may merge, and zooming does not add
+new source detail. Source provenance and required attribution are in
+`dist/maps/sources.json` and `LICENSE`.

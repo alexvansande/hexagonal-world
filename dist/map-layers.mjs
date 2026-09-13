@@ -1,3 +1,4 @@
+import {RiverFields,paintRiverMask} from './river-layers.mjs';
 import {referenceSources} from './reference-sources.mjs';
 import {compactDevice} from './device-profile.mjs';
 // Custom triangular aggregations of the source's 39 Holdridge classes.
@@ -129,19 +130,16 @@ export function paintEcology(pixels,landCount,oceanCount){
 }
 const images=new Map();
 function loadImage(path){if(!images.has(path)){if(images.size>=3)images.delete(images.keys().next().value);images.set(path,new Promise((resolve,reject)=>{const image=new Image();image.onload=()=>resolve(image);image.onerror=()=>{images.delete(path);reject(Error('Could not load '+path));};image.src=path;}));}return images.get(path);}
-let ecologyPixels,riverPaths,riverCanvas,riverMaskKey;
-async function loadRivers(){
- if(!riverPaths)riverPaths=(async()=>{const response=await fetch('maps/river-lines.json');if(!response.ok)throw Error('River data could not load');return response.json();})().catch(error=>{riverPaths=null;throw error;});
- return riverPaths;
-}
+let ecologyPixels,riverCanvas,riverMaskKey,riverPixels;
+const riverFields=new RiverFields({mobile:compactDevice});
 export async function riverMask(levels=6,widthScale=1){
- const key=`${Math.round(levels)}/${Number(widthScale).toFixed(2)}`;
- const paths=await loadRivers();if(key===riverMaskKey)return riverCanvas;
- const width=compactDevice?1440:4320,height=width/2;
- if(!riverCanvas){riverCanvas=document.createElement('canvas');riverCanvas.width=width;riverCanvas.height=height;}
- const canvas=riverCanvas,context=canvas.getContext('2d');context.clearRect(0,0,width,height);context.lineJoin='round';context.lineCap='round';
- for(const [rank,points] of paths){if(rank>levels)continue;context.globalAlpha=1;context.strokeStyle='#ffffff';context.lineWidth=widthScale*(width/4320)*(rank<=3?2.4:rank<=6?1.55:.95);context.beginPath();points.forEach(([lon,lat],i)=>{const x=(lon+180)/360*width,y=(90-lat)/180*height;i?context.lineTo(x,y):context.moveTo(x,y);});context.stroke();}
- riverMaskKey=key;return canvas;
+ const field=await riverFields.get(levels),key=`${field.level}/${Number(widthScale).toFixed(2)}`;
+ if(key===riverMaskKey)return riverCanvas;
+ if(!riverCanvas){riverCanvas=document.createElement('canvas');riverCanvas.width=field.width;riverCanvas.height=field.height;}
+ const context=riverCanvas.getContext('2d');
+ if(!riverPixels)riverPixels=context.createImageData(field.width,field.height);
+ paintRiverMask(field.distances,widthScale,riverPixels.data);
+ context.putImageData(riverPixels,0,0);riverMaskKey=key;return riverCanvas;
 }
 export async function mapSource(type,landCount=10,oceanCount=6){
  const reference=referenceSources[type];

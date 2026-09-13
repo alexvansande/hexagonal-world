@@ -17,13 +17,17 @@ for(const count of [3,6,10,15]){
  const actual=paintEcology(new Uint8ClampedArray(samples),count,count),land=landLegends[count],ocean=oceanLegend(count);
  for(let i=0;i<samples.length;i+=4){const raw=samples[i],entry=raw?land[landClass(raw,count)]:ocean[oceanClass(samples[i+1],samples[i+2],count)];assert.deepEqual([...actual.slice(i,i+4)],[...rgb((entry||missing).color),255]);}
 }
-const savedFetch=globalThis.fetch,savedDocument=globalThis.document;let fetches=0,canvases=0,strokes=0;
+const savedFetch=globalThis.fetch,savedDocument=globalThis.document,savedBitmap=globalThis.createImageBitmap;
+let fetches=0,canvases=0,paints=0,closed=0;
 try{
- globalThis.fetch=async()=>{fetches++;return {ok:true,json:async()=>[[1,[[0,0],[1,1]]]]};};
- globalThis.document={createElement(){canvases++;return {getContext:()=>({clearRect(){},beginPath(){},moveTo(){},lineTo(){},stroke(){strokes++;}})};}};
+ globalThis.fetch=async()=>{fetches++;return {ok:true,blob:async()=>({})};};
+ globalThis.createImageBitmap=async()=>({width:2,height:1,close(){closed++;}});
+ globalThis.document={createElement(){canvases++;return {getContext:()=>({drawImage(){},getImageData(){return {data:new Uint8ClampedArray([0,0,0,255,255,255,255,255])};},createImageData(){return {data:new Uint8ClampedArray(8)};},putImageData(){paints++;}})};}};
  const first=await Promise.all([riverMask(6,1),riverMask(6,1),riverMask(6,1)]);
- assert.equal(fetches,1,'Concurrent river requests share a download');assert.equal(strokes,1,'Identical requests reuse the raster');
+ assert.equal(fetches,1,'Concurrent river requests share a download');assert.equal(paints,1,'Identical requests reuse the raster');
  for(let levels=1;levels<=12;levels++)for(let width=.5;width<=3;width+=.25)assert.equal(await riverMask(levels,width),first[0]);
- assert.equal(canvases,1,'All slider combinations must reuse a bounded raster');
-}finally{globalThis.fetch=savedFetch;globalThis.document=savedDocument;}
-console.log('Audit regressions: non-overlapping geometry icons, style reset, ecology lookup parity, and bounded/shared river raster pass.');
+ assert.equal(fetches,13,'Each level downloads once, independent of width');
+ assert.equal(closed,fetches,'Decoded source bitmaps are released');
+ assert.equal(canvases,fetches+1,'One reusable output and one temporary decode canvas per download');
+}finally{globalThis.fetch=savedFetch;globalThis.document=savedDocument;globalThis.createImageBitmap=savedBitmap;}
+console.log('Audit regressions: geometry icons, style reset, ecology lookup parity, shared river raster and bitmap cleanup pass.');

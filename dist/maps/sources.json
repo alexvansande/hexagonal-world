@@ -124,9 +124,30 @@
     }
   },
   "riverOverlay": {
-    "source": "https://www.naturalearthdata.com/downloads/10m-physical-vectors/10m-rivers-lake-centerlines/",
-    "file": "river-lines.json",
-    "description": "Natural Earth 1:10m river/lake centerlines; all included ranks, styled by scalerank. Generalized major rivers and tributaries; not a complete stream network."
+    "source": "https://www.hydrosheds.org/products/hydrorivers",
+    "version": "HydroRIVERS v1.0",
+    "files": "hydrorivers/v1/{desktop,mobile}/level-{1..12}.png",
+    "manifest": "hydrorivers/v1/manifest.json",
+    "description": "Prepared from the global HydroRIVERS network of 8,477,883 reaches. Each cumulative slider level adds reaches above a decreasing mean-discharge threshold, down to 5 m\u00b3/s at level 12.",
+    "minimumDischargeM3s": [
+      10000,
+      5000,
+      2000,
+      1000,
+      500,
+      200,
+      100,
+      50,
+      30,
+      20,
+      10,
+      5
+    ],
+    "processing": "Rasterized centerlines at 4320\u00d72160 desktop and 1440\u00d7720 mobile. Lossless normalized distance masks preserve the existing width control without loading source vectors. Longitude wraps; river color remains a runtime setting.",
+    "limitations": "Flows below 5 m\u00b3/s are omitted to keep the network readable at the existing raster resolution. Nearby streams may merge; zooming does not add new detail. Source accuracy is lower north of 60\u00b0N. Slider levels are discharge thresholds, not tributary-order numbers.",
+    "credit": "HydroRIVERS \u00a9 World Wildlife Fund, Inc. (2019). Lehner, B. and Grill, G. (2013), Global river hydrography and network routing: baseline data and new approaches to study the world\u2019s large river systems. Hydrological Processes 27(15), 2171\u20132186. https://doi.org/10.1002/hyp.9740",
+    "license": "HydroSHEDS version 1 License Agreement, Appendix A: https://data.hydrosheds.org/file/technical-documentation/HydroSHEDS_TechDoc_v1_4.pdf",
+    "attribution": "This product Hexagonal Earth incorporates data from the HydroSHEDS version 1 database which is \u00a9 World Wildlife Fund, Inc. (2006-2022) and has been used herein under license. WWF has not evaluated the data as altered and incorporated within Hexagonal Earth, and therefore gives no warranty regarding its accuracy, completeness, currency or suitability for any particular purpose. Portions of the HydroSHEDS v1 database incorporate data which are the intellectual property rights of \u00a9 USGS (2006-2008), NASA (2000-2005), ESRI (1992-1998), CIAT (2004-2006), UNEP-WCMC (1993), WWF (2004), Commonwealth of Australia (2007), and Her Royal Majesty and the British Crown and are used under license. The HydroSHEDS v1 database and more information are available at https://www.hydrosheds.org."
   },
   "ecologyDisplay": {
     "sampling": "Hexagonal cells in projected map coordinates, aligned to the sixth Gosper subgrid generation. Cell centers are projected to the source sphere before classification sampling.",
