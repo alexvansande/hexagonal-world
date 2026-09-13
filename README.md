@@ -331,7 +331,7 @@ display detail levels, not Strahler or classical tributary-order values.
 under `data/hydrorivers/extracted/` and creates 12 lossless distance masks
 for desktop (4320×2160) and mobile (1440×720). It requires NumPy, Pillow and
 SciPy. The original source remains local and excluded from deployment.
-`dist/maps/hydrorivers/v1/manifest.json` records counts, sizes and checksums.
+`dist/maps/hydrorivers/v2/manifest.json` records counts, sizes and checksums.
 
 Only the selected level is downloaded. Width changes reuse its distance
 field; color remains a shader setting. Obsolete downloads are cancelled,
@@ -339,3 +339,9 @@ and failed downloads can be retried. The raster matches the previous river
 texture resolution: adjacent streams may merge, and zooming does not add
 new source detail. Source provenance and required attribution are in
 `dist/maps/sources.json` and `LICENSE`.
+
+River opacity: prepared masks also encode nominal pixel width.
+Widths below one pixel of the river raster use proportional alpha (0.5 px =
+50% opacity); wider centerlines stay opaque. The map shader retains alpha
+instead of thresholding it. This is coverage at river-texture resolution,
+not a new screen-space or zoom-adaptive line renderer.

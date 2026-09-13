@@ -1,4 +1,4 @@
-import {RiverFields,paintRiverMask} from './river-layers.mjs';
+import {RiverFields,paintRiverMask} from './river-layers.mjs?v=opacity-1';
 import {referenceSources} from './reference-sources.mjs';
 import {compactDevice} from './device-profile.mjs';
 // Custom triangular aggregations of the source's 39 Holdridge classes.
@@ -138,7 +138,7 @@ export async function riverMask(levels=6,widthScale=1){
  if(!riverCanvas){riverCanvas=document.createElement('canvas');riverCanvas.width=field.width;riverCanvas.height=field.height;}
  const context=riverCanvas.getContext('2d');
  if(!riverPixels)riverPixels=context.createImageData(field.width,field.height);
- paintRiverMask(field.distances,widthScale,riverPixels.data);
+ paintRiverMask(field.distances,widthScale,riverPixels.data,field.widths);
  context.putImageData(riverPixels,0,0);riverMaskKey=key;return riverCanvas;
 }
 export async function mapSource(type,landCount=10,oceanCount=6){

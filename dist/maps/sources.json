@@ -126,8 +126,8 @@
   "riverOverlay": {
     "source": "https://www.hydrosheds.org/products/hydrorivers",
     "version": "HydroRIVERS v1.0",
-    "files": "hydrorivers/v1/{desktop,mobile}/level-{1..12}.png",
-    "manifest": "hydrorivers/v1/manifest.json",
+    "files": "hydrorivers/v2/{desktop,mobile}/level-{1..12}.png",
+    "manifest": "hydrorivers/v2/manifest.json",
     "description": "Prepared from the global HydroRIVERS network of 8,477,883 reaches. Each cumulative slider level adds reaches above a decreasing mean-discharge threshold, down to 5 m\u00b3/s at level 12.",
     "minimumDischargeM3s": [
       10000,
@@ -143,7 +143,7 @@
       10,
       5
     ],
-    "processing": "Rasterized centerlines at 4320\u00d72160 desktop and 1440\u00d7720 mobile. Lossless normalized distance masks preserve the existing width control without loading source vectors. Longitude wraps; river color remains a runtime setting.",
+    "processing": "Rasterized centerlines at 4320\u00d72160 desktop and 1440\u00d7720 mobile. Lossless normalized distance and nominal-width masks preserve the width control without loading source vectors. River widths below one raster pixel use proportional opacity. Longitude wraps; river color remains a runtime setting.",
     "limitations": "Flows below 5 m\u00b3/s are omitted to keep the network readable at the existing raster resolution. Nearby streams may merge; zooming does not add new detail. Source accuracy is lower north of 60\u00b0N. Slider levels are discharge thresholds, not tributary-order numbers.",
     "credit": "HydroRIVERS \u00a9 World Wildlife Fund, Inc. (2019). Lehner, B. and Grill, G. (2013), Global river hydrography and network routing: baseline data and new approaches to study the world\u2019s large river systems. Hydrological Processes 27(15), 2171\u20132186. https://doi.org/10.1002/hyp.9740",
     "license": "HydroSHEDS version 1 License Agreement, Appendix A: https://data.hydrosheds.org/file/technical-documentation/HydroSHEDS_TechDoc_v1_4.pdf",

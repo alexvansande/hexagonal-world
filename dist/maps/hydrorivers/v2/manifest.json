@@ -1,0 +1,253 @@
+{
+  "source": "https://www.hydrosheds.org/products/hydrorivers",
+  "version": "1.0",
+  "records": 8477883,
+  "includedRecords": 1170717,
+  "minimumDischargeM3s": [
+    10000,
+    5000,
+    2000,
+    1000,
+    500,
+    200,
+    100,
+    50,
+    30,
+    20,
+    10,
+    5
+  ],
+  "cumulativeRecords": [
+    8438,
+    16263,
+    36148,
+    61732,
+    101075,
+    181741,
+    273191,
+    394746,
+    510530,
+    619723,
+    857210,
+    1170717
+  ],
+  "encoding": "R: distance / nominal radius * 64 (255 outside); G: nominal pixel width * 64; B: reserved",
+  "files": [
+    {
+      "path": "maps/hydrorivers/v2/desktop/level-1.png",
+      "bytes": 59547,
+      "sha256": "bbc6f7c054ea4bf21735ec231eb8036f5ce95cdd057c5660e77a0dfa9f216030",
+      "width": 4320,
+      "height": 2160,
+      "level": 1,
+      "pixelsAtWidth1": 8449
+    },
+    {
+      "path": "maps/hydrorivers/v2/desktop/level-2.png",
+      "bytes": 83086,
+      "sha256": "b047fb57ff010122b5a5f57010519424bf3253ee85474b56a0a42c08bc01e77a",
+      "width": 4320,
+      "height": 2160,
+      "level": 2,
+      "pixelsAtWidth1": 17015
+    },
+    {
+      "path": "maps/hydrorivers/v2/desktop/level-3.png",
+      "bytes": 131850,
+      "sha256": "f5bdb09578cc5fa1ce4e93464c1108c54aef745814d49540c195b9d45c1fb656",
+      "width": 4320,
+      "height": 2160,
+      "level": 3,
+      "pixelsAtWidth1": 36993
+    },
+    {
+      "path": "maps/hydrorivers/v2/desktop/level-4.png",
+      "bytes": 185541,
+      "sha256": "3fab035e115c4c048dece6c649c0d1822f4d7e06646583189d98dd342a60dcfa",
+      "width": 4320,
+      "height": 2160,
+      "level": 4,
+      "pixelsAtWidth1": 62223
+    },
+    {
+      "path": "maps/hydrorivers/v2/desktop/level-5.png",
+      "bytes": 273311,
+      "sha256": "6d4b971107a8eed28d5e2e87e374ca1c02f2c5f71b17207f2bea0bea6265e18f",
+      "width": 4320,
+      "height": 2160,
+      "level": 5,
+      "pixelsAtWidth1": 77667
+    },
+    {
+      "path": "maps/hydrorivers/v2/desktop/level-6.png",
+      "bytes": 393080,
+      "sha256": "3e8ece2fcc9b73a9f64ebe3cda01772475e3ee0b095f7372630dec9823bcf357",
+      "width": 4320,
+      "height": 2160,
+      "level": 6,
+      "pixelsAtWidth1": 110371
+    },
+    {
+      "path": "maps/hydrorivers/v2/desktop/level-7.png",
+      "bytes": 503182,
+      "sha256": "41628a9f7543c85b90d75f75f10449fbb6fd31d27cd52c5287443784aac1d8af",
+      "width": 4320,
+      "height": 2160,
+      "level": 7,
+      "pixelsAtWidth1": 146795
+    },
+    {
+      "path": "maps/hydrorivers/v2/desktop/level-8.png",
+      "bytes": 633708,
+      "sha256": "6e162806e6f988e10e81a90c65a35125e4a10e4348eede81bd44f2c965e26e3c",
+      "width": 4320,
+      "height": 2160,
+      "level": 8,
+      "pixelsAtWidth1": 196661
+    },
+    {
+      "path": "maps/hydrorivers/v2/desktop/level-9.png",
+      "bytes": 797272,
+      "sha256": "bf5a68cf09d413da4b5179b43bc05ec3ffbe5d9acd2da58a87f68c93a0d3876d",
+      "width": 4320,
+      "height": 2160,
+      "level": 9,
+      "pixelsAtWidth1": 244892
+    },
+    {
+      "path": "maps/hydrorivers/v2/desktop/level-10.png",
+      "bytes": 882903,
+      "sha256": "077fa7edf884b5af579f899bb3ac5163e0ccd5eafdd99c671e13216baac96731",
+      "width": 4320,
+      "height": 2160,
+      "level": 10,
+      "pixelsAtWidth1": 290559
+    },
+    {
+      "path": "maps/hydrorivers/v2/desktop/level-11.png",
+      "bytes": 1012149,
+      "sha256": "1fb1771dcc3c1ebadb5a38e06a0e913339a0d22ed06bae69b9ffe758cf672af1",
+      "width": 4320,
+      "height": 2160,
+      "level": 11,
+      "pixelsAtWidth1": 391046
+    },
+    {
+      "path": "maps/hydrorivers/v2/desktop/level-12.png",
+      "bytes": 1098445,
+      "sha256": "80f554313d89254d6d7d922e3341984f5d428fc3a535d87824815478c5a5f6ba",
+      "width": 4320,
+      "height": 2160,
+      "level": 12,
+      "pixelsAtWidth1": 524348
+    },
+    {
+      "path": "maps/hydrorivers/v2/mobile/level-1.png",
+      "bytes": 7626,
+      "sha256": "1ea5edf470d1ed3a161a2a9830f10764457e3993fdeefaa5dac5271e1623a05c",
+      "width": 1440,
+      "height": 720,
+      "level": 1,
+      "pixelsAtWidth1": 1149
+    },
+    {
+      "path": "maps/hydrorivers/v2/mobile/level-2.png",
+      "bytes": 10436,
+      "sha256": "a88b57213ce0baf8fac62457d7844f87b145140c3e5927f58e425dba72a34175",
+      "width": 1440,
+      "height": 720,
+      "level": 2,
+      "pixelsAtWidth1": 2296
+    },
+    {
+      "path": "maps/hydrorivers/v2/mobile/level-3.png",
+      "bytes": 16170,
+      "sha256": "9b8db7ffddee1beb424f9385a2888c17834380ca0df7f4c566aa4d9028eed8b9",
+      "width": 1440,
+      "height": 720,
+      "level": 3,
+      "pixelsAtWidth1": 4959
+    },
+    {
+      "path": "maps/hydrorivers/v2/mobile/level-4.png",
+      "bytes": 23092,
+      "sha256": "c647f352eb27d36d77c7e32641b71ad7e2207a4d9fb721046b1c562e9b4a59a4",
+      "width": 1440,
+      "height": 720,
+      "level": 4,
+      "pixelsAtWidth1": 8359
+    },
+    {
+      "path": "maps/hydrorivers/v2/mobile/level-5.png",
+      "bytes": 36972,
+      "sha256": "e80dfdc500c6ae522ee45b02147ea24ebe895f06d4490c539bfce133c0fbc615",
+      "width": 1440,
+      "height": 720,
+      "level": 5,
+      "pixelsAtWidth1": 13459
+    },
+    {
+      "path": "maps/hydrorivers/v2/mobile/level-6.png",
+      "bytes": 52484,
+      "sha256": "3ac78c7be419652ef1d668536d40338c58f4a47d0392c7c6691c47a597d83edc",
+      "width": 1440,
+      "height": 720,
+      "level": 6,
+      "pixelsAtWidth1": 23953
+    },
+    {
+      "path": "maps/hydrorivers/v2/mobile/level-7.png",
+      "bytes": 64074,
+      "sha256": "ff58e4b951550dad43dd4318196445f08ac4f79c860f5337bb3b9ba080ebe9b6",
+      "width": 1440,
+      "height": 720,
+      "level": 7,
+      "pixelsAtWidth1": 35471
+    },
+    {
+      "path": "maps/hydrorivers/v2/mobile/level-8.png",
+      "bytes": 73912,
+      "sha256": "f77ec1c2ab0f85d7f89fe768409b7f01517405319a13cb04481c830888189d4a",
+      "width": 1440,
+      "height": 720,
+      "level": 8,
+      "pixelsAtWidth1": 50729
+    },
+    {
+      "path": "maps/hydrorivers/v2/mobile/level-9.png",
+      "bytes": 91695,
+      "sha256": "39dcab1ec148ab84611a261a76807e04629cd92f1b2e9d7f5657b0d94096f7d0",
+      "width": 1440,
+      "height": 720,
+      "level": 9,
+      "pixelsAtWidth1": 64762
+    },
+    {
+      "path": "maps/hydrorivers/v2/mobile/level-10.png",
+      "bytes": 98477,
+      "sha256": "974f4c17276160ecd58090af4543462dc43bfa685b1970bb1c167edd2a57a795",
+      "width": 1440,
+      "height": 720,
+      "level": 10,
+      "pixelsAtWidth1": 77151
+    },
+    {
+      "path": "maps/hydrorivers/v2/mobile/level-11.png",
+      "bytes": 102546,
+      "sha256": "ce43e58207b25eabd55d6c67edb5f432b6c14815978f1d7a2218cf8588cdeadd",
+      "width": 1440,
+      "height": 720,
+      "level": 11,
+      "pixelsAtWidth1": 102039
+    },
+    {
+      "path": "maps/hydrorivers/v2/mobile/level-12.png",
+      "bytes": 101869,
+      "sha256": "204a3b3160562adf01a3f315b43719f2ff39ea79f662d7028ac530fa5c7c95ce",
+      "width": 1440,
+      "height": 720,
+      "level": 12,
+      "pixelsAtWidth1": 128874
+    }
+  ]
+}

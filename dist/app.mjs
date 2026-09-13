@@ -19,7 +19,7 @@ import {gosperScale,rotateLocal,subgridLevels,subgridArea,dotGridArea} from './s
 import {decodeMapState,encodeMapState,distortionEnabled,restorePanelStates} from './map-state.mjs?v=panels-2';
 import {sphereAt,followPoint,geographicPoint} from './globe-drag.mjs?v=tetra-area-2';
 import {makeArrangement,arrangementNames} from './arrangements.mjs?v=gosper-1';
-import {mapSource,landLegends,oceanLegend,missing,riverMask} from './map-layers.mjs?v=hydrorivers-1';
+import {mapSource,landLegends,oceanLegend,missing,riverMask} from './map-layers.mjs?v=river-opacity-1';
 import {searchPresets} from './search-presets.mjs?v=rus-search-1';
 import {visibleTiles} from './tiling.mjs';
 import {makeGeometry,layouts,matching,canvasWorld,hex,world} from './geometry.mjs?v=tetra-area-2';
@@ -98,7 +98,7 @@ void main(){if(felvClip==1){float fy=-flatPosition.y;float fx=flatPosition.x-sqr
  if(material==1)color=mix(vec3(.65,.75,.77),vec3(.88,.865,.80),smoothstep(materialSea-.003,materialSea+.003,surfaceHeight));
  if(material==2){float h=surfaceHeight;float land=smoothstep(materialSea-.003,materialSea+.003,h);float altitude=clamp((h-materialSea)/max(1.-materialSea,.01),0.,1.);vec3 low=mix(vec3(.49,.61,.46),vec3(.80,.76,.56),smoothstep(0.,.35,altitude));vec3 high=mix(vec3(.77,.70,.57),vec3(.97,.95,.88),smoothstep(.45,.95,altitude));vec3 earth=mix(low,high,smoothstep(.2,.65,altitude));color=mix(mix(vec3(.22,.43,.52),vec3(.65,.79,.78),clamp(h/max(materialSea,.01),0.,1.)),earth,land);}
 
- if(riversVisible==1){vec2 riverUV=useHex?geographicUV(ecologySphere(riverCenter(localPosition)),angles):uv;float river=step(.5,texture2D(riverMap,riverUV).a);color=mix(color,riverColor,river);}
+ if(riversVisible==1){vec2 riverUV=useHex?geographicUV(ecologySphere(riverCenter(localPosition)),angles):uv;float river=texture2D(riverMap,riverUV).a;color=mix(color,riverColor,river);}
  if(material==0){float luma=dot(color,vec3(.299,.587,.114));color=mix(color,mix(vec3(luma),vec3(.78,.77,.72),.55),colorFade);}
  if(landCutout==1)color=mix(background,color,smoothstep(materialSea-.002,materialSea+.002,surfaceHeight));
  if(distortion>0)color=mix(color,distortionColor,distortionOpacity);

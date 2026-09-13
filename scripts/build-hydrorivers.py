@@ -1,7 +1,8 @@
 """Prepare 12 HydroRIVERS distance masks; requires numpy, Pillow and scipy.
 
 Run after extracting data/hydrorivers/HydroRIVERS_v10_shp.zip into extracted/.
-Each lossless grayscale PNG stores distance / nominal river radius * 64.
+Each lossless RGB PNG stores distance / nominal river radius * 64 in red
+and nominal pixel width * 64 in green. Blue is reserved.
 255 is outside the supported width range. The browser thresholds one image,
 so changing width never downloads the original global vector network.
 """
@@ -13,7 +14,7 @@ from scipy.ndimage import distance_transform_edt
 
 ROOT = Path(__file__).resolve().parents[1]
 SOURCE = ROOT / 'data/hydrorivers/extracted/HydroRIVERS_v10_shp/HydroRIVERS_v10'
-OUT = ROOT / 'dist/maps/hydrorivers/v1'
+OUT = ROOT / 'dist/maps/hydrorivers/v2'
 THRESHOLDS = [10000, 5000, 2000, 1000, 500, 200, 100, 50, 30, 20, 10, 5]
 SIZES = [('desktop', 4320), ('mobile', 1440)]
 
@@ -72,9 +73,10 @@ if __name__ == '__main__':
         shp.close()
     manifest = {'source':'https://www.hydrosheds.org/products/hydrorivers','version':'1.0','records':len(data),'includedRecords':int(counts.sum()),
                 'minimumDischargeM3s':THRESHOLDS,'cumulativeRecords':np.cumsum(counts).tolist(),
-                'encoding':'distance divided by nominal radius, times 64; 255 means outside supported width', 'files':[]}
+                'encoding':'R: distance / nominal radius * 64 (255 outside); G: nominal pixel width * 64; B: reserved', 'files':[]}
     for name,w in SIZES:
         best = np.full((w//2,w),255,dtype=np.uint8)
+        widths = np.zeros((w//2,w),dtype=np.uint8)
         for level in range(12):
             center = np.asarray(masks[name][level], dtype=bool)
             if center.any():
@@ -83,9 +85,10 @@ if __name__ == '__main__':
                 distance = distance_transform_edt(~np.pad(center,((0,0),(pad,pad)),mode='wrap'))[:,pad:-pad]
                 radius = (1.2 if level<4 else .775 if level<8 else .475)*(w/4320)
                 field = np.minimum(255,np.rint(distance/radius*64)).astype(np.uint8)
+                widths[field<best] = round(radius*2*64)
                 best = np.minimum(best,field)
             dest=OUT/name/f'level-{level+1}.png';dest.parent.mkdir(parents=True,exist_ok=True)
-            Image.fromarray(best).save(dest,optimize=True)
+            Image.fromarray(np.stack([best,widths,np.zeros_like(best)],axis=-1)).save(dest,optimize=True)
             info={'path':str(dest.relative_to(ROOT/'dist')),'bytes':dest.stat().st_size,'sha256':hashlib.sha256(dest.read_bytes()).hexdigest(),
                   'width':w,'height':w//2,'level':level+1,'pixelsAtWidth1':int((best<=64).sum())}
             manifest['files'].append(info)

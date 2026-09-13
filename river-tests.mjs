@@ -3,7 +3,7 @@ import {readFile} from 'node:fs/promises';
 import {RiverFields,paintRiverMask,riverDischargeThresholds} from './dist/river-layers.mjs';
 const distances=new Uint8Array([0,32,64,96,128,192,255]);
 const alpha=width=>Array.from(paintRiverMask(distances,width)).filter((_,i)=>i%4===3);
-assert.deepEqual(alpha(.5),[255,255,0,0,0,0,0]);
+assert.deepEqual(alpha(.5),[128,128,0,0,0,0,0]);
 assert.deepEqual(alpha(1),[255,255,255,0,0,0,0]);
 assert.deepEqual(alpha(3),[255,255,255,255,255,255,0]);
 const jobs=[];
@@ -25,7 +25,7 @@ const retry=new RiverFields({mobile:true,load:async url=>{
  assert(url.endsWith('/mobile/level-12.png'));if(attempts++===0)throw Error('offline');return {distances};
 }});
 await assert.rejects(retry.get(12));assert.equal((await retry.get(12)).level,12);
-const manifest=JSON.parse(await readFile('dist/maps/hydrorivers/v1/manifest.json','utf8'));
+const manifest=JSON.parse(await readFile('dist/maps/hydrorivers/v2/manifest.json','utf8'));
 assert.deepEqual(manifest.minimumDischargeM3s,riverDischargeThresholds);
 assert.equal(manifest.records,8477883);
 assert.equal(manifest.cumulativeRecords.at(-1),manifest.includedRecords);
@@ -41,3 +41,11 @@ for(const device of ['desktop','mobile']){
  }
 }
 console.log('HydroRIVERS: all 12 progressive levels, filtered global network, width masks, bounded downloads, cancellation, cache and retry pass.');
+
+const nominalWidths=new Uint8Array([16,32,64,128,154]);
+const centers=new Uint8Array(5);
+const opacities=scale=>Array.from(paintRiverMask(centers,scale,undefined,nominalWidths)).filter((_,i)=>i%4===3);
+assert.deepEqual(opacities(1),[64,128,255,255,255]);
+assert.deepEqual(opacities(2),[128,255,255,255,255]);
+assert.deepEqual(opacities(.5),[32,64,128,255,255]);
+console.log('Subpixel rivers use proportional opacity; widths of at least one pixel remain opaque.');
