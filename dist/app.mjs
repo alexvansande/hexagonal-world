@@ -1,4 +1,6 @@
-import {referenceSources,sourceAttribution} from './reference-sources.mjs';
+import {isAboutPath} from './about-route.mjs';
+import {initAboutWidget} from './about-widget.mjs?v=direct-unfold-1';
+import {referenceSources,sourceAttribution,mapLicense} from './reference-sources.mjs?v=licenses-1';
 import {PrecomputedSurfaces,surfacePreset,surfaceLevel,surfacePlan,surfaceTileRect,clipSurfaceTriangle} from './precomputed-surfaces.mjs?v=felv-position-3';
 import {renderLifezonesLegend} from './lifezones-legend.mjs?v=waves-1';
 import {fadedLegendColor} from './legend-colors.mjs';
@@ -497,7 +499,8 @@ async function exportMap(){
    return context.getImageData(0,0,width,height).data;
   };
   const onProgress=value=>progress.textContent=`Rendering ${isPDF?'PDF':'PNG'} ${factor===2?'Medium':'High'} · ${Math.round(value*100)}%`;
-  const attribution=[sourceAttribution(displayedSource),!$('height-credit').hidden?'Height imagery: NASA Earth Observatory / Jesse Allen, using GEBCO data from the British Oceanographic Data Centre. Height composite by Alex Van de Sande. '+'https://science.nasa.gov/earth/earth-observatory/blue-marble-next-generation/topography-bathymetry-maps/':''].filter(Boolean).join(' ');
+  const license=mapLicense(displayedSource);
+  const attribution=[`Hexagonal Earth by Alex Van de Sande - ${license.name} (${license.url}). Third-party source credits and terms also apply.`,sourceAttribution(displayedSource),!$('height-credit').hidden?'Height imagery: NASA Earth Observatory / Jesse Allen, using GEBCO data from the British Oceanographic Data Centre. Height composite by Alex Van de Sande. '+'https://science.nasa.gov/earth/earth-observatory/blue-marble-next-generation/topography-bathymetry-maps/':''].filter(Boolean).join(' ');
   const exportOptions={attribution,rasterScale:factor,width:crop.width,height:crop.height,mapInsetTop:crop.topInset||0,renderTile,signal:control.signal,onProgress,background:$('background-color').value};
   const blob=isPDF?await printPDF({...exportOptions,lifezones:displayedSource==='ecology'?{colorFade:legendFade(),landCount:classCount('land-classes'),oceanCount:classCount('ocean-classes')}:null}):await pngFromTiles({attribution,width:Math.max(1,Math.round(crop.width*factor)),height:Math.max(1,Math.round(crop.height*factor)),renderTile,signal:control.signal,onProgress});
   control.signal.throwIfAborted();
@@ -584,7 +587,7 @@ function captureSettings(){
  return {version:1,state:{...state,...applied},controls,view:{scale,zoom:state.zoom,panX:state.panX,panY:state.panY},details:Object.fromEntries([...document.querySelectorAll('aside > details')].map(el=>[el.id,el.open]))};
 }
 function readMapStateFromUrl(){const hash=location.hash;if(!hash.startsWith('#m=')&&!hash.startsWith('#p='))return null;try{return decodeMapState(hash.slice(3));}catch{return null;}}
-function updateMapUrl(){if(!persistenceReady||exporting)return;clearTimeout(saveTimer);try{const url=new URL(location.href);if(!location.pathname.startsWith('/tests/'))url.pathname=shareSelection.path;const preset=presetSettings(shareSelection),defaults={state:{...urlDefaults.state,...preset.state},controls:{...urlDefaults.controls,...preset.controls},details:urlDefaults.details,view:defaultView};const encoded=encodeMapState(captureSettings(),defaults);url.hash=encoded?'m='+encoded:'';history.replaceState(null,'',url);}catch{}}
+function updateMapUrl(){if(!persistenceReady||exporting||isAboutPath(location.pathname))return;clearTimeout(saveTimer);try{const url=new URL(location.href);if(!location.pathname.startsWith('/tests/'))url.pathname=shareSelection.path;const preset=presetSettings(shareSelection),defaults={state:{...urlDefaults.state,...preset.state},controls:{...urlDefaults.controls,...preset.controls},details:urlDefaults.details,view:defaultView};const encoded=encodeMapState(captureSettings(),defaults);url.hash=encoded?'m='+encoded:'';history.replaceState(null,'',url);}catch{}}
 function scheduleSave(){if(!persistenceReady)return;clearTimeout(saveTimer);saveTimer=setTimeout(updateMapUrl,180);}
 document.addEventListener('input',scheduleSave);document.addEventListener('change',scheduleSave);
 
@@ -632,6 +635,7 @@ function updateMapUI(){
  if(type==='ecology'){const landCount=classCount('land-classes'),oceanCount=classCount('ocean-classes');syncClassControl('land-classes',landCount);syncClassControl('ocean-classes',oceanCount);renderLifezonesLegend($('floating-legend').querySelector('.floating-legend-clusters'),landCount,oceanCount);hexLegend('land-legend',landLegends[landCount]);hexLegend('ocean-legend',oceanLegend(oceanCount));hexLegend('missing-legend',[missing]);}
  updateLegendFade();
  const credits={terrain:'Supplied shaded topographic map · baked-in terrain and seafloor relief; lighting is fixed.',ivory:'Generated sculpted-paper finish from the supplied heightfield.',elevation:'Generated earth-and-sea finish from the supplied heightfield.',continents:'Supplied silhouette. Cut-search mask is shared across all layers.',marble:'Supplied Blue Marble · brighter oceans and visible seafloor detail.',countries:'Natural Earth · 1:50m · de facto country boundaries.',ecology:'Leemans / UNEP-WCMC Holdridge (1992); NOAA OISST 1991–2020; Copernicus WAVERYS 2015–2024. Natural Earth 1:10m rivers. Hover swatches for class definitions.'};
+ const license=mapLicense(type),licenseLink=$('map-license-link');licenseLink.textContent=license.name;licenseLink.href=license.url;
  const reference=referenceSources[type],credit=$('map-credit');
  credit.textContent=credits[type]||'';
  if(reference){
@@ -812,3 +816,5 @@ if(['127.0.0.1','localhost'].includes(location.hostname)&&new URLSearchParams(lo
   return canvas.toDataURL('image/png').split(',')[1];
  };
 }
+
+initAboutWidget();

@@ -6,7 +6,7 @@ Run `npm start`, then open http://localhost:4173. Run `npm test` for geometry an
 
 ## License
 
-The project code is licensed under the [MIT License](LICENSE).
+Original work by Alex Van de Sande is licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/), except where underlying source terms require otherwise. Adapted Wikipedia Default and Tissot imagery retains CC BY-SA 3.0 and CC BY-SA 4.0 respectively. Third-party assets retain their own terms; see [LICENSE](LICENSE) and the source metadata.
 Copyright © 2026 Alex Van de Sande. Third-party map data, imagery, and font
 assets retain their respective terms; map sources are recorded in
 [`dist/maps/sources.json`](dist/maps/sources.json).

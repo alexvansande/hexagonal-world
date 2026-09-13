@@ -70,8 +70,8 @@ aside{box-shadow:0 8px 30px #193a4518;background:#ffffffed;backdrop-filter:blur(
 aside>*{flex-shrink:0}
 aside .sidebar-title{font-size:37px;margin:12px 0 18px;letter-spacing:-1.3px;padding-right:15px}
 aside .welcome-copy{font-size:12px;line-height:1.7;color:#5e737a;margin:12px 0 20px}
-#collapse-customize{position:absolute;right:10px;top:8px;display:flex;align-items:center;justify-content:center;border:0;padding:0;min-width:44px;min-height:44px;font:44px/1 Arial,sans-serif;z-index:1}
-#collapse-customize span{display:block;transform:scale(1.5);pointer-events:none}
+#collapse-customize{position:relative;align-self:flex-end;display:flex;align-items:center;justify-content:center;flex-shrink:0;width:44px;height:44px;margin:-8px -8px 0 auto;border:0;padding:0;font:28px/1 Arial,sans-serif;z-index:1}
+#collapse-customize span{display:block;pointer-events:none}
 #customize{display:none}
 body:not(.customizing) aside{top:auto;bottom:24px;left:24px;right:auto;width:344px;height:auto;max-width:calc(100vw - 48px);max-height:none;padding:12px;border-radius:16px;overflow:visible}
 body:not(.customizing) aside>:not(.layout-presets):not(.style-presets):not(#customize){display:none}
@@ -167,7 +167,7 @@ aside{overscroll-behavior:contain}
  .repositioning .view-tools .zoom-label{display:inline;font:14px var(--sans);min-width:0}
  .repositioning #reposition-done{display:block;margin-left:auto;min-width:56px}
  .customizing aside{inset:0;width:100%;height:100dvh;max-height:100dvh;border:0;border-radius:0;background:#fff;backdrop-filter:none;padding:calc(8px + env(safe-area-inset-top)) calc(20px + env(safe-area-inset-right)) calc(24px + env(safe-area-inset-bottom)) calc(20px + env(safe-area-inset-left))}
- #collapse-customize{position:sticky;top:0;right:auto;align-self:flex-end;width:48px;height:48px;background:#f1f5f4}
+ #collapse-customize{position:relative;align-self:flex-end;width:44px;height:44px;margin:0 -8px 0 auto;background:transparent}
  .view-tools{display:none}
  #floating-legend{display:none!important}
  #legend-toggle:not([hidden]){display:block;position:absolute;right:12px;top:calc(114px + env(safe-area-inset-top));z-index:7;min-height:44px;background:#f8fcfbe8;backdrop-filter:none}
@@ -187,3 +187,24 @@ aside{overscroll-behavior:contain}
 .floating-legend-clusters.lifezones-legend{display:block;width:440px;max-width:100%;box-sizing:border-box}#mobile-legend-content .lifezones-legend svg{width:100%}
 
 .source .note{margin:4px 0;line-height:1.5;letter-spacing:0}.source .note:empty,.source small:empty{display:none}
+
+/* The construction illustration belongs to About, independent of the map canvas. */
+#about-construction{margin:8px 0 32px;clear:both}
+.construction-view{position:relative;height:320px}
+.construction-view canvas{position:relative;display:block;width:100%;height:100%;touch-action:none;cursor:grab}
+.construction-view canvas:active{cursor:grabbing}
+.construction-motion{position:absolute;right:0;bottom:10px;border:0;font-size:11px;color:#70858c;padding:8px}
+#about-construction .construction-range{display:block;width:80%;margin:16px 10% 4px;height:18px}
+.construction-stops{display:grid;grid-template-columns:repeat(5,minmax(0,1fr))}
+.construction-stops button{border:0;font-size:12px;padding:8px 4px;color:#789096;min-height:40px}
+.construction-stops button[aria-pressed=true]{color:#163d48;font-weight:700}
+#about-construction .construction-caption{font-size:13px;line-height:1.6;text-align:center;min-height:42px;margin:12px 0 0}
+#about-construction .construction-hint{text-align:center;font-size:11px;color:#809397;margin:2px 0}
+.welcome-copy a{color:inherit;text-underline-offset:3px;white-space:nowrap}
+@media(max-width:600px){#research-dialog{padding:24px}.construction-view{height:260px}.construction-stops button{font-size:11px}}
+
+.construction-stops button{min-width:0;font-size:12px}.construction-motion:disabled{visibility:hidden}
+
+.construction-toolbar{display:flex;justify-content:flex-start;margin:8px 0 0}
+.construction-toolbar select{width:auto;max-width:100%;margin:0;padding:6px 26px 6px 8px;font-size:12px;color:#587179;background:transparent;border-color:transparent;cursor:pointer}
+.construction-toolbar select:hover,.construction-toolbar select:focus{border-color:#d7e1e3;background:#f8fafb}

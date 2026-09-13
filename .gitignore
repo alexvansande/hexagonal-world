@@ -17,3 +17,6 @@ __pycache__/
 # Generated local-only wave preview (rebuild with scripts/build-wave-preview.mjs).
 /dist/tests/wave-app.mjs
 /dist/tests/wave-preview.html
+
+# Generated About landing page.
+/dist/about/

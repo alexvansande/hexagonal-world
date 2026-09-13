@@ -28,3 +28,8 @@ export function sourceAttribution(type){
  const source=referenceSources[type];
  return source?`${source.title} by ${source.author}. Source: ${source.url} . ${source.changes} ${source.publicDomain?'Source imagery':'Adapted map imagery'}: ${source.license} (${source.licenseURL}).`:'';
 }
+
+export function mapLicense(type){
+ const source=referenceSources[type];
+ return source?.license.startsWith('CC BY-SA')?{name:source.license,url:source.licenseURL}:{name:'CC BY 4.0',url:'https://creativecommons.org/licenses/by/4.0/'};
+}
