@@ -36,7 +36,7 @@ export const styleOptions=[
       "line": 0.1,
       "grid": 30,
       "distortionOpacity": 0.75,
-      "riverWidth": 2.5,
+      "riverWidth": 1,
       "riverLevels": 12,
       "subgridWidth": 0.2,
       "graticuleWidth": 1
