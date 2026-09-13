@@ -44,7 +44,7 @@ assert.ok(maxAngle<9,'Only the actual solid-induced projection distortion differ
 console.log(`Tetrakis/rhombic comparison: identical layout and camera; maximum geographic difference ${maxAngle.toFixed(2)} degrees.`);
 
 const directTetra=otherConstruction('tetra');
-assert.deepEqual(directTetra.names,['Sphere','Unfold']);
+assert.deepEqual(directTetra.names,['Sphere','Unfold','Adjust']);
 assert.equal(directTetra.mesh.markers.length,12,'One midpoint per edge per adjoining face');
 assert.equal(new Set(directTetra.mesh.markers.map(s=>norm(s.p).map(x=>x.toFixed(6)).join(','))).size,6,'Six shared spherical edge midpoints');
 for(const s of directTetra.mesh.markers){
@@ -61,3 +61,19 @@ for(const method of ['octa','tetrakis']){
  if(method==='tetrakis')for(const f of m.faces)for(let i=0;i<3;i++)assert.ok(Math.abs(distance(f.v[i],f.v[(i+1)%3])-Math.sqrt(3))<1e-8,'Tetrakis faces are equilateral');
 }
 console.log('Direct unfolding: tetrahedral midpoint markers and unstretched octahedral/tetrakis hexagons pass.');
+
+// The intermediate boundary must bow away from its endpoint chord, and the
+// last stage must still reproduce the map's exact hexagon coordinates.
+const petalFrame=directTetra.frame(1),hexFrame=directTetra.frame(2);
+for(const f of directTetra.faces){
+ const all=directTetra.mesh.samples.filter(s=>directTetra.faces[s.f]===f);
+ for(const s of all){
+  assert.ok(Math.abs(petalFrame.point(s)[2])<1e-10);
+  const expected=f.adjusted[0].map((_,i)=>s.w.reduce((sum,w,j)=>sum+w*f.adjusted[j][i],0));
+  assert.ok(distance(hexFrame.point(s),expected)<1e-9);
+ }
+ const rim=all.filter(s=>s.w[0]===0),a=rim.find(s=>s.w[1]===1),b=rim.find(s=>s.w[2]===1),mid=rim.find(s=>s.w[1]===.5);
+ const fr=petalFrame,chord=fr.point(a).map((x,i)=>(x+fr.point(b)[i])/2);
+ assert.ok(distance(fr.point(mid),chord)>.015,'Petal edges remain curved');
+}
+console.log('Tetrahedron petals: planar curved boundaries and unchanged final hexagons pass.');

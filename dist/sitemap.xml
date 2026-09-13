@@ -2,6 +2,12 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 <url><loc>https://hexagonal.earth/</loc></url>
 <url><loc>https://hexagonal.earth/about/</loc></url>
+<url><loc>https://hexagonal.earth/about/one-hex/</loc></url>
+<url><loc>https://hexagonal.earth/about/two-hexes/</loc></url>
+<url><loc>https://hexagonal.earth/about/tetrahedron/</loc></url>
+<url><loc>https://hexagonal.earth/about/octahedron/</loc></url>
+<url><loc>https://hexagonal.earth/about/rhombic-dodecahedron/</loc></url>
+<url><loc>https://hexagonal.earth/about/tetrakis-hexahedron/</loc></url>
 <url><loc>https://hexagonal.earth/lifezones/spaceship-earth/</loc></url>
 <url><loc>https://hexagonal.earth/lifezones/felv/</loc></url>
 <url><loc>https://hexagonal.earth/lifezones/flower-world/</loc></url>

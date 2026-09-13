@@ -1,18 +1,18 @@
-import {projectionChoices,otherConstruction} from './about-projections.mjs?v=tetra-area-2';
-import {initAboutRoute} from './about-route.mjs';
+import {projectionChoices,otherConstruction} from './about-projections.mjs?v=about-shapes-1';
+import {initAboutRoute} from './about-route.mjs?v=about-shapes-1';
 import {construction,constructionMesh,rearrangementFrame,mix,sub,rotate} from './about-geometry.mjs?v=felv-paths-2';
 import {norm} from './geometry.mjs?v=tetra-area-2';
 const rhombicNames=['Sphere','Project','Unfold','Adjust','Rearrange'];
 const rhombicCaptions=['Earth, divided by twelve spherical rhombi.','The same continents, projected onto twelve flat rhombi.','The faces hinge open into the Spaceship Earth net.','A gentle stretch brings the rhombi into four regular hexagons.','Cut and turn the pieces to form the Felv map.'];
 export function initAboutWidget(){
  const dialog=document.getElementById('research-dialog'),host=document.getElementById('about-construction');
- let started=false;
- const show=()=>{if(!dialog.open){dialog.showModal();dialog.scrollTop=0;}if(!started){started=true;start(host,dialog);}};
+ let started=false,choose;
+ const show=method=>{if(!dialog.open){dialog.showModal();dialog.scrollTop=0;}if(!started){started=true;choose=start(host,dialog,id=>open.setProjection(id));}choose?.(method);};
  const open=initAboutRoute({dialog,show});
  document.getElementById('research').onclick=open;
  document.getElementById('learn-more').onclick=e=>{if(e.button!==0||e.metaKey||e.ctrlKey||e.shiftKey||e.altKey)return;e.preventDefault();open();};
 }
-function start(host,dialog){
+function start(host,dialog,onProjection){
  let names=rhombicNames,captions=rhombicCaptions;
  host.innerHTML=`<div class="construction-toolbar"><select aria-label="Projection to explain">${projectionChoices.map(([id,label])=>`<option value="${id}" ${id==='rhombic'?'selected':''}>${label}</option>`).join('')}</select></div><div class="construction-view"><canvas aria-label="Earth transforming from a sphere through four hexagons into the Felv map. Drag to rotate." tabindex="0"></canvas><button class="construction-motion" aria-label="Pause rotation">Pause</button></div><input class="construction-range" type="range" min="0" max="4" step="0.001" value="0" aria-label="Projection construction" aria-valuetext="Sphere"><div class="construction-stops">${names.map((n,i)=>`<button data-stage="${i}" aria-pressed="${i===0}">${n}</button>`).join('')}</div><p class="construction-caption" aria-live="polite">${captions[0]}</p><p class="construction-hint">Drag to turn · Slide to unfold</p>`;
  const canvas=host.querySelector('canvas'),slider=host.querySelector('input'),caption=host.querySelector('.construction-caption'),motion=host.querySelector('.construction-motion'),gl=canvas.getContext('webgl',{alpha:true,antialias:true});
@@ -20,7 +20,7 @@ function start(host,dialog){
  const shader=(type,source)=>{const s=gl.createShader(type);gl.shaderSource(s,source);gl.compileShader(s);if(!gl.getShaderParameter(s,gl.COMPILE_STATUS))throw Error(gl.getShaderInfoLog(s));return s;};
  const program=gl.createProgram();
  gl.attachShader(program,shader(gl.VERTEX_SHADER,`attribute vec3 position;attribute vec3 globe;uniform float aspect;uniform float pointSize;varying vec3 earth;void main(){gl_PointSize=pointSize;earth=globe;gl_Position=vec4(position.x/aspect,position.y,-position.z*.15,1.);}`));
- gl.attachShader(program,shader(gl.FRAGMENT_SHADER,`precision mediump float;varying vec3 earth;uniform sampler2D map;uniform float line;uniform float opacity;uniform float dots;void main(){if(dots>.5&&length(gl_PointCoord-vec2(.5))>.5)discard;vec3 p=normalize(earth);vec2 uv=vec2(fract(atan(p.y,p.x)/6.2831853+.5),.5-asin(clamp(p.z,-1.,1.))/3.14159265);float sea=smoothstep(.3,.7,texture2D(map,uv).r);vec3 color=mix(vec3(.12,.26,.28),vec3(.51,.65,.66),sea);gl_FragColor=vec4(mix(color,vec3(.96,.99,1.),line),opacity);}`));
+ gl.attachShader(program,shader(gl.FRAGMENT_SHADER,`precision mediump float;varying vec3 earth;uniform sampler2D map;uniform float line;uniform float opacity;uniform float dots;void main(){if(dots>.5&&length(gl_PointCoord-vec2(.5))>.5)discard;vec3 p=normalize(earth);vec2 uv=vec2(fract(atan(p.y,p.x)/6.2831853+.5),.5-asin(clamp(p.z,-1.,1.))/3.14159265);float sea=smoothstep(.3,.7,texture2D(map,uv).r);vec3 color=mix(vec3(.12,.26,.28),vec3(.51,.65,.66),sea);gl_FragColor=vec4(mix(color,dots>.5?vec3(.06,.20,.31):vec3(.96,.99,1.),line),opacity);}`));
  gl.linkProgram(program);if(!gl.getProgramParameter(program,gl.LINK_STATUS))throw Error(gl.getProgramInfoLog(program));gl.useProgram(program);
  const buffer=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,buffer);
  for(const [name,offset] of [['position',0],['globe',12]]){const a=gl.getAttribLocation(program,name);gl.enableVertexAttribArray(a);gl.vertexAttribPointer(a,3,gl.FLOAT,false,24,offset);}
@@ -40,8 +40,10 @@ function start(host,dialog){
   if(!(e.key in destinations))return;
   e.preventDefault();select(destinations[e.key]);
  };host.querySelector('.construction-stops').onclick=e=>{const button=e.target.closest('[data-stage]');if(button)select(+button.dataset.stage);};
- host.querySelector('.construction-toolbar select').onchange=e=>{
-  const method=e.target.value;
+ const dropdown=host.querySelector('.construction-toolbar select');
+ const choose=method=>{
+  if(method===activeMethod)return;
+  dropdown.value=method;
   const previousLabel=names[target];
   const comparison=['rhombic','tetrakis'].includes(method)&&['rhombic','tetrakis'].includes(activeMethod),previousStage=target;
   activeMethod=method;
@@ -55,6 +57,7 @@ function start(host,dialog){
   stops.innerHTML=names.map((n,i)=>`<button data-stage="${i}" aria-pressed="${i===0}">${n}</button>`).join('');
   canvas.setAttribute('aria-label',`${projectionChoices.find(p=>p[0]===method)[1]} construction. Drag to rotate.`);select(target);
  };
+ dropdown.onchange=e=>{choose(e.target.value);onProjection(e.target.value);};
  canvas.onpointerdown=e=>{drag=[e.clientX,e.clientY];canvas.setPointerCapture(e.pointerId);paused=true;updateMotion();};
  canvas.onpointermove=e=>{if(!drag)return;userYaw+=(e.clientX-drag[0])*.008;userPitch+=(e.clientY-drag[1])*.008;drag=[e.clientX,e.clientY];dirty=true;};
  canvas.onpointerup=canvas.onpointercancel=()=>{drag=null;};
@@ -96,4 +99,5 @@ function start(host,dialog){
   if(markers.length){gl.uniform1f(gl.getUniformLocation(program,'dots'),1);gl.uniform1f(gl.getUniformLocation(program,'opacity'),1);gl.bufferData(gl.ARRAY_BUFFER,data(markers),gl.DYNAMIC_DRAW);gl.drawArrays(gl.POINTS,0,markers.length);}
  }
  requestAnimationFrame(draw);
+ return choose;
 }

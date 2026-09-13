@@ -3,6 +3,7 @@ import {mkdtemp,readFile,rm} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import {shareCombinations,readSharePath,sharePair,inferSharePair,presetSettings} from './dist/share-routes.mjs';
+import {aboutShapes,aboutPath} from './dist/about-route.mjs';
 import {buildSharePages} from './scripts/build-share-pages.mjs';
 import {analyticsAllowed,eventPayload} from './dist/analytics.mjs';
 assert.equal(shareCombinations.length,64);assert.equal(new Set(shareCombinations.map(p=>p.path)).size,64);
@@ -20,6 +21,17 @@ try{
   assert.equal(jpeg.readUInt16BE(0),0xffd8);assert(jpeg.length>5000);
   assert(html.includes('About this'));assert(html.includes('https://www.goatcounter.com/'));
  }
+ for(const [path,slug] of [['/about/','rhombic-dodecahedron'],...aboutShapes.map(([id,slug])=>[aboutPath(id),slug])]){
+  const html=await readFile(join(directory,path,'index.html'),'utf8'),image=`https://hexagonal.earth/social/about-${slug}.jpg`;
+  assert(html.includes(`property="og:url" content="https://hexagonal.earth${path}"`));
+  assert(html.includes(`property="og:image" content="${image}"`));
+  assert(html.includes(`name="twitter:image" content="${image}"`));
+  assert(html.includes('property="og:image:type" content="image/jpeg"'));
+  assert(!html.includes('social-preview.png'));
+  const jpeg=await readFile(new URL(`./dist/social/about-${slug}.jpg`,import.meta.url));
+  assert.equal(jpeg.readUInt16BE(0),0xffd8);assert(jpeg.length>10000);
+ }
+ console.log('About sharing: all seven routes have matching Open Graph and Twitter cards.');
 }finally{await rm(directory,{recursive:true,force:true});}
 assert.equal(readSharePath('/not/a-map/'),null);
 assert.equal(sharePair('lifezones','felv').path,'/lifezones/felv/');

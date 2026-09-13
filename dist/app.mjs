@@ -1,5 +1,5 @@
-import {isAboutPath} from './about-route.mjs';
-import {initAboutWidget} from './about-widget.mjs?v=tetra-area-2';
+import {isAboutPath} from './about-route.mjs?v=about-shapes-1';
+import {initAboutWidget} from './about-widget.mjs?v=about-shapes-1';
 import {referenceSources,sourceAttribution,mapLicense} from './reference-sources.mjs?v=licenses-1';
 import {PrecomputedSurfaces,surfacePreset,surfaceLevel,surfacePlan,surfaceTileRect,clipSurfaceTriangle} from './precomputed-surfaces.mjs?v=felv-position-3';
 import {renderLifezonesLegend} from './lifezones-legend.mjs?v=waves-1';

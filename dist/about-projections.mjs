@@ -50,12 +50,45 @@ export function otherConstruction(method){
   }
  });
  const tetra=method==='tetra';
- const names=tetra?['Sphere','Unfold']:['Sphere','Project','Unfold'];
- const captions=tetra?['Dots mark the three edge midpoints of each spherical tetrahedral region.','Each curved region opens directly into a hexagon; its edge midpoints become three of the corners.']:method==='octa'?['Earth divided along eight triangular faces.','Project the continents onto an octahedron.','The cut faces unfold directly into four regular hexagons.']:['Earth divided along 24 triangular faces.','Project onto a non-convex tetrakis hexahedron with equilateral faces.','Six equilateral triangles unfold into each hexagon, without stretching.'];
+ // Flatten each spherical face in its own Lambert equal-area tangent view.
+ // Separate the petals enough to keep their curved boundaries from overlapping.
+ const petalAreaScale=Math.sqrt((3*Math.sqrt(3)/2)/Math.PI);
+ const netCenter=[0,1].map(i=>net.reduce((sum,t)=>sum+[t.x,t.y][i],0)/net.length);
+ const petals=tetra?tiles.map(tile=>{
+  const C=norm(tile.center),B=norm(tile.ring[0]),U=norm(sub(B,mul(C,dot(B,C))));
+  let V=cross(C,U);if(dot(V,tile.ring[1])<0)V=mul(V,-1);
+  const placement=net.find(t=>t.id===tile.id),center=world([0,0],placement);
+  return p=>{const k=Math.sqrt(2/Math.max(1e-12,1+dot(C,p)))*petalAreaScale;
+   const local=[dot(p,U)*k,dot(p,V)*k],xy=world(local,placement);
+   return [0,1,2].map(i=>i===2?0:(xy[i]+.72*(center[i]-netCenter[i])-offset[i])*scale);
+  };
+ }):null;
+ let petalSize=1;
+ const petalCenters=tetra?tiles.map(tile=>petals[tile.id](norm(tile.center))):[];
+ if(tetra){
+  const polygons=tiles.map(tile=>edges.filter(s=>faces[s.f].tile===tile.id).map(s=>sub(petals[tile.id](norm(s.p)),petalCenters[tile.id])).sort((a,b)=>Math.atan2(a[1],a[0])-Math.atan2(b[1],b[0])));
+  petalSize=Infinity;
+  for(let i=0;i<4;i++)for(let j=0;j<i;j++){
+   let contact=0;
+   for(const polygon of [polygons[i],polygons[j]])for(let k=0;k<polygon.length;k++){
+    const a=polygon[k],b=polygon[(k+1)%polygon.length],normal=[a[1]-b[1],b[0]-a[0],0];
+    if(Math.hypot(...normal)<1e-9)continue;
+    for(const sign of [-1,1]){
+     const axis=mul(normal,sign),gap=dot(sub(petalCenters[j],petalCenters[i]),axis);
+     const span=Math.max(...polygons[i].map(p=>dot(p,axis)))-Math.min(...polygons[j].map(p=>dot(p,axis)));
+     contact=Math.max(contact,gap/span);
+    }
+   }
+   petalSize=Math.min(petalSize,contact);
+  }
+ }
+ const petalPoint=s=>{const id=faces[s.f].tile,c=petalCenters[id];return add(c,mul(sub(petals[id](norm(s.p)),c),petalSize));};
+ const names=tetra?['Sphere','Unfold','Adjust']:['Sphere','Project','Unfold'];
+ const captions=tetra?['Dots mark the three edge midpoints of each spherical tetrahedral region.','Four curved petals open out and touch at their boundaries.','The petals reshape into hexagons; the edge midpoints become three of the corners.']:method==='octa'?['Earth divided along eight triangular faces.','Project the continents onto an octahedron.','The cut faces unfold directly into four regular hexagons.']:['Earth divided along 24 triangular faces.','Project onto a non-convex tetrakis hexahedron with equilateral faces.','Six equilateral triangles unfold into each hexagon, without stretching.'];
  return {names,captions,rotationEnd:tetra?1:2,mesh:{samples,edges,cuts,markers},faces,transforms,
   frame(value){const unfold=smooth(value-(tetra?0:1)),project=smooth(value),tr=transforms(unfold),corners=faces.map((f,i)=>f.v.map(p=>frame(tr[i](p))));
    const orient=p=>rhombicReference?rotate(p,[0,0,1],unfold*2*Math.PI/3):p;
-   const point=s=>tetra?mix(frame(mul(norm(s.p),1.75)),weighted(faces[s.f].adjusted,s.w),unfold):orient(value<=1?frame(mix(mul(norm(s.p),rhombicReference?2:1.75),s.p,project)):weighted(corners[s.f],s.w));
+   const point=s=>tetra?(value<=1?mix(frame(mul(norm(s.p),1.75)),petalPoint(s),unfold):mix(petalPoint(s),weighted(faces[s.f].adjusted,s.w),smooth(value-1))):orient(value<=1?frame(mix(mul(norm(s.p),rhombicReference?2:1.75),s.p,project)):weighted(corners[s.f],s.w));
    let framing=bounds(tetra?samples.map(point):value<=1?faces.flatMap((f,i)=>f.v.map((p,j)=>point({p,f:i,w:[0,1,2].map(k=>k===j?1:0)}))):corners.flat().map(orient));
    if(comparisonFrame)framing={center:mix(framing.center,comparisonFrame.center,unfold),extent:framing.extent+(comparisonFrame.extent-framing.extent)*unfold};
    return {point,...framing,settle:unfold,cutOpacity:tetra?0:unfold};

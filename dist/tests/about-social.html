@@ -1,0 +1,36 @@
+<!doctype html><meta charset="utf-8"><title>About social previews</title>
+<body><dialog id="research-dialog"><div id="about-construction"></div></dialog><button id="research"></button><a id="learn-more"></a><pre id="result">Rendering</pre>
+<script type="module">
+import {initAboutWidget} from '../about-widget.mjs?v=about-shapes-1';
+import {aboutShapes} from '../about-route.mjs';
+const frames=[];window.requestAnimationFrame=fn=>frames.push(fn);
+window.matchMedia=()=>({matches:true});
+const original=HTMLCanvasElement.prototype.getContext;
+HTMLCanvasElement.prototype.getContext=function(type,options){return original.call(this,type,type==='webgl'?{...options,preserveDrawingBuffer:true}:options);};
+let now=0;const tick=()=>{now+=50;for(const fn of frames.splice(0))fn(now);};
+try{
+ const bitmap=await createImageBitmap(await (await fetch('/continents.png')).blob());
+ const rawContext=HTMLCanvasElement.prototype.getContext;
+ HTMLCanvasElement.prototype.getContext=function(type,options){const ctx=rawContext.call(this,type,options);if(type==='webgl'&&!ctx.socialTexture){ctx.socialTexture=true;const upload=ctx.texImage2D.bind(ctx);ctx.texImage2D=(...args)=>args.length===9&&args[3]===1?upload(ctx.TEXTURE_2D,0,ctx.RGBA,ctx.RGBA,ctx.UNSIGNED_BYTE,bitmap):upload(...args);}return ctx;};
+ initAboutWidget();document.getElementById('research').click();
+ const host=document.getElementById('about-construction'),canvas=host.querySelector('canvas');
+ canvas.style.cssText='width:700px;height:500px';
+ const dropdown=host.querySelector('select'),slider=host.querySelector('input'),images={};
+ const picture=()=>{for(let i=0;i<60;i++)tick();const out=document.createElement('canvas');out.width=canvas.width;out.height=canvas.height;out.getContext('2d').drawImage(canvas,0,0);return out;};
+ function drawFit(ctx,img,box){const c=img.getContext('2d'),data=c.getImageData(0,0,img.width,img.height).data;let l=img.width,r=0,t=img.height,b=0;for(let y=0;y<img.height;y++)for(let x=0;x<img.width;x++)if(data[(y*img.width+x)*4+3]>32){l=Math.min(l,x);r=Math.max(r,x);t=Math.min(t,y);b=Math.max(b,y);}const w=r-l+1,h=b-t+1,scale=Math.min(box[2]/w,box[3]/h);ctx.drawImage(img,l-3,t-3,w+6,h+6,box[0]+(box[2]-w*scale)/2,box[1]+(box[3]-h*scale)/2,w*scale,h*scale);}
+ for(const [method,slug,label] of aboutShapes){
+  dropdown.value=method;dropdown.dispatchEvent(new Event('change'));slider.value=0;slider.dispatchEvent(new Event('input'));const sphere=picture();
+  const stages=[...host.querySelectorAll('[data-stage]')].map(b=>b.textContent),stage=stages.includes('Unfold')?stages.indexOf('Unfold'):stages.length-1;
+  slider.value=stage;slider.dispatchEvent(new Event('input'));const unfolded=picture();
+  const card=document.createElement('canvas');card.width=1200;card.height=630;const ctx=card.getContext('2d');ctx.fillStyle='#f5f8f8';ctx.fillRect(0,0,1200,630);
+  ctx.fillStyle='#607e86';ctx.font='600 18px sans-serif';ctx.fillText('HEXAGONAL EARTH',54,47);
+  ctx.fillStyle='#193c49';ctx.font='48px Georgia';ctx.fillText(label,54,108);
+  drawFit(ctx,sphere,[68,149,410,365]);drawFit(ctx,unfolded,[585,149,540,365]);
+  ctx.strokeStyle='#bed1d5';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(540,183);ctx.lineTo(540,487);ctx.stroke();
+  ctx.fillStyle='#526f78';ctx.font='20px sans-serif';ctx.textAlign='center';ctx.fillText('Sphere',273,551);ctx.fillText(stages[stage]==='Unfold'?'Unfold':'Hexagon'+(method==='lambert-two'?'s':''),855,551);
+  ctx.textAlign='left';ctx.font='16px sans-serif';ctx.fillText('How a globe becomes a hexagonal map',54,602);ctx.textAlign='right';ctx.fillText('hexagonal.earth',1146,602);
+  images[slug]=card.toDataURL('image/jpeg',.94).split(',')[1];
+ }
+ document.getElementById('result').textContent=JSON.stringify(images);
+}catch(error){document.getElementById('result').textContent='ERROR: '+error.stack;}
+</script>
