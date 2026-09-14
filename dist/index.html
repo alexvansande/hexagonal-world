@@ -40,11 +40,11 @@
 <div class="ecology-legend"><h3 class="legend-heading">LAND</h3><div id="land-legend" class="hex-legend"></div><h3 class="legend-heading">OCEAN</h3><div id="ocean-legend" class="hex-legend"></div><div id="missing-legend" class="hex-legend"></div></div></div>
 </div>
 
-<h3 class="control-subheading">Colors</h3><label class="color-control"><span>Background color</span><input id="background-color" type="color" value="#e9f0f2"><output id="background-color-value">#e9f0f2</output></label><select id="palette" hidden aria-hidden="true"><option value="atlas">Ink &amp; Ice</option><option value="original">Gray</option><option value="night">Blue &amp; Navy</option></select><section id="rivers-panel"><h3 class="control-subheading">Rivers</h3><label class="check"><input id="rivers-visible" type="checkbox" checked> Show rivers</label><div id="river-controls"></div><label class="color-control"><span>River color</span><input id="river-color" type="color" value="#145778"><output id="river-color-value">#145778</output></label><p class="note">HydroRIVERS: higher levels include smaller rivers; level 12 adds the smallest rivers prepared for this map. River depth turns the visible network into shallow valleys in the relief renderer.</p></section><section id="relief-panel"><h3 class="control-subheading">Relief &amp; lighting</h3>
-<label class="select-label">Lighting<select id="lighting-preset"><option value="sculpted">Sculpted</option><option value="dramatic">Dramatic</option><option value="gentle">Gentle</option><option value="custom">Custom</option><option value="none">None</option></select></label>
+<h3 class="control-subheading">Colors</h3><label class="color-control"><span>Background color</span><input id="background-color" type="color" value="#e9f0f2"><output id="background-color-value">#e9f0f2</output></label><select id="palette" hidden aria-hidden="true"><option value="atlas">Ink &amp; Ice</option><option value="original">Gray</option><option value="night">Blue &amp; Navy</option></select><section id="rivers-panel"><h3 class="control-subheading">Rivers</h3><label class="check"><input id="rivers-visible" type="checkbox" checked> Show rivers</label><div data-settings-for="rivers-visible"><div id="river-controls"></div><label class="color-control"><span>River color</span><input id="river-color" type="color" value="#145778"><output id="river-color-value">#145778</output></label><p class="note">HydroRIVERS: higher levels include smaller rivers; level 12 adds the smallest rivers prepared for this map. River depth turns the visible network into shallow valleys in the relief renderer.</p></div></section><section id="relief-panel"><h3 class="control-subheading">Relief &amp; lighting</h3>
+<label class="select-label" data-settings-for="relief-enabled">Lighting<select id="lighting-preset"><option value="sculpted">Sculpted</option><option value="dramatic">Dramatic</option><option value="gentle">Gentle</option><option value="custom">Custom</option><option value="none">None</option></select></label>
 <label class="check relief-switch"><input id="relief-enabled" type="checkbox" checked> Show lighting</label>
-<p id="relief-status" class="note" role="status" aria-live="polite"></p>
-<div id="relief-options"><div id="lighting-opacity-controls"></div>
+<p data-settings-for="relief-enabled" id="relief-status" class="note" role="status" aria-live="polite"></p>
+<div id="relief-options" data-settings-for="relief-enabled"><div id="lighting-opacity-controls"></div>
 <p id="relief-panel-note" class="note"></p>
 <div id="relief-custom" hidden>
 <label class="select-label">Raised surface<select id="relief-treatment"><option value="atlas">Whole map panel</option><option value="land">Land cutout</option></select></label>
@@ -66,7 +66,7 @@
 <div id="orientation"></div>
 <div class="optimizer">
 <label class="check"><input id="optimize" type="checkbox"> Minimize land on borders</label><p id="optimizer-note" class="note"></p>
-<div id="clearance-control"></div>
+<div data-settings-for="optimize" hidden id="clearance-control"></div>
 </div>
 <section id="projection-method-panel"><h3 class="control-subheading">Projection methods</h3>
 <div class="methods" role="group" aria-label="Projection method">
@@ -83,15 +83,15 @@
 <div id="display-controls"></div>
 <div class="grid-settings"><h3 class="control-subheading">Hex borders</h3><label class="color-control"><span>Border color</span><input id="border-color" type="color" value="#376472"><output id="border-color-value">#376472</output></label><div id="border-controls"></div></div>
 <div class="grid-settings"><label class="check"><input id="subgrid" type="checkbox"> Hex subgrid · 49× density</label>
-<label class="check"><input id="fractalgrid" type="checkbox"> Fractal grid · recursive outlines</label><label class="color-control"><span>Hex grid color</span><input id="hex-grid-color" type="color" value="#315865"><output id="hex-grid-color-value">#315865</output></label><div id="hex-grid-controls"></div></div>
+<label class="check"><input id="fractalgrid" type="checkbox"> Fractal grid · recursive outlines</label><div data-settings-for="subgrid fractalgrid" hidden><label class="color-control"><span>Hex grid color</span><input id="hex-grid-color" type="color" value="#315865"><output id="hex-grid-color-value">#315865</output></label><div id="hex-grid-controls"></div></div></div>
 <div class="grid-settings"><label class="check"><input id="puzzlegrid" type="checkbox"> Puzzle overlay</label>
-<label class="select-label">Pieces<select id="puzzle-count"><option value="28">28 pieces · 4 × 7</option><option value="196">196 pieces · 4 × 7 × 7</option></select></label>
+<div data-settings-for="puzzlegrid" hidden><label class="select-label">Pieces<select id="puzzle-count"><option value="28">28 pieces · 4 × 7</option><option value="196">196 pieces · 4 × 7 × 7</option></select></label>
 <label class="color-control"><span>Puzzle line color</span><input id="puzzle-color" type="color" value="#315865"><output id="puzzle-color-value">#315865</output></label><div id="puzzle-controls"></div>
-<p class="note">Interlocking pieces with map artwork in every tab. Uses the four-region Flower or Fuller layout; other layouts turn the puzzle off.</p></div>
-<div class="grid-settings"><label class="check"><input id="graticule" type="checkbox" checked> Latitude / longitude grid</label><label class="color-control"><span>Latitude / longitude color</span><input id="graticule-color" type="color" value="#4f8796"><output id="graticule-color-value">#4f8796</output></label><div id="graticule-controls"></div></div>
+<p class="note">Interlocking pieces with map artwork in every tab. Uses the four-region Flower or Fuller layout; other layouts turn the puzzle off.</p></div></div>
+<div class="grid-settings"><label class="check"><input id="graticule" type="checkbox" checked> Latitude / longitude grid</label><div data-settings-for="graticule"><label class="color-control"><span>Latitude / longitude color</span><input id="graticule-color" type="color" value="#4f8796"><output id="graticule-color-value">#4f8796</output></label><div id="graticule-controls"></div></div></div>
 <label class="check"><input id="dotgrid" type="checkbox"> Dot grid · 7 dots per small hex</label>
-<p class="note">White dots at 20% opacity; 343 dots per large hexagon.</p>
-<p class="note">Two alternating Gosper generations keep the 49 smallest hexagons aligned with their parent.</p>
+<p class="note" data-settings-for="dotgrid" hidden>White dots at 20% opacity; 343 dots per large hexagon.</p>
+<p class="note" data-settings-for="subgrid dotgrid fractalgrid" hidden>Two alternating Gosper generations keep the 49 smallest hexagons aligned with their parent.</p>
 <label class="check"><input id="construction" type="checkbox"> Construction lines</label>
 <label class="check"><input id="labels" type="checkbox" checked> Region & border labels</label>
 <label class="select-label">Render quality<select id="quality"><option value="1">Standard</option><option value="2" selected>High</option><option value="3">Ultra</option></select></label>
@@ -101,7 +101,7 @@
 <div id="distortion-legend" class="note" hidden><div id="area-key"><div class="area-ramp"></div><div class="ramp-labels"><span>¼× smaller</span><span>1×</span><span>4× larger</span></div></div><div id="angle-key"><div class="angle-ramp"></div><div class="ramp-labels"><span>0° angular error</span><span>90°+</span></div></div><p>Area is relative to the average scale of the whole sphere. Angular color shows maximum local angle error. Purple mixes over the area colors. Values are local estimates; cut lines are separate.</p></div>
 <label class="select-label">Tissot indicatrixes<select id="indicatrix"><option value="off">Off</option><option value="4x7">4 × 7</option><option value="4x49">4 × 49</option><option value="4x49x7">4 × 49 × 7</option></select></label>
 <p id="indicatrix-status" class="note" role="status"></p>
-<p class="note">Equal-radius geographic circles centered on the subhex grid, projected through the current map. Circle size and shape show local distortion.</p>
+<p class="note" data-settings-for="indicatrix" hidden>Equal-radius geographic circles centered on the subhex grid, projected through the current map. Circle size and shape show local distortion.</p>
 </details>
 
 
@@ -135,4 +135,4 @@
 <li><a href="https://h3geo.org/">Uber’s H3</a> - Divides the world in infinite hexagons and 12 dirty dirty pentagons</li>
 <li><a href="https://github.com/alexvansande/hexagonal-world">Source code on GitHub</a></li>
 <li><a href="https://vandesande.design">Alex Van de Sande — vandesande.design</a></li>
-</ul></details><p id="analytics-note">Privacy-friendly analytics with <a href="https://www.goatcounter.com/" target="_blank" rel="noreferrer">GoatCounter</a>. Counting is not enabled yet. <a href="https://www.goatcounter.com/help/privacy" target="_blank" rel="noreferrer">How it works</a></p></dialog><script type="module" src="app.mjs?v=puzzle-1"></script></body></html>
+</ul></details><p id="analytics-note">Privacy-friendly analytics with <a href="https://www.goatcounter.com/" target="_blank" rel="noreferrer">GoatCounter</a>. Counting is not enabled yet. <a href="https://www.goatcounter.com/help/privacy" target="_blank" rel="noreferrer">How it works</a></p></dialog><script type="module" src="app.mjs?v=conditional-settings-1"></script></body></html>

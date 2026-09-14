@@ -1,3 +1,5 @@
+import {subgridLevels} from './dist/subgrid.mjs';
+import {cellPolygon} from './dist/fractal-grid.mjs';
 import assert from 'node:assert/strict';
 import {makeGeometry,matching,world} from './dist/geometry.mjs';
 import {puzzleCells,puzzleRegion,puzzleArtwork,neighbor,triangulate} from './dist/puzzle-grid.mjs';
@@ -5,7 +7,21 @@ import {area} from './dist/felv.mjs';
 import {edgeKey} from './dist/fractal-grid.mjs';
 for(const method of ['tetra','octa','rhombic','tetrakis'])for(const count of [28,196]){
  const tiles=makeGeometry(method,1.5),regions=tiles.map(t=>puzzleRegion(tiles,t.id,count));
+ const depths=new Map(),identities=new Map();
+ for(const edge of regions.flatMap(r=>r.edges)){
+  const dx=edge.b[0]-edge.a[0],dy=edge.b[1]-edge.a[1],length2=dx*dx+dy*dy;
+  // Depth is invariant under translation, rotation, reversal and flipping.
+  // Distinct depths prove that no other edge can fit exactly, in either direction.
+  const depth=Math.round(Math.max(...edge.points.map(p=>Math.abs(dx*(p[1]-edge.a[1])-dy*(p[0]-edge.a[0]))/length2))*1e10);
+  if(depths.has(depth))assert.equal(depths.get(depth),edge.identity,'Different joins must never share a connector profile');
+  if(identities.has(edge.identity))assert.equal(identities.get(edge.identity),depth,'Mating edges share their unique depth');
+  depths.set(depth,edge.identity);identities.set(edge.identity,depth);
+ }
+ assert.equal(depths.size,identities.size);
+ assert.deepEqual(puzzleRegion(tiles,0,count),regions[0],'Connectors stay deterministic');
  assert.equal(puzzleCells(count).length*4,count);
+ assert.deepEqual(puzzleCells(count),subgridLevels[count===196?2:1].map(cellPolygon),'Puzzle must use the exact existing Gosper subdivision');
+ for(const cell of puzzleCells(count)){assert.equal(cell.length,6);const lengths=cell.map((p,i)=>Math.hypot(p[0]-cell[(i+1)%6][0],p[1]-cell[(i+1)%6][1]));assert.ok(Math.max(...lengths)-Math.min(...lengths)<1e-10,'Every piece starts as a whole regular hexagon');}
  for(const [id,region] of regions.entries()){
   assert.equal(region.polygons.length,count/4);
   assert.ok(Math.abs(region.polygons.reduce((s,p)=>s+area(p),0)-area(region.outline))<1e-8,'Pieces partition the silhouette');

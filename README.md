@@ -4,6 +4,12 @@ A dependency-free WebGL app using the supplied 4320 × 2160 equirectangular cont
 
 Run `npm start`, then open http://localhost:4173. Run `npm test` for geometry and regression validation.
 
+Before making changes, read [AGENTS.md](AGENTS.md) and
+[DESIGN-DECISIONS.md](DESIGN-DECISIONS.md) for accepted design reasoning,
+superseded experiments, and working agreements. [AUDIT.md](AUDIT.md) records
+diagnosed failures; this README contains implementation details, including some
+historical descriptions that the decision record clarifies.
+
 ## License
 
 Original work by Alex Van de Sande is licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/), except where underlying source terms require otherwise. Adapted Wikipedia Default and Tissot imagery retains CC BY-SA 3.0 and CC BY-SA 4.0 respectively. Third-party assets retain their own terms; see [LICENSE](LICENSE) and the source metadata.

@@ -1,0 +1,286 @@
+# Design decisions and working agreements
+
+Reviewed September 14, 2026. This is a selective record of decisions and their
+reasoning, not a chronology or a backlog. It synthesizes this puzzle discussion,
+retrievable messages from earlier project tasks, and the current code and tests.
+Some older task turns returned no message text; this is not a complete chat audit.
+
+**How to read this:** explicit user corrections establish intent. Code and tests
+establish what is implemented. Assistant proposals and old completion reports
+alone establish neither. Current user instructions can revise these decisions.
+README sections have accumulated over time and can contain earlier behavior;
+verify implementation details before treating a historical description as current.
+
+## 1. Reuse the application's Gosper hierarchy
+
+**Decision.** “Divide a hex into seven” means the existing center-plus-six
+construction in `dist/subgrid.mjs`. Each generation scales by `1/√7` and alternates
+`±atan(√3/5)` (about 19.1°). Two generations produce 49 children aligned with their
+large parent; next-generation centers give 343 dots per large region.
+
+**Reason.** The rotations, centers and relationship between levels are part of
+the visual design. The reference image, `hex grid.png`, was supplied in the
+September 9 discussion and again during the puzzle correction. This is not an
+invitation to invent any visually plausible seven-part partition.
+
+**Rejected alternative.** The first puzzle implementation used independently
+clipped Voronoi cells. It preserved the large straight outline by producing
+partial/irregular small pieces. That was the wrong construction, even though it
+had the requested piece count and its own coverage tests passed.
+
+**Preserve.** Puzzle cells come directly from `subgridLevels[1]` or `[2]` through
+`cellPolygon`; every starting cell is a whole regular hexagon. The silhouette may
+extend beyond the former straight parent boundary. Fractal group boundaries are
+actual unions of child cells, not convex hulls or approximate larger hexagons.
+The app uses its established alternating-turn substitution; do not claim it is
+necessarily the canonical Gosper curve.
+
+Evidence: “Run the server so I can see the app”; “Add puzzle overlay option”.
+Checks: `puzzle-tests.mjs`, `fractal-tests.mjs`.
+
+## 2. Topological neighbors are not just pairs of piece IDs
+
+**Decision.** Keep full oriented edge pairings. Two regions may meet along more
+than one distinct side. The map's unusual adjacency is intentional.
+
+**Reason.** Reducing adjacency to one connection per pair would lose valid joins
+and can attach the wrong geography or connector. The project explores hexagonal
+maps under these boundary identifications; replacing them with conventional
+pentagon-containing tilings changes the premise.
+
+**Preserve.** Use the existing spherical matching and rotated neighbor placements
+in `dist/geometry.mjs`. Boundary labels, cuts, puzzle pairing and transferred
+artwork must agree with those identities. Infinite repetition is a separate
+heuristic: it has known incompatible joins. Hiding red outlines does not make
+those joins continuous.
+
+Evidence: current puzzle request; “Review About page copy”; README geometry and
+infinite-display sections. Checks: `tests.mjs`, `tiling-tests.mjs`.
+
+## 3. A puzzle changes the cut and must carry the map with it
+
+**Decision.** Offer 28 pieces (4 × 7) and 196 pieces (4 × 7 × 7), with independently
+customizable line width and color, saved in links and used in exports.
+
+**Reason.** This is a puzzle made from the map. An outer tab filled with background,
+stretched pixels, or the wrong neighboring region is not a correct piece.
+
+**Preserve.** Clip original source triangles to the true concave puzzle outline;
+retain their spherical interpolation weights and source-region coordinates.
+Outward extensions use the correctly rotated neighboring source. Fitting, relief
+and export bounds must account for the new silhouette. The live rendering path
+is currently used for puzzles rather than an incompatible pre-rendered surface.
+
+**Implementation limit, not a permanent design principle.** The current puzzle
+works on four-region Flower/Fuller arrangements and switches off on unsupported
+arrangements. Do not describe this as a requirement of Gosper subdivision.
+Expanding layout support is a separate change that must preserve the piece count
+and complete map coverage.
+
+Evidence: “Add puzzle overlay option”. Implementation: `dist/puzzle-grid.mjs`,
+`dist/app.mjs`. Checks: `puzzle-tests.mjs`.
+
+## 4. Every puzzle join has its own connector
+
+**Decision.** Only the intended paired edge matches exactly. The user explicitly
+replaced the initial interchangeable-tab design with unique connectors.
+
+**Reason.** A connector should help identify the correct placement, not merely
+look like a jigsaw. Random-looking differences alone do not guarantee uniqueness.
+
+**Preserve.** Build a deterministic catalogue of canonical paired-edge identities.
+Assign distinct depths without hash collisions and vary width, position and slant.
+Generate an asymmetric curve once in the canonical direction, reversing it for
+its partner. Reuse shapes across reloads, pan/zoom and exports. Check unrelated
+joins for duplicate profiles, including reversed/flipped orientations, as well
+as checking intended partners for exact agreement.
+
+**Limit.** Exact geometric uniqueness does not guarantee that a loosely cut or
+flexible physical piece cannot be forced into a near-match. Manufacturing
+clearance and minimum practical shape separation have not been validated.
+
+Evidence: explicit request in “Add puzzle overlay option”. Checks:
+`puzzle-tests.mjs` verifies unique normalized depths, matching curves, whole-cell
+hierarchy, concave coverage, source artwork and URL persistence for both counts
+and all four polyhedral methods.
+
+## 5. Separate format, style and a saved view
+
+**Decision.** Keep thumbnail cards for both map format and map style. Each must
+apply immediately and independently. Compact shared URLs replace the former
+standalone header preset library, not these cards.
+
+**Reason.** Earlier work removed the cards when asked to remove “presets”, then
+restored full saved snapshots that mixed format, appearance and viewport state.
+The user corrected both interpretations. They want to combine a map construction
+with a look, and exchange exact custom maps by pasting URLs.
+
+**Preserve.** Format owns the construction/orientation; style owns appearance.
+Use the current ownership lists in `dist/share-routes.mjs` and `dist/map-options.mjs`
+for shared settings such as overlays. Decode a supplied link before editing a
+preset; copy the relevant approved settings, not incidental zoom, pan or panels.
+Format selection fits the available viewport. A directly opened saved map retains
+its custom state, with the deliberate phone fitting exception.
+
+**Compatibility.** Append positional URL keys; do not reorder them. Retain legacy
+readers and meaningful zero/false values. Rebuild generated route HTML after
+entrypoint changes: editing only the root page previously left a refreshed
+shared route loading an older renderer.
+
+Evidence: “Run the server so I can see the app”; “Diagnose map rendering bugs”;
+“Review About page copy”. Checks: `style-tests.mjs`, `sharing-tests.mjs`.
+
+## 6. Detail and performance must preserve the same visible design
+
+**Decision.** Default map surfaces use offline zoom pyramids; customized maps use
+live rendering. Base color, rivers, lighting and overlays remain separate.
+Mobile should reach a comparable close-up scale to desktop, not merely share the
+same numeric zoom multiplier on a smaller initial map.
+
+**Reason.** The user explicitly requested pre-rendering expensive default hex and
+patch work, excluding the already separate shadows and relief. Changing the
+appearance or deleting small details is not automatically an acceptable speedup.
+
+**Preserve.** Download visible detail, retain coarse fallbacks, bound caches and
+release export-only resources. Do not use baked surfaces after projection or
+outline changes unless their compatibility is verified. Distinguish source
+resolution, screen resolution and generated detail: upscaling does not add data.
+
+**Grid-fading conflict resolved.** “Don't fade the larger grid” was an intermediate
+experiment. Later requests permit it to fade after finer detail appears, and limit
+simultaneously visible hierarchy levels. But hiding coarse levels must not remove
+edges needed to close visible fine outlines. Fine copies must tile throughout the
+viewport, including distant panning, rather than appear only at the center.
+
+Evidence: “Diagnose map rendering bugs”; current surface modules and README.
+Checks: `fractal-tests.mjs`, `surface-tests.mjs`, `mobile-tests.mjs`,
+`projected-lighting-tests.mjs`.
+
+## 7. River appearance evolved; do not restore the earlier binary rule
+
+**Decision.** Current rivers use HydroRIVERS detail in the existing 1–12 slider,
+a color picker, and proportional opacity for widths below one river-raster pixel.
+Wider centerlines remain opaque. Current per-style defaults live in code.
+
+**Reason.** The earlier request for a single solid river color removed distracting
+blur. A later explicit experiment introduced subpixel opacity; the user liked it
+and supplied revised style links. That later decision supersedes the blanket
+“either river or no river” rendering rule.
+
+**Preserve.** The levels select cumulative data detail, not a promise of classical
+tributary order. Loading more source data and integrating it into the display are
+different tasks. Preserve settings when only data acquisition is requested. Raster
+coverage opacity is not yet a screen-space width solution at every zoom.
+
+**Do not infer geography from appearance.** Desert drainage can be real, uncertain,
+or visually disconnected by filtering. Do not erase isolated channels or invent
+connections merely because they look odd. The user accepted leaving the appearance
+unchanged after the discussion; dashed intermittent rivers remained a suggestion.
+
+Evidence: “Diagnose map rendering bugs” followed by “Review About page copy”.
+Checks: `river-tests.mjs`; implementation and provenance in `dist/river-layers.mjs`,
+`dist/maps/sources.json` and the README HydroRIVERS section.
+
+## 8. Preserve the author's voice and explain geometry honestly
+
+**Decision.** The About page has a playful human-authored introduction and a
+separate, initially collapsed technical explanation in Fira Code and muted gray.
+Review-before-edit requests for this copy are real boundaries; they are not a
+standing requirement to ask permission for every code change.
+
+**Reason.** The user deliberately retained subjective wording and the unusual
+neighbor explanation after reviewing suggested corrections. Silently replacing
+that voice with a textbook introduction would undo an accepted choice.
+
+**Preserve.** Flag factual issues clearly and distinguish proposed corrections
+from applied edits. Keep technical area-preservation claims specific to the actual
+projection/settings. In particular, the README's old blanket statement that no
+polyhedral method preserves area is superseded for the implemented tetrahedral
+equal-area path; it is not evidence that all other modes are equal-area.
+Keep original-work attribution and third-party licensing distinctions intact.
+
+Evidence: “Review About page copy”; `dist/tetra-projection.mjs`,
+`tetra-equal-area-tests.mjs`, `LICENSE`.
+
+## 9. The About animation explains an actual construction
+
+**Decision.** Use real projection/unfolding stages with continuous animation to
+the nearest selected stage. Rhombic dodecahedron is the default; only its flow
+has Rearrange. Preserve the chosen stage when comparing compatible constructions.
+
+**Reason.** The movement itself explains the map. The user's sketch specifies
+which pieces stay anchored, not merely the final silhouette. Moving the globe or
+camera to fake a correct endpoint undermines that explanation.
+
+**Preserve.** The accepted planar orientation has a 120° adjustment. Africa and
+the main Asian section stay anchored during the rhombic rearrangement; the other
+pieces move to the actual Felv arrangement. Tetrakis and rhombic use comparable
+orientation/framing at Adjust. About has a real route and Back returns to the map.
+
+Evidence: “Add About page globe widget”. Checks: `about-tests.mjs`,
+`about-projection-tests.mjs`, `about-route-tests.mjs`.
+
+## 10. Repository workflow and publishing are different decisions
+
+**Decision.** Keep the dependency-free static WebGL architecture unless a change
+requires otherwise. `dist/` contains authored application code as well as assets;
+it is not a disposable build directory. Generated share pages are rebuilt by
+`scripts/build-share-pages.mjs` and excluded from source tracking.
+
+**Reason.** A framework migration or a new hosting destination is not implied by
+an overlay, copy edit or repository documentation task.
+
+**Hosting conflict.** README labels `.openai/hosting.json` as legacy. The checked-in
+`.github/workflows/pages.yml` tests and publishes through GitHub Pages after a
+push to `main`. Earlier project tasks explicitly used that route. During the
+puzzle task, the assistant instead followed Sites tooling and attempted an upload;
+automatic approval review rejected it and no Sites publication completed.
+Do not treat that attempt as an accepted migration or an ongoing authorization.
+Resolve conflicts with active tooling instructions explicitly rather than silently
+choosing another destination. Old HTTPS failures in chats are historical reports,
+not a statement of today's availability.
+
+**Working agreement.** Preserve unrelated changes; make requested corrections
+concrete rather than only agreeing with them; verify the user's actual failure
+case and report local versus published status accurately. Do not re-request an
+approval already granted within its applicable scope, and do not turn an old
+approval into permission for a different payload or destination. Documentation
+maintenance does not itself require publishing the website.
+
+Evidence: README Publishing; Pages workflow; “Diagnose map rendering bugs”;
+“Add puzzle overlay option”.
+
+## 11. Disabled features hide their settings
+
+**Decision.** Keep the enabling checkbox visible, but hide its dependent settings
+and explanatory notes while unchecked. Preserve the values for re-enabling.
+Shared hex-grid settings appear when either regular or fractal grid is enabled.
+Tissot's explanatory note follows its Off selection in the same way.
+
+**Reason.** The user wants a simpler panel showing only relevant controls, not
+inactive colors and sliders. This applies after direct toggles, preset changes
+and restoring shared links. Hiding is presentation, not deleting or resetting
+settings; hidden inputs must also leave the keyboard tab order.
+
+Evidence: September 14 request in “Add puzzle overlay option”.
+
+## Maintaining this record
+
+When a decision changes, update its section with the new reason and identify what
+it supersedes. Keep detailed parameter values in code and technical mechanics in
+README. Add a regression check when a mistaken interpretation could recur.
+Distinguish accepted design, current implementation limits, and untested ideas.
+Do not copy personal chat material, credentials, full saved URLs, or transcripts.
+
+Source tasks consulted (titles as returned by the task archive):
+
+- “Run the server so I can see the app” — `01a0881c-2669-7421-afac-7f15a2476e26`
+- “Diagnose map rendering bugs” — `01a0894e-afd2-73c2-8777-5ce532401459`
+- “Add About page globe widget” — `01a0977e-b170-7273-a35d-972e9910421f`
+- “Review About page copy” — `01a09af2-37af-7950-8388-30fa8fdb27eb`
+- “Add puzzle overlay option” — this task, `01a09f34-0900-7953-b6f7-2faa9d576f9c`
+
+“Install GoatCounter” was inspected, but the retrieved recent turns lacked message
+text; analytics intent was not reconstructed from those empty records. This review
+excluded unrelated conversations. Revisit the original task when a narrower or
+uncertain decision needs more context.

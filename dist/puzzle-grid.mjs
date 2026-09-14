@@ -1,33 +1,35 @@
 import {hex,world,matching} from './geometry.mjs';
 import {clip,area} from './felv.mjs';
-import {edgeKey,edgeLoops} from './fractal-grid.mjs';
+import {subgridLevels} from './subgrid.mjs';
+import {cellPolygon,edgeKey,edgeLoops} from './fractal-grid.mjs';
 const EPS=1e-7;
 const cross=(a,b,c)=>(b[0]-a[0])*(c[1]-a[1])-(b[1]-a[1])*(c[0]-a[0]);
 const distance=(a,b)=>Math.hypot(a[0]-b[0],a[1]-b[1]);
 const clean=p=>p.filter((a,i)=>distance(a,p[(i+1)%p.length])>EPS);
-// Seven nonempty Voronoi cells, symmetric under the parent's edge reflections.
-function seven(polygon){
- const center=[0,1].map(k=>polygon.reduce((s,p)=>s+p[k],0)/polygon.length);
- const radius=Math.min(...polygon.map((a,i)=>Math.abs(cross(a,polygon[(i+1)%polygon.length],center))/distance(a,polygon[(i+1)%polygon.length])))*.9;
- const seeds=[center,...hex.map(p=>p.map((v,k)=>center[k]+v*radius))];
- return seeds.map(a=>{
-  let p=polygon;
-  for(const b of seeds){if(a===b)continue;const n=b.map((v,k)=>v-a[k]),mid=a.map((v,k)=>(v+b[k])/2),out=[];
-   const side=q=>n.reduce((s,v,k)=>s+v*(q[k]-mid[k]),0);
-   for(let i=0;i<p.length;i++){const u=p[i],v=p[(i+1)%p.length],d=side(u),e=side(v);if(d<=EPS)out.push(u);if((d<0)!==(e<0)){const t=d/(d-e);out.push(u.map((x,k)=>x+t*(v[k]-x)));}}p=clean(out);
-  }return p;
+// Use precisely the same alternating rotations and centers as the hex/Gosper grid.
+export function puzzleCells(count=28){return subgridLevels[count===196?2:1].map(cellPolygon);}
+function baseEdges(cells){const edges=new Map();for(const cell of cells)for(let i=0;i<6;i++){const a=cell[i],b=cell[(i+1)%6],key=edgeKey(a,b);if(edges.has(key))edges.get(key).uses++;else edges.set(key,{a,b,uses:1});}return edges;}
+const connectorCatalogs=new WeakMap();
+const hash=text=>{let h=2166136261;for(const c of text)h=Math.imul(h^c.charCodeAt(0),16777619);return h>>>0;};
+function connectorCatalog(tiles,count){
+ let cache=connectorCatalogs.get(tiles);if(!cache){cache=new Map();connectorCatalogs.set(tiles,cache);}if(cache.has(count))return cache.get(count);
+ const base=baseEdges(puzzleCells(count)),regions=tiles.map(({id})=>{
+  const partners=new Map();
+  for(let e=0;e<6;e++){const n=neighbor(tiles,id,e);for(const edge of base.values())if(edge.uses===1)partners.set(edgeKey(world(edge.a,n),world(edge.b,n)),`${n.id}:${edgeKey(edge.a,edge.b)}`);}
+  return new Map([...base].map(([key,edge])=>{const own=`${id}:${key}`,partner=edge.uses===1?partners.get(key):null,identity=partner?[own,partner].sort().join('|'):own;return [key,{identity,reverse:!!partner&&own>partner,boundary:edge.uses===1}];}));
  });
+ const identities=[...new Set(regions.flatMap(r=>[...r.values()].map(e=>e.identity)))].sort((a,b)=>hash(a)-hash(b)||a.localeCompare(b));
+ const profiles=new Map(identities.map((identity,index)=>{
+  const h=hash(identity),random=shift=>((h>>>shift)&255)/255;
+  // Unique depths are assigned without hashing collisions. Other dimensions
+  // vary independently, making the differences visible as well as exact.
+  return [identity,{depth:.16+.12*(index+.5)/identities.length,width:.8+.4*random(0),center:.43+.14*random(8),lean:-.3+.6*random(16),sign:h&1?1:-1}];
+ }));
+ const result={regions,profiles};cache.set(count,result);return result;
 }
-export function puzzleCells(count=28){
- let cells=seven(hex);if(count===196)cells=cells.flatMap(seven);
- // Split T junctions before adding tabs: each physical segment has one curve.
- const vertices=cells.flat();
- return cells.map(poly=>poly.flatMap((a,i)=>{const b=poly[(i+1)%poly.length],l=distance(a,b),points=vertices.filter(p=>Math.abs(cross(a,b,p))<EPS*l&&distance(a,p)+distance(p,b)<l+EPS).sort((p,q)=>distance(a,p)-distance(a,q));return points.filter((p,j)=>distance(p,b)>EPS&&(!j||distance(p,points[j-1])>EPS));}));
-}
-const boundaryEdge=(a,b)=>hex.findIndex((p,i)=>Math.abs(cross(p,hex[(i+1)%6],a))<EPS&&Math.abs(cross(p,hex[(i+1)%6],b))<EPS);
 // Positive bulges to the right of the directed (counterclockwise) edge.
-export function connector(a,b,sign=1){
- const dx=b[0]-a[0],dy=b[1]-a[1],point=(x,y)=>[a[0]+dx*x+dy*y*sign,a[1]+dy*x-dx*y*sign];
+export function connector(a,b,sign=1,profile={depth:.22,width:1,center:.5,lean:0}){
+ const dx=b[0]-a[0],dy=b[1]-a[1],point=(x,y)=>{const u=profile.center+(x-.5)*profile.width+profile.lean*y,v=y*profile.depth/.22;return [a[0]+dx*u+dy*v*sign,a[1]+dy*u-dx*v*sign];};
  const result=[a,point(.32,0)];
  const curves=[[[.40,0],[.43,-.01],[.42,.055]],[[.30,.22],[.70,.22],[.58,.055]],[[.57,-.01],[.60,0],[.68,0]]];
  let start=[.32,0];
@@ -35,13 +37,14 @@ export function connector(a,b,sign=1){
  result.push(b);return result;
 }
 export function puzzleRegion(tiles,id,count=28){
- const cells=puzzleCells(count),edges=new Map(),polygons=[];
+ const cells=puzzleCells(count),edges=new Map(),polygons=[],catalog=connectorCatalog(tiles,count);
  for(const cell of cells){const polygon=[];
   for(let i=0;i<cell.length;i++){const a=cell[i],b=cell[(i+1)%cell.length],key=edgeKey(a,b);let edge=edges.get(key);
-   if(!edge){const e=boundaryEdge(a,b);let sign;
-    if(e>=0){const pair=matching(tiles,id,e);sign=id*6+e<pair.id*6+pair.e?1:-1;}
-    else {let hash=0;for(const ch of key)hash=(hash*31+ch.charCodeAt(0))|0;sign=hash&1?1:-1;}
-    edge={a,b,points:connector(a,b,sign),boundary:e>=0};edges.set(key,edge);
+   if(!edge){const {identity,reverse,boundary}=catalog.regions[id].get(key),profile=catalog.profiles.get(identity);
+    // Generate in the canonical partner's direction, then reverse the points.
+    // This preserves asymmetric tabs exactly on the mating piece.
+    const points=reverse?connector(b,a,profile.sign,profile).reverse():connector(a,b,profile.sign,profile);
+    edge={a,b,points,boundary,identity};edges.set(key,edge);
    }
    const path=distance(a,edge.a)<EPS?edge.points:[...edge.points].reverse();polygon.push(...path.slice(0,-1));
   }polygons.push(polygon);
