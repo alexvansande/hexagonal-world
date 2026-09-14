@@ -1,3 +1,4 @@
+import {puzzleRegion,puzzleArtwork} from './puzzle-grid.mjs';
 import {initSourcePicker} from './source-picker.mjs';
 import {isAboutPath} from './about-route.mjs?v=about-shapes-1';
 import {initAboutWidget} from './about-widget.mjs?v=about-shapes-1';
@@ -16,7 +17,7 @@ import {circularMode} from './circular-projections.mjs';
 import {polygonOverlapsRect} from './interface-layout.mjs';
 import {ecologyGridGLSL,ecologyBridgeGLSL} from './ecology-grid.mjs?v=river-detail-1';
 import {gosperScale,rotateLocal,subgridLevels,subgridArea,dotGridArea} from './subgrid.mjs?v=dot-area-1';
-import {decodeMapState,encodeMapState,distortionEnabled,restorePanelStates} from './map-state.mjs?v=panels-2';
+import {decodeMapState,encodeMapState,distortionEnabled,restorePanelStates} from './map-state.mjs?v=puzzle-1';
 import {sphereAt,followPoint,geographicPoint} from './globe-drag.mjs?v=tetra-area-2';
 import {makeArrangement,arrangementNames} from './arrangements.mjs?v=gosper-1';
 import {mapSource,landLegends,oceanLegend,missing,riverMask} from './map-layers.mjs?v=river-opacity-1';
@@ -30,8 +31,8 @@ const $=id=>document.getElementById(id), canvas=$('map'),overlay=$('overlay'),ct
 const classOptions=[3,6,10,15];
 const classCount=id=>classOptions[Math.max(0,Math.min(3,Math.round(+$(id).value)))];
 function syncClassControl(id,count){const el=$(id);if(!el)return;const index=classOptions.indexOf(+count);if(index>=0)el.value=index;$(id+'-value').value=classOptions[+el.value];}
-const rangeSuffixes={riverWidth:'×',subgridWidth:'×',graticuleWidth:'×'};
-const state={method:'tetra',lon:0,lat:0,roll:0,bias:1,height:1.5,grid:30,line:0.8,subgridWidth:1,graticuleWidth:1,shadowOpacity:1,lightOpacity:1,distortionOpacity:.7,clearance:0,riverWidth:1,riverLevels:6,layout:0,gridRotation:0,zoom:1,panX:0,panY:0,mode:'pan',arrangement:'infinite',sidebarExpanded:false,interpolation:0,...reliefDefaults};
+const rangeSuffixes={puzzleWidth:'×',riverWidth:'×',subgridWidth:'×',graticuleWidth:'×'};
+const state={method:'tetra',lon:0,lat:0,roll:0,bias:1,height:1.5,grid:30,line:0.8,subgridWidth:1,puzzleWidth:1,graticuleWidth:1,shadowOpacity:1,lightOpacity:1,distortionOpacity:.7,clearance:0,riverWidth:1,riverLevels:6,layout:0,gridRotation:0,zoom:1,panX:0,panY:0,mode:'pan',arrangement:'infinite',sidebarExpanded:false,interpolation:0,...reliefDefaults};
 let mobileRepositioning=false;
 let exporting=false;
 let shareSelection=readSharePath(location.pathname)||inferSharePair(readMapStateFromUrl());
@@ -52,6 +53,7 @@ range('distortion-controls','distortionOpacity','Opacity',0,1,.05,.7);
 range('clearance-control','clearance','Minimum distance from land',0,9,1,0,'°');$('clearance').setAttribute('aria-label','Minimum distance from land');$('clearance-control').querySelector('.range-head').hidden=true;
 range('orientation','lon','Longitude',-180,180,1,0,'°');range('orientation','lat','Latitude',-90,90,1,0,'°');range('orientation','roll','Roll',-180,180,1,0,'°');range('shape-controls','bias','Shape bias',.4,2.5,.01,1);range('shape-controls','height','Pyramid tip distance',1.01,2,.01,1.5);range('display-controls','gridRotation','Grid rotation',-180,180,1,0,'°');range('graticule-controls','grid','Grid interval',10,60,5,30,'°');range('border-controls','line','Border weight',0,2,.1,.8);
 range('hex-grid-controls','subgridWidth','Hex grid thickness',0,5,.1,1,'×');range('graticule-controls','graticuleWidth','Latitude / longitude thickness',0,5,.1,1,'×');
+range('puzzle-controls','puzzleWidth','Puzzle line width',0,5,.1,1,'×');
 const syncSourceChoice=initSourcePicker({source:$('map-source'),palette:$('palette'),choice:$('map-source-choice')});
 range('river-controls','riverWidth','River width',.5,3,.25,1,'×');range('river-controls','riverLevels','Tributary levels',1,12,1,6);
 for(const spec of reliefRanges){const id=spec[0];range(id==='reliefColorFade'?'lighting-opacity-controls':['reliefHeight','reliefAzimuth','reliefAltitude','reliefThickness'].includes(id)?'relief-main-controls':'relief-fine-controls',...spec);}
@@ -122,12 +124,13 @@ function rebuild(fit=true){
 
  const nextKey=state.method+'/'+(state.method==='tetrakis'?state.height:0);
  if(nextKey!==geometryKey){
-  geometryKey=nextKey;tiles=makeGeometry(state.method,state.height);ecologyVertices=new Float32Array(tiles.flatMap(t=>[t.center,...t.ring]).flat());nets=layouts(tiles);arrangementCache.clear();
+  geometryKey=nextKey;tiles=makeGeometry(state.method,state.height);ecologyVertices=new Float32Array(tiles.flatMap(t=>[t.center,...t.ring]).flat());nets=layouts(tiles);arrangementCache.clear();puzzleCache.clear();
   const ids=tiles.flatMap(t=>hex.map((_,e)=>{const m=matching(tiles,t.id,e);return [`${t.id}:${e}`,`${m.id}:${m.e}`].sort().join('|');}));
   const unique=[...new Set(ids)].sort();edgeLabels=tiles.map(t=>hex.map((_,e)=>cm===1?'P':String.fromCharCode(97+unique.indexOf(ids[t.id*6+e]))));
  }
  if(!arrangementCache.has(state.arrangement))arrangementCache.set(state.arrangement,makeArrangement(tiles,state.arrangement,nets));
  arrangement=arrangementCache.get(state.arrangement);net=arrangement.net;$('layout').innerHTML=Object.entries(arrangementNames).filter(([key])=>cm?key===state.arrangement:! ['single','double'].includes(key)).map(([key,label])=>`<option value="${key}">${label}</option>`).join('');$('layout').value=state.arrangement;$('method-note').textContent=notes[state.method];$('height').closest('label').hidden=state.method!=='tetrakis';updateOptimizerUI();
+ if($('puzzlegrid').checked&&(!['flower','dymaxion'].includes(state.arrangement)||tiles.length!==4))$('puzzlegrid').checked=false;
  tiling=arrangement.tiling;meshSignature=null;
  if(fit)fitView();else draw();
 }
@@ -137,12 +140,14 @@ function viewBounds(padding=0){
  for(const x of [-w/2-padding,w/2+padding])for(const y of [-h/2-padding,h/2+padding]){const p=rotateScreen([(x-state.panX)/unit,(y-state.panY)/unit],-state.gridRotation*Math.PI/180);corners.push([p[0],-p[1]]);}
  return {left:Math.min(...corners.map(p=>p[0])),right:Math.max(...corners.map(p=>p[0])),bottom:Math.min(...corners.map(p=>p[1])),top:Math.max(...corners.map(p=>p[1]))};
 }
+const puzzleCache=new Map();
+function puzzleFor(id){const key=id+':'+$('puzzle-count').value;if(!puzzleCache.has(key)){const region=puzzleRegion(tiles,id,+$('puzzle-count').value);puzzleCache.set(key,{...region,drawPatches:puzzleArtwork(tiles,id,region)});}return puzzleCache.get(key);}
 function updateVisibleMesh(){
  const unit=scale*state.zoom;
  const bounds=viewBounds(relief?.ready&&$('relief-enabled').checked?relief.padding(appliedLighting(),unit):0);
- const next=tiling?visibleTiles(tiling,bounds):net,signature=state.arrangement+next.map(t=>`${t.id},${t.r},${t.x},${t.y}`).join(';');
+ const next=tiling?visibleTiles(tiling,bounds):net,signature=state.arrangement+':'+$('puzzlegrid').checked+':'+$('puzzle-count').value+next.map(t=>`${t.id},${t.r},${t.x},${t.y}`).join(';');
  if(signature===meshSignature)return;meshSignature=signature;visible=next;
- const verts=[];for(const t of visible)for(const p of (t.drawPatches||tiles[t.id].patches))for(let i=0;i<3;i++)verts.push(...canvasWorld(p.xy[i],t),...(p.weights?p.weights[i]:[0,1,2].map(j=>j===i?1:0)),...p.v.flat(),t.opacity,...p.xy[i],t.id);
+ const verts=[];for(const t of visible)for(const p of ($('puzzlegrid').checked?puzzleFor(t.id).drawPatches:t.drawPatches||tiles[t.id].patches))for(let i=0;i<3;i++)verts.push(...canvasWorld(p.xy[i],t),...(p.weights?p.weights[i]:[0,1,2].map(j=>j===i?1:0)),...p.v.flat(),t.opacity,...(p.regionXY?.[i]||p.xy[i]),p.regionId??t.id);
  count=verts.length/18;gl.bindBuffer(gl.ARRAY_BUFFER,buffer);gl.bufferData(gl.ARRAY_BUFFER,new Float32Array(verts),gl.DYNAMIC_DRAW);
 }
 const attributeLayouts=new WeakMap();
@@ -158,7 +163,7 @@ function drawGeometry(p){
  for(const {loc,n,off} of layout.attributes){gl.enableVertexAttribArray(loc);gl.vertexAttribPointer(loc,n,gl.FLOAT,false,72,off*4);}
  gl.drawArrays(gl.TRIANGLES,0,count);
 }
-function bounds(){const all=arrangement.outline?arrangement.outline.flat().map(([x,y])=>{const v=rotateScreen([x,-y]);return [v[0],-v[1]];}):arrangement.clip?arrangement.clip.map(([x,y])=>{const v=rotateScreen([x,-y]);return [v[0],-v[1]];}):net.flatMap(t=>(t.polygon||hex).map(p=>{const v=rotateScreen(canvasWorld(p,t));return [v[0],-v[1]];}));return [Math.min(...all.map(p=>p[0])),Math.min(...all.map(p=>p[1])),Math.max(...all.map(p=>p[0])),Math.max(...all.map(p=>p[1]))];}
+function bounds(){const all=arrangement.outline?arrangement.outline.flat().map(([x,y])=>{const v=rotateScreen([x,-y]);return [v[0],-v[1]];}):arrangement.clip?arrangement.clip.map(([x,y])=>{const v=rotateScreen([x,-y]);return [v[0],-v[1]];}):net.flatMap(t=>($('puzzlegrid').checked?puzzleFor(t.id).outline:t.polygon||hex).map(p=>{const v=rotateScreen(canvasWorld(p,t));return [v[0],-v[1]];}));return [Math.min(...all.map(p=>p[0])),Math.min(...all.map(p=>p[1])),Math.max(...all.map(p=>p[0])),Math.max(...all.map(p=>p[1]))];}
 function fitView(){
  const b=bounds(),panel=document.querySelector('aside').getBoundingClientRect();
  const wide=w>700||w>h;
@@ -210,6 +215,13 @@ function drawFractalGrid(){
  ctx.strokeStyle=$('hex-grid-color').value;ctx.lineWidth=Math.max(.75,state.subgridWidth*1.25)/unit;
  if(large>0)fractalPaths.forEach((path,level)=>{if(detail.large[level]===0)return;ctx.globalAlpha=detail.large[level];ctx.stroke(path);});
  if(fine>0)fineFractalPaths.forEach((path,level)=>{if(detail.fine[level]===0)return;ctx.globalAlpha=detail.fine[level];ctx.stroke(path);});ctx.restore();
+}
+function drawPuzzle(){
+ if(!$('puzzlegrid').checked||state.puzzleWidth<=0)return;
+ ctx.save();ctx.globalAlpha=1;ctx.strokeStyle=$('puzzle-color').value;ctx.lineWidth=state.puzzleWidth;ctx.lineCap='round';
+ const seen=new Set();ctx.beginPath();
+ for(const t of visible)for(const edge of puzzleFor(t.id).edges){const path=edge.points.map(p=>world(p,t)),key=edgeKey(path[0],path.at(-1));if(seen.has(key))continue;seen.add(key);path.forEach((p,i)=>i?ctx.lineTo(...point(p,{x:0,y:0,r:0})):ctx.moveTo(...point(p,{x:0,y:0,r:0})));}
+ ctx.stroke();ctx.restore();
 }
 function traceOutline(){ctx.beginPath();for(const loop of arrangement.outline){loop.forEach((p,i)=>i?ctx.lineTo(...point(p,{x:0,y:0,r:0})):ctx.moveTo(...point(p,{x:0,y:0,r:0})));ctx.closePath();}}
 function drawSubgrid(){
@@ -287,6 +299,7 @@ function visibleSurfaceTiles(level){
  return result;
 }
 function drawPrecomputedSurface(){
+ if($('puzzlegrid').checked){canvas.dataset.surface='live';return false;}
  const entry=selectedSurface();if(!entry||(new URLSearchParams(location.search).has('bake-surfaces')||new URLSearchParams(location.search).get('surface')==='live')){canvas.dataset.surface='live';return false;}
  if(!surfaceCache)surfaceCache=new PrecomputedSurfaces(gl,draw);
  const plan=surfacePlan(surfaceLevel(scale*state.zoom*dpr,entry.maxLevel),entry.regions,visibleSurfaceTiles);
@@ -324,7 +337,7 @@ function bindMaterialUniforms(){
  gl.uniform1i(uniforms.material,['source','ivory','elevation'].indexOf(relief?.ready?materialMode():'source'));gl.uniform1f(uniforms.materialSea,appliedLighting().reliefSeaLevel/255);gl.activeTexture(gl.TEXTURE3);gl.bindTexture(gl.TEXTURE_2D,heightTexture);gl.uniform1i(uniforms.heightMap,3);gl.activeTexture(gl.TEXTURE0);
 }
 function bindRiverUniforms(){gl.uniform3fv(uniforms.riverColor,[1,3,5].map(i=>parseInt($('river-color').value.slice(i,i+2),16)/255));gl.uniform1i(uniforms.riversVisible,$('rivers-visible').checked?1:0);gl.activeTexture(gl.TEXTURE1);gl.bindTexture(gl.TEXTURE_2D,riverTexture);gl.uniform1i(uniforms.riverMap,1);gl.activeTexture(gl.TEXTURE0);}
-function render(refined=false,exportMode=false){if(exporting&&!exportMode)return;queued=false;document.documentElement.style.setProperty('--map-background',$('background-color').value);const background=$('background-color').value,brightness=[1,3,5].reduce((sum,i,k)=>sum+parseInt(background.slice(i,i+2),16)*[.299,.587,.114][k],0);document.documentElement.style.setProperty('--heading-ink',brightness>145?'#193c49':'#f6f4ed');for(const id of ['background-color','border-color','hex-grid-color','graticule-color','river-color'])$(id+'-value').value=$(id).value;syncOptionCards();updateDistortionLegend();$('zoom-value').textContent=Math.round(state.zoom*100)+'%';if(!ready||!gl||!program)return;const lighting=$('relief-enabled').checked&&relief?.ready?cachedLighting():null;updateVisibleMesh();if(!exportMode)updateHeadingVisibility();gl.bindFramebuffer(gl.FRAMEBUFFER,null);gl.viewport(0,0,canvas.width,canvas.height);gl.clearColor(...[1,3,5].map(i=>parseInt(background.slice(i,i+2),16)/255),1);gl.clear(gl.COLOR_BUFFER_BIT);gl.useProgram(program);gl.uniform1f(uniforms.gridRotation,state.gridRotation*Math.PI/180);gl.uniform2f(uniforms.size,w,h);gl.uniform3f(uniforms.view,scale*state.zoom,state.panX,state.panY);gl.uniform3f(uniforms.angles,state.lon*Math.PI/180,state.lat*Math.PI/180,state.roll*Math.PI/180);gl.uniform1f(uniforms.bias,state.bias);gl.uniform1f(uniforms.blend,+$('interpolation').value);gl.uniform1f(uniforms.grid,$('graticule').checked?state.grid*Math.PI/180:0);gl.uniform1f(uniforms.gridWidth,.6*state.graticuleWidth/(scale*state.zoom));gl.uniform3fv(uniforms.gridColor,[1,3,5].map(i=>parseInt($('graticule-color').value.slice(i,i+2),16)/255));gl.uniform1i(uniforms.palette,displayedSource==='continents'?['atlas','original','night'].indexOf($('palette').value):1);gl.uniform1i(uniforms.distortion,derivativeSupport?($('distortion').checked?3:0):0);gl.uniform1f(uniforms.distortionOpacity,state.distortionOpacity);gl.uniform1f(uniforms.pixelScale,scale*state.zoom*dpr);gl.uniform1i(uniforms.map,0);gl.uniform1i(uniforms.felvClip,arrangement.clip?1:0);
+function render(refined=false,exportMode=false){if(exporting&&!exportMode)return;queued=false;document.documentElement.style.setProperty('--map-background',$('background-color').value);const background=$('background-color').value,brightness=[1,3,5].reduce((sum,i,k)=>sum+parseInt(background.slice(i,i+2),16)*[.299,.587,.114][k],0);document.documentElement.style.setProperty('--heading-ink',brightness>145?'#193c49':'#f6f4ed');for(const id of ['background-color','border-color','hex-grid-color','puzzle-color','graticule-color','river-color'])$(id+'-value').value=$(id).value;syncOptionCards();updateDistortionLegend();$('zoom-value').textContent=Math.round(state.zoom*100)+'%';if(!ready||!gl||!program)return;const lighting=$('relief-enabled').checked&&relief?.ready?cachedLighting():null;updateVisibleMesh();if(!exportMode)updateHeadingVisibility();gl.bindFramebuffer(gl.FRAMEBUFFER,null);gl.viewport(0,0,canvas.width,canvas.height);gl.clearColor(...[1,3,5].map(i=>parseInt(background.slice(i,i+2),16)/255),1);gl.clear(gl.COLOR_BUFFER_BIT);gl.useProgram(program);gl.uniform1f(uniforms.gridRotation,state.gridRotation*Math.PI/180);gl.uniform2f(uniforms.size,w,h);gl.uniform3f(uniforms.view,scale*state.zoom,state.panX,state.panY);gl.uniform3f(uniforms.angles,state.lon*Math.PI/180,state.lat*Math.PI/180,state.roll*Math.PI/180);gl.uniform1f(uniforms.bias,state.bias);gl.uniform1f(uniforms.blend,+$('interpolation').value);gl.uniform1f(uniforms.grid,$('graticule').checked?state.grid*Math.PI/180:0);gl.uniform1f(uniforms.gridWidth,.6*state.graticuleWidth/(scale*state.zoom));gl.uniform3fv(uniforms.gridColor,[1,3,5].map(i=>parseInt($('graticule-color').value.slice(i,i+2),16)/255));gl.uniform1i(uniforms.palette,displayedSource==='continents'?['atlas','original','night'].indexOf($('palette').value):1);gl.uniform1i(uniforms.distortion,derivativeSupport?($('distortion').checked?3:0):0);gl.uniform1f(uniforms.distortionOpacity,state.distortionOpacity);gl.uniform1f(uniforms.pixelScale,scale*state.zoom*dpr);gl.uniform1i(uniforms.map,0);gl.uniform1i(uniforms.felvClip,arrangement.clip?1:0);
  const drawColor=(width=w,height=h,baseOnly=false,overlayOnly=false)=>{gl.useProgram(program);gl.uniform1i(uniforms.overlayOnly,overlayOnly?1:0);gl.uniform1f(uniforms.grid,!baseOnly&&$('graticule').checked?state.grid*Math.PI/180:0);gl.uniform1i(uniforms.distortion,!baseOnly&&derivativeSupport?($('distortion').checked?3:0):0);gl.uniform2f(uniforms.size,width,height);bindMaterialUniforms();bindRiverUniforms();gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,texture);if(!overlayOnly&&drawPrecomputedSurface())return;gl.uniform1i(uniforms.bakedOn,0);if(!overlayOnly&&liveSourceKey!==sourceKey(displayedSource)){if(!$('map-loading').textContent)updateMapSource();return;}drawGeometry(program);};
  drawColor(w,h,!!lighting);
  if(lighting){projectedLighting.composite(lighting,w,h,scale*state.zoom,state.panX,state.panY,state.shadowOpacity,state.lightOpacity);
@@ -334,32 +347,41 @@ function render(refined=false,exportMode=false){if(exporting&&!exportMode)return
  ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,w,h);ctx.lineJoin='round';
  ctx.save();
  if(arrangement.outline){traceOutline();ctx.clip();}
- else if(!tiling){ctx.beginPath();for(const t of visible){(t.polygon||hex).forEach((p,i)=>i?ctx.lineTo(...point(p,t)):ctx.moveTo(...point(p,t)));ctx.closePath();}ctx.clip();}
+ else if(!tiling){ctx.beginPath();for(const t of visible){($('puzzlegrid').checked?puzzleFor(t.id).outline:t.polygon||hex).forEach((p,i)=>i?ctx.lineTo(...point(p,t)):ctx.moveTo(...point(p,t)));ctx.closePath();}ctx.clip();}
  if(arrangement.clip){ctx.beginPath();arrangement.clip.forEach((p,i)=>i?ctx.lineTo(...point(p,{x:0,y:0,r:0})):ctx.moveTo(...point(p,{x:0,y:0,r:0})));ctx.closePath();ctx.clip();}
  drawSubgrid();drawFractalGrid();drawIndicatrixes();
- for(const t of visible){ctx.globalAlpha=t.opacity;ctx.beginPath();(t.polygon||hex).forEach((p,i)=>{const xy=point(p,t);i?ctx.lineTo(...xy):ctx.moveTo(...xy);});ctx.closePath();ctx.strokeStyle=$('border-color').value;if(state.line>0&&!arrangement.outline){ctx.lineWidth=state.line;ctx.stroke();}
+ for(const t of visible){ctx.globalAlpha=t.opacity;ctx.beginPath();(t.polygon||hex).forEach((p,i)=>{const xy=point(p,t);i?ctx.lineTo(...xy):ctx.moveTo(...xy);});ctx.closePath();ctx.strokeStyle=$('border-color').value;if(state.line>0&&!arrangement.outline&&!$('puzzlegrid').checked){ctx.lineWidth=state.line;ctx.stroke();}
  if($('construction').checked){ctx.strokeStyle='#cb6d3199';ctx.lineWidth=1;ctx.setLineDash([4,4]);for(const p of (t.drawPatches||tiles[t.id].patches)){ctx.beginPath();p.xy.forEach((v,i)=>i?ctx.lineTo(...point(v,t)):ctx.moveTo(...point(v,t)));ctx.closePath();ctx.stroke();}ctx.setLineDash([]);}
  if($('labels').checked){const c=point(t.polygon?t.polygon.reduce((s,p)=>s.map((v,i)=>v+p[i]/t.polygon.length),[0,0]):[0,0],t);ctx.beginPath();ctx.arc(...c,14,0,Math.PI*2);ctx.fillStyle='#f6fbfbea';ctx.fill();ctx.fillStyle='#214754';ctx.font='600 12px "DM Sans",sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText('ABCD'[t.id],...c);
  for(let e=0;e<(t.polygon?0:6);e++){const mid=hex[e].map((v,i)=>(v+hex[(e+1)%6][i])*.46);const xy=point(mid,t);ctx.font='10px "Space Grotesk",sans-serif';ctx.fillStyle='#f6fbfbde';ctx.fillRect(xy[0]-8,xy[1]-7,16,14);ctx.fillStyle='#3d6774';ctx.fillText(edgeLabels[t.id][e],...xy);}}
  }
  ctx.globalAlpha=1;
  if(arrangement.outline&&state.line>0){traceOutline();ctx.strokeStyle=$('border-color').value;ctx.lineWidth=state.line;ctx.stroke();}
- if(state.line>0){ctx.strokeStyle='#d33d42';ctx.lineWidth=state.line*2.5;
+ if(state.line>0&&!$('puzzlegrid').checked){ctx.strokeStyle='#d33d42';ctx.lineWidth=state.line*2.5;
  for(const t of visible)for(let e=0;e<6;e++)if(t.bad[e]){const local=(e-t.r+6)%6;ctx.beginPath();ctx.moveTo(...point(hex[local],t));ctx.lineTo(...point(hex[(local+1)%6],t));ctx.stroke();}
  for(const edge of arrangement.seams||[])if(edge.error>1e-6){ctx.beginPath();ctx.moveTo(...point(edge.a,{x:0,y:0,r:0}));ctx.lineTo(...point(edge.b,{x:0,y:0,r:0}));ctx.stroke();}
  }
- ctx.restore();$('status').textContent=arrangementNames[state.arrangement]+(state.line>0?' · red edges mark mismatched joins':' · borders hidden');
+ ctx.restore();drawPuzzle();$('status').textContent=arrangementNames[state.arrangement]+($('puzzlegrid').checked?' · '+$('puzzle-count').value+' puzzle pieces':state.line>0?' · red edges mark mismatched joins':' · borders hidden');
  $('height-credit').hidden=!$('relief-enabled').checked&&!['ivory','elevation'].includes($('map-source').value);
  const dotInfo=$('dotgrid-area');dotInfo.hidden=!$('dotgrid').checked;
- if(!dotInfo.hidden){const area=dotGridArea(state.method),format=new Intl.NumberFormat('en-US',{maximumSignificantDigits:3});dotInfo.textContent=`The area around each dot is equivalent to approximately ${format.format(area.km2)} km² (${format.format(area.mi2)} mi²) on average. Actual area varies with projection and location.`;}
+ if(!dotInfo.hidden){const area=dotGridArea(state.method),format=new Intl.NumberFormat('en-US',{notation:'compact',compactDisplay:'long',maximumSignificantDigits:2});dotInfo.textContent=`Every 4 dots represent roughly ${format.format(area.km2*4)} km². These are global averages; actual area varies with projection and location.`;}
  const info=$('subgrid-area');info.hidden=!$('subgrid').checked||state.subgridWidth<=0;
- if(!info.hidden){const area=subgridArea(state.method),format=new Intl.NumberFormat('en-US',{notation:'compact',compactDisplay:'long',maximumFractionDigits:2});info.textContent=`Each small subgrid hexagon represents approximately ${format.format(area.km2)} km² (${format.format(area.mi2)} mi²) on average. Actual area varies with projection and location; edge hexagons may be partial.`;}
+ if(!info.hidden){const area=subgridArea(state.method),format=new Intl.NumberFormat('en-US',{notation:'compact',compactDisplay:'long',maximumSignificantDigits:2});info.textContent=`Every 4 small hexagons cover roughly ${format.format(area.km2*4)} km². These are global averages; actual area varies with projection and location.`;}
 
 }
 for(const b of document.querySelectorAll('.method'))b.onclick=()=>{state.method=b.dataset.method;state.layout=0;document.querySelectorAll('.method').forEach(el=>el.classList.toggle('active',el===b));rebuild();};
 $('layout').onchange=()=>{state.arrangement=$('layout').value;rebuild();if($('optimize').checked)applySearch();};for(const id of ['interpolation','graticule','construction','subgrid','dotgrid','fractalgrid','labels','palette','distortion','indicatrix'])$(id).onchange=draw;$('quality').onchange=resize;
-$('fractalgrid').addEventListener('change',()=>{if($('fractalgrid').checked){$('subgrid').checked=false;$('dotgrid').checked=false;}draw();});
-for(const id of ['subgrid','dotgrid'])$(id).addEventListener('change',()=>{if($(id).checked)$('fractalgrid').checked=false;draw();});
+$('puzzlegrid').addEventListener('change',()=>{
+ if($('puzzlegrid').checked){
+  if(circularMode(state.method)){state.method='tetra';document.querySelectorAll('.method').forEach(el=>el.classList.toggle('active',el.dataset.method===state.method));}
+  if(!['flower','dymaxion'].includes(state.arrangement))state.arrangement='flower';
+  for(const id of ['subgrid','fractalgrid','dotgrid','labels'])$(id).checked=false;
+ }
+ rebuild();
+});
+$('puzzle-count').addEventListener('change',()=>{meshSignature=null;fitView();});
+$('fractalgrid').addEventListener('change',()=>{if($('fractalgrid').checked){$('puzzlegrid').checked=false;$('subgrid').checked=false;$('dotgrid').checked=false;}draw();});
+for(const id of ['subgrid','dotgrid'])$(id).addEventListener('change',()=>{if($(id).checked){$('fractalgrid').checked=false;$('puzzlegrid').checked=false;}draw();});
 function ensureRelief(){if(!gl||!program)return;if(!relief){relief=new ReliefRenderer(gl,vs,draw,message=>$('relief-status').textContent=message);relief.maxSourceWidth=compactDevice?1536:4096;heightTexture=relief.heightTextures[0];}relief.load();}
 function lightingControls(){return $('lighting-preset').value==='custom'&&customApplied?customApplied:{treatment:$('relief-treatment').value,tone:$('relief-tone').value};}
 function appliedLighting(){return lightingSettings($('lighting-preset').value,{...state,...($('lighting-preset').value==='custom'?customApplied:null)});}
@@ -372,7 +394,7 @@ function cachedLighting(){
  let b=bounds(),patch=[];
  if(tiling){b=[0,0,3*tiling.size,Math.sqrt(3)*tiling.size];patch=b;}
 
- const baseKey=lightingKey(settings,preset,[$('interpolation').value,controls.treatment,controls.tone,$('rivers-visible').checked,riverGeneration,...patch]);
+ const baseKey=lightingKey(settings,preset,[$('interpolation').value,controls.treatment,controls.tone,$('puzzlegrid').checked,$('puzzle-count').value,$('rivers-visible').checked,riverGeneration,...patch]);
  const pad=tiling?0:relief.padding(settings,100)/100+.15;
  const baseRect=[b[0]-pad,-b[3]-pad,b[2]-b[0]+pad*2,b[3]-b[1]+pad*2];
  const view={unit:scale*state.zoom,width:w,height:h,dpr,panX:state.panX,panY:state.panY};
@@ -551,7 +573,7 @@ function restoreSettings(provided){
   if(typeof ss.sidebarExpanded==='boolean')state.sidebarExpanded=ss.sidebarExpanded;
   if(Object.hasOwn(arrangementNames,ss.arrangement))state.arrangement=ss.arrangement;
   if(['tetra','octa','rhombic','tetrakis','lambert-one','lambert-two'].includes(ss.method))state.method=ss.method;
-  for(const id of ['lon','lat','roll','bias','height','gridRotation','grid','line','clearance','distortionOpacity','riverWidth','riverLevels','subgridWidth','graticuleWidth','shadowOpacity','lightOpacity',...reliefRanges.map(s=>s[0])]){
+  for(const id of ['lon','lat','roll','bias','height','gridRotation','grid','line','clearance','distortionOpacity','riverWidth','riverLevels','subgridWidth','puzzleWidth','graticuleWidth','shadowOpacity','lightOpacity',...reliefRanges.map(s=>s[0])]){
    const el=$(id),value=ss[id];if(typeof value!=='number'||!Number.isFinite(value))continue;
    state[id]=Math.max(+el.min,Math.min(+el.max,id==='clearance'?Math.round(value):value));el.value=state[id];
    $(id+'-value').value=Number(state[id].toFixed(2))+(reliefRanges.find(s=>s[0]===id)?.[6]??rangeSuffixes[id]??(['lon','lat','roll','gridRotation','grid','clearance'].includes(id)?'°':''));
@@ -654,7 +676,7 @@ async function updateMapSource(){
  updateMapUI();scheduleSave();if(!ready)return;
  const request=++mapRequest,type=$('map-source').value;
  const baked=surfacePreset(state,type,classCount('land-classes'),classCount('ocean-classes'),+$('interpolation').value,hexBridgesEnabled);
- if(baked&&!new URLSearchParams(location.search).has('bake-surfaces')&&new URLSearchParams(location.search).get('surface')!=='live'){displayedSource=type;$('map-loading').textContent='';$('source-name').textContent=styleOptions.find(s=>s.source===type)?.name||type;$('source-detail').textContent='';draw();return;}
+ if(baked&&!$('puzzlegrid').checked&&!new URLSearchParams(location.search).has('bake-surfaces')&&new URLSearchParams(location.search).get('surface')!=='live'){displayedSource=type;$('map-loading').textContent='';$('source-name').textContent=styleOptions.find(s=>s.source===type)?.name||type;$('source-detail').textContent='';draw();return;}
  $('map-loading').textContent='Loading map…';
  try{let source=await mapSource(type,classCount('land-classes'),classCount('ocean-classes'));if(request!==mapRequest)return;
   const originalWidth=source.width,originalHeight=source.height,max=gl.getParameter(gl.MAX_TEXTURE_SIZE);
@@ -664,7 +686,7 @@ async function updateMapSource(){
   draw();
  }catch(error){if(request!==mapRequest)return;$('map-source').value=displayedSource;updateMapUI();updateRelief();$('map-loading').textContent='Map could not load. Previous layer retained; select again to retry.';scheduleSave();}
 }
-for(const id of ['background-color','border-color','hex-grid-color','graticule-color','river-color'])$(id).addEventListener('input',draw);
+for(const id of ['background-color','border-color','hex-grid-color','puzzle-color','graticule-color','river-color'])$(id).addEventListener('input',draw);
 $('map-source').addEventListener('change',()=>{updateMapSource();updateRelief();});
 for(const id of ['land-classes','ocean-classes'])$(id).addEventListener('input',()=>{syncClassControl(id,classCount(id));updateMapSource();});
 updateMapUI();
