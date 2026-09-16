@@ -48,23 +48,27 @@ vec3 planarWeights(vec2 p,vec2 a,vec2 b,vec2 c){
 vec3 ecologySphere(vec2 p){
  if(circularMode>0)return hexSphere(p,regionIndex);
  int sector=length(p)<.000001?0:int(floor(mod(atan(p.y,p.x)+6.28318530718,6.28318530718)/1.047197551197));
- // Constant loop bounds keep uniform-array indexing valid in WebGL 1.
+ vec3 av=a,bv=b,cv=c,ww=weights;
+ // Select vertices first, then project exactly once. Calling atlasSphere from
+ // every branch made native shader compilers expand hundreds of projections.
  for(int region=0;region<4;region++)if(abs(regionIndex-float(region))<.5){
   if(ecologyOcta==1){
-   vec3 weights=planarWeights(p,hexCorner(0.),hexCorner(2.),hexCorner(4.));
-   if(min(weights.x,min(weights.y,weights.z))>=0.)return atlasSphere(weights,ecologyVertices[region*7+1],ecologyVertices[region*7+3],ecologyVertices[region*7+5],bias,blend);
-   for(int e=0;e<6;e+=2){
-    weights=planarWeights(p,hexCorner(float(e)),hexCorner(float(e+1)),hexCorner(float(e+2)));
-    if(weights.y>=0.&&weights.x>=-.01&&weights.z>=-.01)return atlasSphere(weights,ecologyVertices[region*7+e+1],ecologyVertices[region*7+e+2],ecologyVertices[region*7+((e+2)-((e+2)/6)*6)+1],bias,blend);
+   ww=planarWeights(p,hexCorner(0.),hexCorner(2.),hexCorner(4.));
+   av=ecologyVertices[region*7+1];bv=ecologyVertices[region*7+3];cv=ecologyVertices[region*7+5];
+   if(min(ww.x,min(ww.y,ww.z))<0.){
+    for(int e=0;e<6;e+=2){
+     vec3 w=planarWeights(p,hexCorner(float(e)),hexCorner(float(e+1)),hexCorner(float(e+2)));
+     if(w.y>=0.&&w.x>=-.01&&w.z>=-.01){ww=w;av=ecologyVertices[region*7+e+1];bv=ecologyVertices[region*7+e+2];cv=ecologyVertices[region*7+((e+2)-((e+2)/6)*6)+1];break;}
+    }
    }
   }else{
    for(int e=0;e<6;e++)if(e==sector){
-    vec3 weights=planarWeights(p,vec2(0.),hexCorner(float(e)),hexCorner(float(e+1)));
-    return atlasSphere(weights,ecologyVertices[region*7],ecologyVertices[region*7+e+1],ecologyVertices[region*7+((e+1)-((e+1)/6)*6)+1],bias,blend);
+    ww=planarWeights(p,vec2(0.),hexCorner(float(e)),hexCorner(float(e+1)));
+    av=ecologyVertices[region*7];bv=ecologyVertices[region*7+e+1];cv=ecologyVertices[region*7+((e+1)-((e+1)/6)*6)+1];
    }
   }
  }
- return atlasSphere(weights,a,b,c,bias,blend);
+ return atlasSphere(ww,av,bv,cv,bias,blend);
 }
 `;
 

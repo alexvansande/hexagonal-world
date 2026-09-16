@@ -1,32 +1,35 @@
+import {assetURL} from './asset-url.mjs';
+import {MergedMaps,mergedEntry,mergedCompatible} from './merged-maps.mjs?v=cloud-assets-1';
+import {riverFieldGLSL} from './river-layers.mjs?v=cloud-assets-1';
+import {DefaultLayers,defaultLayerPreset,imageVertex,imageFragment,graticuleFragment} from './default-layers.mjs?v=cloud-assets-1';
 import {puzzleRegion,puzzleArtwork} from './puzzle-grid.mjs?v=unique-3';
 import {initSourcePicker} from './source-picker.mjs';
 import {isAboutPath} from './about-route.mjs?v=about-shapes-1';
-import {initAboutWidget} from './about-widget.mjs?v=about-shapes-1';
+import {initAboutWidget} from './about-widget.mjs?v=cloud-assets-1';
 import {referenceSources,sourceAttribution,mapLicense} from './reference-sources.mjs?v=licenses-1';
-import {PrecomputedSurfaces,surfacePreset,surfaceLevel,surfacePlan,surfaceTileRect,clipSurfaceTriangle} from './precomputed-surfaces.mjs?v=felv-position-3';
-import {renderLifezonesLegend} from './lifezones-legend.mjs?v=waves-1';
+import {PrecomputedSurfaces,surfacePreset,surfaceLevel,surfacePlan,surfaceTileRect,clipSurfaceTriangle} from './precomputed-surfaces.mjs?v=cloud-assets-1';
+import {renderLifezonesLegend} from './lifezones-legend.mjs?v=lifezones-shadows-3';
 import {fadedLegendColor} from './legend-colors.mjs';
-import {ProjectedLighting,lightingSettings,lightingKey,lightingPlan,lightingCovers} from './projected-lighting.mjs?v=zoom-layers-1';
-import {compactDevice,mobileFitRect,maximumZoom} from './device-profile.mjs?v=zoom-scale-1';
-import {readSharePath,sharePair,inferSharePair,presetSettings} from './share-routes.mjs?v=felv-position-3';
+import {ProjectedLighting,lightingSettings,lightingKey,lightingPlan,lightingCovers} from './projected-lighting.mjs?v=performance-1';
+import {compactDevice,mobileFitRect,maximumZoom,displayPixelRatio} from './device-profile.mjs?v=performance-1';
+import {readSharePath,sharePair,inferSharePair,presetSettings} from './share-routes.mjs?v=lifezones-shadows-3';
 import {initAnalytics,trackEvent} from './analytics.mjs';
-import {pngFromTiles,printPDF} from './map-export.mjs?v=source-credits-1';
 import {fractalRegion,fractalEdgeOwners,visibleFractalLines,fractalDetailPlan,fineFractalTiles,fractalFineScale,fractalOpacities,edgeKey} from './fractal-grid.mjs?v=fractal-zoom-10';
 import {pointInLoops} from './gosper-fractal.mjs';
 import {circularMode} from './circular-projections.mjs';
 import {polygonOverlapsRect} from './interface-layout.mjs';
-import {ecologyGridGLSL,ecologyBridgeGLSL} from './ecology-grid.mjs?v=river-detail-1';
+import {ecologyGridGLSL,ecologyBridgeGLSL} from './ecology-grid.mjs?v=performance-1';
 import {gosperScale,rotateLocal,subgridLevels,subgridArea,dotGridArea} from './subgrid.mjs?v=dot-area-1';
 import {decodeMapState,encodeMapState,distortionEnabled,restorePanelStates} from './map-state.mjs?v=puzzle-1';
 import {sphereAt,followPoint,geographicPoint} from './globe-drag.mjs?v=tetra-area-2';
 import {makeArrangement,arrangementNames} from './arrangements.mjs?v=gosper-1';
-import {mapSource,landLegends,oceanLegend,missing,riverMask} from './map-layers.mjs?v=river-opacity-1';
+import {experimentPaletteRevision,mapSource,landLegends,oceanLegend,missing,riverMask,riverTextureData,releaseRiverMask,releaseLiveMapData} from './map-layers.mjs?v=cloud-assets-1';
 import {searchPresets} from './search-presets.mjs?v=rus-search-1';
 import {visibleTiles} from './tiling.mjs';
 import {makeGeometry,layouts,matching,canvasWorld,hex,world} from './geometry.mjs?v=tetra-area-2';
 import {projectionGLSL} from './projection-shader.mjs?v=tetra-area-2';
-import {ReliefRenderer,reliefRanges,reliefDefaults,reliefLooks} from './relief.mjs?v=tetra-area-2';
-import {layoutOptions,styleOptions,layoutIcon} from './map-options.mjs?v=style-order-1';
+import {ReliefRenderer,reliefRanges,reliefDefaults,reliefLooks} from './relief.mjs?v=cloud-assets-1';
+import {layoutOptions,styleOptions,layoutIcon} from './map-options.mjs?v=lifezones-shadows-3';
 const $=id=>document.getElementById(id), canvas=$('map'),overlay=$('overlay'),ctx=overlay.getContext('2d');
 const classOptions=[3,6,10,15];
 const classCount=id=>classOptions[Math.max(0,Math.min(3,Math.round(+$(id).value)))];
@@ -42,8 +45,9 @@ let displayedSource='continents',mapRequest=0;
 let arrangement,tiling,visible=[],meshSignature=null,geometryKey=null,edgeLabels=[];
 const arrangementCache=new Map();
 let ecologyVertices,tiles,nets,net,scale=1,w=1,h=1,dpr=1,ready=false,queued=false,buffer,count=0,texture,heightTexture,riverTexture;
+let offlineLightingPlan=null;
 let projectedLighting=null,customApplied=null,lightingRefineTimer=null,lightingRefineKey=null,lightingReadyKey=null;
-let relief=null,riverGeneration=0,riverRequest=0,riverTimer=null,uploadedRiverKey=null;
+let relief=null,riverGeneration=0,riverRequest=0,riverTimer=null,uploadedRiverKey=null,requestedRiverKey=null,riverFieldSize=null;
 
 const notes={'lambert-one':'The whole world in one equal-area hexagon: a Lambert disk reshaped without changing area. The entire perimeter is the opposite pole. Inspired by Rus’s minimal hexagonal maps; this is not his triangular fold.', 'lambert-two':'Two equal-area hemispheres, each reshaped from a Lambert disk into a hexagon. All six boundary edges have matching counterparts. Rotate the globe to move the hemispheres.',tetra:'Four equal-area spherical regions open directly into hexagons. Vertices and edge midpoints anchor their shared boundaries.',octa:'Four intact octants. Four divided octants. Each hexagon combines one central triangle with three neighboring pieces.',rhombic:'Twelve rhombi become four groups of three. Each diamond is stretched into a pair of equilateral triangles.',tetrakis:'Six pyramids on a cube create 24 triangles. Six triangles meet inside each hexagon; adjust the pyramid tips below.'};
 function range(parent,id,label,min,max,step,value,suffix=''){
@@ -63,11 +67,34 @@ const customOption=$('lighting-preset').querySelector('[value=custom]');if(compa
 const hexBridgeMode=new URLSearchParams(location.search).get('hex-bridges');
 const hexBridgesEnabled=hexBridgeMode==='0'?0:hexBridgeMode==='5'?5:hexBridgeMode==='4'?4:hexBridgeMode==='3'?3:hexBridgeMode==='2'?2:hexBridgeMode==='1'?1:5;
 const gl=canvas.getContext('webgl',{antialias:true,alpha:true,preserveDrawingBuffer:true});
+const graphicsLimit=gl?Math.min(gl.getParameter(gl.MAX_TEXTURE_SIZE),gl.getParameter(gl.MAX_RENDERBUFFER_SIZE)):0;
+const offlineBake=new URLSearchParams(location.search).has('bake-layers')||new URLSearchParams(location.search).has('bake-surfaces');
+let mergedPreview=null;
+if(['127.0.0.1','localhost','[::1]'].includes(location.hostname)&&new URLSearchParams(location.search).has('merged-preview'))import('./merged-preview.mjs').then(async module=>{mergedPreview=await module.createMergedPreview(draw);draw();}).catch(console.error);
+let defaultLayers=null,renderDefault=null,mergedMaps=null,renderMerged=null;
+const separateComparison=['127.0.0.1','localhost','[::1]'].includes(location.hostname)&&['merged-preview','separate-layers'].some(key=>new URLSearchParams(location.search).has(key));
+function activeDefault(){if(offlineBake||new URLSearchParams(location.search).has('palette-lab')||new URLSearchParams(location.search).get('surface')==='live')return null;const entry=defaultLayerPreset(state,captureSettings().controls);if(!separateComparison&&mergedEntry(entry)&&!mergedCompatible(entry,state,$('background-color').value))return null;return entry;}
+function selectRenderPath(entry){
+ const wasImages=!!renderDefault;renderDefault=entry;
+ if(!!entry===wasImages)return;
+ if(entry){
+  ++mapRequest;++riverRequest;requestedRiverKey=uploadedRiverKey=null;clearTimeout(riverTimer);clearTimeout(lightingRefineTimer);lightingReadyKey=lightingRefineKey=null;
+  projectedLighting?.dispose();projectedLighting=null;
+  if(relief){relief.dispose();relief=null;heightTexture=gl.createTexture();gl.activeTexture(gl.TEXTURE3);gl.bindTexture(gl.TEXTURE_2D,heightTexture);for(const n of [gl.TEXTURE_MIN_FILTER,gl.TEXTURE_MAG_FILTER])gl.texParameteri(gl.TEXTURE_2D,n,gl.LINEAR);gl.texImage2D(gl.TEXTURE_2D,0,gl.LUMINANCE,1,1,0,gl.LUMINANCE,gl.UNSIGNED_BYTE,new Uint8Array([105]));}
+  for(const t of [texture,riverTexture])if(t){gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,t);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,1,1,0,gl.RGBA,gl.UNSIGNED_BYTE,new Uint8Array(4));}
+  liveSourceKey=null;riverFieldSize=null;releaseLiveMapData();
+  if(surfaceCache&&surfaceCache!==defaultLayers?.base&&surfaceCache!==mergedMaps?.cache){surfaceCache.dispose();surfaceCache=null;}
+  for(const [key,item] of programVariants)if(key!=='images'&&!key.startsWith('graticule/')){gl.deleteProgram(item.program);programVariants.delete(key);}
+ }else{
+  if(surfaceCache===defaultLayers?.base)surfaceCache=null;defaultLayers?.dispose();defaultLayers=null;
+ }
+}
 function fail(message){$('error').hidden=false;$('error').textContent=message;$('status').textContent='Rendering unavailable';}
 const vs=`attribute vec2 regionPosition;attribute float region;varying vec2 localPosition;varying float regionIndex;varying vec2 flatPosition;attribute float opacity;varying float tileAlpha;attribute vec2 position;attribute vec3 bary;attribute vec3 va;attribute vec3 vb;attribute vec3 vc;uniform vec2 size;uniform vec3 view;uniform float gridRotation;varying vec3 weights;varying vec3 a;varying vec3 b;varying vec3 c;void main(){localPosition=regionPosition;regionIndex=region;flatPosition=position;float cr=cos(gridRotation),sr=sin(gridRotation);vec2 rotated=vec2(cr*position.x-sr*position.y,sr*position.x+cr*position.y);vec2 p=(rotated*view.x+view.yz)/size*2.0;gl_Position=vec4(p.x,-p.y,0.,1.);tileAlpha=opacity;weights=bary;a=va;b=vb;c=vc;}`;
 const derivativeSupport=!!gl?.getExtension('OES_standard_derivatives');
 const fs=`${derivativeSupport?'#extension GL_OES_standard_derivatives : enable\n#define HAS_DERIVATIVES 1\n':'#define HAS_DERIVATIVES 0\n'}precision highp float;varying vec2 flatPosition;uniform int felvClip;varying float tileAlpha;varying vec3 weights;varying vec3 a;varying vec3 b;varying vec3 c;uniform sampler2D map;uniform sampler2D heightMap;uniform float colorFade;uniform int landCutout;uniform vec3 background;uniform sampler2D riverMap;uniform vec3 angles;uniform float bias;uniform float blend;uniform float grid;uniform float gridWidth;uniform vec3 gridColor;uniform vec3 riverColor;uniform int palette;uniform int material;uniform float materialSea;uniform int riversVisible;uniform int distortion;uniform float distortionOpacity;uniform float pixelScale;const float PI=3.141592653589793;
 ${projectionGLSL}
+${riverFieldGLSL}
 ${ecologyGridGLSL}
 ${ecologyBridgeGLSL}
 uniform int overlayOnly;
@@ -100,7 +127,7 @@ void main(){if(felvClip==1){float fy=-flatPosition.y;float fx=flatPosition.x-sqr
  if(material==1)color=mix(vec3(.65,.75,.77),vec3(.88,.865,.80),smoothstep(materialSea-.003,materialSea+.003,surfaceHeight));
  if(material==2){float h=surfaceHeight;float land=smoothstep(materialSea-.003,materialSea+.003,h);float altitude=clamp((h-materialSea)/max(1.-materialSea,.01),0.,1.);vec3 low=mix(vec3(.49,.61,.46),vec3(.80,.76,.56),smoothstep(0.,.35,altitude));vec3 high=mix(vec3(.77,.70,.57),vec3(.97,.95,.88),smoothstep(.45,.95,altitude));vec3 earth=mix(low,high,smoothstep(.2,.65,altitude));color=mix(mix(vec3(.22,.43,.52),vec3(.65,.79,.78),clamp(h/max(materialSea,.01),0.,1.)),earth,land);}
 
- if(riversVisible==1){vec2 riverUV=useHex?geographicUV(ecologySphere(riverCenter(localPosition)),angles):uv;float river=texture2D(riverMap,riverUV).a;color=mix(color,riverColor,river);}
+ if(riversVisible==1){vec2 riverUV=useHex?geographicUV(ecologySphere(riverCenter(localPosition)),angles):uv;float river=riverCoverage(riverUV);color=mix(color,riverColor,river);}
  if(material==0){float luma=dot(color,vec3(.299,.587,.114));color=mix(color,mix(vec3(luma),vec3(.78,.77,.72),.55),colorFade);}
  if(landCutout==1)color=mix(background,color,smoothstep(materialSea-.002,materialSea+.002,surfaceHeight));
  if(distortion>0)color=mix(color,distortionColor,distortionOpacity);
@@ -113,8 +140,12 @@ void main(){if(felvClip==1){float fy=-flatPosition.y;float fx=flatPosition.x-sqr
   gl_FragColor=vec4(ink,alpha*coverage);
  }else gl_FragColor=vec4(color*tileAlpha,tileAlpha);
 }`;
-let program,uniforms={};
-if(gl){try{function shader(type,source){const s=gl.createShader(type);gl.shaderSource(s,source);gl.compileShader(s);if(!gl.getShaderParameter(s,gl.COMPILE_STATUS))throw Error(gl.getShaderInfoLog(s));return s;}program=gl.createProgram();gl.attachShader(program,shader(gl.VERTEX_SHADER,vs));gl.attachShader(program,shader(gl.FRAGMENT_SHADER,fs));gl.linkProgram(program);if(!gl.getProgramParameter(program,gl.LINK_STATUS))throw Error(gl.getProgramInfoLog(program));gl.useProgram(program);for(const u of ['size','view','gridRotation','angles','bias','blend','grid','gridWidth','gridColor','riverColor','palette','map','heightMap','colorFade','landCutout','background','material','materialSea','riverMap','riversVisible','distortion','distortionOpacity','pixelScale','felvClip','overlayOnly','hexCategorical','bakedOn','bakeOnly','bakedRect','circularMode','tetraEqualArea','ecologyHex','ecologyBridges','ecologyOcta','ecologyVertices[0]'])uniforms[u]=gl.getUniformLocation(program,u);buffer=gl.createBuffer();heightTexture=gl.createTexture();gl.activeTexture(gl.TEXTURE3);gl.bindTexture(gl.TEXTURE_2D,heightTexture);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);gl.texImage2D(gl.TEXTURE_2D,0,gl.LUMINANCE,1,1,0,gl.LUMINANCE,gl.UNSIGNED_BYTE,new Uint8Array([105]));riverTexture=gl.createTexture();gl.activeTexture(gl.TEXTURE1);gl.bindTexture(gl.TEXTURE_2D,riverTexture);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);gl.texImage2D(gl.TEXTURE_2D,0,gl.LUMINANCE,1,1,0,gl.LUMINANCE,gl.UNSIGNED_BYTE,new Uint8Array([0]));gl.activeTexture(gl.TEXTURE0);}catch(e){fail('The map renderer could not start: '+e.message);}}else fail('WebGL is unavailable. Enable hardware acceleration or open this app in a WebGL-capable browser.');
+let program,uniforms={};const programVariants=new Map();
+function initializeProgram(imageOnly=false){
+ const key=imageOnly==='graticule'?'graticule/'+state.method:imageOnly?'images':state.method+'/'+hexBridgesEnabled;const cached=programVariants.get(key);if(cached){({program,uniforms}=cached);return;}
+ const fragment=(imageOnly==='graticule'?graticuleFragment(projectionGLSL):imageOnly?imageFragment:fs).replace('uniform int ecologyBridges;',`const int ecologyBridges=${hexBridgesEnabled};`).replace('uniform int tetraEqualArea;',`const int tetraEqualArea=${state.method==='tetra'?1:0};`).replace('uniform int circularMode;',`const int circularMode=${circularMode(state.method)};`).replace('uniform int ecologyOcta;',`const int ecologyOcta=${state.method==='octa'?1:0};`);
+if(gl){try{uniforms={};function shader(type,source){const s=gl.createShader(type);gl.shaderSource(s,source);gl.compileShader(s);if(!gl.getShaderParameter(s,gl.COMPILE_STATUS))throw Error(gl.getShaderInfoLog(s));return s;}program=gl.createProgram();for(const [type,source] of [[gl.VERTEX_SHADER,imageOnly===true?imageVertex:vs],[gl.FRAGMENT_SHADER,fragment]]){const compiled=shader(type,source);gl.attachShader(program,compiled);gl.deleteShader(compiled);}gl.linkProgram(program);if(!gl.getProgramParameter(program,gl.LINK_STATUS))throw Error(gl.getProgramInfoLog(program));gl.useProgram(program);for(const u of ['size','view','gridRotation','angles','bias','blend','grid','gridWidth','gridColor','riverColor','palette','map','heightMap','colorFade','landCutout','background','material','materialSea','riverMap','riverField','riverSize','riverWidthScale','riversVisible','distortion','distortionOpacity','pixelScale','felvClip','overlayOnly','hexCategorical','bakedOn','bakeOnly','bakedRect','circularMode','tetraEqualArea','ecologyHex','ecologyBridges','ecologyOcta','ecologyVertices[0]'])uniforms[u]=gl.getUniformLocation(program,u);programVariants.set(key,{program,uniforms:{...uniforms}});if(buffer)return;buffer=gl.createBuffer();heightTexture=gl.createTexture();gl.activeTexture(gl.TEXTURE3);gl.bindTexture(gl.TEXTURE_2D,heightTexture);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);gl.texImage2D(gl.TEXTURE_2D,0,gl.LUMINANCE,1,1,0,gl.LUMINANCE,gl.UNSIGNED_BYTE,new Uint8Array([105]));riverTexture=gl.createTexture();gl.activeTexture(gl.TEXTURE1);gl.bindTexture(gl.TEXTURE_2D,riverTexture);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,1,1,0,gl.RGBA,gl.UNSIGNED_BYTE,new Uint8Array(4));gl.activeTexture(gl.TEXTURE0);}catch(e){fail('The map renderer could not start: '+e.message);}}else fail('WebGL is unavailable. Enable hardware acceleration or open this app in a WebGL-capable browser.');
+}
 function rebuild(fit=true){
  const cm=circularMode(state.method);
  if(cm)state.arrangement=cm===1?'single':'double';
@@ -144,7 +175,7 @@ const puzzleCache=new Map();
 function puzzleFor(id){const key=id+':'+$('puzzle-count').value;if(!puzzleCache.has(key)){const region=puzzleRegion(tiles,id,+$('puzzle-count').value);puzzleCache.set(key,{...region,drawPatches:puzzleArtwork(tiles,id,region)});}return puzzleCache.get(key);}
 function updateVisibleMesh(){
  const unit=scale*state.zoom;
- const bounds=viewBounds(relief?.ready&&$('relief-enabled').checked?relief.padding(appliedLighting(),unit):0);
+ const bounds=viewBounds((activeDefault()?.lighting||relief?.ready)&&$('relief-enabled').checked?ReliefRenderer.prototype.padding(appliedLighting(),unit):0);
  const next=tiling?visibleTiles(tiling,bounds):net,signature=state.arrangement+':'+$('puzzlegrid').checked+':'+$('puzzle-count').value+next.map(t=>`${t.id},${t.r},${t.x},${t.y}`).join(';');
  if(signature===meshSignature)return;meshSignature=signature;visible=next;
  const verts=[];for(const t of visible)for(const p of ($('puzzlegrid').checked?puzzleFor(t.id).drawPatches:t.drawPatches||tiles[t.id].patches))for(let i=0;i<3;i++)verts.push(...canvasWorld(p.xy[i],t),...(p.weights?p.weights[i]:[0,1,2].map(j=>j===i?1:0)),...p.v.flat(),t.opacity,...(p.regionXY?.[i]||p.xy[i]),p.regionId??t.id);
@@ -175,7 +206,7 @@ function fitView(){
  scale=Math.max(1,Math.min(Math.max(40,right-left)/(b[2]-b[0]),Math.max(40,bottom-top)/(b[3]-b[1])));
  state.zoom=1;state.panX=(left+right-w)/2-(b[0]+b[2])/2*scale;state.panY=(top+bottom-h)/2+(b[1]+b[3])/2*scale;draw();
 }
-function resize(){if(exporting)return;headingBounds=null;const rect=$('stage').getBoundingClientRect(),rotated=compactDevice&&persistenceReady&&(w>h)!==(rect.width>rect.height);w=rect.width;h=rect.height;dpr=Math.min(window.devicePixelRatio||1,+$('quality').value,compactDevice?1.5:3);const pixelWidth=Math.round(w*dpr),pixelHeight=Math.round(h*dpr);if(canvas.width!==pixelWidth||canvas.height!==pixelHeight){canvas.width=pixelWidth;canvas.height=pixelHeight;overlay.width=pixelWidth;overlay.height=pixelHeight;}
+function resize(){if(exporting)return;headingBounds=null;const rect=$('stage').getBoundingClientRect(),rotated=compactDevice&&persistenceReady&&(w>h)!==(rect.width>rect.height);w=rect.width;h=rect.height;dpr=Math.min(displayPixelRatio(w,h,window.devicePixelRatio,+$('quality').value,compactDevice),gl?graphicsLimit/Math.max(w,h):Infinity);const pixelWidth=Math.round(w*dpr),pixelHeight=Math.round(h*dpr);if(canvas.width!==pixelWidth||canvas.height!==pixelHeight){canvas.width=pixelWidth;canvas.height=pixelHeight;overlay.width=pixelWidth;overlay.height=pixelHeight;}
  if(!persistenceReady){fitView();const offset=shareSelection.layout.viewOffset;if(offset&&!compactDevice){state.panX=offset[0]*scale;state.panY=offset[1]*scale;}defaultView={scale,zoom:state.zoom,panX:state.panX,panY:state.panY};if(restoredView&&!compactDevice){scale=restoredView.scale;state.zoom=restoredView.zoom;state.panX=restoredView.panX;state.panY=restoredView.panY;}persistenceReady=true;}else if(rotated&&!state.sidebarExpanded)fitView();draw();}
 function point(p,t){const v=rotateScreen(canvasWorld(p,t));return [w/2+v[0]*scale*state.zoom+state.panX,h/2+v[1]*scale*state.zoom+state.panY];}
 function draw(){if(exporting)return;scheduleSave();if(queued)return;queued=true;requestAnimationFrame(render);}
@@ -286,8 +317,8 @@ function drawIndicatrixes(){
 function materialMode(){return displayedSource==='ivory'?'ivory':displayedSource==='elevation'?'elevation':'source';}
 let surfaceCache=null,liveSourceKey=null;
 const surfaceMeshes=new Map();
-function sourceKey(type){return [type,classCount('land-classes'),classCount('ocean-classes')].join('/');}
-function selectedSurface(){return surfacePreset(state,displayedSource,classCount('land-classes'),classCount('ocean-classes'),+$('interpolation').value,hexBridgesEnabled);}
+function sourceKey(type){return [experimentPaletteRevision,type,classCount('land-classes'),classCount('ocean-classes')].join('/');}
+function selectedSurface(){if(new URLSearchParams(location.search).has('palette-lab'))return null;return surfacePreset(state,displayedSource,classCount('land-classes'),classCount('ocean-classes'),+$('interpolation').value,hexBridgesEnabled);}
 function visibleSurfaceTiles(level){
  const n=2**level,result=[];
  for(const t of visible)for(let y=0;y<n;y++)for(let x=0;x<n;x++){
@@ -300,8 +331,8 @@ function visibleSurfaceTiles(level){
 }
 function drawPrecomputedSurface(){
  if($('puzzlegrid').checked){canvas.dataset.surface='live';return false;}
- const entry=selectedSurface();if(!entry||(new URLSearchParams(location.search).has('bake-surfaces')||new URLSearchParams(location.search).get('surface')==='live')){canvas.dataset.surface='live';return false;}
- if(!surfaceCache)surfaceCache=new PrecomputedSurfaces(gl,draw);
+ const entry=renderDefault?{...renderDefault,path:renderDefault.basePath||renderDefault.path+'/base'}:selectedSurface();if(!entry||(new URLSearchParams(location.search).has('bake-surfaces')||new URLSearchParams(location.search).get('surface')==='live')){canvas.dataset.surface='live';return false;}
+ if(renderDefault)surfaceCache=defaultLayers.base;else if(!surfaceCache||surfaceCache===defaultLayers?.base)surfaceCache=new PrecomputedSurfaces(gl,draw);
  const plan=surfacePlan(surfaceLevel(scale*state.zoom*dpr,entry.maxLevel),entry.regions,visibleSurfaceTiles);
  const previewsReady=surfaceCache.prepare(entry,plan.tiles,plan.level);
  const level=previewsReady?plan.level:0,drawTiles=previewsReady?plan.tiles:visibleSurfaceTiles(0);
@@ -336,7 +367,7 @@ function bindMaterialUniforms(){
  gl.uniform3fv(uniforms.background,[1,3,5].map(i=>parseInt($('background-color').value.slice(i,i+2),16)/255));
  gl.uniform1i(uniforms.material,['source','ivory','elevation'].indexOf(relief?.ready?materialMode():'source'));gl.uniform1f(uniforms.materialSea,appliedLighting().reliefSeaLevel/255);gl.activeTexture(gl.TEXTURE3);gl.bindTexture(gl.TEXTURE_2D,heightTexture);gl.uniform1i(uniforms.heightMap,3);gl.activeTexture(gl.TEXTURE0);
 }
-function bindRiverUniforms(){gl.uniform3fv(uniforms.riverColor,[1,3,5].map(i=>parseInt($('river-color').value.slice(i,i+2),16)/255));gl.uniform1i(uniforms.riversVisible,$('rivers-visible').checked?1:0);gl.activeTexture(gl.TEXTURE1);gl.bindTexture(gl.TEXTURE_2D,riverTexture);gl.uniform1i(uniforms.riverMap,1);gl.activeTexture(gl.TEXTURE0);}
+function bindRiverUniforms(){gl.uniform1i(uniforms.riverField,riverFieldSize?1:0);gl.uniform2fv(uniforms.riverSize,riverFieldSize||[1,1]);gl.uniform1f(uniforms.riverWidthScale,state.riverWidth);gl.uniform3fv(uniforms.riverColor,[1,3,5].map(i=>parseInt($('river-color').value.slice(i,i+2),16)/255));gl.uniform1i(uniforms.riversVisible,$('rivers-visible').checked?1:0);gl.activeTexture(gl.TEXTURE1);gl.bindTexture(gl.TEXTURE_2D,riverTexture);gl.uniform1i(uniforms.riverMap,1);gl.activeTexture(gl.TEXTURE0);}
 // Shared settings remain visible if any owning feature is enabled. Hiding DOM
 // nodes preserves values and removes inactive options from keyboard navigation.
 function syncSettingsVisibility(){
@@ -345,12 +376,24 @@ function syncSettingsVisibility(){
  }
 }
 document.addEventListener('change',syncSettingsVisibility);
-function render(refined=false,exportMode=false){if(exporting&&!exportMode)return;queued=false;document.documentElement.style.setProperty('--map-background',$('background-color').value);const background=$('background-color').value,brightness=[1,3,5].reduce((sum,i,k)=>sum+parseInt(background.slice(i,i+2),16)*[.299,.587,.114][k],0);document.documentElement.style.setProperty('--heading-ink',brightness>145?'#193c49':'#f6f4ed');for(const id of ['background-color','border-color','hex-grid-color','puzzle-color','graticule-color','river-color'])$(id+'-value').value=$(id).value;syncOptionCards();syncSettingsVisibility();updateDistortionLegend();$('zoom-value').textContent=Math.round(state.zoom*100)+'%';if(!ready||!gl||!program)return;const lighting=$('relief-enabled').checked&&relief?.ready?cachedLighting():null;updateVisibleMesh();if(!exportMode)updateHeadingVisibility();gl.bindFramebuffer(gl.FRAMEBUFFER,null);gl.viewport(0,0,canvas.width,canvas.height);gl.clearColor(...[1,3,5].map(i=>parseInt(background.slice(i,i+2),16)/255),1);gl.clear(gl.COLOR_BUFFER_BIT);gl.useProgram(program);gl.uniform1f(uniforms.gridRotation,state.gridRotation*Math.PI/180);gl.uniform2f(uniforms.size,w,h);gl.uniform3f(uniforms.view,scale*state.zoom,state.panX,state.panY);gl.uniform3f(uniforms.angles,state.lon*Math.PI/180,state.lat*Math.PI/180,state.roll*Math.PI/180);gl.uniform1f(uniforms.bias,state.bias);gl.uniform1f(uniforms.blend,+$('interpolation').value);gl.uniform1f(uniforms.grid,$('graticule').checked?state.grid*Math.PI/180:0);gl.uniform1f(uniforms.gridWidth,.6*state.graticuleWidth/(scale*state.zoom));gl.uniform3fv(uniforms.gridColor,[1,3,5].map(i=>parseInt($('graticule-color').value.slice(i,i+2),16)/255));gl.uniform1i(uniforms.palette,displayedSource==='continents'?['atlas','original','night'].indexOf($('palette').value):1);gl.uniform1i(uniforms.distortion,derivativeSupport?($('distortion').checked?3:0):0);gl.uniform1f(uniforms.distortionOpacity,state.distortionOpacity);gl.uniform1f(uniforms.pixelScale,scale*state.zoom*dpr);gl.uniform1i(uniforms.map,0);gl.uniform1i(uniforms.felvClip,arrangement.clip?1:0);
- const drawColor=(width=w,height=h,baseOnly=false,overlayOnly=false)=>{gl.useProgram(program);gl.uniform1i(uniforms.overlayOnly,overlayOnly?1:0);gl.uniform1f(uniforms.grid,!baseOnly&&$('graticule').checked?state.grid*Math.PI/180:0);gl.uniform1i(uniforms.distortion,!baseOnly&&derivativeSupport?($('distortion').checked?3:0):0);gl.uniform2f(uniforms.size,width,height);bindMaterialUniforms();bindRiverUniforms();gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,texture);if(!overlayOnly&&drawPrecomputedSurface())return;gl.uniform1i(uniforms.bakedOn,0);if(!overlayOnly&&liveSourceKey!==sourceKey(displayedSource)){if(!$('map-loading').textContent)updateMapSource();return;}drawGeometry(program);};
- drawColor(w,h,!!lighting);
- if(lighting){projectedLighting.composite(lighting,w,h,scale*state.zoom,state.panX,state.panY,state.shadowOpacity,state.lightOpacity);
-  if($('graticule').checked||$('distortion').checked){gl.enable(gl.BLEND);gl.blendFuncSeparate(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA,gl.ONE,gl.ONE_MINUS_SRC_ALPHA);drawColor(w,h,false,true);gl.disable(gl.BLEND);}
+function render(refined=false,exportMode=false){if(exporting&&!exportMode)return;queued=false;document.documentElement.style.setProperty('--map-background',$('background-color').value);const background=$('background-color').value,brightness=[1,3,5].reduce((sum,i,k)=>sum+parseInt(background.slice(i,i+2),16)*[.299,.587,.114][k],0);document.documentElement.style.setProperty('--heading-ink',brightness>145?'#193c49':'#f6f4ed');for(const id of ['background-color','border-color','hex-grid-color','puzzle-color','graticule-color','river-color'])$(id+'-value').value=$(id).value;syncOptionCards();syncSettingsVisibility();updateDistortionLegend();$('zoom-value').textContent=Math.round(state.zoom*100)+'%';if(!ready||!gl)return;const previousPath=!!renderDefault;selectRenderPath(activeDefault());initializeProgram(!!renderDefault);if(previousPath&&!renderDefault&&($('relief-enabled').checked||['ivory','elevation'].includes(displayedSource)))ensureRelief();if(!program)return;if(renderDefault&&!defaultLayers)defaultLayers=new DefaultLayers(gl,draw);if(renderDefault)defaultLayers.prepare(renderDefault);const wasMerged=!!renderMerged;renderMerged=!separateComparison?mergedEntry(renderDefault):null;if(renderMerged&&!wasMerged){if(surfaceCache===defaultLayers.base)surfaceCache=null;defaultLayers.dispose();defaultLayers=new DefaultLayers(gl,draw);defaultLayers.prepare(renderDefault);}if(!renderMerged&&mergedMaps){if(surfaceCache===mergedMaps.cache)surfaceCache=null;mergedMaps.dispose();mergedMaps=null;}const lighting=renderMerged?null:renderDefault?defaultLayers.lighting(renderDefault,scale*state.zoom,dpr,w,h,state.panX,state.panY,{capToBase:$('lighting-resolution-test').value==='map',compareHighest:$('lighting-resolution-test').value!=='auto'}):$('relief-enabled').checked&&relief?.ready?cachedLighting():null;canvas.dataset.renderPath=renderDefault?'images':'live';if(!renderDefault&&$('rivers-visible').checked&&uploadedRiverKey!==state.riverLevels+'/field'&&!offlineBake)updateRiverLayer();updateVisibleMesh();if(!exportMode)updateHeadingVisibility();gl.bindFramebuffer(gl.FRAMEBUFFER,null);gl.viewport(0,0,canvas.width,canvas.height);gl.clearColor(...[1,3,5].map(i=>parseInt(background.slice(i,i+2),16)/255),1);gl.clear(gl.COLOR_BUFFER_BIT);gl.useProgram(program);gl.uniform1f(uniforms.gridRotation,state.gridRotation*Math.PI/180);gl.uniform2f(uniforms.size,w,h);gl.uniform3f(uniforms.view,scale*state.zoom,state.panX,state.panY);gl.uniform3f(uniforms.angles,state.lon*Math.PI/180,state.lat*Math.PI/180,state.roll*Math.PI/180);gl.uniform1f(uniforms.bias,state.bias);gl.uniform1f(uniforms.blend,+$('interpolation').value);gl.uniform1f(uniforms.grid,$('graticule').checked?state.grid*Math.PI/180:0);gl.uniform1f(uniforms.gridWidth,.6*state.graticuleWidth/(scale*state.zoom));gl.uniform3fv(uniforms.gridColor,[1,3,5].map(i=>parseInt($('graticule-color').value.slice(i,i+2),16)/255));gl.uniform1i(uniforms.palette,displayedSource==='continents'?['atlas','original','night'].indexOf($('palette').value):1);gl.uniform1i(uniforms.distortion,derivativeSupport?($('distortion').checked?3:0):0);gl.uniform1f(uniforms.distortionOpacity,state.distortionOpacity);gl.uniform1f(uniforms.pixelScale,scale*state.zoom*dpr);gl.uniform1i(uniforms.map,0);gl.uniform1i(uniforms.felvClip,arrangement.clip?1:0);
+ const drawColor=(width=w,height=h,baseOnly=false,overlayOnly=false)=>{gl.useProgram(program);gl.uniform1i(uniforms.overlayOnly,overlayOnly?1:0);gl.uniform1f(uniforms.grid,!baseOnly&&$('graticule').checked?state.grid*Math.PI/180:0);gl.uniform1i(uniforms.distortion,!baseOnly&&derivativeSupport?($('distortion').checked?3:0):0);gl.uniform2f(uniforms.size,width,height);if(!renderDefault){bindMaterialUniforms();bindRiverUniforms();}gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,texture);if(!overlayOnly&&drawPrecomputedSurface())return;gl.uniform1i(uniforms.bakedOn,0);if(!overlayOnly&&liveSourceKey!==sourceKey(displayedSource)){if(!$('map-loading').textContent)updateMapSource();return;}drawGeometry(program);};
+ if(renderMerged){
+  if(!mergedMaps)mergedMaps=new MergedMaps(gl,draw);
+  defaultLayers.base.setRequired(new Set());defaultLayers.detail.setRequired(new Set());
+  const plan=mergedMaps.draw(renderMerged,{width:w,height:h,unit:scale*state.zoom,dpr,panX:state.panX,panY:state.panY});
+  surfaceCache=mergedMaps.cache;canvas.dataset.surface='precomputed';canvas.dataset.surfacePreview=String(!plan.ready);canvas.dataset.surfaceLevel=String(plan.level);canvas.dataset.surfacePending=String(surfaceCache.pending.size);canvas.dataset.surfaceTiles=String(surfaceCache.cache.size);canvas.dataset.surfaceFailures=String(surfaceCache.failures.size);
+ }else drawColor(w,h,!!lighting);
+ canvas.dataset.merged=String(!!renderMerged);
+ if(lighting){(renderDefault?defaultLayers:projectedLighting).composite(lighting,w,h,scale*state.zoom,state.panX,state.panY,state.shadowOpacity,state.lightOpacity);
+  if(!renderDefault&&($('graticule').checked||$('distortion').checked)){gl.enable(gl.BLEND);gl.blendFuncSeparate(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA,gl.ONE,gl.ONE_MINUS_SRC_ALPHA);drawColor(w,h,false,true);gl.disable(gl.BLEND);}
  }
+
+ mergedPreview?.({entry:renderDefault&&background===renderDefault.signature.controls['background-color']&&state.shadowOpacity===renderDefault.signature.state.shadowOpacity&&state.lightOpacity===renderDefault.signature.state.lightOpacity?renderDefault:null,w,h,dpr,unit:scale*state.zoom,panX:state.panX,panY:state.panY,gl});
+ if(renderDefault&&$('graticule').checked&&state.graticuleWidth>0){
+  initializeProgram('graticule');gl.useProgram(program);gl.uniform2f(uniforms.size,w,h);gl.uniform3f(uniforms.view,scale*state.zoom,state.panX,state.panY);gl.uniform1f(uniforms.gridRotation,state.gridRotation*Math.PI/180);gl.uniform3f(uniforms.angles,state.lon*Math.PI/180,state.lat*Math.PI/180,state.roll*Math.PI/180);gl.uniform1f(uniforms.bias,state.bias);gl.uniform1f(uniforms.blend,+$('interpolation').value);gl.uniform1f(uniforms.grid,state.grid*Math.PI/180);gl.uniform1f(uniforms.gridWidth,.6*state.graticuleWidth/(scale*state.zoom));gl.uniform3fv(uniforms.gridColor,[1,3,5].map(i=>parseInt($('graticule-color').value.slice(i,i+2),16)/255));gl.uniform1i(uniforms.felvClip,arrangement.clip?1:0);gl.enable(gl.BLEND);gl.blendFuncSeparate(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA,gl.ONE,gl.ONE_MINUS_SRC_ALPHA);drawGeometry(program);gl.disable(gl.BLEND);initializeProgram(true);
+ }
+ updateLoadingStatus();
 
  ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,w,h);ctx.lineJoin='round';
  ctx.save();
@@ -390,7 +433,7 @@ $('puzzlegrid').addEventListener('change',()=>{
 $('puzzle-count').addEventListener('change',()=>{meshSignature=null;fitView();});
 $('fractalgrid').addEventListener('change',()=>{if($('fractalgrid').checked){$('puzzlegrid').checked=false;$('subgrid').checked=false;$('dotgrid').checked=false;}draw();});
 for(const id of ['subgrid','dotgrid'])$(id).addEventListener('change',()=>{if($(id).checked){$('fractalgrid').checked=false;$('puzzlegrid').checked=false;}draw();});
-function ensureRelief(){if(!gl||!program)return;if(!relief){relief=new ReliefRenderer(gl,vs,draw,message=>$('relief-status').textContent=message);relief.maxSourceWidth=compactDevice?1536:4096;heightTexture=relief.heightTextures[0];}relief.load();}
+function ensureRelief(){if(activeDefault()||!gl||!program)return;if(!relief){gl.deleteTexture(heightTexture);relief=new ReliefRenderer(gl,vs,draw,message=>$('relief-status').textContent=message);relief.maxSourceWidth=compactDevice?1536:4096;heightTexture=relief.heightTextures[0];}relief.load();}
 function lightingControls(){return $('lighting-preset').value==='custom'&&customApplied?customApplied:{treatment:$('relief-treatment').value,tone:$('relief-tone').value};}
 function appliedLighting(){return lightingSettings($('lighting-preset').value,{...state,...($('lighting-preset').value==='custom'?customApplied:null)});}
 function cachedLighting(){
@@ -402,11 +445,11 @@ function cachedLighting(){
  let b=bounds(),patch=[];
  if(tiling){b=[0,0,3*tiling.size,Math.sqrt(3)*tiling.size];patch=b;}
 
- const baseKey=lightingKey(settings,preset,[$('interpolation').value,controls.treatment,controls.tone,$('puzzlegrid').checked,$('puzzle-count').value,$('rivers-visible').checked,riverGeneration,...patch]);
+ const baseKey=lightingKey(settings,preset,[$('interpolation').value,controls.treatment,controls.tone,$('puzzlegrid').checked,$('puzzle-count').value,$('rivers-visible').checked,riverGeneration,state.riverWidth,...patch]);
  const pad=tiling?0:relief.padding(settings,100)/100+.15;
  const baseRect=[b[0]-pad,-b[3]-pad,b[2]-b[0]+pad*2,b[3]-b[1]+pad*2];
  const view={unit:scale*state.zoom,width:w,height:h,dpr,panX:state.panX,panY:state.panY};
- let plan=lightingPlan(baseRect,{...view,compact:compactDevice,maxSize:Math.min(gl.getParameter(gl.MAX_TEXTURE_SIZE),gl.getParameter(gl.MAX_RENDERBUFFER_SIZE)),repeat:!!tiling});
+ let plan=offlineLightingPlan||lightingPlan(baseRect,{...view,compact:compactDevice,maxSize:graphicsLimit,repeat:!!tiling});
  const planKey=p=>baseKey+'/'+JSON.stringify([p.level,...p.rect]);
  let key=planKey(plan);
  const cached=projectedLighting.get(key);if(cached){canvas.dataset.lightingLevel=plan.level;return cached;}
@@ -431,7 +474,7 @@ function cachedLighting(){
   for(const edge of arrangement.seams||[])if(edge.error>1e-6)seams.push([[edge.a[0],-edge.a[1]],[edge.b[0],-edge.b[1]]]);
   entry={rect,textures:[],repeat:plan.repeat,level:plan.level,baseKey,angle:saved.gridRotation*Math.PI/180};
   for(const lightingPass of [1,2]){
-   relief.render({width:w,height:h,dpr:1,unit:scale,state:{...settings,panX:state.panX,panY:state.panY},blend:+$('interpolation').value,clip:arrangement.clip,material:'source',treatment:controls.treatment,tone:controls.tone,signature:key,drawColor:()=>{},drawGeometry,seams,riverTexture,riverVisible:$('rivers-visible').checked,riverDepth:settings.reliefRiverDepth,pixelBudget:compactDevice?1200000:5500000,refined:true,lightingPass});
+   relief.render({width:w,height:h,dpr:1,unit:scale,state:{...settings,panX:state.panX,panY:state.panY},blend:+$('interpolation').value,clip:arrangement.clip,material:'source',treatment:controls.treatment,tone:controls.tone,signature:key,drawColor:()=>{},drawGeometry,seams,riverTexture,riverField:riverFieldSize,riverWidthScale:state.riverWidth,riverVisible:$('rivers-visible').checked,riverDepth:settings.reliefRiverDepth,pixelBudget:compactDevice?1200000:5500000,refined:true,lightingPass});
    entry.textures.push(projectedLighting.snapshot());
   }
   projectedLighting.store(key,entry);canvas.dataset.lightingBakes=projectedLighting.bakes;canvas.dataset.lightingLevel=plan.level;canvas.dataset.lightingResolution=w+'×'+h;$('relief-status').textContent=plan.level?'Close-up lighting layers ready':'Lighting layers ready';
@@ -453,6 +496,7 @@ function updateRelief(){
 $('lighting-preset').onchange=()=>{$('relief-enabled').checked=$('lighting-preset').value!=='none';if($('lighting-preset').value==='custom')customApplied=null;updateRelief();};
 $('apply-lighting').onclick=()=>{customApplied=null;updateRelief();scheduleSave();};
 $('relief-enabled').onchange=updateRelief;
+$('lighting-resolution-test').onchange=()=>draw();
 for(const id of ['relief-treatment','relief-tone'])$(id).onchange=()=>{if($('lighting-preset').value==='custom')$('relief-status').textContent='Apply lighting to update the layers.';else updateRelief();};
 
 function mode(value){state.mode=value;$('pan').classList.toggle('selected',value==='pan');$('rotate').classList.toggle('selected',value==='rotate');scheduleSave();} $('pan').onclick=()=>mode('pan');$('rotate').onclick=()=>mode('rotate');$('fit').onclick=fitView;
@@ -504,16 +548,16 @@ async function exportMap(){
  updateMapUrl();clearTimeout(saveTimer);exporting=true;button.disabled=true;main.inert=true;dialog.showModal();progress.textContent='Preparing…';
  try{
   const deadline=performance.now()+120000;
-  if(relief&&$('relief-enabled').checked)await relief.load(false,control.signal);
-  if($('relief-enabled').checked&&relief?.ready)cachedLighting();
+  if(!activeDefault()&&relief&&$('relief-enabled').checked)await relief.load(false,control.signal);
+  if(!activeDefault()&&$('relief-enabled').checked&&relief?.ready)cachedLighting();
   while($('map-loading').textContent==='Loading map…'||($('relief-enabled').checked&&relief?.loading)||$('indicatrix-status').textContent==='Preparing circles…'){control.signal.throwIfAborted();if(performance.now()>deadline)throw Error('Map assets are still loading; please retry when they finish');await new Promise(resolve=>setTimeout(resolve,100));}
- if(!tiling){const b=bounds(),unit=scale*state.zoom,pad=($('relief-enabled').checked&&relief?.ready?relief.padding(appliedLighting(),unit):0)+12;crop.x=saved.w/2+saved.panX+b[0]*unit-pad;crop.y=saved.h/2+saved.panY-b[3]*unit-pad;crop.topInset=pad;crop.width=(b[2]-b[0])*unit+2*pad;crop.height=(b[3]-b[1])*unit+2*pad;}
+ if(!tiling){const b=bounds(),unit=scale*state.zoom,pad=($('relief-enabled').checked&&(activeDefault()?.lighting||relief?.ready)?ReliefRenderer.prototype.padding(appliedLighting(),unit):0)+12;crop.x=saved.w/2+saved.panX+b[0]*unit-pad;crop.y=saved.h/2+saved.panY-b[3]*unit-pad;crop.topInset=pad;crop.width=(b[2]-b[0])*unit+2*pad;crop.height=(b[3]-b[1])*unit+2*pad;}
   if(!isPDF){const right=Math.min(saved.w,crop.x+crop.width),bottom=Math.min(saved.h,crop.y+crop.height);crop.x=Math.max(0,crop.x);crop.y=Math.max(0,crop.y);crop.width=right-crop.x;crop.height=bottom-crop.y;if(crop.width<=0||crop.height<=0)Object.assign(crop,{x:0,y:0,width:saved.w,height:saved.h});}
   const renderTile=async(x,y,width,height,ratio=factor)=>{
    control.signal.throwIfAborted();
    // Overlap tiles enough to include antialiasing and the relief shadow blur.
    const bleed=4;
-   const maxDimension=Math.min(gl.getParameter(gl.MAX_TEXTURE_SIZE),gl.getParameter(gl.MAX_RENDERBUFFER_SIZE));
+   const maxDimension=graphicsLimit;
    if(Math.max(width,height)+2*bleed>maxDimension)throw Error('Shadow softness at this zoom exceeds the device tile limit; reduce zoom or softness and retry');
    w=(width+2*bleed)/ratio;h=(height+2*bleed)/ratio;dpr=ratio;
    state.panX=saved.w/2+saved.panX-crop.x-(x-bleed)/ratio-w/2;state.panY=saved.h/2+saved.panY-crop.y-(y-bleed)/ratio-h/2;
@@ -521,11 +565,11 @@ async function exportMap(){
    if(gl.drawingBufferWidth!==canvas.width||gl.drawingBufferHeight!==canvas.height)throw Error('This device could not allocate an export tile');
    render(true,true);
    // Exports must wait for the requested detail, not capture a loading tile.
-   while(canvas.dataset.surface==='precomputed'&&surfaceCache?.pending.size){
+   while(canvas.dataset.surface==='precomputed'&&(surfaceCache?.pending.size||(activeDefault()&&(defaultLayers?.pending.size||defaultLayers?.detail.pending.size)))){
     control.signal.throwIfAborted();if(performance.now()>deadline)throw Error('Map tiles are still loading; please retry');
     await new Promise(resolve=>setTimeout(resolve,30));render(true,true);
    }
-   if(canvas.dataset.surface==='precomputed'&&surfaceCache?.failures.size)throw Error('Some map tiles could not load; reload and retry the export');
+   if(canvas.dataset.surface==='precomputed'&&(surfaceCache?.failures.size||(activeDefault()&&(defaultLayers?.failures.size||defaultLayers?.detail.failures.size))))throw Error('Some map tiles could not load; reload and retry the export');
    out.width=width;out.height=height;context.fillStyle=$('background-color').value;context.fillRect(0,0,width,height);
    context.drawImage(canvas,-bleed,-bleed);context.drawImage(overlay,-bleed,-bleed);
    return context.getImageData(0,0,width,height).data;
@@ -534,6 +578,7 @@ async function exportMap(){
   const license=mapLicense(displayedSource);
   const attribution=[`Hexagonal Earth by Alex Van de Sande - ${license.name} (${license.url}). Third-party source credits and terms also apply.`,sourceAttribution(displayedSource),!$('height-credit').hidden?'Height imagery: NASA Earth Observatory / Jesse Allen, using GEBCO data from the British Oceanographic Data Centre. Height composite by Alex Van de Sande. '+'https://science.nasa.gov/earth/earth-observatory/blue-marble-next-generation/topography-bathymetry-maps/':''].filter(Boolean).join(' ');
   const exportOptions={attribution,rasterScale:factor,width:crop.width,height:crop.height,mapInsetTop:crop.topInset||0,renderTile,signal:control.signal,onProgress,background:$('background-color').value};
+  const {pngFromTiles,printPDF}=await import('./map-export.mjs?v=lifezones-shadows-3');
   const blob=isPDF?await printPDF({...exportOptions,lifezones:displayedSource==='ecology'?{colorFade:legendFade(),landCount:classCount('land-classes'),oceanCount:classCount('ocean-classes')}:null}):await pngFromTiles({attribution,width:Math.max(1,Math.round(crop.width*factor)),height:Math.max(1,Math.round(crop.height*factor)),renderTile,signal:control.signal,onProgress});
   control.signal.throwIfAborted();
   const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=`Hexagonal Earth by Alex Van de Sande - ${shareSelection.layout.name} - ${shareSelection.style.name}.${isPDF?'pdf':'png'}`;a.click();trackEvent('download',factor+'x-'+(isPDF?'pdf':'png'));setTimeout(()=>URL.revokeObjectURL(url),60000);
@@ -542,7 +587,7 @@ async function exportMap(){
 }
 $('export').onclick=exportMap;
 function initializeMapTexture(){
- if(!gl||!program)return;
+ if(!gl)return;initializeProgram(!!activeDefault());if(!program)return;
  // The selected source loads below; an unrelated continent image must not block it.
  texture=gl.createTexture();gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,texture);
  for(const name of [gl.TEXTURE_WRAP_S,gl.TEXTURE_WRAP_T])gl.texParameteri(gl.TEXTURE_2D,name,gl.CLAMP_TO_EDGE);
@@ -614,7 +659,7 @@ function restoreSettings(provided){
  }catch{/* Missing or damaged map links fall back to defaults. */}
 }
 function captureSettings(){
- const controls={};document.querySelectorAll('aside input[type=checkbox],aside select,aside input[type=range],aside input[type=color]').forEach(el=>{if(el.id==='map-source-choice')return;controls[el.id]=el.type==='checkbox'?el.checked:['land-classes','ocean-classes'].includes(el.id)?classCount(el.id):el.value;});
+ const controls={};document.querySelectorAll('aside input[type=checkbox],aside select,aside input[type=range],aside input[type=color]').forEach(el=>{if(['map-source-choice','lighting-resolution-test'].includes(el.id))return;controls[el.id]=el.type==='checkbox'?el.checked:['land-classes','ocean-classes'].includes(el.id)?classCount(el.id):el.value;});
  const applied=$('lighting-preset').value==='custom'?customApplied:null;if(applied){controls['relief-treatment']=applied.treatment;controls['relief-tone']=applied.tone;}
  return {version:1,state:{...state,...applied},controls,view:{scale,zoom:state.zoom,panX:state.panX,panY:state.panY},details:Object.fromEntries([...document.querySelectorAll('aside > details')].map(el=>[el.id,el.open]))};
 }
@@ -638,11 +683,11 @@ function hexLegend(container,items){
  $(container).replaceChildren(...items.map(item=>{const row=document.createElement('div');row.className='hex-legend-item';row.title=item.detail;const swatch=document.createElement('span');swatch.className='hex-swatch';swatch.style.backgroundColor=item.color;swatch.dataset.legendColor=item.color;swatch.setAttribute('aria-hidden','true');const label=document.createElement('span');label.textContent=item.name;row.append(swatch,label);return row;}));
 }
 async function updateRiverLayer(){
- if(!gl||!riverTexture)return;const request=++riverRequest;
+ if(activeDefault()||!gl||!riverTexture)return;
  if(!$('rivers-visible').checked)return;
- const riverKey=state.riverLevels+'/'+state.riverWidth;if(riverKey===uploadedRiverKey)return;
- try{const source=await riverMask(state.riverLevels,state.riverWidth);if(request!==riverRequest)return;gl.activeTexture(gl.TEXTURE1);gl.bindTexture(gl.TEXTURE_2D,riverTexture);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,source);gl.activeTexture(gl.TEXTURE0);riverGeneration++;uploadedRiverKey=riverKey;draw();}
- catch(error){if(error.name==='AbortError'||request!==riverRequest)return;console.warn('River layer:',error);$('status').textContent='River data could not load; the map remains available.';}
+ const riverKey=state.riverLevels+'/'+(offlineBake?state.riverWidth:'field');if(riverKey===uploadedRiverKey||riverKey===requestedRiverKey){return;}requestedRiverKey=riverKey;const request=++riverRequest;
+ try{const source=offlineBake?await riverMask(state.riverLevels,state.riverWidth):await riverTextureData(state.riverLevels,gl.getParameter(gl.MAX_TEXTURE_SIZE));if(request!==riverRequest)return;gl.activeTexture(gl.TEXTURE1);gl.bindTexture(gl.TEXTURE_2D,riverTexture);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,offlineBake?gl.LINEAR:gl.NEAREST);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,offlineBake?gl.LINEAR:gl.NEAREST);if(offlineBake){gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,source);riverFieldSize=null;}else{gl.pixelStorei(gl.UNPACK_ALIGNMENT,1);gl.texImage2D(gl.TEXTURE_2D,0,gl.LUMINANCE_ALPHA,source.width,source.height,0,gl.LUMINANCE_ALPHA,gl.UNSIGNED_BYTE,source.data);gl.pixelStorei(gl.UNPACK_ALIGNMENT,4);riverFieldSize=[source.width,source.height];releaseRiverMask();}gl.activeTexture(gl.TEXTURE0);riverGeneration++;uploadedRiverKey=riverKey;draw();}
+ catch(error){if(error.name==='AbortError'||request!==riverRequest)return;console.warn('River layer:',error);$('status').textContent='River data could not load; the map remains available.';}finally{if(requestedRiverKey===riverKey)requestedRiverKey=null;}
 }
 for(const id of ['riverWidth','riverLevels'])$(id).addEventListener('input',()=>{++riverRequest;clearTimeout(riverTimer);riverTimer=setTimeout(updateRiverLayer,100);});$('rivers-visible').addEventListener('change',()=>{updateRiverLayer();draw();});
 function legendFade(){return $('relief-enabled').checked?state.reliefColorFade:0;}
@@ -680,11 +725,13 @@ function updateMapUI(){
  $('relief-source-note').hidden=!$('relief-enabled').checked||!['terrain','marble'].includes(type);
 }
 async function updateMapSource(){
+ if(ready)initializeProgram(!!activeDefault());
  updateRelief();
  updateMapUI();scheduleSave();if(!ready)return;
  const request=++mapRequest,type=$('map-source').value;
+ const imageEntry=activeDefault();if(imageEntry){displayedSource=type;$('map-loading').textContent='';$('source-name').textContent=styleOptions.find(s=>s.source===type)?.name||type;$('source-detail').textContent='';draw();return;}
  const baked=surfacePreset(state,type,classCount('land-classes'),classCount('ocean-classes'),+$('interpolation').value,hexBridgesEnabled);
- if(baked&&!$('puzzlegrid').checked&&!new URLSearchParams(location.search).has('bake-surfaces')&&new URLSearchParams(location.search).get('surface')!=='live'){displayedSource=type;$('map-loading').textContent='';$('source-name').textContent=styleOptions.find(s=>s.source===type)?.name||type;$('source-detail').textContent='';draw();return;}
+ if(baked&&!new URLSearchParams(location.search).has('palette-lab')&&!$('puzzlegrid').checked&&!new URLSearchParams(location.search).has('bake-surfaces')&&new URLSearchParams(location.search).get('surface')!=='live'){displayedSource=type;$('map-loading').textContent='';$('source-name').textContent=styleOptions.find(s=>s.source===type)?.name||type;$('source-detail').textContent='';draw();return;}
  $('map-loading').textContent='Loading map…';
  try{let source=await mapSource(type,classCount('land-classes'),classCount('ocean-classes'));if(request!==mapRequest)return;
   const originalWidth=source.width,originalHeight=source.height,max=gl.getParameter(gl.MAX_TEXTURE_SIZE);
@@ -742,7 +789,7 @@ function installColumnOptions(){
   const layoutBox=document.createElement('div');layoutBox.className='layout-presets';layoutBox.setAttribute('aria-label','Map format options');
   const styleBox=document.createElement('div');styleBox.className='style-presets';styleBox.setAttribute('aria-label','Map style options');
   for(const option of layoutOptions){const card=document.createElement('button');card.type='button';card.className='layout-preset-card';card.title='Use '+option.name+' format';card.dataset.arrangement=option.arrangement;card.setAttribute('aria-label',option.name);card.append(layoutIcon(option));const label=document.createElement('b');label.textContent=option.name;card.append(label);card.onclick=()=>applyMapOption(option,'layout');layoutBox.append(card);}
-  for(const option of styleOptions){const card=document.createElement('button');card.type='button';card.className='style-preset-card';card.title='Use '+option.name+' style';card.dataset.source=option.source;card.dataset.style=option.id;card.setAttribute('aria-label',option.name);const thumb=document.createElement('img');thumb.className='style-thumb';thumb.loading='lazy';thumb.decoding='async';thumb.sizes='86px';thumb.srcset=option.thumbnail.replace('.png','-240.webp')+' 240w, '+option.thumbnail.replace('.png','-480.webp')+' 480w';thumb.src=option.thumbnail.replace('.png','-240.webp');thumb.alt='';thumb.width=240;thumb.height=136;const label=document.createElement('b');label.textContent=option.name;card.append(thumb,label);card.onclick=()=>applyMapOption(option,'style');styleBox.append(card);}
+  for(const option of styleOptions){const card=document.createElement('button');card.type='button';card.className='style-preset-card';card.title='Use '+option.name+' style';card.dataset.source=option.source;card.dataset.style=option.id;card.setAttribute('aria-label',option.name);const thumb=document.createElement('img');thumb.className='style-thumb';thumb.loading='lazy';thumb.decoding='async';thumb.sizes='86px';const thumbVersion=option.id==='lifezones'?'?v=lifezones-thumb-shadows-4':'';thumb.srcset=assetURL(option.thumbnail.replace('.png','-240.webp')+thumbVersion)+' 240w, '+assetURL(option.thumbnail.replace('.png','-480.webp')+thumbVersion)+' 480w';thumb.src=assetURL(option.thumbnail.replace('.png','-240.webp')+thumbVersion);thumb.alt='';thumb.width=240;thumb.height=136;const label=document.createElement('b');label.textContent=option.name;card.append(thumb,label);card.onclick=()=>applyMapOption(option,'style');styleBox.append(card);}
   intro.after(layoutHeading,layoutBox,styleHeading,styleBox);
   document.querySelectorAll('aside details').forEach(el=>{el.open=false;});
 }
@@ -851,3 +898,76 @@ if(['127.0.0.1','localhost'].includes(location.hostname)&&new URLSearchParams(lo
 
 syncSettingsVisibility();
 initAboutWidget();
+
+// Opt-in temporary editor; normal routes never load its UI or custom palette.
+if(new URLSearchParams(location.search).has('palette-lab')){
+ import('./palette-experiment.mjs?v=lifezones-shadows-3').then(({mountPaletteExperiment})=>{
+  const originalURL=new URL(location.href);originalURL.searchParams.delete('palette-lab');
+  $('map-source').value='ecology';$('land-classes').value='2';$('ocean-classes').value='1';
+  $('rivers-visible').checked=true;
+  mountPaletteExperiment({apply:updateMapSource,shadows:()=>$('relief-enabled').checked,
+   setShadows:enabled=>{$('relief-enabled').checked=enabled;updateRelief();},
+   exit:()=>location.assign(originalURL.href)});
+ });
+}
+
+// Offline asset preparation only; never reachable on the public host.
+if(['127.0.0.1','localhost','[::1]'].includes(location.hostname)&&new URLSearchParams(location.search).has('bake-layers')){
+ window.prepareDefaultLayers=async(layoutIndex,styleIndex)=>{
+  exporting=true;offlineLightingPlan=null;restoreSettings(urlDefaults);restoreSettings(presetSettings({layout:layoutOptions[layoutIndex],style:styleOptions[styleIndex]}));
+  rebuild(false);initializeProgram(false);const type=$('map-source').value;
+  const source=await mapSource(type,classCount('land-classes'),classCount('ocean-classes'));
+  gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,texture);
+  for(const name of [gl.TEXTURE_MIN_FILTER,gl.TEXTURE_MAG_FILTER])gl.texParameteri(gl.TEXTURE_2D,name,['ecology','countries','continents'].includes(type)?gl.NEAREST:gl.LINEAR);
+  gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,source);displayedSource=type;liveSourceKey=sourceKey(type);
+  if($('relief-enabled').checked||['ivory','elevation'].includes(type)){ensureRelief();await relief.load();}
+  await updateRiverLayer();
+  return {regions:tiles.length,lighting:$('relief-enabled').checked,signature:captureSettings(),repeat:!!tiling};
+ };
+ window.bakeDefaultRegion=(region,resolution,graticule=false)=>{
+  const saved={zoom:state.zoom,gridRotation:state.gridRotation};state.zoom=2;state.gridRotation=0;
+  const verts=[];for(const p of tiles[region].patches)for(let i=0;i<3;i++)verts.push(p.xy[i][0],-p.xy[i][1],...(p.weights?p.weights[i]:[0,1,2].map(j=>j===i?1:0)),...p.v.flat(),1,...p.xy[i],region);
+  canvas.width=resolution;canvas.height=resolution;gl.viewport(0,0,resolution,resolution);gl.clearColor(0,0,0,0);gl.clear(gl.COLOR_BUFFER_BIT);gl.useProgram(program);
+  gl.uniform1i(uniforms.bakedOn,0);gl.uniform1i(uniforms.bakeOnly,0);gl.uniform1i(uniforms.overlayOnly,0);gl.uniform1i(uniforms.felvClip,0);gl.uniform1i(uniforms.map,0);
+  gl.uniform1f(uniforms.gridRotation,0);gl.uniform2f(uniforms.size,resolution,resolution);gl.uniform3f(uniforms.view,resolution/2,0,0);
+  gl.uniform3f(uniforms.angles,state.lon*Math.PI/180,state.lat*Math.PI/180,state.roll*Math.PI/180);gl.uniform1f(uniforms.bias,state.bias);gl.uniform1f(uniforms.blend,0);
+  gl.uniform1i(uniforms.palette,displayedSource==='continents'?['atlas','original','night'].indexOf($('palette').value):1);gl.uniform1f(uniforms.grid,0);gl.uniform1i(uniforms.distortion,$('distortion').checked?3:0);gl.uniform1f(uniforms.distortionOpacity,state.distortionOpacity);gl.uniform1f(uniforms.pixelScale,resolution/2);
+  bindMaterialUniforms();bindRiverUniforms();gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,texture);
+  count=verts.length/18;gl.bindBuffer(gl.ARRAY_BUFFER,buffer);gl.bufferData(gl.ARRAY_BUFFER,new Float32Array(verts),gl.STATIC_DRAW);drawGeometry(program);gl.finish();
+  Object.assign(state,saved);meshSignature=null;
+  return canvas.toDataURL('image/png').split(',')[1];
+ };
+ window.bakeDefaultLighting=(plan=null)=>{
+  offlineLightingPlan=plan;
+  w=1100;h=800;scale=100;state.zoom=1;dpr=1;state.panX=state.panY=0;meshSignature=null;
+  const entry=cachedLighting();
+  const output=[];const fbo=gl.createFramebuffer();
+  for(const texture of entry.textures){
+   gl.bindFramebuffer(gl.FRAMEBUFFER,fbo);gl.framebufferTexture2D(gl.FRAMEBUFFER,gl.COLOR_ATTACHMENT0,gl.TEXTURE_2D,texture,0);
+   const width=Math.round(entry.rect[2]*2200/Math.max(entry.rect[2],entry.rect[3])),height=Math.round(entry.rect[3]*2200/Math.max(entry.rect[2],entry.rect[3]));
+   const pixels=new Uint8Array(width*height*4);gl.readPixels(0,0,width,height,gl.RGBA,gl.UNSIGNED_BYTE,pixels);
+   const out=document.createElement('canvas');out.width=width;out.height=height;const c=out.getContext('2d'),data=c.createImageData(width,height);
+   for(let y=0;y<height;y++)data.data.set(pixels.subarray((height-1-y)*width*4,(height-y)*width*4),y*width*4);
+   c.putImageData(data,0,0);output.push(out.toDataURL('image/png').split(',')[1]);out.width=out.height=1;
+  }
+  gl.deleteFramebuffer(fbo);gl.bindFramebuffer(gl.FRAMEBUFFER,null);
+  return {rect:entry.rect,repeat:entry.repeat,angle:entry.angle,images:output};
+ };
+}
+
+function updateLoadingStatus(){
+ const test=$('lighting-resolution-test'),note=$('lighting-resolution-note'),info=renderDefault?.lighting,comparison=defaultLayers?.comparison;
+ test.disabled=!!renderMerged||!info?.mapResolution;
+ const loading=Number(canvas.dataset.surfacePending)>0||defaultLayers?.pending.size||defaultLayers?.detail.pending.size;
+ const failed=defaultLayers?.failures.size||defaultLayers?.detail.failures.size;
+ note.textContent=renderMerged?'Lighting is included in the map images.':!renderDefault?'Comparison unavailable: this view uses live lighting.':!info?'This style has no additional shadows or highlights to compare.':!info.mapResolution?'Comparison not prepared for this format. Try Spaceship Earth.':failed?'Comparison could not load. Use Retry.':loading?'Loading comparison — wait before judging sharpness.':comparison?.budgetFallback?'Overview shown: comparison exceeds the memory budget.':test.value==='auto'?'Normal rendering adapts detail to the view. Choose Highest detail or Map resolution for a fixed comparison.':comparison?.limited?'Comparison limited by available memory; both options use the same reference limit.':test.value==='high'?'Highest available shadow and highlight detail.':comparison?.capped?'Shadows and highlights reduced to the map’s maximum resolution.':'Lighting is already at or below map resolution; these options are identical here.';
+ canvas.dataset.lightingComparison=!info?.mapResolution?'unavailable':loading?'loading':failed?'failed':comparison?.budgetFallback?'overview':comparison?.capped?'capped':'original';
+ canvas.dataset.lightingDensity=String(comparison?.density||0);
+ canvas.dataset.lightingOriginalDensity=String(comparison?.originalDensity||0);
+ canvas.dataset.mapMaximumDensity=String(renderDefault?128*2**renderDefault.maxLevel:0);
+ if(renderDefault)$('relief-status').textContent=!renderDefault.lighting?'':defaultLayers.failures.size||defaultLayers.detail.failures.size?'Lighting detail could not load.':defaultLayers.pending.size||defaultLayers.detail.pending.size?'Loading lighting…':'Lighting layers ready';
+ const loadFailed=(surfaceCache?.failures.size||0)+(renderDefault?(defaultLayers?.failures.size||0)+(defaultLayers?.detail.failures.size||0):0);
+ let notice=$('map-load-notice');if(!notice){notice=document.createElement('div');notice.id='map-load-notice';notice.setAttribute('role','status');notice.innerHTML='<span>Some map detail could not load.</span> <button type="button">Retry</button>';notice.querySelector('button').onclick=()=>{surfaceCache?.retry();defaultLayers?.retry();draw();};$('stage').append(notice);}
+ notice.hidden=!loadFailed;canvas.dataset.layerPending=String((surfaceCache?.pending.size||0)+(renderDefault?(defaultLayers?.pending.size||0)+(defaultLayers?.detail.pending.size||0):0));canvas.dataset.layerFailures=String(loadFailed);
+}
+window.addEventListener('online',()=>{surfaceCache?.retry();defaultLayers?.retry();draw();});

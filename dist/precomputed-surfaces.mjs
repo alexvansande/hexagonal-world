@@ -1,5 +1,6 @@
-import {layoutOptions} from './map-options.mjs?v=felv-position-3';
-import manifest from './maps/surfaces/manifest.mjs?v=felv-position-3';
+import {assetURL} from './asset-url.mjs';
+import {layoutOptions} from './map-options.mjs?v=lifezones-shadows-3';
+import manifest from './maps/surfaces/manifest.mjs?v=lifezones-shadows-3';
 export const surfaceSources=['ecology','countries','continents','marble','terrain'];
 export function surfacePreset(state,source,land=10,ocean=6,blend=0,bridges=5){
  if(blend!==0||bridges!==5||(source==='ecology'&&(land!==10||ocean!==6)))return null;
@@ -24,36 +25,46 @@ export function surfacePlan(level,regions,collect){
 // so bilinear filtering reads the adjoining tile's pixels without a seam.
 export function surfaceTileRect(level,x,y){const span=2/(2**level);return [-1+x*span,1-(y+1)*span,span,span];}
 export class PrecomputedSurfaces{
- constructor(gl,redraw){this.gl=gl;this.redraw=redraw;this.cache=new Map();this.pending=new Set();this.queue=[];this.active=0;this.clock=0;this.requests=0;this.failures=new Set();}
+ constructor(gl,redraw,{root='maps/surfaces',extension='webp',budget=surfaceTileBudget,bitmapOptions}={}){this.bitmapOptions=bitmapOptions;this.root=root;this.extension=extension;this.budget=budget;this.controllers=new Map();this.attempts=new Map();this.retryTimers=new Map();this.disposed=false;this.gl=gl;this.redraw=redraw;this.cache=new Map();this.pending=new Set();this.queue=[];this.active=0;this.clock=0;this.requests=0;this.failures=new Set();}
  prepare(entry,tiles=[],level=0){
   // Give every region a low-resolution image before spending bandwidth on detail.
   this.required=new Set(Array.from({length:entry.regions},(_,region)=>`${entry.path}/${region}/0/0-0`));
   for(const tile of tiles)this.required.add(`${entry.path}/${tile.region}/${level}/${tile.x}-${tile.y}`);
-  // Drop obsolete queued work after a pan, zoom, or preset change. In-flight
-  // responses may finish, but cannot evict any texture needed by this view.
-  this.queue=this.queue.filter(job=>{if(this.required.has(job.key))return true;this.pending.delete(job.key);return false;});
+  this.setRequired(this.required);
   let ready=true;
   for(let region=0;region<entry.regions;region++){
    if(!this.tile(entry,region,0,0,0)&&!this.failures.has(`${entry.path}/${region}/0/0-0`))ready=false;
   }
   return ready;
  }
+ setRequired(keys){
+  this.required=keys;this.queue=this.queue.filter(job=>{if(keys.has(job.key))return true;this.pending.delete(job.key);return false;});
+  for(const [key,c] of this.controllers)if(!keys.has(key))c.abort();
+  for(const key of this.failures)if(!keys.has(key)){this.failures.delete(key);this.attempts.delete(key);clearTimeout(this.retryTimers.get(key));this.retryTimers.delete(key);}
+ }
  tile(entry,region,level,x,y){
   const key=`${entry.path}/${region}/${level}/${x}-${y}`;
+  return this.request(key,level===0);
+ }
+ request(key,preview=false){
   const cached=this.cache.get(key);if(cached){cached.used=++this.clock;return cached;}
-  if(!this.pending.has(key)&&!this.failures.has(key)){this.pending.add(key);if(level===0)this.queue.unshift({key});else this.queue.push({key});this.pump();}
+  if(!this.pending.has(key)&&!this.failures.has(key)){this.pending.add(key);if(preview)this.queue.unshift({key});else this.queue.push({key});this.pump();}
   return null;
  }
- pump(){while(this.active<4&&this.queue.length){const {key}=this.queue.shift();this.active++;this.requests++;
-  fetch(`maps/surfaces/${key}.webp`).then(r=>{if(!r.ok)throw Error(r.status);return r.blob();}).then(createImageBitmap).then(image=>{
-   const g=this.gl,texture=g.createTexture();g.activeTexture(g.TEXTURE0);g.bindTexture(g.TEXTURE_2D,texture);
+ pump(){if(this.disposed)return;while(this.active<4&&this.queue.length){const {key}=this.queue.shift();this.active++;this.requests++;const controller=new AbortController();this.controllers.set(key,controller);
+  fetch(assetURL(`${this.root}/${key}.${this.extension}`),{signal:controller.signal}).then(r=>{if(!r.ok)throw Error(r.status);return r.blob();}).then(blob=>createImageBitmap(blob,this.bitmapOptions)).then(image=>{
+   if(this.disposed||controller.signal.aborted){image.close();return;}this.failures.delete(key);this.attempts.delete(key);const g=this.gl,texture=g.createTexture();g.activeTexture(g.TEXTURE0);g.bindTexture(g.TEXTURE_2D,texture);
    for(const name of [g.TEXTURE_MIN_FILTER,g.TEXTURE_MAG_FILTER])g.texParameteri(g.TEXTURE_2D,name,g.LINEAR);
    for(const name of [g.TEXTURE_WRAP_S,g.TEXTURE_WRAP_T])g.texParameteri(g.TEXTURE_2D,name,g.CLAMP_TO_EDGE);
-   g.texImage2D(g.TEXTURE_2D,0,g.RGBA,g.RGBA,g.UNSIGNED_BYTE,image);image.close();this.cache.set(key,{texture,used:++this.clock});
+   g.texImage2D(g.TEXTURE_2D,0,g.RGBA,g.RGBA,g.UNSIGNED_BYTE,image);const {width,height}=image;image.close();this.cache.set(key,{texture,width,height,used:++this.clock});
    // About 32 MB of decoded tile textures, independent of total pyramid size.
-   while(this.cache.size>surfaceTileBudget){let oldest;for(const pair of this.cache)if(!this.required?.has(pair[0])&&(!oldest||pair[1].used<oldest[1].used))oldest=pair;if(!oldest)break;g.deleteTexture(oldest[1].texture);this.cache.delete(oldest[0]);}
-  }).catch(()=>this.failures.add(key)).finally(()=>{this.pending.delete(key);this.active--;this.pump();this.redraw();});
+   while(this.cache.size>this.budget){let oldest;for(const pair of this.cache)if(!this.required?.has(pair[0])&&(!oldest||pair[1].used<oldest[1].used))oldest=pair;if(!oldest)break;g.deleteTexture(oldest[1].texture);this.cache.delete(oldest[0]);}
+  }).catch(error=>{if(this.disposed||error.name==='AbortError')return;this.failures.add(key);const attempt=(this.attempts.get(key)||0)+1;this.attempts.set(key,attempt);
+   if(attempt<3){const timer=setTimeout(()=>{this.retryTimers.delete(key);if(this.disposed||!this.required?.has(key))return;this.failures.delete(key);this.redraw();},400*2**(attempt-1));this.retryTimers.set(key,timer);}
+  }).finally(()=>{this.controllers.delete(key);this.pending.delete(key);this.active--;this.pump();if(!this.disposed)this.redraw();});
  }}
+ retry(){for(const timer of this.retryTimers.values())clearTimeout(timer);this.retryTimers.clear();this.failures.clear();this.attempts.clear();this.redraw();}
+ dispose(){this.disposed=true;for(const c of this.controllers.values())c.abort();for(const timer of this.retryTimers.values())clearTimeout(timer);for(const tile of this.cache.values())this.gl.deleteTexture(tile.texture);this.cache.clear();this.queue=[];this.pending.clear();}
  get(entry,region,level,x,y){const overview=this.tile(entry,region,0,0,0);const exact=this.tile(entry,region,level,x,y);if(exact)return {...exact,rect:surfaceTileRect(level,x,y)};
   for(let l=level-1;l>0;l--){const divisor=2**(level-l),px=Math.floor(x/divisor),py=Math.floor(y/divisor),key=`${entry.path}/${region}/${l}/${px}-${py}`,tile=this.cache.get(key);if(tile){tile.used=++this.clock;return {...tile,rect:surfaceTileRect(l,px,py)};}}
   return overview?{...overview,rect:[-1,-1,2,2]}:null;

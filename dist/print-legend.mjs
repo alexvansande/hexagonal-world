@@ -1,7 +1,7 @@
 import {fadedLegendColor} from './legend-colors.mjs';
-import {lifezoneLegendLayout} from './lifezones-legend.mjs?v=waves-1';
+import {lifezoneLegendLayout} from './lifezones-legend.mjs?v=lifezones-shadows-3';
 export const pdfColor=hex=>[1,3,5].map(i=>(parseInt(hex.slice(i,i+2),16)/255).toFixed(6)).join(' ');
-import {landRows,oceanRows} from './map-layers.mjs?v=waves-1';
+import {landRows,oceanRows} from './map-layers.mjs?v=cloud-assets-1';
 export const lifezoneRows=(landCount,oceanCount)=>({land:landRows(landCount),ocean:oceanRows(oceanCount)});
 export function addLifezonesLegend({landCount,oceanCount,colorFade=0,lettering,pageWidth,pageHeight,ink}){
  const layout=lifezoneLegendLayout(landCount,oceanCount),scale=.8,left=pageWidth-388,top=pageHeight-18,commands=[];

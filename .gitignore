@@ -3,6 +3,16 @@
 .DS_Store
 __pycache__/
 /_site/
+/_asset-release/
+
+# Public images live in versioned Cloudflare R2 releases; local copies remain
+# available for offline preparation and preview. Never commit upload credentials.
+/dist/**/*.png
+/dist/**/*.webp
+/dist/**/*.jpg
+/dist/**/*.jpeg
+/dist/**/*.svg
+/dist/maps/merged-experiment/
 
 # Generated share landing pages (rebuilt for local preview and publishing).
 /dist/lifezones/

@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
-import {readFileSync,existsSync} from 'node:fs';
+import {readFileSync} from 'node:fs';
+import {existsSync} from './test-asset-index.mjs';
 import {layoutOptions,styleOptions} from './dist/map-options.mjs';
 import {ecologyCellCenter,ecologyHexRadius,ecologyGridLevel} from './dist/ecology-grid.mjs';
 import {nestedHexLevels} from './dist/subgrid.mjs';

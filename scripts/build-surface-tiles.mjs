@@ -12,7 +12,7 @@ const root=fileURLToPath(new URL('../dist/maps/surfaces/',import.meta.url));
 const browser=await chromium.launch({executablePath:process.env.CHROME_PATH,headless:true,args:process.platform==='darwin'?['--use-gl=angle','--use-angle=metal']:['--use-gl=angle','--use-angle=swiftshader']});
 const page=await browser.newPage({viewport:{width:1100,height:800}});
 page.on('pageerror',error=>console.error(error.message));
-await page.goto('http://127.0.0.1:4173/index.html?bake-surfaces=1');
+await page.goto(`${process.env.SURFACE_URL||'http://localhost:4173'}/index.html?bake-surfaces=1`);
 await page.waitForFunction(()=>typeof window.bakeSurface==='function'&&document.querySelector('#map-loading').textContent==='');
 await page.waitForTimeout(1000);
 const entries={},seen=new Map();
@@ -24,7 +24,7 @@ try{
   for(const source of ['ecology','countries','continents','marble','terrain']){
    const maxLevel=['ecology','countries','continents'].includes(source)?4:3;
    const regions=layout.state.method==='lambert-one'?1:layout.state.method==='lambert-two'?2:4;
-   const path=`${layout.arrangement==='felv'?'v3':'v1'}/${layout.arrangement}/${source}`;
+   const path=`${source==='ecology'?'lifezones-defaults-1':layout.arrangement==='felv'?'v3':'v1'}/${layout.arrangement}/${source}`;
    for(let region=0;region<regions;region++){
     const out=`${root}${path}/${region}`,marker=`${out}/complete.json`;
     try{await stat(marker);console.log('Reuse',path,region);continue;}catch{}

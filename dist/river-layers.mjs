@@ -1,3 +1,4 @@
+import {assetURL} from './asset-url.mjs';
 // Lossless precomputed HydroRIVERS distances; only the selected level is loaded.
 export const riverDischargeThresholds=[10000,5000,2000,1000,500,200,100,50,30,20,10,5];
 export const riverLevel=value=>Math.max(1,Math.min(12,Math.round(Number(value)||1)));
@@ -10,7 +11,7 @@ export function paintRiverMask(distances,widthScale,rgba=new Uint8ClampedArray(d
  return rgba;
 }
 async function loadField(url,{signal}){
- const response=await fetch(url,{signal});if(!response.ok)throw Error('River data could not load');
+ const response=await fetch(assetURL(url),{signal});if(!response.ok)throw Error('River data could not load');
  const bitmap=await createImageBitmap(await response.blob());
  try{
   const canvas=document.createElement('canvas');canvas.width=bitmap.width;canvas.height=bitmap.height;
@@ -23,6 +24,7 @@ async function loadField(url,{signal}){
 }
 export class RiverFields{
  constructor({mobile=false,load=loadField}={}){this.mobile=mobile;this.load=load;this.cached=null;this.pending=null;}
+ clear(){this.pending?.controller.abort();this.pending=null;this.cached=null;}
  async get(value){
   const level=riverLevel(value);
   // Cancel obsolete downloads even when returning to an already cached level.
@@ -41,3 +43,24 @@ export class RiverFields{
   return request.promise;
  }
 }
+
+// Pack the two native field channels directly for a live GPU upload. The
+// temporary packed array can be collected immediately after texImage2D.
+export function packRiverField(field,maxWidth=Infinity){
+ const width=Math.min(field.width,maxWidth),height=Math.max(1,Math.round(field.height*width/field.width)),data=new Uint8Array(width*height*2);
+ for(let y=0;y<height;y++)for(let x=0;x<width;x++){
+  const source=Math.min(field.height-1,Math.floor((y+.5)*field.height/height))*field.width+Math.min(field.width-1,Math.floor((x+.5)*field.width/width)),i=(y*width+x)*2;
+  data[i]=field.distances[source];data[i+1]=field.widths?.[source]??64;
+ }
+ return {width,height,data};
+}
+export const riverFieldGLSL=`
+uniform int riverField;uniform vec2 riverSize;uniform float riverWidthScale;
+float fieldCoverage(vec2 uv){vec4 value=texture2D(riverMap,uv);float d=floor(value.r*255.+.5),width=floor(value.a*255.+.5);return d<254.5&&d<=riverWidthScale*64.?floor(255.*min(1.,width/64.*riverWidthScale)+.5)/255.:0.;}
+float riverCoverage(vec2 uv){
+ if(riverField==0)return texture2D(riverMap,uv).a;
+ // Match the old LINEAR-filtered painted mask: threshold each texel before
+ // interpolation, instead of changing the river's width by filtering distances.
+ vec2 p=uv*riverSize-.5,base=(floor(p)+.5)/riverSize,f=fract(p),step=1./riverSize;
+ return mix(mix(fieldCoverage(base),fieldCoverage(base+vec2(step.x,0.)),f.x),mix(fieldCoverage(base+vec2(0.,step.y)),fieldCoverage(base+step),f.x),f.y);
+}`;

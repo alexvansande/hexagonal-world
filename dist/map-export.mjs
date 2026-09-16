@@ -1,4 +1,4 @@
-import {addLifezonesLegend,pdfColor} from './print-legend.mjs?v=earth-title-1';
+import {addLifezonesLegend,pdfColor} from './print-legend.mjs?v=lifezones-shadows-3';
 import {loadPrintLettering,addPrintLettering} from './pdf-lettering.mjs?v=earth-title-1';
 // Encode rows incrementally: the final PNG is never held in one giant canvas.
 const utf8=new TextEncoder();

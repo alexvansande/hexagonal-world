@@ -1,3 +1,5 @@
+import {assetURL} from './asset-url.mjs';
+import {riverFieldGLSL} from './river-layers.mjs?v=cloud-assets-1';
 import {circularMode} from './circular-projections.mjs';
 import {projectionGLSL} from './projection-shader.mjs?v=tetra-area-2';
 
@@ -44,6 +46,7 @@ uniform sampler2D h3;uniform sampler2D h4;uniform sampler2D h5;uniform sampler2D
 uniform int riversVisible;uniform float riverDepth;
 uniform float loaded;uniform vec2 tileSize;
 ${projectionGLSL}
+${riverFieldGLSL}
 float elevation(vec2 uv){
   if(loaded<.5)return texture2D(overview,uv).r;
   vec2 cell=floor(uv*vec2(3.,2.));
@@ -54,7 +57,7 @@ float elevation(vec2 uv){
 void main(){
   if(felvClip==1){float fy=-flatPosition.y;float fx=flatPosition.x-sqrt(3.)*fy;if(fy<0.||fy>sqrt(3.)||fx< -1.||fx>5.)discard;}
   vec2 uv=geographicUV(mapSphere(localPosition,regionIndex,weights,a,b,c,bias,blend),angles);float h=elevation(uv);
-  if(riversVisible==1)h=max(0.,h-texture2D(riverMap,uv).a*riverDepth*.08);
+  if(riversVisible==1)h=max(0.,h-riverCoverage(uv)*riverDepth*.08);
   // Linear two-channel encoding keeps sub-byte interpolation smooth, even on
   // devices that cannot render to floating point attachments.
   float v=h*255.;gl_FragColor=vec4(floor(v)/255.,fract(v),0.,1.);
@@ -198,6 +201,7 @@ function program(gl,vs,fs){
 
 export class ReliefRenderer {
   constructor(gl,vertexShader,onChange,onStatus){
+    this.controller=new AbortController();this.disposed=false;
     this.gl=gl;this.onChange=onChange;this.onStatus=onStatus;this.ready=false;this.detailed=false;this.generation=0;
     this.heightProgram=program(gl,vertexShader,heightFragment);
     this.lightProgram=program(gl,quadVertex,lightingFragment);
@@ -215,7 +219,7 @@ export class ReliefRenderer {
       gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);
       gl.texImage2D(gl.TEXTURE_2D,0,gl.LUMINANCE,1,1,0,gl.LUMINANCE,gl.UNSIGNED_BYTE,new Uint8Array([105]));this.heightTextures.push(t);
     }
-    this.riverTexture=gl.createTexture();gl.bindTexture(gl.TEXTURE_2D,this.riverTexture);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);gl.texImage2D(gl.TEXTURE_2D,0,gl.LUMINANCE,1,1,0,gl.LUMINANCE,gl.UNSIGNED_BYTE,new Uint8Array([0]));
+    this.riverTexture=gl.createTexture();gl.bindTexture(gl.TEXTURE_2D,this.riverTexture);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,1,1,0,gl.RGBA,gl.UNSIGNED_BYTE,new Uint8Array(4));
   }
   loc(p,name){let l=this.locations.get(p);if(!l){l=new Map();this.locations.set(p,l);}if(!l.has(name))l.set(name,this.gl.getUniformLocation(p,name));return l.get(name);}
   f(p,name,value){this.gl.uniform1f(this.loc(p,name),value);}
@@ -224,9 +228,13 @@ export class ReliefRenderer {
   v3(p,name,x,y,z){this.gl.uniform3f(this.loc(p,name),x,y,z);}
   bindTexture(texture,slot){const gl=this.gl;gl.activeTexture(gl.TEXTURE0+slot);gl.bindTexture(gl.TEXTURE_2D,texture);}
   async upload(url,slot,signal){
-    const response=await fetch(url,{signal});if(!response.ok)throw Error('Elevation image could not load');
-    const bitmap=await createImageBitmap(await response.blob(),{colorSpaceConversion:'none',premultiplyAlpha:'none',...(this.maxSourceWidth?{resizeWidth:this.maxSourceWidth,resizeQuality:'high'}:{})});
+    const cancel=()=>this.controller.abort();signal?.addEventListener('abort',cancel,{once:true});
+    let bitmap;
     try{
+      signal?.throwIfAborted();
+      const response=await fetch(assetURL(url),{signal:this.controller.signal});if(!response.ok)throw Error('Elevation image could not load');
+      bitmap=await createImageBitmap(await response.blob(),{colorSpaceConversion:'none',premultiplyAlpha:'none',...(this.maxSourceWidth?{resizeWidth:this.maxSourceWidth,resizeQuality:'high'}:{})});
+      signal?.throwIfAborted();if(this.disposed)throw new DOMException('Renderer released','AbortError');
       const gl=this.gl,max=gl.getParameter(gl.MAX_TEXTURE_SIZE);let source=bitmap;
       if(bitmap.width>max||bitmap.height>max){
         const factor=Math.min(max/bitmap.width,max/bitmap.height),c=document.createElement('canvas');
@@ -236,9 +244,10 @@ export class ReliefRenderer {
       gl.texImage2D(gl.TEXTURE_2D,0,gl.LUMINANCE,gl.LUMINANCE,gl.UNSIGNED_BYTE,source);
       gl.pixelStorei(gl.UNPACK_ALIGNMENT,4);gl.activeTexture(gl.TEXTURE0);
       const error=gl.getError();if(error!==gl.NO_ERROR)throw Error('Elevation exceeds available graphics memory');
-    }finally{bitmap.close();}
+    }finally{bitmap?.close();signal?.removeEventListener('abort',cancel);}
   }
   async load(detailed=false,signal){
+    if(this.disposed)return;
     if(this.loadPromise){await this.loadPromise;if(detailed&&!this.detailed&&this.ready)return this.load(true,signal);return;}
     if(this.ready&&(!detailed||this.detailed))return;
     this.loading=true;
@@ -253,11 +262,12 @@ export class ReliefRenderer {
           this.detailed=true;this.generation++;
         }
         this.onStatus(detailed?'Elevation ready · export detail':'Elevation ready · overview');this.onChange();
-      }catch(error){if(error.name==='AbortError')throw error;this.onStatus(this.ready?'Overview elevation active · fine detail could not load':'Elevation unavailable · turn relief off and on to retry');console.warn('Relief elevation:',error.message);this.onChange();}
+      }catch(error){if(this.disposed)return;if(error.name==='AbortError'){this.controller=new AbortController();throw error;}this.onStatus(this.ready?'Overview elevation active · fine detail could not load':'Elevation unavailable · turn relief off and on to retry');console.warn('Relief elevation:',error.message);this.onChange();}
       finally{this.loading=false;this.loadPromise=null;}
     })();
     await this.loadPromise;
   }
+  dispose(){this.disposed=true;this.controller.abort();const g=this.gl;for(const t of this.targets){if(t){g.deleteFramebuffer(t.fbo);g.deleteTexture(t.texture);}}this.targets=[];for(const t of this.heightTextures)g.deleteTexture(t);g.deleteTexture(this.riverTexture);g.deleteBuffer(this.quad);g.deleteBuffer(this.seamBuffer);for(const p of [this.heightProgram,this.lightProgram,this.horizonProgram,this.blitProgram,this.seamProgram])g.deleteProgram(p);this.ready=false;}
   releaseDetail(){
     const gl=this.gl;
     for(let i=1;i<7;i++){this.bindTexture(this.heightTextures[i],i);gl.texImage2D(gl.TEXTURE_2D,0,gl.LUMINANCE,1,1,0,gl.LUMINANCE,gl.UNSIGNED_BYTE,new Uint8Array([105]));}
@@ -301,9 +311,9 @@ export class ReliefRenderer {
     }
     this.horizonKey=horizonKey;this.horizonRefined=refined;this.horizonTexture=buffers[current].texture;return this.horizonTexture;
   }
-  render({width,height,dpr,unit,state,blend,clip,material,treatment,tone,background=null,signature,drawColor,drawGeometry,seams,riverTexture=null,riverVisible=false,riverDepth=0,pixelBudget=3000000,refined=false,highResolution=false,lightingPass=0}){
+  render({width,height,dpr,unit,state,blend,clip,material,treatment,tone,background=null,signature,drawColor,drawGeometry,seams,riverTexture=null,riverField=null,riverWidthScale=1,riverVisible=false,riverDepth=0,pixelBudget=3000000,refined=false,highResolution=false,lightingPass=0}){
     const gl=this.gl,pad=this.padding(state,unit),cssWidth=width+pad*2,cssHeight=height+pad*2;
-    const max=gl.getParameter(gl.MAX_TEXTURE_SIZE);
+    const max=Math.min(gl.getParameter(gl.MAX_TEXTURE_SIZE),gl.getParameter(gl.MAX_RENDERBUFFER_SIZE));
     const ratio=Math.min(dpr,Math.sqrt(pixelBudget/(cssWidth*cssHeight)),max/cssWidth,max/cssHeight);
     const fw=Math.ceil(cssWidth*ratio),fh=Math.ceil(cssHeight*ratio),ow=highResolution?Math.round(width*dpr):Math.ceil(width*ratio),oh=highResolution?Math.round(height*dpr):Math.ceil(height*ratio);
     const color=this.target(0,highResolution?ow:fw,highResolution?oh:fh),field=this.target(1,fw,fh),output=this.target(2,ow,oh);
@@ -319,7 +329,7 @@ export class ReliefRenderer {
       this.f(hp,'gridRotation',state.gridRotation*Math.PI/180);this.v3(hp,'angles',state.lon*Math.PI/180,state.lat*Math.PI/180,state.roll*Math.PI/180);
       this.i(hp,'circularMode',circularMode(state.method));this.i(hp,'tetraEqualArea',state.method==='tetra'?1:0);this.f(hp,'bias',state.bias);this.f(hp,'blend',blend);this.i(hp,'felvClip',clip?1:0);
       this.f(hp,'loaded',this.detailed?1:0);this.v2(hp,'tileSize',7200,5400);
-      ['overview','h0','h1','h2','h3','h4','h5'].forEach((name,i)=>{this.bindTexture(this.heightTextures[i],i);this.i(hp,name,i);});this.bindTexture(riverTexture||this.riverTexture,7);this.i(hp,'riverMap',7);this.i(hp,'riversVisible',riverVisible?1:0);this.f(hp,'riverDepth',riverDepth);
+      ['overview','h0','h1','h2','h3','h4','h5'].forEach((name,i)=>{this.bindTexture(this.heightTextures[i],i);this.i(hp,name,i);});this.bindTexture(riverTexture||this.riverTexture,7);this.i(hp,'riverMap',7);this.i(hp,'riverField',riverField?1:0);this.v2(hp,'riverSize',...(riverField||[1,1]));this.f(hp,'riverWidthScale',riverWidthScale);this.i(hp,'riversVisible',riverVisible?1:0);this.f(hp,'riverDepth',riverDepth);
       drawGeometry(hp);
       if(seams.length){
         const sp=this.seamProgram;gl.useProgram(sp);this.v2(sp,'size',cssWidth,cssHeight);this.v3(sp,'view',unit,state.panX,state.panY);this.f(sp,'gridRotation',state.gridRotation*Math.PI/180);

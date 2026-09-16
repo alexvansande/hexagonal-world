@@ -20,14 +20,16 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+      - name: Verify image release and fetch binary test inputs
+        run: node scripts/prepare-remote-tests.mjs
       - name: Run regression tests
         run: npm test
+        env:
+          REMOTE_ASSET_TESTS: '1'
       - name: Prepare public files
         run: |
-          mkdir _site
-          rsync -a --exclude=tests/ dist/ _site/
-          cp LICENSE _site/LICENSE
-          node scripts/build-share-pages.mjs _site
+          export MAP_ASSET_BASE_URL="$(node -p 'JSON.parse(require("fs").readFileSync("asset-release.json")).baseURL')"
+          node scripts/build-external-site.mjs _site
       - uses: actions/upload-pages-artifact@v4
         with:
           path: _site

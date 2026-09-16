@@ -8,14 +8,14 @@ const browser=await chromium.launch({executablePath:process.env.CHROME_PATH,head
 try{
  for(const [width,height] of [[1920,1200],[2560,1440]]){
   const page=await browser.newPage({viewport:{width,height},deviceScaleFactor:2}),requests=[],errors=[];
-  page.on('request',request=>{if(request.url().includes('/maps/surfaces/')&&request.url().endsWith('.webp'))requests.push(request.url());});
+  page.on('request',request=>{if(/\/maps\/(surfaces|default-layers|merged-experiment)\//.test(request.url())&&/\.(webp|png)$/.test(request.url()))requests.push(request.url());});
   page.on('pageerror',error=>errors.push(error.message));
-  await page.goto('http://127.0.0.1:4173/',{waitUntil:'domcontentloaded'});
+  await page.goto((process.env.SURFACE_URL||'http://localhost:4173')+'/',{waitUntil:'domcontentloaded'});
   const settled=async()=>{
    // Controls schedule their next render; don't mistake the previous view's
    // zero pending count for completion of a newly requested zoom or Fit.
    await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
-   await page.waitForFunction(()=>{const data=document.getElementById('map').dataset;return data.surface==='precomputed'&&data.surfacePreview==='false'&&data.surfacePending==='0';});
+   await page.waitForFunction(()=>{const data=document.getElementById('map').dataset;return data.surface==='precomputed'&&data.surfacePreview==='false'&&data.surfacePending==='0'&&(!data.layerPending||data.layerPending==='0');});
   };
   await settled();
   const repaint=()=>page.evaluate(async()=>{

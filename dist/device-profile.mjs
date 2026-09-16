@@ -9,3 +9,6 @@ export function mobileFitRect(width,height,titleBottom,panelTop,panelRight=width
  if(width>height)return {left:Math.min(width-100,panelRight+16),right:width-16,top,bottom:height-16};
  return {left:16,right:width-16,top,bottom:Math.max(top+40,Math.min(height-16,panelTop-18))};
 }
+
+// Bound the combined display buffers on unusually large/high-density screens.
+export function displayPixelRatio(width,height,ratio,quality,compact=false){return Math.min(ratio||1,quality,compact?1.5:3,Math.sqrt((compact?4500000:16000000)/Math.max(1,width*height)));}

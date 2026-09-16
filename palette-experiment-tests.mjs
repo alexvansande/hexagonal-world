@@ -1,0 +1,24 @@
+import assert from 'node:assert/strict';
+import {validatePalette} from './dist/palette-experiment.mjs';
+import {landRows,landLegends,oceanRows,paintEcology,setExperimentPalette} from './dist/map-layers.mjs?v=lifezones-defaults-2';
+import {lifezoneRows} from './dist/print-legend.mjs';
+const original={land:landLegends[10].map(c=>c.color),ocean:oceanRows(6).flatMap(r=>r.cells.map(c=>c.color)),shadows:false};
+assert.deepEqual(original.land,['#d9e4df','#9ba07e','#66867b','#d7c485','#7e9e60','#377b5d','#e3a75d','#b0bf50','#59a542','#118d5e'],'Approved ten-zone defaults');
+assert.deepEqual(original.ocean,['#7cd4df','#6193ef','#4e7ac3','#3224ff','#1000eb','#000770'],'Approved six-sea defaults');
+assert.deepEqual(lifezoneRows(10,6).land.flatMap(r=>r.cells.map(c=>c.color)),original.land,'Print land swatches match defaults');
+assert.deepEqual(lifezoneRows(10,6).ocean.flatMap(r=>r.cells.map(c=>c.color)),original.ocean,'Print ocean swatches match defaults');
+// Paint one real source class for every default swatch, rather than only checking the arrays.
+const examples=[...landLegends[10].map(c=>[c.raw[0],0,0,255]),[0,0,21,255],[0,0,81,255],[0,1,81,255],[0,0,121,255],[0,1,121,255],[0,2,121,255]].flat();
+const expected=[...original.land,...original.ocean].flatMap(hex=>[...[1,3,5].map(i=>parseInt(hex.slice(i,i+2),16)),255]);
+assert.deepEqual([...paintEcology(new Uint8ClampedArray(examples),10,6)],expected,'Renderer paints all 16 approved default colors');
+assert.deepEqual(validatePalette(JSON.parse(JSON.stringify(original))),original);
+assert.throws(()=>validatePalette({...original,ocean:['#ffffff']}));
+assert.throws(()=>validatePalette({...original,land:[...original.land.slice(1),'red']}));
+assert.throws(()=>validatePalette({...original,shadows:'false'}));
+const revised={...original,land:original.land.map(()=> '#123456'),ocean:original.ocean.map(()=> '#abcdef')};
+setExperimentPalette(revised);
+assert(landRows(10).every(row=>row.cells.every(c=>c.color==='#123456')),'Screen and print land legend use the chosen colors');
+assert(oceanRows(6).every(row=>row.cells.every(c=>c.color==='#abcdef')),'Screen and print ocean legend use the chosen colors');
+assert.deepEqual([...paintEcology(new Uint8ClampedArray([1,0,0,255,0,0,101,255]),10,6)],[18,52,86,255,171,205,239,255],'The map paints the exact selected land and sea colors');
+setExperimentPalette(original);
+console.log('Palette experiment: copy/paste validation, map colors and shared legends pass.');

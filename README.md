@@ -1,5 +1,33 @@
 # Hexagonal World
 
+## Local merged-lighting experiment (September 16)
+
+The user authorized generating and comparing replacement images, not deleting the
+old library or publishing a replacement. `maps/merged-experiment/` contains sparse
+PNG pyramids with default lighting and default background already included. It
+is separate from `maps/default-layers/`; the normal app still uses the old assets.
+Open a local map with `?merged-preview=1` to switch the new images on/off at the
+same view. Vector overlays, including Ivory's graticule, stay separate. Changing
+the background or independent lighting opacities leaves the experimental path.
+This comparison intentionally retains the old renderer underneath, so it is a
+visual/storage test, not a benchmark of the eventual optimized rendering path.
+
+`scripts/build-merged-maps.mjs` uses the existing projection geometry and base
+PNGs; `scripts/merge-map-images.py` incorporates the existing affine gain/highlight
+layers at the base map's pixel density. Source files are never changed. Existing
+unlit bases remain available; Political and Distortion Analysis need no new lit
+images. Lifezones outside Spaceship Earth currently has only overview lighting,
+so those experimental images retain that source detail. No new detail is invented.
+Infinite maps retain the geometric repeat period, which differs slightly from
+the rounded lighting raster extent. Chunked generation avoids giant full-map
+canvases, and empty background tiles are omitted.
+
+Run `scripts/measure-merged-maps.py` after generation for actual bytes and a
+per-format breakdown. Potential savings subtract the new files from the old
+lighting library while retaining unlit bases. Removal still requires adopting
+the replacement and resolving how custom opacity changes use live lighting.
+Do not deploy this experimental asset directory alongside the current library.
+
 A dependency-free WebGL app using the supplied 4320 × 2160 equirectangular continent texture.
 
 Run `npm start`, then open http://localhost:4173. Run `npm test` for geometry and regression validation.
@@ -44,6 +72,10 @@ See [AUDIT.md](AUDIT.md) for the September 2026 diagnosis, repairs, performance 
 The supplied name “rhombic icosahedron” is interpreted as **rhombic dodecahedron** because the requested solid has 12 rhombic faces.
 
 ## Cached lighting layers
+
+Default format/style combinations now load offline PNG layers. The on-demand
+renderer below is used for customized maps; it is not part of default startup.
+See **Pre-rendered default surfaces** for generation and verification.
 
 Sculpted, Dramatic and Gentle use the original `ReliefRenderer` settings and
 shaders. The renderer prepares two projected image layers containing diffuse
@@ -266,42 +298,78 @@ Run `/tests/mobile-checks.html` for browser checks covering all eight styles/for
 
 ### Pre-rendered default surfaces
 
-Default layouts use lossless WebP zoom tiles in `dist/maps/surfaces/`. The
-base color/hex-patch result is baked offline, without shadows, relief,
-background, grid lines, labels, or other overlays. Color treatments and the
-separate river and lighting layers are still composited by the viewer.
-The five source pyramids are shared across the eight styles; Flower World and
-Gosper share their identical regional projections. Only visible tiles load,
-with a 120-texture LRU budget (about 32 MB). Low-resolution tiles remain visible
-while close-up tiles arrive. PNG/PDF exports wait for their required detail.
+All 64 default format/style combinations use `dist/maps/default-layers/`.
+Flower World and Gosper share their pixel-identical regional base images.
+Their lossless PNG pyramids include the accepted base colors, material, rivers,
+and distortion appearance. Lighting gains and highlights are separate offline
+snapshots of the original renderer. Graticules and existing vector overlays stay
+sharp at any zoom. The default image program does not contain live ecology,
+terrain, river-field or shadow calculations; no elevation or HydroRIVERS source
+is downloaded for these views.
 
-Projection/orientation, interpolation, bridge rules, or Lifezones classification
-changes use the original live renderer. Returning to a default restores the
-pre-rendered path. Background, opacity and overlay changes can reuse base tiles.
-The manifest records the baked projection settings to reject stale orientations.
+Each region gets a 256px overview before visible detail. Lighting also starts
+with small previews. Pan/zoom request only visible detail tiles, with independent
+120-texture limits for base and lighting detail (about 32 MiB each), and at most
+four overview lighting textures. Queued and active obsolete requests are cancelled.
+Failed downloads receive bounded automatic retries, a visible Retry button, and
+an online-event retry. Failure never enables the heavy renderer. PNG/PDF exports
+wait for the requested images and report failed detail instead of saving gaps.
 
-The renderer starts without downloading an unrelated continent texture. All
-regions load their 256px overview tiles before requesting sharper visible tiles;
-the overview stays visible during refinement. Switching presets removes obsolete
-queued detail requests and prioritizes the new previews. Phone portrait controls
-span the screen with equal safe-area margins, and the title/subtitle are enlarged.
+The baked signature includes geography, material, river and lighting settings.
+Custom changes invalidate it. Live programs specialize the projection/bridge
+mode, and the ecology projection selects a sector before evaluating its spherical
+projection once. Live rivers upload two native channels rather than retaining a
+painted RGBA array and canvas; the shader preserves the old coverage/interpolation.
+Source images are resized to device texture limits. Returning to a default releases
+live source data, terrain textures/framebuffers, lighting snapshots and programs.
+Display buffers also have a total pixel budget and respect device dimension limits.
 
-Tile detail is chosen from both screen density and the visible texture budget.
-Large Retina views step down a detail level when needed to fit the 120-texture
-cache; zoomed views can still use the highest resolution. Current previews and
-visible detail tiles are protected from eviction, including when responses from
-an older view arrive. `scripts/check-surface-stability.mjs` checks large Retina
-views for stable pixels and completed requests, then exercises zoom and Fit.
+The older lossless WebP base pyramids in `dist/maps/surfaces/` remain useful for
+partly customized maps. They exclude rivers/material/lighting, so these uses still
+need the specialized live program. Do not use either bake after incompatible
+geography, palette or puzzle-outline changes.
 
-To regenerate, run the local preview on port 4173, install Playwright for Node
-and Pillow + NumPy for Python, then run `node scripts/build-surface-tiles.mjs`.
-Set `PLAYWRIGHT_PATH`, `CHROME_PATH`, or `SURFACE_PYTHON` to use an existing local
-installation. The generator resumes completed regions; remove the corresponding
-version directory before regenerating changed source data or patch rules, and
-bump the asset version for publishing. Do not publish partial manifests.
-`node surface-tests.mjs` checks every preset's asset pyramid and mesh clipping;
-`scripts/check-surface-tiles.mjs` additionally checks a local browser, mobile
-zoom, live fallback, default restoration, visual comparison captures and export.
+Offline preparation (Playwright, Chrome, Pillow and NumPy required):
+
+1. Start the static preview with `npm start`.
+2. Run `node scripts/build-default-layers.mjs` for base and overview PNGs.
+3. Run `node scripts/build-light-detail.mjs` for close-up lighting tiles.
+4. Run `python3 scripts/optimize-default-layers.py` for lossless PNG compression,
+   then `python3 scripts/share-default-bases.py` to share identical regions.
+5. Run `node scripts/build-share-pages.mjs` after app HTML/cache-version changes.
+
+Use `SURFACE_URL`, `PLAYWRIGHT_PATH`, `CHROME_PATH`, and `SURFACE_PYTHON` for local
+installations. Generators resume completed work. `LAYER_FILTER` selects one
+arrangement/style, `REBAKE_BASE=1` rebuilds its base, and `LIGHT_LEVEL` selects the
+highest lighting detail level. Refresh the complete manifest after filtered builds;
+never publish a partial manifest. Bake helpers are restricted to localhost and an
+explicit `?bake-layers=1` URL.
+
+`npm test` includes default signature/asset, packing, pixel-budget, projection,
+river, surface-cache, export and saved-link checks. Browser verification:
+
+- `scripts/check-default-layers.mjs`: every default, no live shaders/elevation/
+  river downloads or terrain framebuffers, and failed-download recovery.
+- `scripts/check-map-performance.mjs`: image zoom, live customization, resource
+  release, rapid switches, a simulated 2048px GPU, phone sizing, PNG/PDF exports.
+- Use `TEST_BROWSER=firefox` and `FIREFOX_PATH` for the isolated Firefox build.
+
+The extended image collection must fit the configured host before publication.
+The temporary lighting comparison is prepared for all six illuminated styles
+in Spaceship Earth. Normal (automatic) retains the usual adaptive rendering;
+Highest detail and Map resolution compare the highest available lighting with
+offline copies at the base map's maximum pixel density. Both comparison choices
+use the same reference after the memory limit is applied, so the capped version
+cannot accidentally be sharper than its reference on a large display. The test
+allows up to 384 lighting textures; normal rendering retains its 120-texture cap.
+It reports loading and memory limits and disables itself for styles without
+lighting, unprepared formats, or live views. It is excluded from shared state and does not merge or
+delete any original layers. `scripts/build-lighting-comparison.py` prepares these
+copies; `scripts/check-lighting-comparison.mjs` checks visible pixel changes,
+exact restoration, unchanged links, and absence of terrain rendering.
+GitHub Pages remains the application host. The subsequent approved image
+migration uses Cloudflare R2; see the migration section below. See the health-check follow-up for measured size,
+verification results, and any remaining publication constraint.
 
 The Map source dropdown also includes three Wikipedia reference maps, independently
 of the style presets: [Strebe's world map](https://commons.wikimedia.org/wiki/File:Equirectangular_projection_SW.jpg)
@@ -351,3 +419,41 @@ Widths below one pixel of the river raster use proportional alpha (0.5 px =
 50% opacity); wider centerlines stay opaque. The map shader retains alpha
 instead of thresholding it. This is coverage at river-texture resolution,
 not a new screen-space or zoom-adaptive line renderer.
+
+### Lifezones palette defaults
+
+The September 15 approved palette uses ten land classes and six ocean classes,
+with the original Sculpted lighting and rivers retained. The six-sea warm row uses vivid blue,
+deeper blue and navy; the exact swatches are in `dist/map-layers.mjs`. Cached
+ecology surfaces use `lifezones-defaults-1` to match the live and export legends.
+Other ocean class counts retain their existing reference palettes.
+
+### Temporary palette experiment
+
+Add `?palette-lab=1` to a map route to open the opt-in editor for 10 land
+classes and 6 ocean classes. It uses live rendering so edits appear on the map
+and shared legends, including print legends. Rivers stay enabled; the Shadows
+checkbox toggles relief lighting. Copy values exports named color lists and the
+shadow setting as JSON; paste into the field and press Apply pasted values to
+restore a palette. Invalid imports leave the current palette intact.
+
+The trial palette is kept in session storage for that tab, not applied to normal
+map visits or included in shared map links. Exit experiment restores the regular
+map. Copy the values to retain them outside the browser session or send them for
+adoption as defaults. No palette is made permanent by using this editor.
+
+### Cloudflare image migration (September 16)
+
+The accepted finite defaults now draw merged PNG tiles directly, progressively
+and with a 120-texture cache. Infinite Honeycomb keeps separate images. Customized
+finite lighting opacity or background uses live rendering. Original local assets
+remain available for offline preparation and preview.
+
+`dist/asset-url.mjs` routes image loaders through `dist/asset-config.mjs`; its
+empty default preserves local preview. `scripts/prepare-r2-assets.mjs` creates a
+hashed, explicit R2 upload inventory (5.47 GB), excluding unused experiments.
+`scripts/build-external-site.mjs` stages an image-free website for a verified
+remote release. The GitHub workflow verifies the pinned remote inventory and
+downloads binary test inputs before publishing. Image files are excluded from
+new source commits and from the Pages artifact; historical Git objects are retained. See [CLOUDFLARE-ASSETS.md](CLOUDFLARE-ASSETS.md)
+for the sequence, costs, domain setup and validation.

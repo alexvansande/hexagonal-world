@@ -1,3 +1,4 @@
+import {assetURL} from './asset-url.mjs';
 import {projectionChoices,otherConstruction} from './about-projections.mjs?v=about-shapes-1';
 import {initAboutRoute} from './about-route.mjs?v=about-shapes-1';
 import {construction,constructionMesh,rearrangementFrame,mix,sub,rotate} from './about-geometry.mjs?v=felv-paths-2';
@@ -26,7 +27,7 @@ function start(host,dialog,onProjection){
  for(const [name,offset] of [['position',0],['globe',12]]){const a=gl.getAttribLocation(program,name);gl.enableVertexAttribArray(a);gl.vertexAttribPointer(a,3,gl.FLOAT,false,24,offset);}
  const texture=gl.createTexture();gl.bindTexture(gl.TEXTURE_2D,texture);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,1,1,0,gl.RGBA,gl.UNSIGNED_BYTE,new Uint8Array([200,200,200,255]));
  gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);
- const image=new Image();image.onload=()=>{gl.bindTexture(gl.TEXTURE_2D,texture);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,image);dirty=true;};image.onerror=()=>{caption.textContent='The continent image could not load. Reopen this page to try again.';};image.src=new URL('./continents.png',import.meta.url).href;
+ const image=new Image();image.onload=()=>{gl.bindTexture(gl.TEXTURE_2D,texture);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,image);dirty=true;};image.onerror=()=>{caption.textContent='The continent image could not load. Reopen this page to try again.';};image.crossOrigin='anonymous';image.src=assetURL('continents.png');
  const model=construction(),rhombicMesh=constructionMesh(model),fixedFrame=rearrangementFrame(model),cache=new Map();
  let {samples,edges,cuts}=rhombicMesh,markers=[],alternative=null,activeMethod='rhombic';
  let value=0,target=0,yaw=.4,pitch=-.3,userYaw=0,userPitch=0,dirty=true,last=0,drag=null,paused=matchMedia('(prefers-reduced-motion: reduce)').matches;

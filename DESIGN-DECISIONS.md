@@ -132,14 +132,44 @@ Evidence: “Run the server so I can see the app”; “Diagnose map rendering b
 
 ## 6. Detail and performance must preserve the same visible design
 
-**Decision.** Default map surfaces use offline zoom pyramids; customized maps use
-live rendering. Base color, rivers, lighting and overlays remain separate.
+**Decision (updated September 15).** Opening any default format/style uses offline
+image layers, including its rivers, material and lighting. Default views must not
+compile the live ecology program, rasterize global rivers, load elevation, or run
+terrain/shadow passes. Customized geography and appearance retain live rendering.
+Image compositing and inexpensive vector overlays are still allowed.
+The September 16 resolution comparison found no worthwhile visual benefit from
+extra lighting resolution in the user's review (a small Satellite difference was
+acceptable). The user authorized generating separate experimental default images
+with lighting incorporated at map resolution, then measuring and reviewing them.
+On September 16 the user approved adopting the finite-map replacement while
+keeping Infinite Honeycomb separate, and requested Cloudflare image hosting.
+The finite renderer now draws the accepted PNGs directly, with no old renderer
+underneath. Fixed preset lighting/background use fused images; customized
+opacity/background use live rendering. Independent controls remain available.
+Current local assets are retained until the remote release is uploaded and verified.
+Compare actual pixels per map unit; base and lighting
+level numbers cover different extents. Report when the toggle makes no change.
+The test uses explicit Automatic / Highest detail / Map resolution choices.
+Choose a common reference within the memory budget before capping density;
+independent level reductions previously made the original look softer on large
+displays. Do not tell the user to zoom beyond the application's maximum.
+The full-period merged infinite representation remains experimental.
+The separate generated experiment measures 2.78 GB for the seven finite formats
+versus 4.97 GB of replaceable lighting (2.19 GB net saving, keeping unlit bases).
+Flattening the whole repeating Infinite Honeycomb period instead duplicates map
+colors: 5.34 GB versus 1.60 GB of old lighting. This is evidence against adopting
+that representation for Infinite Honeycomb, not approval to remove any assets.
+See `MERGED-MAPS-EXPERIMENT.md` for the original experiment and
+`CLOUDFLARE-ASSETS.md` for adoption and migration status.
 Mobile should reach a comparable close-up scale to desktop, not merely share the
 same numeric zoom multiplier on a smaller initial map.
 
-**Reason.** The user explicitly requested pre-rendering expensive default hex and
-patch work, excluding the already separate shadows and relief. Changing the
-appearance or deleting small details is not automatically an acceptable speedup.
+**Reason.** The September 15 performance request explicitly extends pre-rendering
+to everything practical and requires preserving the maps' appearance. It supersedes
+the earlier exclusion of shadows and relief from offline preparation. Use coarse
+previews first, lazy visible detail, bounded caches, and recoverable image loads;
+do not silently fall back to heavy rendering after a failed download. Changing
+colors, geography or deleting small details is not an acceptable speedup.
 
 **Preserve.** Download visible detail, retain coarse fallbacks, bound caches and
 release export-only resources. Do not use baked surfaces after projection or
@@ -222,6 +252,18 @@ Evidence: “Add About page globe widget”. Checks: `about-tests.mjs`,
 
 ## 10. Repository workflow and publishing are different decisions
 
+**September 16 image-hosting approval.** Serve image assets from Cloudflare R2;
+keep the application on GitHub Pages. The domain is registered at GoDaddy.
+Registration can remain there; DNS changes must preserve the existing zone.
+The user activated R2 and changed the GoDaddy nameservers; the Cloudflare zone
+is active. Public images use the dedicated `hexagonal-earth-assets` bucket and
+`assets.hexagonal.earth`, with scoped local upload credentials, CORS, and immutable
+release prefixes. GitHub Pages continues to serve the application.
+The asset release inventory is explicit and versioned. Verify it remotely and
+test cross-origin exports before changing production or removing tracked copies.
+Removing current image files from Git does not remove their historical commits;
+history rewriting is a separate, unapproved operation.
+
 **Decision.** Keep the dependency-free static WebGL architecture unless a change
 requires otherwise. `dist/` contains authored application code as well as assets;
 it is not a disposable build directory. Generated share pages are rebuilt by
@@ -263,6 +305,29 @@ and restoring shared links. Hiding is presentation, not deleting or resetting
 settings; hidden inputs must also leave the keyboard tab order.
 
 Evidence: September 14 request in “Add puzzle overlay option”.
+
+## 12. Adopt the supplied Lifezones palette and retain shadows
+
+**Decision.** Use the user's September 15 palette for the default ten land zones
+and six seas, with the original Sculpted lighting enabled. Keep rivers and the remaining style
+settings. The exact colors live in `dist/map-layers.mjs`.
+
+**Reason.** The user selected these values in the temporary palette editor and
+explicitly asked to work with them as defaults. This supersedes the unapproved
+blue-violet-to-plum warm-ocean experiment for the six-sea map: its warm row now
+uses vivid blue, deeper blue, and navy. Boreal scrub is muted and warm rainforest
+is brighter. Other ocean class counts keep their existing reference palettes.
+
+**Preserve.** Live maps, baked default surfaces, screen legends and print legends
+must use the same colors. Rebuild and version ecology tiles on palette changes.
+The user explicitly corrected the imported `shadows: false` flag: it was not
+a request to remove the default shadows. Restore the original Sculpted setting
+and bake its shadows into the default image layers, preserving lightweight startup.
+This supersedes the earlier interpretation of the palette editor's off flag.
+
+Evidence: September 15 supplied 16-color palette; subsequent explicit correction
+to ignore the false shadow flag and restore shadows.
+Checks: `palette-experiment-tests.mjs`, `style-tests.mjs`, `surface-tests.mjs`.
 
 ## Maintaining this record
 

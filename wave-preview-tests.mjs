@@ -2,13 +2,17 @@ import assert from 'node:assert/strict';
 import {oceanRows,paintEcology,oceanClass} from './dist/tests/wave-layers.mjs';
 const luminance=hex=>[1,3,5].map(i=>parseInt(hex.slice(i,i+2),16)/255).map(v=>v<=.04045?v/12.92:((v+.055)/1.055)**2.4).reduce((sum,v,i)=>sum+v*[.2126,.7152,.0722][i],0);
 import {waveLegendLayout} from './dist/tests/wave-legend.mjs';
+// Hue survives uniform darkening; brightness differences alone do not.
+const hue=hex=>{const [r,g,b]=[1,3,5].map(i=>parseInt(hex.slice(i,i+2),16)),d=Math.max(r,g,b)-Math.min(r,g,b);return 60*(4+(r-g)/d);};
 const encoded=c=>1+Math.round((c+5)*4);
 for(const count of [3,6,10,15]){
  const rows=oceanRows(count);
  assert.equal(rows.reduce((sum,r)=>sum+r.cells.length,0),count);
  assert.deepEqual(rows.map(r=>r.cells.length),rows.map((_,i)=>i+1));
  for(const row of rows)for(let j=1;j<row.cells.length;j++)assert(luminance(row.cells[j].color)<luminance(row.cells[j-1].color),'Rougher water gets darker within every temperature row');
- if(count===10)assert.deepEqual(rows.map(r=>r.cells.map(c=>c.color)),[['#7cd4df'],['#6eb2ef','#62a0d9'],['#5374ef','#4662d0','#3953ad'],['#401cee','#3917d2','#3013b3','#280f95']],'Match the reference swatches');
+ if(count===10)assert.deepEqual(rows.map(r=>r.cells.map(c=>c.color)),[['#7cd4df'],['#6eb2ef','#62a0d9'],['#5374ef','#4662d0','#3953ad'],['#5143e8','#6035c8','#702ba5','#792779']],'Keep the reference temperature palette with distinct warm exposure hues');
+ const warm=rows.at(-1).cells;
+ if(count!==6)for(let j=1;j<warm.length;j++)assert(hue(warm[j].color)-hue(warm[j-1].color)>8,'Warm exposure classes remain distinct in hue, not just brightness/shading');
  const classes=new Set();
  for(let thermal=1;thermal<256;thermal++)for(let band=0;band<5;band++)classes.add(oceanClass(band,thermal,count));
  assert.equal(classes.size,count,'Every legend swatch is reachable');

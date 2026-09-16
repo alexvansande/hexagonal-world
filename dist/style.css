@@ -214,3 +214,6 @@ aside{overscroll-behavior:contain}
 #research-dialog .about-bot-copy p{font-size:14px;line-height:1.8;overflow-wrap:break-word}
 #research-dialog summary:focus-visible{outline:2px solid #087f97;outline-offset:5px}
 #about-sources ul{padding-left:22px}
+#map-load-notice{position:absolute;z-index:8;top:18px;left:50%;transform:translateX(-50%);padding:10px 14px;border-radius:8px;background:#fff;color:#193c49;box-shadow:0 2px 15px #0002;font-size:13px}#map-load-notice[hidden]{display:none}#map-load-notice button{margin-left:8px;padding:5px 12px}
+/* Temporary comparison control for the pre-rendered lighting resolution. */
+.temporary-test{font-size:11px;color:#6f7f78;margin:8px 0}

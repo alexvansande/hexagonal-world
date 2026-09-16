@@ -1,18 +1,19 @@
-import {RiverFields,paintRiverMask} from './river-layers.mjs?v=opacity-1';
+import {assetURL} from './asset-url.mjs';
+import {RiverFields,paintRiverMask,packRiverField} from './river-layers.mjs?v=cloud-assets-1';
 import {referenceSources} from './reference-sources.mjs';
-import {compactDevice} from './device-profile.mjs';
+import {compactDevice} from './device-profile.mjs?v=performance-1';
 // Custom triangular aggregations of the source's 39 Holdridge classes.
 // Each successive climate row adds one moisture distinction.
 const group=(name,color,raw)=>({name,color,raw,detail:'Holdridge '+raw.join(', ')});
 const polar=()=>group('Polar zones & tundra','#d9e4df',[1,2,3,4,5,6]);
 const boreal=()=>[
- group('Boreal desert & scrub','#a5ad79',[7,8]),group('Boreal forest','#66867b',[9,10,11])];
+ group('Boreal desert & scrub','#9ba07e',[7,8]),group('Boreal forest','#66867b',[9,10,11])];
 const temperate=()=>[
  group('Temperate desert & steppe','#d7c485',[12,13,14,18,19,20]),
  group('Temperate dry & moist forest','#7e9e60',[15,21,22]),group('Temperate wet & rain forest','#377b5d',[16,17,23,24])];
 const warm=()=>[
  group('Warm desert & scrub','#e3a75d',[25,26,27,32,33,34]),group('Warm dry forest','#b0bf50',[28,35,36]),
- group('Warm moist forest','#59a542',[29,37]),group('Warm wet & rain forest','#126948',[30,31,38,39])];
+ group('Warm moist forest','#59a542',[29,37]),group('Warm wet & rain forest','#118d5e',[30,31,38,39])];
 const landBands={
  3:[['Cold',[group('Polar & boreal zones','#8aa49e',[1,2,3,4,5,6,7,8,9,10,11])]],
  ['Warm',[group('Desert, scrub & steppe','#d6b46b',[12,13,14,18,19,20,25,26,27,32,33,34]),group('Temperate & warm forests','#398958',[15,16,17,21,22,23,24,28,29,30,31,35,36,37,38,39])]]],
@@ -40,18 +41,22 @@ export function landRows(count){return landBands[count].map(([label,cells])=>({l
 
 // Blue channel: 0 = missing SST, otherwise 1 + round((°C + 5) * 4).
 export const oceanTemperature=encoded=>encoded>0?(encoded-1)/4-5:null;
-// sRGB swatches sampled from the user's reference; interpolate the same
-// temperature/exposure palette for the other triangular class counts.
+// Reference temperature palette, with a blue-violet → plum exposure shift
+// at the warm end to help distinguish wave exposure from relief shadows.
+// Interpolate the same palette for the other triangular class counts.
 const referenceOcean=[
  ['#7cd4df'],
  ['#6eb2ef','#62a0d9'],
  ['#5374ef','#4662d0','#3953ad'],
- ['#401cee','#3917d2','#3013b3','#280f95'],
+ ['#5143e8','#6035c8','#702ba5','#792779'],
 ];
 const oceanRGB=hex=>[1,3,5].map(i=>parseInt(hex.slice(i,i+2),16));
 const mix=(a,b,t)=>a.map((v,i)=>v+(b[i]-v)*t);
 function rowColor(row,exposure){const x=exposure*(row.length-1),i=Math.floor(x);return mix(oceanRGB(row[i]),oceanRGB(row[Math.min(i+1,row.length-1)]),x-i);}
+// Approved six-sea palette is exact; other class counts retain their reference.
+const defaultSixSeas=[['#7cd4df'],['#6193ef','#4e7ac3'],['#3224ff','#1000eb','#000770']];
 export function oceanColor(row,column,levels){
+ if(levels===3)return defaultSixSeas[row][column];
  const temperature=row/(levels-1)*3,i=Math.floor(temperature),exposure=row?column/row:0;
  return '#'+mix(rowColor(referenceOcean[i],exposure),rowColor(referenceOcean[Math.min(i+1,3)],exposure),temperature-i).map(v=>Math.round(v).toString(16).padStart(2,'0')).join('');
 }
@@ -64,8 +69,14 @@ export function oceanRows(count){
   const lo=cuts[i-1],hi=cuts[i],temp=lo===undefined?`<${hi}°C`:hi===undefined?`≥${lo}°C`:`${lo}–${hi}°C`;
   const bands=exposureCuts[i+1],low=percentages[bands[j-1]??0],high=percentages[bands[j]??5];
   const exposure=i===0?'all wave exposures':`${low}–${high}% of samples with significant wave height >2 m`;
-  return {name:`${row.label} · ${exposure}`,color:oceanColor(i,j,cuts.length+1),detail:`Annual surface temperature ${temp}; ${exposure}. Hue indicates temperature; within each temperature row, darker means more wave-exposed. The cold apex merges all exposures. This is not a navigation risk score.`};
+  return {name:`${row.label} · ${exposure}`,color:(count===6&&experimentOcean?.[i*(i+1)/2+j])||oceanColor(i,j,cuts.length+1),detail:`Annual surface temperature ${temp}; ${exposure}. Hue indicates temperature; more wave-exposed water is darker, ${count===6?'with warm water progressing from vivid blue to navy.':'with warm water also shifting from blue-violet toward plum.'} The cold apex merges all exposures. This is not a navigation risk score.`};
  })}));
+}
+let experimentOcean=null;
+export let experimentPaletteRevision=0;
+export function setExperimentPalette(palette){
+ palette.land.forEach((color,i)=>{landLegends[10][i].color=color;});
+ experimentOcean=[...palette.ocean];experimentPaletteRevision++;
 }
 export function oceanLegend(count){return oceanRows(count).flatMap(row=>row.cells);}
 export function oceanClass(exposure,thermal,count){
@@ -129,7 +140,7 @@ export function paintEcology(pixels,landCount,oceanCount){
  return out;
 }
 const images=new Map();
-function loadImage(path){if(!images.has(path)){if(images.size>=3)images.delete(images.keys().next().value);images.set(path,new Promise((resolve,reject)=>{const image=new Image();image.onload=()=>resolve(image);image.onerror=()=>{images.delete(path);reject(Error('Could not load '+path));};image.src=path;}));}return images.get(path);}
+function loadImage(path){if(!images.has(path)){if(images.size>=3)images.delete(images.keys().next().value);images.set(path,new Promise((resolve,reject)=>{const image=new Image();image.onload=()=>resolve(image);image.onerror=()=>{images.delete(path);reject(Error('Could not load '+path));};image.crossOrigin='anonymous';image.src=assetURL(path);}));}return images.get(path);}
 let ecologyPixels,riverCanvas,riverMaskKey,riverPixels;
 const riverFields=new RiverFields({mobile:compactDevice});
 export async function riverMask(levels=6,widthScale=1){
@@ -166,3 +177,7 @@ async function ecologySource(landCount,oceanCount){
  context.putImageData(new ImageData(paintEcology(ecologyPixels,landCount,oceanCount),img.width,img.height),0,0);
  return canvas;
 }
+
+export async function riverTextureData(level,maxWidth){return packRiverField(await riverFields.get(level),maxWidth);}
+export function releaseRiverMask(){riverPixels=null;riverMaskKey=null;if(riverCanvas)riverCanvas.width=riverCanvas.height=1;riverCanvas=null;}
+export function releaseLiveMapData(){releaseRiverMask();riverFields.clear();images.clear();ecologyPixels=null;}

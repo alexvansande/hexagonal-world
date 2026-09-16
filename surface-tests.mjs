@@ -1,11 +1,12 @@
 import assert from 'node:assert/strict';
-import {existsSync} from 'node:fs';
+import {existsSync} from './test-asset-index.mjs';
 import {layoutOptions,styleOptions} from './dist/map-options.mjs';
 import {PrecomputedSurfaces,surfacePreset,surfaceLevel,surfacePlan,surfaceTileBudget,surfaceTileRect,clipSurfaceTriangle} from './dist/precomputed-surfaces.mjs';
 for(const layout of layoutOptions)for(const style of styleOptions){
  const state={...layout.state,...style.state};
  const entry=surfacePreset(state,style.source,style.controls['land-classes'],style.controls['ocean-classes']);
  assert(entry,`${layout.arrangement}/${style.id} has pre-rendered assets`);
+ if(style.source==='ecology')assert(entry.path.startsWith('lifezones-defaults-1/'),'Default Lifezones must use tiles rebuilt for the approved palette');
  for(let region=0;region<entry.regions;region++)for(let level=0;level<=entry.maxLevel;level++)for(let y=0;y<2**level;y++)for(let x=0;x<2**level;x++)assert(existsSync(`dist/maps/surfaces/${entry.path}/${region}/${level}/${x}-${y}.webp`));
  assert.equal(surfacePreset({...state,lon:state.lon+.001},style.source),null,'Custom orientation must not use a default bake');
  assert.equal(surfacePreset({...state,bias:1.01},style.source),null);
