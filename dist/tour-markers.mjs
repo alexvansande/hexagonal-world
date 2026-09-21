@@ -2,23 +2,14 @@ import {rotation} from './optimizer.mjs?v=tetra-area-2';
 import {patchProjector} from './indicatrix.mjs?v=tetra-area-2';
 
 // Representative discovery anchors, not boundaries or claims of geographic extent.
-// Future content can use these durable IDs; overlays are resolved by the story controller.
+// Five entry points (September 21 decision); each opens a dated, animated story.
+// Overlays are resolved by the story controller through tour-data.mjs.
 export const tourLocations=Object.freeze([
  {id:'origin-of-mankind',title:'Origin of mankind',latitude:3.5,longitude:36,overlay:'human-migrations'},
- {id:'ancient-egypt',title:'Ancient Egypt',latitude:26,longitude:32.6,overlay:'egypt-thutmose-iii'},
- {id:'mesopotamia',title:'Mesopotamia',latitude:33.1,longitude:44.4,overlay:'neo-assyrian'},
- {id:'eurasian-forests-grasslands',title:'Eurasian forests and grasslands',latitude:60,longitude:59,overlay:null},
  {id:'silk-road',title:'Silk Road',latitude:45.4,longitude:82.4,overlay:'silk-road'},
  {id:'iceland-to-vinland',title:'Iceland to Vinland',latitude:64.8,longitude:-18.5,overlay:'norse-voyages'},
- {id:'andean-empires',title:'Andean empires',latitude:-13.5,longitude:-72,overlay:null},
- {id:'antarctica',title:'Antarctica',latitude:-78,longitude:20,overlay:null},
  {id:'french-polynesia',title:'French Polynesia',latitude:-17.65,longitude:-149.43,overlay:'polynesia'},
- {id:'australia',title:'Australia',latitude:-25,longitude:134,overlay:null},
- {id:'bering-strait',title:'Bering Strait',latitude:65.8,longitude:-169,overlay:null},
- {id:'north-america',title:'North America',latitude:44,longitude:-100,overlay:null},
- {id:'amazon-mouth',title:'Mouth of the Amazon',latitude:0,longitude:-50,overlay:'amazon-basin'},
- {id:'india',title:'India',latitude:23,longitude:79,overlay:'maurya-ashoka'},
- {id:'china',title:'China',latitude:34.3,longitude:108.9,overlay:'qing-qianlong'},
+ {id:'americas-exchange',title:'Americas exchange',latitude:-13.5,longitude:-72,overlay:'americas-exchange'},
 ].map(Object.freeze));
 
 export const tourEnabled=entry=>!!entry?.path?.endsWith('/dymaxion/lifezones');

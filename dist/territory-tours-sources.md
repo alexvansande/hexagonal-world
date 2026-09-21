@@ -65,6 +65,30 @@ discusses the sagas and the archaeological settlement at L’Anse aux Meadows.
 [Parks Canada: Management plan](https://parks.canada.ca/lhn-nhs/nl/meadows/info/gestion-management-2019)
 explains its role as a base for wider exploration.
 
+The Norse story now has five chapters: the Northern Isles (c. 800), settling
+Iceland (c. 870–930), Greenland (c. 985–1000), Vinland (c. 1000–1020) and the
+later trade (c. 1250–1350). Each is a snapshot of active sea lanes; two-way
+lines mark regular return sailing and are not ship counts. Additional evidence:
+
+- [Kuitems et al., Nature (2021): Evidence for European presence in the Americas in AD 1021](https://www.nature.com/articles/s41586-021-03972-8).
+  Tree rings from L’Anse aux Meadows give the exact year 1021 for Norse wood-cutting
+  in Newfoundland. The Vinland legs stay uncertain because the sagas’ places are
+  only approximately identified.
+- [Ebenesersdóttir et al., Science (2018): Ancient genomes from Iceland reveal the making of a human population](https://www.science.org/doi/10.1126/science.aar2625).
+  Iceland’s settlers had both Norse and Gaelic ancestry; the Hebrides/Ireland
+  route is inferred from this and from the sagas, so it is drawn fainter.
+- [Curtin et al., Communications Earth & Environment (2021): Sedimentary DNA and molecular evidence for early human occupation of the Faroe Islands](https://www.nature.com/articles/s43247-021-00318-0).
+  Sheep DNA in lake sediments suggests people on the Faroes centuries before the
+  Norse settlement; the first chapter’s note reflects this.
+- [Star et al., Proceedings of the Royal Society B (2018): Ancient DNA reveals the Arctic origin of Viking Age walrus ivory](https://royalsocietypublishing.org/doi/10.1098/rspb.2018.0978).
+  Later medieval walrus ivory in Europe came largely from Greenland, supporting the
+  Norðrsetur hunting voyages and the Bergen trade drawn in the last chapter.
+- [UNESCO: Kujataa Greenland, Norse and Inuit farming at the edge of the ice cap](https://whc.unesco.org/en/list/1536/).
+  Context for the Eastern Settlement and the later Inuit presence. Norse objects
+  found in the far north (Smith Sound region) record contact with Thule Inuit;
+  the drawn line is a schematic, uncertain link. The 1347 Markland ship is recorded
+  in the Icelandic annals; its route is drawn fainter.
+
 Routes combine settlement and exploration across generations, not a single
 recorded journey. Western Norway near present-day Bergen is a geographic anchor:
 [Bergen’s official visitor site](https://en.visitbergen.com/ideas-and-inspiration/explore-bergen/bergen-world-heritage-city)

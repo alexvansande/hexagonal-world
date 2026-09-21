@@ -5,7 +5,7 @@ import {makeGeometry,layouts,world,canvasWorld,hex,matching} from './dist/geomet
 import {makeArrangement,markEdges} from './dist/arrangements.mjs';
 import {layoutOptions} from './dist/map-options.mjs';
 import {pacificTourNet,interpolateTourNet,tourImagePieces} from './dist/tour-layout.mjs';
-import {polynesiaRoutes,projectTourRoutes} from './dist/tour-routes.mjs';
+import {polynesiaRoutes,projectTourRoutes,tourChapters} from './dist/tour-routes.mjs';
 import {parseTourContent} from './dist/tour-content.mjs';
 import {tourLocations} from './dist/tour-markers.mjs';
 import pacificLighting from './dist/maps/pacific-manifest.mjs';
@@ -52,9 +52,11 @@ for(let i=1;i<route.anchors.length;i++){
  assert(b.location.longitude>160||b.location.longitude< -100,'Outline takes the short Pacific arc');
 }
 const stories=parseTourContent(readFileSync('dist/tour-stories.md','utf8'));
-assert.deepEqual(Object.keys(stories).filter(id=>!id.startsWith('silk-road-')).sort(),tourLocations.map(p=>p.id).sort(),'Every location has editable Markdown');
+const storyIds=[...tourLocations.map(p=>p.id),...Object.values(tourChapters).flatMap(c=>c.periods.map(p=>p.storyId))].sort();
+assert.deepEqual(Object.keys(stories).sort(),storyIds,'Every entry point and every chapter has editable Markdown, and nothing else');
 for(const id of ['silk-road','french-polynesia'])assert(stories[id].paragraphs.length&&stories[id].source);
-assert(stories['french-polynesia'].source.url.startsWith('https://'));
+assert.equal(stories['french-polynesia'].source.url,'./polynesia-sources.md');
+assert(readFileSync('dist/polynesia-sources.md','utf8').includes('https://www.nature.com/articles/s41586-020-2487-2'),'Polynesian notes cite the 2020 gene-flow study');
 assert.equal(stories['silk-road'].source.url,'./silk-road-sources.md');
 assert(readFileSync('dist/silk-road-sources.md','utf8').includes('https://depts.washington.edu/silkroad/texts/periplus/periplus.html'));
 assert.equal(parseTourContent('## demo\n### New title\n\nEdited paragraph.\n\n> Note\n\n[Read](https://example.org)\n').demo.paragraphs[0],'Edited paragraph.');

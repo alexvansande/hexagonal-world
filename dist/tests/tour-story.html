@@ -11,7 +11,7 @@ const wait=async test=>{for(let i=0;i<300;i++){if(test())return;await new Promis
 const pause=ms=>new Promise(r=>setTimeout(r,ms));
 const check=(ok,text)=>{if(!ok)throw Error(text);document.querySelector('#checks').insertAdjacentHTML('beforeend',`<li>PASS: ${text}</li>`);};
 try{
- await wait(()=>frame.contentDocument?.querySelectorAll('.tour-marker:not([hidden])').length===15);
+ await wait(()=>frame.contentDocument?.querySelectorAll('.tour-marker:not([hidden])').length===5);
  const d=frame.contentDocument,win=frame.contentWindow,silk=d.querySelector('[data-tour-id="silk-road"]'),card=d.querySelector('#tour-story'),controls=d.querySelector('#controls'),routes=d.querySelector('.tour-routes'),close=d.querySelector('#tour-story-close');
  const camera=()=>d.querySelector('#zoom-value').textContent,anchor=()=>[silk.style.left,silk.style.top];
  const before={camera:camera(),anchor:anchor(),rect:controls.getBoundingClientRect()};
@@ -45,7 +45,7 @@ try{
  check(path.getAttribute('d')!==oldPath,'Routes stay attached during zoom');
  close.click();await pause(100);
  check(card.hidden&&routes.style.display==='none','X closes the card and removes all route lines');
- check(d.querySelectorAll('.tour-marker:not([hidden])').length===15,'Closing restores the other discovery dots');
+ check(d.querySelectorAll('.tour-marker:not([hidden])').length===5,'Closing restores the other discovery dots');
  check(camera()===before.camera&&anchor().every((p,i)=>p===before.anchor[i]),'Close restores the exact previous camera');
  check(getComputedStyle(d.querySelector('.layout-presets')).display==='flex','Map options return');
  silk.click();await wait(()=>d.querySelectorAll('.route-flow .route-line').length>0);await pause(1450);d.dispatchEvent(new win.KeyboardEvent('keydown',{key:'Escape',bubbles:true}));await pause(100);

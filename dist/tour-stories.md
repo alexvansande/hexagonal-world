@@ -91,109 +91,286 @@ Yuan China’s cities and the port of **Quanzhou** joined an expanding maritime 
 ## french-polynesia
 ### A world across the Pacific
 
-Polynesian voyagers connected islands across an immense ocean. From Hawaiʻi to Aotearoa New Zealand and Rapa Nui, related cultures grew through exploration, settlement and exchange. Tahiti sits within this wider island world.
+Polynesian voyagers settled islands across an immense ocean, from Hawaiʻi to Aotearoa New Zealand and Rapa Nui. Move through four stages to follow settlement, continuing voyages between islands, and contact with South America.
 
-> The Polynesian Triangle: a broad cultural region, not a single empire or an exact boundary.
+> Schematic sea routes across the Polynesian Triangle, a broad cultural region rather than an empire or exact boundary. Canoe dots show connections, not counts of voyages.
 
-[Explore the Polynesian Triangle ↗](https://teara.govt.nz/en/map/43839/polynesian-languages)
+[Sources and voyage notes ↗](./polynesia-sources.md)
+
+## french-polynesia-lapita
+### Lapita and West Polynesia
+
+People making distinctive **Lapita pottery** sailed east from the Bismarck Archipelago through Vanuatu and New Caledonia, then across a wide sea gap to Fiji, Tonga and Samoa around 3,000 years ago.
+
+For many centuries the voyaging world then centred on **Fiji, Tonga and Samoa**. Distinctively Polynesian language and culture took shape here before the long pause that preceded eastern settlement.
+
+- **Settlement** · first crossings to new islands
+- **Voyaging** · continuing exchange between islands
+
+> Lapita sites date the arrival of settlers; the exact order of crossings is inferred. Te Ara dates West Polynesian settlement to about 1100–800 BCE.
+
+[Sources and voyage notes ↗](./polynesia-sources.md)
+
+## french-polynesia-east-polynesia
+### East Polynesian expansion
+
+After a pause of perhaps two thousand years, voyagers reached the **Cook, Society, Tuamotu and Marquesas islands**. High-precision radiocarbon dates place this central East Polynesian settlement around 1000–1200 CE.
+
+Return voyages tied the new islands together. Tahiti and its neighbours became a hub, with the Australs and Mangareva reached from the same network.
+
+- **Settlement** · first crossings to new islands
+- **Voyaging** · continuing exchange between islands
+
+> The direction and order of individual crossings are reconstructed from dates, language and material culture. Voyaging lines mark connections, not a schedule.
+
+[Sources and voyage notes ↗](./polynesia-sources.md)
+
+## french-polynesia-far-corners
+### Hawaiʻi, Rapa Nui and Aotearoa
+
+Within a few generations, canoes reached the far corners of the triangle: **Hawaiʻi** to the north, **Rapa Nui** to the east via Mangareva and Pitcairn, and **Aotearoa New Zealand** to the southwest around 1250–1300 CE.
+
+Long two-way voyages continued for a time. Adzes made of Hawaiian basalt found in the Tuamotus support contact across thousands of kilometres before such journeys ceased.
+
+- **Settlement** · first crossings to new islands
+- **Voyaging** · continuing exchange between islands
+
+> Departure islands for Hawaiʻi and Rapa Nui are inferred. Fainter lines mark the most uncertain crossings, including later settlement of the Kermadec and Chatham islands.
+
+[Sources and voyage notes ↗](./polynesia-sources.md)
+
+## french-polynesia-south-america
+### Contact with South America
+
+Genomes from eastern Polynesia carry a small share of **Native American ancestry** dated to around 1200 CE, closest to Indigenous peoples of the Colombian and Ecuadorian coast. Ancient Rapanui genomes show similar admixture around 1250–1430 CE, before European arrival.
+
+The **sweet potato**, a South American crop, was grown across Polynesia before European contact. Together these support a meeting of peoples, though who sailed where remains open.
+
+- **Voyaging** · continuing exchange between islands
+- **Contact** · proposed links with South America
+
+> Contact lines are hypotheses with uncertain direction: Polynesians may have reached the coast and returned, or met people at sea or on an island. Sparse dots show this uncertainty.
+
+[Sources and voyage notes ↗](./polynesia-sources.md)
 
 ## origin-of-mankind
 ### Out of Africa, across the world
 
-Human history includes repeated dispersals out of Africa. Earlier relatives, including **Homo erectus**, reached Eurasia long before our species.
-
-The lines here show only **Homo sapiens**: successive migrations across Eurasia, into Sahul and later the Americas. Some broad corridors overlapped with earlier dispersals, but the routes and destinations were not identical.
+Human relatives left Africa many times over two million years. Move through four chapters: early hominins, Neanderthals and Denisovans, the expansion of **Homo sapiens**, and later movements.
 
 Our species emerged among connected African populations. This East African dot anchors the story, rather than marking a single birthplace for all humans.
-
-- **Early dispersals** · before 70,000 years ago
-- **Eurasia & Sahul** · broadly 70,000–40,000 years ago
-- **Further migrations** · later Ice Age & Holocene
 
 > Schematic corridors on modern coastlines. Dates overlap; moving dots show direction, not speed or a shared timeline. Some routes remain debated.
 
 [Sources and route notes ↗](./human-migrations-sources.md)
 
-## ancient-egypt
-### Egypt at its greatest reach
+## origin-of-mankind-early-hominins
+### Early hominins leave Africa
 
-Under **Thutmose III**, in the 15th century BCE, Egyptian power stretched from Nubia’s Fourth Cataract to the Euphrates. The Nile connected the kingdom’s heartland with its southern territories, while campaigns secured influence across the Levant.
+Early members of our genus lived across eastern, southern and northern Africa more than two million years ago. **Homo erectus** and close relatives then appear far outside Africa: at Dmanisi in the Caucasus by about 1.8 million years ago, in China, on Java, and in Europe by about 1.4 million years ago.
 
-> Approximate maximum reach, including dependent rulers. Control varied across the shaded region.
+Crossing sea gaps in Southeast Asia, hominins reached Flores and Luzon, where small-bodied species later evolved. None of these dispersals is a direct line to living people.
 
-[Sources and boundary notes ↗](./territory-tours-sources.md)
+- **Early Homo** · movement within Africa
+- **Homo erectus & relatives** · repeated dispersals out of Africa
 
-## mesopotamia
-### The Neo-Assyrian Empire
+> Two-way lines show ranges, not journeys. Fossil sites date presence; the corridors between them are reconstructions and remain uncertain.
 
-In the **7th century BCE**, Assyrian kings ruled a vast empire from Mesopotamia. At its height, their reach extended through the Levant and into Egypt, linking many peoples through conquest, administration and tribute.
+[Sources and route notes ↗](./human-migrations-sources.md)
 
-> Approximate maximum reach under Esarhaddon and Ashurbanipal. Egypt was held briefly; some territories were governed through local rulers.
+## origin-of-mankind-archaic-eurasia
+### Neanderthals and Denisovans
 
-[Sources and boundary notes ↗](./territory-tours-sources.md)
+**Neanderthals** evolved in Europe and western Asia, ranging from Iberia to the Altai. **Denisovans**, known from the Altai, Tibet and Laos, occupied eastern Asia. Both descend from earlier hominins outside Africa; neither is simply an older wave of our species.
 
-## eurasian-forests-grasslands
-### Eurasian forests and grasslands
+Meanwhile **Homo sapiens** was taking shape across Africa, from Jebel Irhoud in Morocco to Florisbad in the south. Early groups reached the Levant and Arabia long before the expansion that populated the world.
 
-<!-- Write this story here. -->
+- **Neanderthals** · range across Europe and western Asia
+- **Denisovans** · range across eastern Asia
+- **Homo sapiens in Africa** · connected populations
+- **Early departures** · Levant and Arabia before 70,000 years ago
+
+> Ranges are shown as two-way links between fossil sites. Living people outside Africa carry a small Neanderthal contribution; some also carry Denisovan ancestry. That comes from later interbreeding, not from descent through these lineages.
+
+[Sources and route notes ↗](./human-migrations-sources.md)
+
+## origin-of-mankind-sapiens-expansion
+### Homo sapiens across the world
+
+The main expansion of **Homo sapiens** spread from Africa through southwest Asia into Europe, southern and eastern Asia, and by sea into Sahul, broadly 70,000–40,000 years ago.
+
+Along the way, people met and had children with Neanderthals and Denisovans. Neanderthals contribute about one to two percent of the ancestry of people outside Africa; Denisovan ancestry is highest in New Guinea and Australia. The lineages themselves later disappeared.
+
+- **Expansion** · Homo sapiens dispersals
+- **Admixture** · contact zones with archaic humans
+
+> Northern and southern exits are alternatives or complementary corridors. Admixture zones are approximate; interbreeding happened more than once and in more than one place.
+
+[Sources and route notes ↗](./human-migrations-sources.md)
+
+## origin-of-mankind-later-movements
+### Later movements
+
+During the last Ice Age, people crossed Beringia and spread through the Americas, with early presence in the south by about 23,000–21,000 years ago and several later dispersals into South America.
+
+In the Holocene, farming spread from Anatolia into Europe, steppe herders followed, Eurasian ancestry flowed back into Africa, Bantu-speaking communities expanded across the continent, and Paleo-Inuit and Thule peoples crossed the Arctic.
+
+- **Ice Age Americas** · Beringia and the Americas
+- **Holocene movements** · later regional dispersals
+
+> Later movements are selected examples with broad dates; Polynesian voyages have their own story. Lines do not imply wholesale replacement of earlier populations.
+
+[Sources and route notes ↗](./human-migrations-sources.md)
 
 ## iceland-to-vinland
 ### Westward to Vinland
 
-Norse voyagers crossed the North Atlantic through the **Shetlands, Faroes, Iceland and Greenland**. Around a thousand years ago, journeys continued past Baffin Island and Labrador to shores already inhabited for millennia, reaching northern Newfoundland.
+Norse voyagers crossed the North Atlantic through the **Shetlands, Faroes, Iceland and Greenland**. Around a thousand years ago, journeys continued past Baffin Island and Labrador to shores already inhabited for millennia, reaching northern Newfoundland. Move through five stages, from the Northern Isles to the last Greenland trade.
 
 > Schematic sea corridors across several generations. L’Anse aux Meadows is an archaeological anchor; the full extent of Vinland remains uncertain.
 
 [Sources and voyage notes ↗](./territory-tours-sources.md)
 
-## andean-empires
-### Andean empires
+## iceland-to-vinland-northern-isles
+### The Northern Isles
 
-<!-- Write this story here. -->
+By around 800 CE, ships from western Norway were sailing to **Shetland, Orkney and the Faroes**, then south through the Hebrides toward Ireland. These islands became stepping stones for everything that followed.
 
-## antarctica
-### Antarctica
+- **Voyages** · settlement, raiding and exploration
 
-<!-- Write this story here. -->
+> Two-way lines show regular sailing. The Faroes may have been visited before the Norse: sediment DNA points to sheep there centuries earlier.
 
-## australia
-### Australia
+[Sources and voyage notes ↗](./territory-tours-sources.md)
 
-<!-- Write this story here. -->
+## iceland-to-vinland-iceland-settlement
+### Settling Iceland
 
-## bering-strait
-### Bering Strait
+From about 870 CE, settlers reached **Iceland** by way of the Faroes and across the open sea. Ancient genomes show that many came from Norway, but also from the Hebrides and Ireland, some of them enslaved.
 
-<!-- Write this story here. -->
+Ships carried timber, grain and iron west; wool cloth and other goods sailed east.
 
-## north-america
-### North America
+- **Voyages** · settlement and exploration
+- **Trade** · timber, grain, wool and iron
 
-<!-- Write this story here. -->
+> The Gaelic route is inferred from genetics and sagas rather than a recorded passage, so it is drawn fainter.
 
-## amazon-mouth
-### A continent flowing into one river
+[Sources and voyage notes ↗](./territory-tours-sources.md)
 
-From the Andes to the Atlantic, tributaries gather water across the **Amazon drainage basin**. The shaded area follows the watershed: land whose rivers feed the Amazon, crossing today’s national borders.
+## iceland-to-vinland-greenland
+### Greenland
 
-> Simplified HydroBASINS boundary, about 5.9 million km². This is the drainage basin, not the extent of the rainforest; the Tocantins basin is separate.
+Around 985 CE, Erik the Red led settlers from Iceland around Cape Farewell to the fjords of the **Eastern Settlement**, with a smaller **Western Settlement** further up the coast. Farms, churches and later a bishopric grew there.
 
-[Data and boundary notes ↗](./territory-tours-sources.md)
+- **Voyages** · settlement and exploration
+- **Trade** · goods between Norway, Iceland and Greenland
 
-## india
-### Ashoka’s Mauryan Empire
+> Greenland was already home to earlier Arctic peoples in the north; the Norse settled its southwest. The Kujataa landscape records this farming society.
 
-Around **250 BCE**, the Mauryan Empire linked much of the Indian subcontinent, from the northwest to Bengal and deep into the Deccan. After the devastating conquest of Kalinga, Ashoka’s inscriptions proclaimed a new emphasis on moral government and restraint.
+[Sources and voyage notes ↗](./territory-tours-sources.md)
 
-> Approximate extent under Ashoka. The far south and Sri Lanka remained outside; authority within the empire was uneven.
+## iceland-to-vinland-vinland
+### Vinland
 
-[Sources and boundary notes ↗](./territory-tours-sources.md)
+From Greenland, Leif Erikson and others sailed past **Helluland** (Baffin Island) and **Markland** (Labrador) to **Vinland**. Tree rings cut in 1021 CE at L’Anse aux Meadows date a Norse presence in Newfoundland precisely.
 
-## china
-### The Qing at their greatest extent
+The sagas describe several return voyages carrying timber and grapes, and encounters with the people already living there. The settlement was short-lived.
 
-During **Qianlong’s reign**, the Qing expanded into a vast, multiethnic empire. By the late 18th century, its territories included China’s heartland, Manchuria, Mongolia, Tibet and Xinjiang.
+- **Voyages** · exploration and return journeys
+- **Trade** · goods between Norway, Iceland and Greenland
 
-> Approximate historical extent, with varied forms of rule. Tributary neighbors are excluded; this is not a map of modern borders.
+> The Vinland legs are drawn fainter: the sagas’ places are identified only approximately, and Vinland extended beyond the one excavated site.
 
-[Sources and boundary notes ↗](./territory-tours-sources.md)
+[Sources and voyage notes ↗](./territory-tours-sources.md)
+
+## iceland-to-vinland-later-atlantic
+### Later trade and the last voyages
+
+Through the 13th and 14th centuries, ships linked **Bergen** with Iceland and Greenland. Greenlanders hunted walrus in the far northern **Norðrsetur** grounds; their ivory reached European markets.
+
+A ship from Markland reached Iceland in 1347, showing that voyages for timber continued. Norse objects in the far north record contact with **Thule Inuit**. The Western Settlement was abandoned around 1350 and the Eastern by about 1450.
+
+- **Voyages** · hunting, timber and northern contact
+- **Trade** · walrus ivory east, European goods west
+
+> Later voyages are known from annals and finds rather than tracks; the Markland and Thule lines are drawn fainter.
+
+[Sources and voyage notes ↗](./territory-tours-sources.md)
+
+## americas-exchange
+### Exchange across the Americas
+
+Long before 1492, goods, crops and ideas moved across the Americas: Spondylus shell from Ecuador into the Andes, obsidian and jade through Mesoamerica, copper and shell across North America, and macaws to the Pueblo Southwest. Move through four periods of exchange.
+
+> Selected exchanges around each date. Routes are schematic corridors, not roads or borders; dots show direction, not volume.
+
+[Sources and exchange notes ↗](./americas-exchange-sources.md)
+
+## americas-exchange-early-exchange
+### Early regional exchange
+
+By around 1000 BCE, **Olmec** centres on the Gulf coast drew obsidian from highland Guatemala and central Mexico and jade from the Motagua valley. In the Andes, **Spondylus** shell from warm Ecuadorian waters reached the temple at Chavín de Huántar.
+
+Crops travelled further still: maize spread south through Central America, while cacao, first used in the upper Amazon, was later grown in Mesoamerica.
+
+- **Obsidian** · highland sources → Olmec centres
+- **Jade** · Motagua valley → Gulf coast
+- **Spondylus & shell** · Ecuador → Andes
+- **Crops** · maize south, cacao north
+- **Feathers & forest goods** · tropical lowlands ↔ highlands
+
+> Crop dispersals span millennia and are drawn fainter. The Amazon–Chavín link is inferred from imagery and plants, not from recovered cargo.
+
+[Sources and exchange notes ↗](./americas-exchange-sources.md)
+
+## americas-exchange-classic
+### Classic Mesoamerica and Hopewell
+
+Around 400 CE, **Teotihuacan** controlled the Pachuca obsidian trade and reached deep into the Maya world, while Maya jade and cacao moved the other way. In the Ohio valley, **Hopewell** communities gathered obsidian from Yellowstone, copper from Lake Superior and shell from the Gulf.
+
+In the Caribbean, **Saladoid** pottery makers had spread from the Orinoco through the Lesser Antilles to Puerto Rico. Spondylus continued to reach the Moche coast.
+
+- **Obsidian** · Pachuca & El Chayal → cities; Yellowstone → Ohio
+- **Jade** · Motagua → Maya cities and Teotihuacan
+- **Spondylus & shell** · Gulf → Ohio; Ecuador → Peru
+- **Copper & metals** · Lake Superior → Ohio
+- **Crops** · Soconusco cacao → Teotihuacan
+- **Pottery & people** · Saladoid spread through the islands
+
+> Sourcing studies identify origins; the corridors between them are schematic.
+
+[Sources and exchange notes ↗](./americas-exchange-sources.md)
+
+## americas-exchange-andean-networks
+### Wari, Tiwanaku and Chaco
+
+Around 1000 CE, **Wari** roads and **Tiwanaku** llama caravans tied the Andean highlands to coastal valleys, the Atacama and the eastern slopes. Spondylus reached Lambayeque and Chimú lords on the north coast.
+
+Far to the north, **Chaco Canyon** received scarlet macaws and cacao from Mesoamerica, **Cahokia** gathered Gulf shell and northern copper, and metalworking techniques appear in West Mexico with South American parallels.
+
+- **Obsidian** · Pachuca → Tula and Chichén Itzá
+- **Spondylus & shell** · Ecuador → coast and highlands; Gulf → Cahokia
+- **Copper & metals** · Lake Superior → Cahokia; know-how by sea
+- **Crops** · caravans between ecological zones; cacao → Chaco
+- **Feathers, textiles & forest goods** · macaws, cloth and coca
+
+> Macaw and cacao routes to Chaco, the highland Spondylus links and the maritime metallurgy hypothesis are drawn fainter.
+
+[Sources and exchange notes ↗](./americas-exchange-sources.md)
+
+## americas-exchange-late-precolumbian
+### Aztec, Inca and Taíno worlds
+
+By 1450 CE, **pochteca** merchants carried obsidian, cloth and tribute between Tenochtitlan, the Gulf and Soconusco, while Maya canoes worked the Yucatán coast. The **Qhapaq Ñan** road system moved gold, silver and fine cloth between Quito, Cusco and Chile.
+
+**Taíno** communities exchanged goods across the Greater Antilles and received guanín, a gold-copper alloy, from the mainland. In the southeast, shell and copper still reached Mississippian towns.
+
+- **Obsidian** · Pachuca → Tenochtitlan and merchant routes
+- **Spondylus & shell** · Ecuador → Cusco; Gulf → Mississippian towns
+- **Crops** · cacao and canoe cargoes
+- **Metals** · Inca tribute; copper; guanín
+- **Feathers, textiles & forest goods** · quetzal, macaws, cloth, coca
+- **Pottery & island exchange** · Taíno networks
+
+> Roads and sea lanes are simplified; state control of trade varied. Guanín and Amazon links are drawn fainter.
+
+[Sources and exchange notes ↗](./americas-exchange-sources.md)

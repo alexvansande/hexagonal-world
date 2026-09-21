@@ -1,12 +1,12 @@
 import {assetURL} from './asset-url.mjs';
-import {readTourPath,initTourNavigation} from './tour-pages.mjs?v=tour-pages-1';
-import {createTourMarkers,projectTourLocations,tourEnabled,tourLocations} from './tour-markers.mjs?v=tour-pages-1';
-import {createTourRoutes,projectTourRoutes} from './tour-route-renderer.mjs?v=sporadic-1';
-import {loadTourData} from './tour-data.mjs?v=eastern-tin-1';
+import {readTourPath,initTourNavigation,readPeriod,withPeriod} from './tour-pages.mjs?v=chapters-1';
+import {createTourMarkers,projectTourLocations,tourEnabled,tourLocations} from './tour-markers.mjs?v=chapters-1';
+import {createTourRoutes,projectTourRoutes} from './tour-route-renderer.mjs?v=chapters-1';
+import {loadTourData} from './tour-data.mjs?v=chapters-1';
 import {createTourAreas,projectTourAreas} from './tour-area-renderer.mjs?v=sporadic-1';
 import {pacificTourNet,interpolateTourNet,tourImagePieces} from './tour-layout.mjs?v=pacific-light-1';
 import pacificLighting from './maps/pacific-manifest.mjs?v=pacific-light-1';
-import {createTourStory} from './tour-story.mjs?v=sporadic-1';
+import {createTourStory} from './tour-story.mjs?v=chapters-1';
 import {MergedMaps,mergedEntry,mergedCompatible} from './merged-maps.mjs?v=pacific-light-1';
 import {riverFieldGLSL} from './river-layers.mjs?v=cloud-assets-1';
 import {DefaultLayers,defaultLayerPreset,imageVertex,imageFragment,graticuleFragment} from './default-layers.mjs?v=cloud-assets-1';
@@ -43,7 +43,7 @@ const tourMarkers=createTourMarkers($('stage'),canvas);
 const tourRoutes=createTourRoutes($('stage'));
 const tourAreas=createTourAreas($('stage'));
 let tourAreaProjection=null,tourAreaProjectionKey='';
-const tourStory=createTourStory($('controls'),()=>closeTour(),paused=>tourRoutes.setPaused(paused),id=>selectTradePeriod(id));
+const tourStory=createTourStory($('controls'),()=>closeTour(),paused=>tourRoutes.setPaused(paused),id=>selectTourPeriod(id));
 const initialTour=readTourPath(location.pathname);
 let pendingTour=initialTour?.id||null;
 let activeTourData=null,activeTourRoutes=[],activeTourAreas=[],tourLoadToken=0;
@@ -280,11 +280,11 @@ function closeTour(restore=true,navigate=true){
  if(restore){draw();requestAnimationFrame(()=>{if(!activeTour)document.querySelector(`[data-tour-id="${selectedId}"]`)?.focus({preventScroll:true});});}
 }
 function selectedStory(location){return {...location,animated:activeTourRoutes.some(r=>r.animated),waves:[...new Set(activeTourRoutes.map(r=>r.wave).filter(Boolean))]};}
-function selectTradePeriod(id,writeURL=true){
- if(activeTour!=='silk-road'||!activeTourData?.periodFor)return;
+function selectTourPeriod(id,writeURL=true){
+ if(!activeTour||!activeTourData?.periodFor)return;
  const period=activeTourData.periodFor(id);activeTourRoutes=period.routes;tourProjection=null;tourProjectionKey='';
  tourStory.update({...selectedStory(tourLocations.find(t=>t.id===activeTour)),storyId:period.storyId,periodId:period.id,waves:period.waves});
- if(writeURL&&readTourPath(window.location.pathname)?.id===activeTour){const url=new URL(window.location.href);url.searchParams.set('period',period.id);history.replaceState(history.state,'',url);}
+ if(writeURL&&readTourPath(window.location.pathname)?.id===activeTour)history.replaceState(history.state,'',withPeriod(window.location.href,period.id));
  focusTour();draw();
 }
 async function finishOpeningTour(location){
@@ -293,7 +293,7 @@ async function finishOpeningTour(location){
   const [data]=await Promise.all([loadTourData(location.id),tourStory.ready]);
   if(token!==tourLoadToken||activeTour!==location.id)return;
   activeTourData=data;activeTourRoutes=data.routes;activeTourAreas=data.areas;tourProjection=null;tourAreaProjection=null;
-  if(data.periods){const period=data.periodFor(new URLSearchParams(window.location.search).get('period'));tourStory.setPeriods(data.periods,period.id);selectTradePeriod(period.id,false);}
+  if(data.periods){const period=data.periodFor(readPeriod(window.location.search));tourStory.setPeriods(data.periods,period.id,data.heading);selectTourPeriod(period.id,false);}
   else {tourStory.update(selectedStory(location));focusTour();draw();}
  }catch(error){if(token===tourLoadToken&&activeTour===location.id)tourStory.error(()=>finishOpeningTour(location));}
 }

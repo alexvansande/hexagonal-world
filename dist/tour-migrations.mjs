@@ -1,6 +1,10 @@
 // Geographic editorial schematics, NOT recovered tracks, mtDNA family trees,
 // or a timeline. Dates describe regional evidence, not travel duration.
 // Source assessment and limitations: human-migrations-sources.md (2026-09-21).
+// Four chapters: early hominins, Neanderthals/Denisovans (with the first Homo
+// sapiens departures), the main Homo sapiens expansion, and later movements.
+// Two-way links show contact or range, never a claim that every ancestor moved.
+import {definePeriods,bothWays} from './tour-periods.mjs?v=chapters-1';
 export const migrationSources=Object.freeze({
  origins:'https://www.nature.com/articles/s41586-023-06055-y',
  misliya:'https://pubmed.ncbi.nlm.nih.gov/29371468/',
@@ -16,6 +20,28 @@ export const migrationSources=Object.freeze({
  footprints:'https://pubs.usgs.gov/publication/fs20253046/full',
  andes:'https://www.nature.com/articles/s41467-025-58134-5',
  southAmerica:'https://www.nature.com/articles/s41586-026-10406-w',
+ // Earlier hominins, archaic Eurasians, admixture and Holocene movements.
+ shangchen:'https://www.nature.com/articles/s41586-018-0299-4',
+ dmanisi:'https://www.science.org/doi/10.1126/science.1238484',
+ sangiran:'https://www.science.org/doi/10.1126/science.aau8556',
+ flores:'https://www.nature.com/articles/nature17663',
+ luzon:'https://www.nature.com/articles/s41586-018-0072-8',
+ atapuerca:'https://www.nature.com/articles/nature06815',
+ happisburgh:'https://www.nature.com/articles/nature09117',
+ erectus:'https://humanorigins.si.edu/evidence/human-fossils/species/homo-erectus',
+ neanderthals:'https://humanorigins.si.edu/evidence/human-fossils/species/homo-neanderthalensis',
+ denisova:'https://www.nature.com/articles/s41586-018-0455-x',
+ xiahe:'https://www.nature.com/articles/s41586-019-1139-x',
+ laos:'https://www.nature.com/articles/s41467-022-29923-z',
+ papuans:'https://www.cell.com/cell/fulltext/S0092-8674(19)30218-1',
+ irhoud:'https://www.nature.com/articles/nature22336',
+ apidima:'https://www.nature.com/articles/s41586-019-1376-z',
+ admixture:'https://humanorigins.si.edu/evidence/genetics/ancient-dna-and-neanderthals',
+ bantu:'https://www.science.org/doi/10.1126/science.aal1988',
+ backflow:'https://www.science.org/doi/10.1126/science.aad2879',
+ arctic:'https://www.science.org/doi/10.1126/science.1255832',
+ farmers:'https://www.nature.com/articles/nature19310',
+ steppe:'https://www.nature.com/articles/nature14317',
 });
 const p={origin:[3.5,36],levant:[32.7,35],hub:[29,52],bengal:[23,89],sunda:[4,103],china:[34,110],altai:[49,87],yana:[68,135],alaska:[65,-160],california:[35,-120],mexico:[20,-100],montana:[46,-110],panama:[8.5,-80],colombia:[5,-74],peru:[-12,-75],chile:[-40,-73],newGuinea:[-5,139],northAustralia:[-13,131]};
 const branch=(id,title,wave,period,sources,stops,uncertainty='The corridor is schematic; its exact path and timing are uncertain.')=>Object.freeze({
@@ -51,3 +77,54 @@ export const migrationRoutes=Object.freeze([
  branch('sahul-east','Eastern Sahul','expansion','Southern Australia reached by about 49,000–45,000 years ago',['australia','sahul'],['newGuinea',[-10,142],[-17,145],[-25,148],[-34,147]]),
  branch('sahul-west','Western and southern Sahul','expansion','Southern Australia reached by about 49,000–45,000 years ago',['australia','sahul'],['northAustralia',[-18,124],[-25,116],[-32,117],[-34,128],[-35,139]]),
 ]);
+
+// Chapter data outside the Homo sapiens network. Ranges and contact zones are
+// drawn as two-way links; dispersals as one-way branches. All are uncertain.
+const q={sterkfontein:[-26,27.7],ainHanech:[36.3,5.4],dmanisi:[41.7,44.3],shangchen:[34.2,110],sangiran:[-7.4,110.8],flores:[-8.6,121],luzon:[17.5,121.5],
+ orce:[37.7,-2.4],atapuerca:[42.35,-3.5],happisburgh:[52.8,1.5],gibraltar:[36.1,-5.3],ferrassie:[44.95,.94],krapina:[46.2,15.9],kebara:[32.6,35],
+ mezmaiskaya:[44.2,40],teshikTash:[38,67],denisova:[51.4,84.7],xiahe:[35.4,102.6],tamNguHao:[20.2,104.3],shanidar:[36.8,44.2],irhoud:[31.9,-8.9],florisbad:[-28.8,26.1],
+ cameroon:[6,10],congo:[0,18],victoria:[-2,33],limpopo:[-23,30],ethiopia:[9,40],canadianArctic:[73,-95],thule:[76.5,-68.7],anatolia:[38,33],steppe:[48,40]};
+const link=(id,title,wave,period,sources,stops,extra={})=>Object.freeze({
+ id:'migration-'+id,title,wave,period,animated:true,geodesic:true,uncertain:true,lane:0,
+ sources:Object.freeze(sources),uncertainty:'Schematic range or contact link; the exact paths and timing are uncertain.',
+ coordinates:Object.freeze(stops.map(stop=>Object.freeze(typeof stop==='string'?q[stop]||p[stop]:stop))),...extra,
+});
+const twoWay=(...args)=>bothWays([link(...args,{lane:3})]);
+export const homininRoutes=Object.freeze([
+ ...twoWay('early-homo-south','Early Homo across eastern and southern Africa','early-homo','Early Homo: more than 2 million years ago',['erectus'],['origin',[-5,35],[-15,33],[-20,29],'sterkfontein']),
+ ...twoWay('early-homo-north','Early Homo toward North Africa','early-homo','Early Homo: about 2.4–1.8 million years ago',['erectus'],['origin',[10,32],[20,25],[28,15],[33,8],'ainHanech']),
+ link('erectus-levant','Out of Africa into the Caucasus','erectus','Dmanisi: about 1.8 million years ago',['dmanisi','erectus'],['origin',[10,37],[20,34],[27,33],[30,34],'levant',[36,37],[39,41],'dmanisi']),
+ link('erectus-asia','Southern Asia toward Java','erectus','Sangiran: about 1.3 million years ago',['sangiran','erectus'],['levant',[33,42],[33,48],[30,60],[27,68],[22,76],[20,84],'bengal',[18,97],[13,100],[8,100],[2,104],[-4,106],'sangiran']),
+ link('erectus-china','Into East Asia','erectus','Shangchen tools: about 2.1 million years ago; Zhoukoudian later',['shangchen','erectus'],['bengal',[25,96],[26,102],[29,107],'shangchen',[38,113],[40,116]]),
+ link('erectus-flores','Sea gaps to Flores and Luzon','erectus','Flores: by about 1 million years ago; Luzon: about 700,000 years ago',['flores','luzon'],['sangiran',[-8,116],'flores',[-5,124],[2,124],[10,123],'luzon']),
+ link('erectus-europe','Into Europe','erectus','Southern Spain: about 1.4 million years ago; Atapuerca: about 1.2 million',['atapuerca','happisburgh'],['levant',[37,34],[40,29],[43,24],[45,15],[43,8],[41,2],'orce',[40,-3],'atapuerca']),
+ link('erectus-britain','Northern Europe in warm phases','erectus','Happisburgh: about 900,000 years ago',['happisburgh'],[[43,8],[46,4],[49,2],'happisburgh']),
+]);
+export const archaicRoutes=Object.freeze([
+ ...twoWay('neanderthal-west','Neanderthal Europe','neanderthal','Neanderthals: about 400,000–40,000 years ago',['neanderthals'],['gibraltar',[40,-3],[43,-1],'ferrassie',[47,5],[48,10],'krapina']),
+ ...twoWay('neanderthal-east','Balkans to the Levant','neanderthal','Neanderthals: about 400,000–40,000 years ago',['neanderthals'],['krapina',[44,22],[41,28],[38,33],[36,36],'kebara']),
+ ...twoWay('neanderthal-caucasus','Levant, Caucasus and Central Asia','neanderthal','Neanderthals reached the Altai by about 120,000 years ago',['neanderthals','denisova'],['kebara',[36,40],[40,43],'mezmaiskaya',[44,50],[42,60],'teshikTash',[43,72],[48,80],'denisova']),
+ ...twoWay('denisovan-tibet','Altai to the Tibetan Plateau','denisovan','Xiahe mandible: about 160,000 years ago',['denisova','xiahe'],['denisova',[47,90],[42,96],[38,100],'xiahe']),
+ ...twoWay('denisovan-southeast','Toward Southeast Asia','denisovan','Laos molar: about 164,000–131,000 years ago',['laos','papuans'],['xiahe',[28,104],'tamNguHao',[10,104],[2,110]]),
+ ...twoWay('sapiens-africa-north','Connected African populations: north','sapiens-africa','Jebel Irhoud: about 300,000 years ago',['irhoud','origins'],['origin',[10,30],[18,20],[25,10],[30,0],'irhoud']),
+ ...twoWay('sapiens-africa-south','Connected African populations: south','sapiens-africa','Florisbad: about 260,000 years ago',['origins'],['origin',[-5,35],[-15,32],[-22,28],'florisbad']),
+]);
+export const admixtureRoutes=Object.freeze([
+ ...twoWay('admixture-near-east','Neanderthal contact in southwest Asia','admixture','Shared admixture: about 50,000–45,000 years ago',['europe','admixture'],['levant',[34,39],'shanidar']),
+ ...twoWay('admixture-wallacea','Denisovan contact toward Sahul','admixture','Before the settlement of Sahul',['papuans'],[[2,110],[0,123],[-1,132],'newGuinea']),
+]);
+export const holoceneRoutes=Object.freeze([
+ link('holocene-farmers','Anatolian farmers into Europe','holocene','From about 8,500 years ago',['farmers'],['anatolia',[41,28],[44,24],[47,19],[49,12],[47,6],[45,1]]),
+ link('holocene-steppe','Steppe ancestry into Europe','holocene','About 5,000 years ago',['steppe'],['steppe',[50,30],[52,20],[52,10]]),
+ link('holocene-backflow','Eurasian ancestry back into Africa','holocene','Repeated; strongly by about 3,000 years ago',['backflow'],['levant',[30,33],[24,35],[15,39],'ethiopia']),
+ link('holocene-bantu','Bantu-speaking expansions','holocene','About 5,000–1,500 years ago',['bantu'],['cameroon','congo','victoria',[-12,32],'limpopo']),
+ link('holocene-bantu-west','Western Bantu stream','holocene','About 5,000–1,500 years ago',['bantu'],['cameroon',[-2,11],[-8,14],[-14,15]]),
+ link('holocene-arctic','Paleo-Inuit and Thule across the Arctic','holocene','About 5,000 years ago, then about 1,000 years ago',['arctic'],['alaska',[70,-150],[70,-130],[70,-110],'canadianArctic',[75,-80],'thule',[72,-55]]),
+]);
+const sapiens=wave=>migrationRoutes.filter(r=>r.wave===wave);
+export const migrationChapters=definePeriods('origin-of-mankind',[
+ {id:'early-hominins',label:'Early hominins',date:'c. 2 million–500,000 years ago',year:-2000000,routes:homininRoutes,waves:['early-homo','erectus']},
+ {id:'archaic-eurasia',label:'Neanderthals & Denisovans',date:'c. 400,000–60,000 years ago',year:-400000,routes:[...archaicRoutes,...sapiens('early')],waves:['neanderthal','denisovan','sapiens-africa','early']},
+ {id:'sapiens-expansion',label:'Homo sapiens expansion',date:'c. 70,000–40,000 years ago',year:-70000,routes:[...sapiens('expansion'),...admixtureRoutes],waves:['expansion','admixture']},
+ {id:'later-movements',label:'Later movements',date:'c. 25,000 years ago onward',year:-25000,routes:[...sapiens('later'),...holoceneRoutes],waves:['later','holocene']},
+],'sapiens-expansion',{heading:'Waves of dispersal'});

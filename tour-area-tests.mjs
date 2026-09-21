@@ -7,7 +7,6 @@ import {projectTourRoutes} from './dist/tour-routes.mjs';
 import {makeGeometry,layouts,world} from './dist/geometry.mjs';
 import {makeArrangement} from './dist/arrangements.mjs';
 import {layoutOptions} from './dist/map-options.mjs';
-import {parseTourContent} from './dist/tour-content.mjs';
 
 const angles=layoutOptions[0].state,tiles=makeGeometry(angles.method,angles.height),net=makeArrangement(tiles,angles.arrangement,layouts(tiles)).net;
 const inside=(p,ring)=>{let yes=false;for(let i=0,j=ring.length-1;i<ring.length;j=i++){
@@ -15,7 +14,7 @@ const inside=(p,ring)=>{let yes=false;for(let i=0,j=ring.length-1;i<ring.length;
 }return yes;};
 const geoInside=(p,geometry)=>(geometry.type==='Polygon'?[geometry.coordinates]:geometry.coordinates).some(polygon=>polygon.reduce((yes,ring)=>yes!==inside(p,ring),false));
 const projectedInside=(anchor,area)=>area.fills.filter(f=>f.tile.id===anchor.tile.id).reduce((yes,f)=>yes!==inside(anchor.local,f.local),false);
-const content=parseTourContent(readFileSync('dist/tour-stories.md','utf8'));
+// Area overlays are no longer entry points; the geometry, clipping and provenance remain testable.
 assert.equal(Object.keys(tourAreaSets).length,5);
 const landmarks={
  'ancient-egypt':{in:[[32.6,25.7],[35.2,31.8],[31.7,19]],out:[[44.4,33.3],[23,30],[32,15]]},
@@ -28,8 +27,6 @@ let samples=0;
 for(const [id,areas] of Object.entries(tourAreaSets)){
  const area=areas[0],projected=projectTourAreas(tiles,net,angles,areas)[0];
  assert(projected.fills.length&&projected.segments.length,id+' has both fill and actual border');
- assert(content[id].paragraphs.length&&content[id].note&&content[id].source,id+' has editable story and caveat');
- assert(tourLocations.find(p=>p.id===id).overlay,id+' wired metadata');
  for(const expected of [true,false])for(const p of landmarks[id][expected?'in':'out'])assert.equal(geoInside(p,area.geometry),expected,`${id} landmark ${p}`);
  // Independent geographic membership must match the projected fill across the
  // entire globe, including off-continent space and every hexagonal piece.
@@ -56,7 +53,7 @@ for(let lat=-20.3;lat<54;lat+=5)for(let lon=-65.7;lon<90;lon+=5){
 }
 assert.equal(tourAreaSets['amazon-mouth'][0].hybasId,6030007000);
 assert.equal(tourAreaSets['amazon-mouth'][0].sourceAreaKm2,5912922.8);
-assert.equal(vinlandRoutes.length,6);assert(vinlandRoutes.every(r=>!r.animated));
+assert.equal(vinlandRoutes.length,6);assert(vinlandRoutes.every(r=>!r.animated),'Base corridors stay static; chapters animate copies');
 const greenland=vinlandRoutes.find(r=>r.id==='norse-greenland').coordinates;
 assert(greenland.some(([lat,lon])=>lat<60&&lon<-40),'sea route rounds Cape Farewell');
 assert.deepEqual(vinlandRoutes.at(-1).coordinates.at(-1),[51.596,-55.533]);

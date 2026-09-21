@@ -526,6 +526,36 @@ Western Norway near Bergen is only a geographic anchor: early settlement voyages
 predate the city. All descriptions stay in `dist/tour-stories.md`; provenance and
 historical limitations are in `dist/territory-tours-sources.md`.
 
+**Five entry points with dated chapters (September 21).** The user chose to keep
+only five discovery dots: Human migrations, Silk Road, Norse voyages, Polynesia and
+a new Americas exchange story. The imperial-extent, Amazon-basin and placeholder
+dots are retired as entry points and their landing pages removed; the area
+renderer, geometry and tests remain. Every story now has the Silk Road chapter
+slider with its own heading, four or five dated snapshots, per-chapter Markdown
+and the sparse random traffic dots. Two-way traffic is a reversed partner route on
+the same signed lane, so both directions stay visible; it marks a range, a contact
+zone or documented return sailing, never a claim about every individual.
+
+Human migrations distinguish early hominins, Neanderthals and Denisovans (with
+the first Homo sapiens departures), the Homo sapiens expansion and later
+movements. Neanderthals and Denisovans are drawn as ranges and admixture as
+two-way contact zones; the text says their contribution comes from interbreeding
+and that they are not a direct species-level ancestor of everyone. Norse chapters
+accumulate active sea lanes from the Northern Isles to the later Bergen trade,
+with Vinland, Gaelic, Markland and Thule legs explicitly uncertain. Polynesian
+chapters draw settlement one way and interisland voyaging both ways with denser
+canoe dots; the South American contact links are hypotheses with uncertain
+direction, drawn sparse and faint. The Americas story keeps hypotheses (macaws and
+cacao to Chaco, maritime metallurgy, guanín, Amazon–Andes links) fainter than
+sourced materials and omits contested turquoise. Evidence lives in the four
+sources files. Preserve lazy loading, Pause/Resume, reduced motion, route
+clipping at cuts, clean root URLs with `?period=`, camera restore and marker
+hiding while a story is open.
+
+Evidence: September 21 feature request and confirmation. Checks:
+`tour-chapter-tests.mjs`, `tour-marker-tests.mjs`, `tour-page-tests.mjs`,
+`/tests/tour-areas.html` (Norse), `/tests/tour-migrations.html`, `/tests/tour-polynesia.html`.
+
 **Shareable tours (September 21).** The user requested a root URL and an OG image
 for every implemented tour. Use stable location IDs as root paths, with static
 HTML metadata so social crawlers need not execute the app. Each link opens the

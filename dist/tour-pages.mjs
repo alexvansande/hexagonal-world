@@ -1,4 +1,4 @@
-import {tourLocations} from './tour-markers.mjs?v=tour-pages-1';
+import {tourLocations} from './tour-markers.mjs?v=chapters-1';
 
 // Only implemented stories have landing pages. Stable location IDs also make
 // durable, root-level links; future chapters can extend this registry.
@@ -6,6 +6,9 @@ export const tourPages=tourLocations.filter(location=>location.overlay).map(loca
  ...location,path:`/${location.id}/`,image:`/social/tour-${location.id}.jpg`,
 }));
 export const readTourPath=path=>tourPages.find(tour=>tour.path===path.replace(/\/?$/,'/'))||null;
+// The selected chapter lives in a query string, never in the positional map hash.
+export const readPeriod=search=>new URLSearchParams(search).get('period');
+export const withPeriod=(href,id)=>{const url=new URL(href);url.searchParams.set('period',id);return url.href;};
 
 export function initTourNavigation({show,mapPath,win=window,doc=document}){
  const mapTitle='Lifezones · Spaceship Earth — Hexagonal Earth';

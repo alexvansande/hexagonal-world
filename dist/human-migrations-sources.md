@@ -4,11 +4,30 @@ Research checked September 21, 2026. Story copy is in `tour-stories.md`; the geo
 
 ## Reading the map
 
-This is an editorial overview of selected **Homo sapiens** dispersals, inspired by Alexandre Van de Sande’s [World map of prehistoric human migrations](https://en.wikipedia.org/wiki/Early_human_migrations#/media/File:World_map_of_prehistoric_human_migrations.jpg). It is not a reproduction of that map’s mitochondrial haplogroup tree. It does not include the much earlier expansions of Homo erectus, every subsequent migration, or all movement back into Africa.
+This is an editorial overview in four chapters: early hominins, Neanderthals and Denisovans (with the first Homo sapiens departures), the main **Homo sapiens** expansion, and later movements. The sapiens network is inspired by Alexandre Van de Sande’s [World map of prehistoric human migrations](https://en.wikipedia.org/wiki/Early_human_migrations#/media/File:World_map_of_prehistoric_human_migrations.jpg). It is not a reproduction of that map’s mitochondrial haplogroup tree, and it does not include every subsequent migration.
+
+Two kinds of line appear. One-way branches show dispersals. Two-way links show a range or a contact zone, drawn between fossil or archaeological sites; they do not mean that populations shuttled between those points, and they never mean that every ancestor of later people moved along them.
 
 The waypoint coordinates are an illustrative synthesis, not a published GPS dataset. Lines indicate broad connections, not known footpaths. Branches are oriented away from their junctions to make the map readable; moving dots do not measure travel speed, date, population size, or ancestry proportions. The color groups overlap in time and are not three discrete, universally agreed migration events.
 
 Present-day coastlines are retained. Ice-age Beringia, Sunda and Sahul included land now underwater, while crossings through Wallacea still required travel by sea. Geographic cuts in the hexagonal map interrupt lines; they do not imply interrupted migrations.
+
+## Early hominins (chapter 1)
+
+- [Zhu et al., Nature (2018): Hominin occupation of the Chinese Loess Plateau since about 2.1 million years ago](https://www.nature.com/articles/s41586-018-0299-4). Stone tools at Shangchen push hominin presence in East Asia back to about 2.1 million years ago, before the Dmanisi fossils. The species is unknown; the East Asian line is labelled Homo erectus and relatives.
+- [Lordkipanidze et al., Science (2013): A complete skull from Dmanisi, Georgia](https://www.science.org/doi/10.1126/science.1238484). Dmanisi hominins about 1.8 million years ago are the earliest well-dated hominins outside Africa. The Nile–Levant corridor drawn to reach them is a reconstruction.
+- [Matsu’ura et al., Science (2020): Age control of the first appearance datum for Javanese Homo erectus](https://www.science.org/doi/10.1126/science.aau8556). Places the earliest Javanese Homo erectus at about 1.3 million years ago, later than some earlier claims.
+- [Brumm et al., Nature (2016): Age and context of the oldest known hominin fossils from Flores](https://www.nature.com/articles/nature17663) and [Ingicco et al., Nature (2018): Earliest known hominin activity in the Philippines by 709 thousand years ago](https://www.nature.com/articles/s41586-018-0072-8). Hominins crossed sea gaps to Flores and Luzon; the dispersing species and the crossing method are unknown.
+- [Carbonell et al., Nature (2008): The first hominin of Europe](https://www.nature.com/articles/nature06815) and [Parfitt et al., Nature (2010): Early Pleistocene human occupation at the edge of the boreal zone in northwest Europe](https://www.nature.com/articles/nature09117). Atapuerca (about 1.2 million years ago) and Happisburgh (about 0.9 million) date early European presence; the southern Spanish sites at Orce are slightly older. Whether Europe was reached via Anatolia, the Levant or another way is unresolved.
+- [Smithsonian: Homo erectus](https://humanorigins.si.edu/evidence/human-fossils/species/homo-erectus). General species context. Early Homo within Africa (Kenya, Ethiopia, South Africa, Algeria) is drawn as two-way links because these are ranges, not journeys.
+
+## Neanderthals and Denisovans (chapter 2)
+
+- [Smithsonian: Homo neanderthalensis](https://humanorigins.si.edu/evidence/human-fossils/species/homo-neanderthalensis). Neanderthals evolved in Europe and western Asia and ranged from Iberia to the Altai. The three two-way links summarize this range; they are not migration routes.
+- [Slon et al., Nature (2018): The genome of the offspring of a Neanderthal mother and a Denisovan father](https://www.nature.com/articles/s41586-018-0455-x). Denisova Cave held both groups; their ranges overlapped in the Altai.
+- [Chen et al., Nature (2019): A late Middle Pleistocene Denisovan mandible from the Tibetan Plateau](https://www.nature.com/articles/s41586-019-1139-x) and [Demeter et al., Nature Communications (2022): A Middle Pleistocene Denisovan molar from the Annamite Chain of northern Laos](https://www.nature.com/articles/s41467-022-29923-z). Extend Denisovan presence to Tibet (about 160,000 years ago) and Laos (about 164,000–131,000 years ago). The Denisovan links are drawn fainter because the population’s geography is known from few sites.
+- [Hublin et al., Nature (2017): New fossils from Jebel Irhoud, Morocco and the pan-African origin of Homo sapiens](https://www.nature.com/articles/nature22336). Early Homo sapiens features about 300,000 years ago in Morocco support a connected, continent-wide origin; the two-way African links illustrate that structure, not intra-African migrations.
+- [Harvati et al., Nature (2019): Apidima Cave fossils provide earliest evidence of Homo sapiens in Eurasia](https://www.nature.com/articles/s41586-019-1376-z). A disputed early Homo sapiens presence in Greece about 210,000 years ago. It is not drawn; it is noted here as a reminder that early departures may have been more widespread.
 
 ## African origins and early departures
 
@@ -18,6 +37,11 @@ Present-day coastlines are retained. Ice-age Beringia, Sunda and Sahul included 
 - [Hershkovitz et al., Science (2018): The earliest modern humans outside Africa](https://pubmed.ncbi.nlm.nih.gov/29371468/). Misliya’s upper jaw was dated to about 177,000–194,000 years ago. The early Levant branch also represents repeated occupation, rather than one journey lasting 100,000 years.
 - [Abbas et al., Science Advances (2023): Human dispersals out of Africa via the Levant](https://pmc.ncbi.nlm.nih.gov/articles/PMC10550223/). Wetland evidence supports the Levant as a viable dispersal corridor during wetter phases. The early northern branch encompasses the familiar Skhul/Qafzeh evidence around 120,000–90,000 years ago.
 - [Groucutt et al., Nature Ecology & Evolution (2018): Homo sapiens in Arabia by 85,000 years ago](https://www.nature.com/articles/s41559-018-0518-2). The Al Wusta fossil supports early Arabian occupation. Its drawn connection to the Levant is schematic, not a demonstrated individual itinerary.
+
+## Admixture (chapter 3)
+
+- [Smithsonian: Ancient DNA and Neanderthals](https://humanorigins.si.edu/evidence/genetics/ancient-dna-and-neanderthals). Neanderthals contribute roughly one to two percent of the ancestry of people outside Africa through interbreeding, and Denisovans contribute more to people in New Guinea and Australia. Neanderthals and Denisovans are sister lineages of Homo sapiens, not an earlier stage of it and not a direct species-level ancestor of every living person. The map therefore shows them as ranges, and shows admixture as two-way contact zones rather than as ancestry arrows.
+- [Jacobs et al., Cell (2019): Multiple deeply divergent Denisovan ancestries in Papuans](https://www.cell.com/cell/fulltext/S0092-8674(19)30218-1). Denisovan admixture happened more than once, including in island Southeast Asia or Sahul; the Wallacea contact zone is a schematic placement.
 
 ## Eurasia: several lines of evidence, different clocks
 
@@ -39,8 +63,15 @@ Present-day coastlines are retained. Ice-age Beringia, Sunda and Sahul included 
 - [Nature Communications (2025): Climate influence on the early human occupation of South America during the late Pleistocene](https://www.nature.com/articles/s41467-025-58134-5). Finds evidence of early western/Andean dispersal and later eastward occupation patterns in the south. This informs the Andean trunk and eastward branch, rather than depicting settlement solely along the coast.
 - [The evolutionary history and unique genetic diversity of Indigenous Americans, Nature (2026)](https://www.nature.com/articles/s41586-026-10406-w). Reports evidence for at least three principal population dispersals into South America, including turnover from around 9,000 years ago and a further later component. These are inferred population histories, not three recovered geographic tracks. One additional schematic branch signals repeated movement without assigning unsupported paths or exact dates to each ancestry component.
 
+## Later movements (chapter 4)
+
+- [Lazaridis et al., Nature (2016): Genomic insights into the origin of farming in the ancient Near East](https://www.nature.com/articles/nature19310) and [Haak et al., Nature (2015): Massive migration from the steppe was a source for Indo-European languages in Europe](https://www.nature.com/articles/nature14317). Anatolian farmer ancestry spread into Europe from about 8,500 years ago and steppe ancestry from about 5,000 years ago. Both lines are broad summaries.
+- [Llorente et al., Science (2015): Ancient Ethiopian genome reveals extensive Eurasian admixture throughout the African continent](https://www.science.org/doi/10.1126/science.aad2879). Eurasian ancestry flowed back into Africa, strongly by about 3,000 years ago; the single line stands for repeated movements through the Levant and the Red Sea region.
+- [Patin et al., Science (2017): Dispersals and genetic adaptation of Bantu-speaking populations in Africa and North America](https://www.science.org/doi/10.1126/science.aal1988). Supports expansion of Bantu-speaking populations from the Cameroon–Nigeria region across central, eastern and southern Africa over the last few thousand years, with eastern and western streams. Dates and routes remain debated.
+- [Raghavan et al., Science (2014): The genetic prehistory of the New World Arctic](https://www.science.org/doi/10.1126/science.1255832). Paleo-Inuit peoples spread across the Arctic from about 5,000 years ago and were later replaced by Thule ancestors of modern Inuit about 1,000 years ago; one line stands for both movements.
+
 ## Deliberate limits
 
 The main 70,000–40,000-year color band is an orientation aid, not a reconciliation of every chronology. European genome-based dates and the long Sahul chronology should not be forced into a single precise departure date. Similarly, early American archaeological presence does not by itself settle the route or its genetic relationships.
 
-Later Austronesian and Polynesian voyages have their own discovery point. Farming expansions, Bantu migrations, later Arctic dispersals and historical migrations are outside this first overview. The data structure keeps stable route IDs, source keys, evidence periods and uncertainty notes so these can be expanded without replacing the rendering system.
+Later Austronesian and Polynesian voyages have their own discovery point. Historical migrations of the last two thousand years are outside this overview. The data structure keeps stable route IDs, source keys, evidence periods and uncertainty notes so these can be expanded without replacing the rendering system.

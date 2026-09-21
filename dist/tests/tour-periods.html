@@ -9,7 +9,7 @@ const pause=ms=>new Promise(r=>setTimeout(r,ms));
 const until=async(test,label)=>{for(let i=0;i<300;i++){if(test())return;await pause(50);}throw Error('Timed out: '+label);};
 const check=(ok,label)=>{if(!ok)throw Error(label);const li=document.createElement('li');li.textContent='PASS: '+label;document.querySelector('#checks').append(li);};
 try{
- await until(()=>frame.contentDocument?.querySelectorAll('.tour-marker:not([hidden])').length===15,'map');
+ await until(()=>frame.contentDocument?.querySelectorAll('.tour-marker:not([hidden])').length===5,'map');
  let d=frame.contentDocument,w=frame.contentWindow;
  const resources=()=>w.performance.getEntriesByType('resource').map(r=>r.name);
  await pause(500);
@@ -45,7 +45,7 @@ try{
  d=frame.contentDocument;w=frame.contentWindow;
  check(d.querySelector('#tour-story-title').textContent.includes('bronze'),'Reload restores selected Bronze Age period');
  d.querySelector('#tour-story-close').click();await until(()=>frame.contentDocument.querySelector('#tour-story').hidden,'close');await pause(100);
- check(d.querySelectorAll('.tour-marker:not([hidden])').length===15,'Closing restores all markers');
+ check(d.querySelectorAll('.tour-marker:not([hidden])').length===5,'Closing restores all markers');
  // Reopen and leave the latest period visible for visual review.
  d.querySelector('[data-tour-id="silk-road"]').click();await until(()=>!d.querySelector('.tour-timeline').hidden,'reopen');
  d.querySelector('[data-period="high-middle-ages"]').click();await pause(1500);

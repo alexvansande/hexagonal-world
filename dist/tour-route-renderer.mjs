@@ -1,4 +1,4 @@
-import {projectTourLocations} from './tour-markers.mjs?v=tour-pages-1';
+import {projectTourLocations} from './tour-markers.mjs?v=chapters-1';
 import {hex} from './geometry.mjs';
 
 export function sampleRoute(route,step=.18){

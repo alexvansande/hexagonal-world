@@ -33,8 +33,9 @@ for(const route of projectTourRoutes(tiles,net,state,migrationRoutes)){
 }
 const bering=sampleRoute(migrationRoutes.find(r=>r.id==='migration-beringia'));
 assert(bering.every(p=>Math.abs(p.longitude)>125),'Bering route takes the short date-line crossing');
-const story=parseTourContent(readFileSync('dist/tour-stories.md','utf8'))[origin.id];
-assert.equal(story.legend.length,3);assert.equal(story.source.url,'./human-migrations-sources.md');
+const content=parseTourContent(readFileSync('dist/tour-stories.md','utf8')),story=content[origin.id];
+assert.equal(story.source.url,'./human-migrations-sources.md');assert.equal(content['origin-of-mankind-sapiens-expansion'].legend.length,2);
+assert(!story.legend.length,'The overview defers its color key to the chapters');
 assert.equal(parseTourContent('## x\n### Test\n\n[bad](javascript:alert(1))').x.source,null,'Local source support must not admit executable URLs');
 const css=readFileSync('dist/style.css','utf8');
 assert(css.includes('to{stroke-dashoffset:-8.1}'),'Negative offset moves dots toward each branch endpoint');

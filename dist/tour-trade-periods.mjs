@@ -1,6 +1,6 @@
 // Loaded only when the Silk Road story is opened. These are editorial networks
 // around four dates, not measured itineraries or annual trade-volume estimates.
-import {tradeTraffic} from './tour-trade-traffic.mjs?v=sporadic-2';
+import {definePeriods} from './tour-periods.mjs?v=chapters-1';
 import {silkRoadRoutes} from './tour-route-data.mjs?v=trade-periods-1';
 import {silkTradeRoutes} from './tour-trade.mjs?v=trade-regions-1';
 
@@ -108,11 +108,13 @@ const high=[...backbone.filter(r=>!r.id.endsWith('china-north')),
 early.push(reverse(early.find(r=>r.id==='early-china-sea'),'early-spices-east','spices-cotton'));
 high.push(reverse(high.find(r=>r.id==='high-china-sea'),'high-spices-east','spices-cotton'));
 
-export const tradePeriods=Object.freeze([
+const trade=definePeriods('silk-road',[
  {id:'bronze-age',label:'Bronze Age',date:'c. 1300 BCE',year:-1300,routes:bronze,waves:['tin','copper','gold-silver','glass-metals','timber','textiles-pottery']},
  {id:'antiquity',label:'Antiquity',date:'c. 150 CE',year:150,routes:ancient,waves:['silk','gold-silver','glass-metals','horses','spices-cotton']},
  {id:'early-middle-ages',label:'Early Middle Ages',date:'c. 900 CE',year:900,routes:early,waves:['silk','gold-silver','horses','spices-cotton','furs']},
  {id:'high-middle-ages',label:'High Middle Ages',date:'c. 1300 CE',year:1300,routes:high,waves:['silk','gold-silver','horses','spices-cotton','furs','ceramics']},
-].map(period=>Object.freeze({...period,storyId:`silk-road-${period.id}`,routes:Object.freeze(period.routes.map(route=>Object.freeze({...route,traffic:tradeTraffic(route.id)})))})));
-export const defaultTradePeriod='antiquity';
-export const tradePeriod=id=>tradePeriods.find(period=>period.id===id)||tradePeriods[1];
+],'antiquity',{heading:'Trade through time'});
+export const tradePeriods=trade.periods;
+export const defaultTradePeriod=trade.defaultId;
+export const tradePeriod=trade.periodFor;
+export const tradeHeading=trade.heading;

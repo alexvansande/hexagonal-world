@@ -60,10 +60,12 @@ See [AUDIT.md](AUDIT.md) for the September 2026 diagnosis, repairs, performance 
 
 ## Implemented
 
-The default Spaceship Earth + Lifezones map includes fifteen discovery dots from
-`dist/tour-markers.mjs`. Each record has a stable `id`, `title`, `latitude`,
-`longitude`, and an `overlay` field (a stable overlay ID for enabled stories, otherwise
-`null`). The reusable DOM layer emits a bubbling `tourselect` event with the
+The default Spaceship Earth + Lifezones map includes five discovery dots from
+`dist/tour-markers.mjs`: Origin of mankind, Silk Road, Iceland to Vinland, French
+Polynesia and Americas exchange. Each record has a stable `id`, `title`,
+`latitude`, `longitude`, and an `overlay` field (a stable overlay ID). The earlier
+imperial-extent and Amazon-basin dots were retired as entry points on September 21;
+their area geometry, clipping renderer and tests remain for future use. The reusable DOM layer emits a bubbling `tourselect` event with the
 complete record in `detail`. Coordinates are representative anchors.
 
 Selecting Silk Road fits the land and sea trade network into view and opens a compact
@@ -103,6 +105,19 @@ prose and color key is editable under its `silk-road-*` ID in
 (or `antiquity`, `early-middle-ages`, `high-middle-ages`). Changing it preserves
 Pause and smoothly refits the network; closing restores the original map camera.
 
+Every story now uses the same chapter slider. `dist/tour-periods.mjs` builds dated
+periods from route lists: each period gets a `storyId` (`<tour>-<period>`), its
+wave order, and sparse traffic timing per route (`bothWays` adds a reversed
+partner on the same signed lane for two-way traffic). `loadTourData` returns
+`{heading, periods, periodFor}` for all five tours and the app selects a chapter
+from `?period=` or the story default. Human migrations have four chapters
+(`tour-migrations.mjs`: early hominins, Neanderthals and Denisovans, Homo sapiens
+expansion, later movements), Norse voyages five (`tour-vinland.mjs`), Polynesia
+four (`tour-polynesia.mjs`, with an uncertain South American contact chapter) and
+the Americas four (`tour-americas.mjs`). Evidence notes: `human-migrations-sources.md`,
+`territory-tours-sources.md`, `polynesia-sources.md` and `americas-exchange-sources.md`.
+Checks: `tour-chapter-tests.mjs` and the `/tests/tour-*.html` pages.
+
 Startup imports only the small projection/rendering modules and loader.
 `dist/tour-data.mjs` dynamically imports the selected tour's dataset. Trade
 networks, migration coordinates, area geometry and Markdown are never prefetched
@@ -120,9 +135,10 @@ The Amazon shows the HydroBASINS v1c level-03 Amazon catchment (HYBAS_ID
 patch cones; even/odd filling retains holes and concave fragments, while borders
 only stroke geographic edges, never artificial map cuts. The area layer follows
 the normal camera, stays on Lifezones and is excluded from canvas exports.
-The Norse tour uses the existing static dotted line through western Norway,
-Shetland, Faroes, Iceland, coastal Greenland, Baffin Island, Labrador and northern
-Newfoundland. Its six branches are in `dist/tour-vinland.mjs`.
+The Norse tour animates its six base corridors (western Norway, Shetland, Faroes,
+Iceland, coastal Greenland, Baffin Island, Labrador and northern Newfoundland)
+across five chapters in `dist/tour-vinland.mjs`, with two-way sailing, a Gaelic
+settlement route, Norðrsetur hunting grounds, Markland timber trips and Thule contact.
 
 Sources, period choices, geographic uncertainty and data licenses are in
 `dist/territory-tours-sources.md`. To rebuild the small bundled area module, use
@@ -132,11 +148,13 @@ Natural Earth land trims their coastlines without adding modern political border
 No GIS library or source archive loads in the browser. Checks:
 `tour-area-tests.mjs` and `/tests/tour-areas.html` (also `?mobile=1`).
 
-Origin of mankind opens an animated migration overview. `dist/tour-migrations.mjs`
-contains 26 directed, connected branches with source keys, broad evidence periods
-and uncertainty notes. The three color groups distinguish early dispersals,
-Eurasia/Sahul expansion, and later movements. CSS moves the same dotted stroke
-outward, with a matching halo; no per-frame map redraw or terrain pass is needed.
+Origin of mankind opens an animated dispersal story. `dist/tour-migrations.mjs`
+keeps the 26 directed, connected Homo sapiens branches with source keys, broad
+evidence periods and uncertainty notes, and adds hominin, Neanderthal/Denisovan,
+admixture and Holocene links. Ranges and contact zones are two-way; Neanderthals
+are described as a sister lineage that interbred, never as a direct ancestor of
+everyone. The chapters use the shared sparse traffic dots with a matching halo;
+no per-frame map redraw or terrain pass is needed.
 The card offers Pause/Resume, and reduced-motion preferences keep the dots still.
 The existing net and lighting remain unchanged; cuts split routes rather than
 bridging empty space. X/Escape restores the camera.
@@ -156,16 +174,16 @@ stay fixed. The merged image renderer clips and moves the original artwork
 during the transition, then uses `maps/tours/pacific-v1` for the two Americas
 pieces: unchanged unlit base colors/rivers with newly projected terrain lighting
 at their final positions. Light stays at the same screen-space azimuth as the
-fixed pieces. The default view still uses only tiled images. The dotted
-Polynesian Triangle uses short spherical arcs, including the Hawaiian island
-chain, Aotearoa New Zealand and Rapa Nui. X/Escape restores the source arrangement.
+fixed pieces. The default view still uses only tiled images. Four chapters draw
+settlement crossings one way and interisland voyaging both ways with denser canoe
+dots; the last chapter adds sparse, uncertain contact links to the Colombian–Ecuadorian
+and Peruvian–Chilean coasts, supported by genetic and sweet-potato evidence. X/Escape restores the source arrangement.
 The `/french-polynesia/` URL reconstructs this layout; a camera-only hash does not. Tours use a 1.25-second
 transition and a looser framing; reduced motion skips animation.
 
-All nine implemented tours have root-level landing pages, registered in
-`dist/tour-pages.mjs`: `/origin-of-mankind/`, `/ancient-egypt/`, `/mesopotamia/`,
-`/silk-road/`, `/iceland-to-vinland/`, `/french-polynesia/`, `/amazon-mouth/`,
-`/india/`, and `/china/`. Direct entry loads Spaceship Earth + Lifezones and opens
+All five tours have root-level landing pages, registered in
+`dist/tour-pages.mjs`: `/origin-of-mankind/`, `/silk-road/`, `/iceland-to-vinland/`,
+`/french-polynesia/` and `/americas-exchange/`. Direct entry loads Spaceship Earth + Lifezones and opens
 the matching story/overlay. Clicking a dot pushes its URL; Back/Forward restores
 selection, and closing returns to the map and its previous camera. Reloading a
 tour preserves the return camera in the history entry. A direct link from outside
