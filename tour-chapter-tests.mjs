@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {tourChapters,sampleRoute,projectTourRoutes,routePath} from './dist/tour-routes.mjs';
+import {routeStrands} from './dist/tour-route-renderer.mjs';
 import {tourLocations} from './dist/tour-markers.mjs';
 import {loadTourData} from './dist/tour-data.mjs';
 import {definePeriods,bothWays,reverseRoute} from './dist/tour-periods.mjs';
@@ -31,18 +32,19 @@ for(const [id,chapters] of Object.entries(tourChapters)){
   assert.equal(new Set(period.routes.map(r=>r.id)).size,period.routes.length,period.storyId+' unique route IDs');
   routeSets.add(period.routes.map(r=>r.id).sort().join());
   for(const r of period.routes){
-   assert(r.animated&&r.traffic&&r.traffic.speed===13,r.id+' uses sparse traffic at the shared speed');
+   assert(r.animated&&[r.traffic].flat().every(t=>t&&t.speed===13),r.id+' uses sparse traffic at the shared speed');
    assert(r.coordinates.length>=2&&r.coordinates.every(([lat,lon])=>Number.isFinite(lat)&&Math.abs(lat)<=90&&Number.isFinite(lon)&&Math.abs(lon)<=180));
    // Two-way traffic: a reversed partner in the same chapter, same signed lane, opposite order.
    if(r.returnOf){const forward=period.routes.find(f=>f.id===r.returnOf);assert(forward,r.id+' partner present');assert.equal(forward.lane,r.lane);assert.deepEqual([...forward.coordinates].reverse(),r.coordinates);assert.equal(forward.wave,r.wave);assert.equal(!!forward.uncertain,!!r.uncertain);}
   }
   // Every chapter fits the map: all samples land on the net used for that story, and no stroke bridges a cut.
   const layout=id==='french-polynesia'?pacific:net;
-  for(const route of projectTourRoutes(tiles,layout,state,period.routes)){
-   assert.equal(route.anchors.length,sampleRoute(route).length,route.id+' has no missing samples');
-   const d=routePath(route.anchors,world,route.lane);assert(!/NaN|Infinity/.test(d));
-   const commands=d.match(/[ML]/g);for(let i=1;i<commands.length;i++)if(route.anchors[i-1].tile!==route.anchors[i].tile)assert.equal(commands[i],'M',route.id+' must not bridge a map cut');
-  }
+  for(const route of projectTourRoutes(tiles,layout,state,period.routes))routeStrands(route).forEach((strand,s)=>{
+   const anchors=route.strandAnchors[s];
+   assert.equal(anchors.length,sampleRoute(strand).length,route.id+' has no missing samples');
+   const d=routePath(anchors,world,route.lane);assert(!/NaN|Infinity/.test(d));
+   const commands=d.match(/[ML]/g);for(let i=1;i<commands.length;i++)if(anchors[i-1].tile!==anchors[i].tile)assert.equal(commands[i],'M',route.id+' must not bridge a map cut');
+  });
  }
  assert.equal(routeSets.size,chapters.periods.length,id+' chapters draw genuinely different networks');
 }

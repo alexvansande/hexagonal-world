@@ -120,6 +120,20 @@ Polynesia, the far corners, and an uncertain South American contact chapter) and
 the Americas four (`tour-americas.mjs`, including Amazonian river pottery and
 greenstone networks drawn as uncertain links). Evidence notes: `human-migrations-sources.md`,
 `territory-tours-sources.md`, `polynesia-sources.md` and `americas-exchange-sources.md`.
+Corridor relaxation (prototype on the Homo sapiens expansion chapter):
+`scripts/relax-tour-routes.py` builds a 0.2° passability raster from the height
+overview (slope and elevation), Holdridge life zones (deserts, tundra, ice), big
+HydroRIVERS lines (bonus) and coasts (cheaper than open sea), then runs a
+least-cost search between each route's hard stops (endpoints and named places)
+inside a soft corridor around the authored polyline. Three strands per route use
+different smooth noise, so parallel courses jiggle through valleys and along
+coasts while the stops stay exact. The result is the generated
+`dist/tour-migrations-relaxed.mjs`; routes carry `strands`, the renderer draws
+each strand with its own share of the sparse traffic, and nothing runs at
+runtime beyond the usual projection. The raster is modern geography: ice-age
+land bridges and green Sahara phases need period overrides before the method is
+applied to other chapters. Needs numpy and Pillow in a local virtualenv.
+Checks: `tour-relaxed-tests.mjs`.
 Chapter changes refit the camera without replaying the Pacific piece animation.
 Checks: `tour-chapter-tests.mjs`, `tour-performance-tests.mjs` (route, sample,
 path, timing and module-size budgets) and the `/tests/tour-*.html` pages.

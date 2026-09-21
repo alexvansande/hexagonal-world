@@ -564,6 +564,18 @@ uncertain; no Marajó-to-Inca line is drawn because no evidence was found for it
 Performance budgets (routes, samples, SVG paths, timing, module sizes) are
 enforced in `tour-performance-tests.mjs`.
 
+**Passability prototype (September 21).** The user proposed that dots should
+find natural courses through terrain instead of straight legs. Decision: relax
+routes offline, never at runtime. Hard stops (endpoints and named places) stay
+exact; the authored polyline becomes a soft corridor; a least-cost search over a
+passability raster (relief, life zones, rivers, coasts) produces three strands per
+route with different smooth noise so individual dots appear to jiggle through
+valleys and along coasts. The dots remain a CSS dash animation on fixed SVG
+paths; no per-frame JavaScript or particle system. Applied first to the Homo
+sapiens expansion chapter for review; other chapters wait for period overrides
+(land bridges, green Sahara, oasis corridors) so modern rasters do not misroute
+ancient legs. Relaxed strands are visualization, not evidence of paths.
+
 Evidence: September 21 feature request and confirmation. Checks:
 `tour-chapter-tests.mjs`, `tour-marker-tests.mjs`, `tour-page-tests.mjs`,
 `/tests/tour-areas.html` (Norse), `/tests/tour-migrations.html`, `/tests/tour-polynesia.html`.

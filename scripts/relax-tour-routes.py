@@ -1,0 +1,173 @@
+"""Corridor relaxation for story routes: least-cost paths through a passability
+raster built from the height overview, Holdridge life zones and HydroRIVERS.
+
+Hard stops (route endpoints and named places) stay fixed. Between them each
+strand follows a low-cost path inside a soft corridor around the authored
+polyline, with its own smooth noise so parallel strands take slightly different
+courses. Output is an ordinary data module; the renderer stays unchanged.
+
+Usage: python3 scripts/relax-tour-routes.py routes.json dist/tour-<name>-relaxed.mjs
+Needs numpy and Pillow (a scratch virtualenv is fine). No network access.
+"""
+import heapq, json, math, sys, time
+import numpy as np
+from PIL import Image
+
+root = __import__('pathlib').Path(__file__).resolve().parent.parent
+routes_file, output = sys.argv[1], sys.argv[2]
+spec = json.load(open(routes_file))
+STEP = 0.2                      # degrees per cell
+W, H = int(360 / STEP), int(180 / STEP)
+STRANDS, CORRIDOR, NOISE = 3, 2.5, 0.35   # strands per route, soft corridor (deg), noise amplitude
+t0 = time.time()
+
+# --- rasters ---------------------------------------------------------------
+height = np.asarray(Image.open(root / 'dist/maps/height/overview.png'), dtype=np.float32) / 255
+hm = json.load(open(root / 'dist/maps/height/manifest.json'))
+sea_level = hm['seaLevel']
+f = height.shape[1] // W
+height = height[:H * f, :W * f].reshape(H, f, W, f).mean(axis=(1, 3))
+eco = np.asarray(Image.open(root / 'dist/maps/ecology-data-v2.png').convert('RGB'))[:, :, 0]
+classes = json.load(open(root / 'dist/maps/sources.json'))['holdridgeClasses']
+ys = (np.arange(H) * eco.shape[0] // H); xs = (np.arange(W) * eco.shape[1] // W)
+eco = eco[ys][:, xs]
+def class_set(test): return {int(k) for k, v in classes.items() if test(v.lower())}
+desert = class_set(lambda v: 'desert' in v and 'polar' not in v)
+polar = class_set(lambda v: 'polar' in v or 'tundra' in v) | {1}
+ice = {1}
+land = (eco != 0) & (height >= sea_level)
+sea = ~land
+coast = sea & (np.roll(land, 1, 0) | np.roll(land, -1, 0) | np.roll(land, 1, 1) | np.roll(land, -1, 1) |
+               np.roll(np.roll(land, 1, 0), 1, 1) | np.roll(np.roll(land, -1, 0), -1, 1))
+# Rivers: rasterize polylines with a minimum discharge (level index <= 6 is >= 100 m3/s).
+rivers = np.zeros((H, W), dtype=bool)
+def cell(lon, lat):
+    return int((lon + 180) / STEP) % W, min(H - 1, max(0, int((90 - lat) / STEP)))
+for level, line in json.load(open(root / 'dist/maps/river-lines.json')):
+    if level > 6: continue
+    prev = None
+    for lon, lat in line:
+        x, y = cell(lon, lat)
+        if prev is not None:
+            px, py = prev; n = max(abs(x - px), abs(y - py), 1)
+            if n < 40:
+                for i in range(n + 1):
+                    rivers[py + (y - py) * i // n, (px + (x - px) * i // n) % W] = True
+        rivers[y, x] = True; prev = (x, y)
+rivers |= np.roll(rivers, 1, 0) | np.roll(rivers, -1, 0) | np.roll(rivers, 1, 1) | np.roll(rivers, -1, 1)
+# Slope and elevation from the height overview (relative brightness, not metres).
+elev = np.clip((height - sea_level) / (1 - sea_level), 0, 1)
+gy, gx = np.gradient(height)
+slope = np.hypot(gx, gy); slope = slope / (np.percentile(slope[land], 97) + 1e-9)
+cost = np.ones((H, W), dtype=np.float32)
+cost += 6 * np.minimum(1, slope) ** 2 + 4 * np.clip((elev - .35) / .65, 0, 1)
+cost[np.isin(eco, list(desert))] *= 1.8
+cost[np.isin(eco, list(polar))] *= 1.4
+cost[np.isin(eco, list(ice))] *= 3
+cost[rivers & land] *= .55
+cost[sea] = 5.0
+cost[coast] = 2.5
+print(json.dumps({'grid': [W, H], 'land': int(land.sum()), 'rivers': int((rivers & land).sum()), 'seconds': round(time.time() - t0, 1)}), flush=True)
+
+# --- helpers ---------------------------------------------------------------
+def to_cell(lat, lon): return cell(lon, lat)
+def to_geo(x, y): return [90 - (y + .5) * STEP, -180 + (x + .5) * STEP]
+def smooth_noise(seed):
+    rng = np.random.default_rng(seed); low = rng.standard_normal((H // 20 + 2, W // 20 + 2))
+    ys = np.linspace(0, low.shape[0] - 1.001, H); xs = np.linspace(0, low.shape[1] - 1.001, W)
+    y0 = ys.astype(int); x0 = xs.astype(int); fy = (ys - y0)[:, None]; fx = (xs - x0)[None, :]
+    a = low[y0][:, x0]; b = low[y0][:, x0 + 1]; c = low[y0 + 1][:, x0]; d = low[y0 + 1][:, x0 + 1]
+    return (a * (1 - fx) + b * fx) * (1 - fy) + (c * (1 - fx) + d * fx) * fy
+def seg_distance(px, py, ax, ay, bx, by):
+    dx, dy = bx - ax, by - ay; l2 = dx * dx + dy * dy
+    t = 0 if l2 == 0 else max(0, min(1, ((px - ax) * dx + (py - ay) * dy) / l2))
+    return math.hypot(px - (ax + t * dx), py - (ay + t * dy))
+NEIGHBORS = [(dx, dy) for dx in (-2, -1, 0, 1, 2) for dy in (-2, -1, 0, 1, 2) if (dx, dy) != (0, 0) and math.gcd(abs(dx), abs(dy)) == 1]
+
+def relax(poly, noise):
+    """Least-cost path from poly[0] to poly[-1] inside a soft corridor around poly (lat/lon)."""
+    # Work in a longitude frame centred on the polyline so boxes never split at the date line.
+    lon0 = poly[0][1]
+    shift = lambda lon: ((lon - lon0 + 180) % 360) - 180
+    pts = [(shift(lon), lat) for lat, lon in poly]
+    minx = min(p[0] for p in pts) - 4 * CORRIDOR; maxx = max(p[0] for p in pts) + 4 * CORRIDOR
+    miny = min(p[1] for p in pts) - 4 * CORRIDOR; maxy = max(p[1] for p in pts) + 4 * CORRIDOR
+    def corridor(x, y):
+        lon = shift(-180 + (x + .5) * STEP); lat = 90 - (y + .5) * STEP
+        if lon < minx or lon > maxx or lat < miny or lat > maxy: return None
+        cl = math.cos(math.radians(lat))
+        d = min(seg_distance(lon * cl, lat, a[0] * cl, a[1], b[0] * cl, b[1]) for a, b in zip(pts, pts[1:])) if len(pts) > 1 else 0
+        if d > 4 * CORRIDOR: return None
+        return 1 + 3 * max(0, (d - CORRIDOR) / CORRIDOR) ** 2
+    start = to_cell(*poly[0]); goal = to_cell(*poly[-1])
+    dist = {start: 0.0}; prev = {}; heap = [(0.0, start)]; cache = {}
+    def local(x, y):
+        key = (x, y)
+        if key not in cache:
+            c = corridor(x, y); cache[key] = None if c is None else float(cost[y, x]) * c * math.exp(NOISE * noise[y, x])
+        return cache[key]
+    while heap:
+        d, (x, y) = heapq.heappop(heap)
+        if (x, y) == goal: break
+        if d > dist.get((x, y), 1e18): continue
+        here = local(x, y)
+        for dx, dy in NEIGHBORS:
+            nx, ny = (x + dx) % W, y + dy
+            if ny < 0 or ny >= H: continue
+            there = local(nx, ny)
+            if there is None: continue
+            lat = 90 - (ny + .5) * STEP
+            length = math.hypot(dx * math.cos(math.radians(lat)), dy)
+            nd = d + (here + there) / 2 * length
+            if nd < dist.get((nx, ny), 1e18):
+                dist[(nx, ny)] = nd; prev[(nx, ny)] = (x, y); heapq.heappush(heap, (nd, (nx, ny)))
+    if goal not in dist: raise SystemExit('No path for segment starting at %r' % (poly[0],))
+    path = [goal]
+    while path[-1] != start: path.append(prev[path[-1]])
+    path.reverse()
+    return [to_geo(x, y) for x, y in path], dist[goal]
+
+def simplify(points, tol):
+    if len(points) < 3: return points
+    a, b = points[0], points[-1]; best, index = 0, 0
+    for i, p in enumerate(points[1:-1], 1):
+        d = seg_distance(p[1] * math.cos(math.radians(p[0])), p[0], a[1] * math.cos(math.radians(a[0])), a[0], b[1] * math.cos(math.radians(b[0])), b[0])
+        if d > best: best, index = d, i
+    if best > tol: return simplify(points[:index + 1], tol)[:-1] + simplify(points[index:], tol)
+    return [a, b]
+
+def polyline_cost(poly):
+    total, length = 0.0, 0.0
+    for a, b in zip(poly, poly[1:]):
+        n = max(2, int(math.hypot(a[0] - b[0], a[1] - b[1]) / STEP))
+        for i in range(n):
+            lat = a[0] + (b[0] - a[0]) * i / n; lon = a[1] + (b[1] - a[1]) * i / n
+            x, y = to_cell(lat, lon); total += float(cost[y, x]); length += 1
+    return total / max(1, length)
+
+# --- routes ----------------------------------------------------------------
+places = {tuple(p) for p in spec['places']}
+result, meta = {}, {}
+noises = [smooth_noise(11 + i) for i in range(STRANDS)]
+for route in spec['routes']:
+    coords = [tuple(c) for c in route['coordinates']]
+    hard = [0] + [i for i, c in enumerate(coords) if c in places and 0 < i < len(coords) - 1] + [len(coords) - 1]
+    strands, costs = [], []
+    for s in range(STRANDS):
+        strand, total = [], 0.0
+        for a, b in zip(hard, hard[1:]):
+            piece, c = relax(coords[a:b + 1], noises[s]); total += c
+            piece = simplify(piece, .12)
+            piece[0] = list(coords[a]); piece[-1] = list(coords[b])     # hard stops exactly
+            strand += piece if not strand else piece[1:]
+        strands.append([[round(lat, 2), round(lon, 2)] for lat, lon in strand]); costs.append(round(polyline_cost(strand), 3))
+    result[route['id']] = strands
+    meta[route['id']] = {'authored': round(polyline_cost(coords), 3), 'relaxed': costs, 'hard': len(hard)}
+    print(route['id'], meta[route['id']], flush=True)
+header = ('// Generated by scripts/relax-tour-routes.py for %s / %s. Least-cost strands through a\n'
+          '// passability raster (relief, life zones, rivers, coasts) inside a soft corridor around the\n'
+          '// authored polylines; hard stops are exact. Editorial visualization, not evidence of paths.\n') % (spec['tour'], spec['period'])
+body = 'export const relaxedStrands=' + json.dumps(result, separators=(',', ':')) + ';\n'
+body += 'export const relaxedMeta=' + json.dumps(meta, separators=(',', ':')) + ';\n'
+open(output, 'w').write(header + body)
+print(json.dumps({'output': output, 'routes': len(result), 'bytes': len(header + body), 'seconds': round(time.time() - t0, 1)}))

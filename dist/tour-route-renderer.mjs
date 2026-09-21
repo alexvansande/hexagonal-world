@@ -14,8 +14,13 @@ export function sampleRoute(route,step=.18){
  }
  const last=route.coordinates.at(-1);points.push({latitude:last[0],longitude:last[1]});return points;
 }
+// A route may carry several relaxed strands (same stops, different courses).
+export const routeStrands=route=>route.strands?route.strands.map(coordinates=>({...route,coordinates,geodesic:false})):[route];
 export function projectTourRoutes(tiles,net,angles,routes=[]){
- return routes.map(route=>({...route,anchors:projectTourLocations(tiles,net,angles,sampleRoute(route))}));
+ return routes.map(route=>{
+  const strandAnchors=routeStrands(route).map(strand=>projectTourLocations(tiles,net,angles,sampleRoute(strand)));
+  return {...route,anchors:strandAnchors.flat(),strandAnchors};
+ });
 }
 // Never bridge a cut between separate map pieces. Split at tile changes; samples
 // on either side approach the seam within a fraction of a geographic degree.
@@ -69,9 +74,11 @@ export function createTourRoutes(stage){
    const value=pathFor(route),{group,segments}=value,traffic=route.traffic;
    group.style.display='';group.classList.toggle('route-flow',!!route.animated);group.classList.toggle('route-sporadic',!!traffic);group.classList.toggle('route-uncertain',!!route.uncertain);group.dataset.wave=route.wave||'';
    if(route.lane)group.setAttribute('clip-path','url(#tour-route-map-clip)');else group.removeAttribute('clip-path');
-   const fragments=traffic?routeFragments(route.anchors,point,route.lane):[{d:routePath(route.anchors,point,route.lane),start:0}];
+   const strands=route.strandAnchors||[route.anchors];
+   const fragments=strands.flatMap((anchors,s)=>{const t=Array.isArray(traffic)?traffic[s]:traffic;
+    return t?routeFragments(anchors,point,route.lane).map(f=>({...f,traffic:t})):[{d:routePath(anchors,point,route.lane),start:0,traffic:null}];});
    while(segments.length>fragments.length){const {halo,line}=segments.pop();halo.remove();line.remove();}
-   fragments.forEach(({d,start},i)=>{
+   fragments.forEach(({d,start,traffic},i)=>{
     if(!segments[i]){const halo=document.createElementNS(ns,'path'),line=document.createElementNS(ns,'path');halo.classList.add('route-halo');line.classList.add('route-line');group.append(halo,line);segments.push({halo,line});}
     for(const path of Object.values(segments[i])){
      path.setAttribute('d',d);

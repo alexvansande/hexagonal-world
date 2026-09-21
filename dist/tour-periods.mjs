@@ -12,7 +12,9 @@ export function definePeriods(tourId,periods,defaultId,{heading='Through time',s
  const list=Object.freeze(periods.map(period=>Object.freeze({
   ...period,storyId:`${tourId}-${period.id}`,
   waves:Object.freeze(period.waves||[...new Set(period.routes.map(route=>route.wave).filter(Boolean))]),
-  routes:Object.freeze(period.routes.map(route=>Object.freeze({...route,animated:route.animated!==false,traffic:tradeTraffic(seed(route,period),route.frequency)}))),
+  routes:Object.freeze(period.routes.map(route=>Object.freeze({...route,animated:route.animated!==false,
+   // Relaxed strands share one route: each carries a share of the traffic on its own course.
+   traffic:route.strands?route.strands.map((_,i)=>tradeTraffic(`${seed(route,period)}~${i}`,(route.frequency||1)/route.strands.length)):tradeTraffic(seed(route,period),route.frequency)}))),
  })));
  const fallback=list.find(period=>period.id===defaultId)||list[0];
  return Object.freeze({heading,periods:list,defaultId:fallback.id,periodFor:id=>list.find(period=>period.id===id)||fallback});

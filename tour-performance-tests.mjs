@@ -11,7 +11,7 @@ import {layoutOptions} from './dist/map-options.mjs';
 // camera change and CSS animates the dots, so sample counts and path counts are
 // the real costs. Timing budgets are generous so CI machines do not flake.
 const state=layoutOptions[0].state,tiles=makeGeometry(state.method,state.height),net=makeArrangement(tiles,state.arrangement,layouts(tiles)).net,pacific=pacificTourNet(tiles,net);
-const budgets={routes:70,samples:9000,paths:300,projectMs:400,pathMs:60};
+const budgets={routes:70,samples:12000,paths:300,projectMs:400,pathMs:60};
 let heaviest={samples:0};
 for(const [id,chapters] of Object.entries(tourChapters)){
  const layout=id==='french-polynesia'?pacific:net;
@@ -19,7 +19,7 @@ for(const [id,chapters] of Object.entries(tourChapters)){
   const t0=performance.now(),projected=projectTourRoutes(tiles,layout,state,period.routes),projectMs=performance.now()-t0;
   const samples=projected.reduce((sum,r)=>sum+r.anchors.length,0);
   const t1=performance.now();let paths=0;
-  for(const route of projected){const fragments=routeFragments(route.anchors,world,route.lane);paths+=fragments.length*2;routePath(route.anchors,world,route.lane);}
+  for(const route of projected)for(const anchors of route.strandAnchors){const fragments=routeFragments(anchors,world,route.lane);paths+=fragments.length*2;routePath(anchors,world,route.lane);}
   const pathMs=performance.now()-t1;
   assert(period.routes.length<=budgets.routes,`${period.storyId}: ${period.routes.length} routes exceed ${budgets.routes}`);
   assert(samples<=budgets.samples,`${period.storyId}: ${samples} samples exceed ${budgets.samples}`);

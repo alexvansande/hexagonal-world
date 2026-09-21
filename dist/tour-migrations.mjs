@@ -4,7 +4,8 @@
 // Four chapters: early hominins, Neanderthals/Denisovans (with the first Homo
 // sapiens departures), the main Homo sapiens expansion, and later movements.
 // Two-way links show contact or range, never a claim that every ancestor moved.
-import {definePeriods,bothWays} from './tour-periods.mjs?v=chapters-1';
+import {definePeriods,bothWays} from './tour-periods.mjs?v=strands-1';
+import {relaxedStrands} from './tour-migrations-relaxed.mjs?v=strands-1';
 export const migrationSources=Object.freeze({
  origins:'https://www.nature.com/articles/s41586-023-06055-y',
  misliya:'https://pubmed.ncbi.nlm.nih.gov/29371468/',
@@ -124,10 +125,14 @@ export const holoceneRoutes=Object.freeze([
  link('holocene-bantu-west','Western Bantu stream','holocene','About 5,000–1,500 years ago',['bantu'],['cameroon',[-2,11],[-8,14],[-14,15]]),
  link('holocene-arctic','Paleo-Inuit and Thule across the Arctic','holocene','About 5,000 years ago, then about 1,000 years ago',['arctic'],['alaska',[70,-150],[70,-130],[70,-110],'canadianArctic',[75,-80],'thule',[72,-55]]),
 ]);
+// Named anchors are the hard stops for corridor relaxation (scripts/relax-tour-routes.py).
+export const migrationPlaces=Object.freeze({...p,...q});
 const sapiens=wave=>migrationRoutes.filter(r=>r.wave===wave);
+// Prototype: the expansion chapter draws relaxed strands (hard stops exact, courses follow terrain).
+const relaxed=routes=>routes.map(r=>relaxedStrands[r.id]?Object.freeze({...r,strands:relaxedStrands[r.id]}):r);
 export const migrationChapters=definePeriods('origin-of-mankind',[
  {id:'early-hominins',label:'Early hominins',date:'c. 2 million–500,000 years ago',year:-2000000,routes:homininRoutes,waves:['early-homo','erectus']},
  {id:'archaic-eurasia',label:'Neanderthals & Denisovans',date:'c. 400,000–60,000 years ago',year:-400000,routes:[...archaicRoutes,...sapiens('early')],waves:['neanderthal','denisovan','sapiens-africa','early']},
- {id:'sapiens-expansion',label:'Homo sapiens expansion',date:'c. 70,000–40,000 years ago',year:-70000,routes:[...sapiens('expansion'),...admixtureRoutes],waves:['expansion','admixture']},
+ {id:'sapiens-expansion',label:'Homo sapiens expansion',date:'c. 70,000–40,000 years ago',year:-70000,routes:[...relaxed(sapiens('expansion')),...admixtureRoutes],waves:['expansion','admixture']},
  {id:'later-movements',label:'Later movements',date:'c. 25,000 years ago onward',year:-25000,routes:[...sapiens('later'),...holoceneRoutes],waves:['later','holocene']},
 ],'sapiens-expansion',{heading:'Waves of dispersal'});
