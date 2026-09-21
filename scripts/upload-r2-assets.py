@@ -10,12 +10,13 @@ import mimetypes
 from pathlib import Path
 import time
 import os
+import sys
 import boto3
 from botocore.config import Config
 
 root = Path(__file__).resolve().parent.parent
-release_dir = root / '_asset-release'
-credentials = json.loads((release_dir / 'credentials.json').read_text())
+release_dir = (root / sys.argv[1]).resolve() if len(sys.argv) > 1 else root / '_asset-release'
+credentials = json.loads((root / '_asset-release' / 'credentials.json').read_text())
 manifest = json.loads((release_dir / 'manifest.json').read_text())
 workers = int(os.environ.get('R2_UPLOAD_WORKERS', '96'))
 bucket = 'hexagonal-earth-assets'

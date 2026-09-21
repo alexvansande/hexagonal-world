@@ -74,7 +74,7 @@ aside .welcome-copy{font-size:12px;line-height:1.7;color:#5e737a;margin:12px 0 2
 #collapse-customize span{display:block;pointer-events:none}
 #customize{display:none}
 body:not(.customizing) aside{top:auto;bottom:24px;left:24px;right:auto;width:344px;height:auto;max-width:calc(100vw - 48px);max-height:none;padding:12px;border-radius:16px;overflow:visible}
-body:not(.customizing) aside>:not(.layout-presets):not(.style-presets):not(#customize){display:none}
+body:not(.customizing) aside>:not(.layout-presets):not(.style-presets):not(#customize):not(#tour-story){display:none}
 body:not(.customizing) .layout-presets,body:not(.customizing) .style-presets{display:flex;flex-wrap:nowrap;gap:8px;overflow-x:auto;overscroll-behavior-x:contain;scrollbar-width:thin;scrollbar-color:#c6d4d7 transparent;margin:0;padding:2px 2px 8px;scroll-snap-type:x proximity}
 body:not(.customizing) .layout-preset-card,body:not(.customizing) .style-preset-card{flex:0 0 74px;padding:4px;border-radius:8px;scroll-snap-align:start;min-width:0;background:#f4f7f6;border-color:transparent}
 body:not(.customizing) .layout-preset-card b,body:not(.customizing) .style-preset-card b{display:none}
@@ -217,3 +217,87 @@ aside{overscroll-behavior:contain}
 #map-load-notice{position:absolute;z-index:8;top:18px;left:50%;transform:translateX(-50%);padding:10px 14px;border-radius:8px;background:#fff;color:#193c49;box-shadow:0 2px 15px #0002;font-size:13px}#map-load-notice[hidden]{display:none}#map-load-notice button{margin-left:8px;padding:5px 12px}
 /* Temporary comparison control for the pre-rendered lighting resolution. */
 .temporary-test{font-size:11px;color:#6f7f78;margin:8px 0}
+
+/* Discovery markers are screen-space affordances, never geographic extents. */
+.tour-markers{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+.tour-markers[hidden],.tour-marker[hidden]{display:none}
+.tour-marker{position:absolute;width:32px;height:32px;margin:-16px 0 0 -16px;padding:0;border:0;border-radius:50%;background:transparent;pointer-events:auto;touch-action:none;cursor:pointer;color:#fff9e8}
+.tour-marker:hover,.tour-marker:active{background:transparent}
+.tour-center{position:absolute;left:12px;top:12px;width:8px;height:8px;border:1px solid #28424ee0;border-radius:50%;background:currentColor;box-shadow:0 0 0 1px #fff9e866,0 1px 4px #142c4b66;transition:transform .18s}
+.tour-marker:hover .tour-center,.tour-marker:focus-visible .tour-center{transform:scale(1.3)}
+.tour-marker:focus-visible{outline:2px solid #fff9e8;outline-offset:3px;box-shadow:0 0 0 5px #28424e99}
+.tour-ripple{position:absolute;inset:0;border:1px solid currentColor;border-radius:50%;box-shadow:0 0 1px #17394799;pointer-events:none;animation:tour-ripple 3.6s linear infinite}
+@keyframes tour-ripple{0%{transform:scale(.25);opacity:0}12%{opacity:.65}100%{transform:scale(1.15);opacity:0}}
+@media(prefers-reduced-motion:reduce){.tour-ripple{animation:none;transform:scale(.65);opacity:.35}.tour-ripple:nth-child(n+2){display:none}.tour-center{transition:none}}
+
+/* Screen-only coordinates; never intercept map or marker gestures. */
+#map-coordinates{position:absolute;right:calc(100% + 12px);top:50%;transform:translateY(-50%);z-index:3;pointer-events:none;white-space:nowrap;padding:6px 9px;border-radius:5px;background:#fffffff0;color:#193c49;box-shadow:0 1px 6px #142c4b22;font:12px/1.4 "Fira Code",monospace;font-variant-numeric:tabular-nums}
+#map-coordinates[hidden]{display:none}
+
+/* The story occupies the existing compact picker shell. */
+body:not(.customizing) aside.tour-story-open{min-height:var(--tour-card-height);max-height:calc(100dvh - 36px);overflow-y:auto}
+body:not(.customizing) aside.tour-story-open>:not(#tour-story){display:none}
+body:not(.customizing) aside.tour-story-open>#tour-story{display:block}
+#tour-story{position:relative;padding:10px 12px 8px}
+#tour-story[hidden]{display:none}
+#tour-story h2{font:400 29px/1.15 Baskerville,Georgia,serif;letter-spacing:-.6px;margin:2px 35px 12px 0}
+#tour-story p{font-size:12px;line-height:1.5;margin:0 0 10px;color:#34545e}
+#tour-story .tour-story-note{font-size:11px;line-height:1.5;color:#60777d;margin-bottom:6px}
+#tour-story-close{position:absolute;right:-4px;top:-4px;width:44px;height:44px;padding:0;border:0;font:28px/1 Arial,sans-serif}
+.tour-story-source{font-size:11px;color:#346e7c;text-underline-offset:3px}
+.tour-routes{position:absolute;inset:0;width:100%;height:100%;z-index:1;pointer-events:none;overflow:hidden}
+.tour-routes path{fill:none;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:.1 8;vector-effect:non-scaling-stroke}
+.tour-routes .route-halo{stroke:#213e46;stroke-width:5.8;stroke-opacity:.8}
+.tour-routes .route-line{stroke:var(--route-color,#fff3c9);stroke-width:3.5}
+.tour-markers{z-index:2}
+/* Negative dash offset advances each dot from the first waypoint to the last.
+   One repeat is exactly .1 + 8 CSS pixels; halo and light remain registered. */
+@keyframes migration-flow{from{stroke-dashoffset:0}to{stroke-dashoffset:-8.1}}
+.tour-routes .route-flow path{animation:migration-flow 1.15s linear infinite}
+.tour-routes .route-flow[data-wave="early"] .route-line{stroke:#f8c67e}
+.tour-routes .route-flow[data-wave="later"] .route-line{stroke:#bceaf3}
+.tour-routes.flow-paused .route-flow path{animation-play-state:paused}
+.tour-route-key{list-style:none;margin:0 0 12px;padding:0;font-size:11px;line-height:1.5;color:#34545e}
+.tour-route-key li{position:relative;padding-left:17px;margin:5px 0}
+.tour-route-key li::before{content:"";position:absolute;left:0;top:5px;width:7px;height:7px;border-radius:50%;background:var(--route-color,#fff3c9);box-shadow:0 0 0 1px #65797d}
+.tour-routes [data-wave="silk"],.tour-route-key [data-wave="silk"]{--route-color:#fff3d6}
+.tour-routes [data-wave="gold-silver"],.tour-route-key [data-wave="gold-silver"]{--route-color:#ffd15c}
+.tour-routes [data-wave="glass-metals"],.tour-route-key [data-wave="glass-metals"]{--route-color:#aecfff}
+.tour-routes [data-wave="horses"],.tour-route-key [data-wave="horses"]{--route-color:#c4e79a}
+.tour-routes [data-wave="spices-cotton"],.tour-route-key [data-wave="spices-cotton"]{--route-color:#f0a4cb}
+.tour-route-key li[data-wave="early"]::before{background:#f8c67e}
+.tour-route-key li[data-wave="later"]::before{background:#bceaf3}
+#tour-story .tour-flow-toggle{display:block;min-height:44px;padding:6px 10px;margin:4px 0 6px;font-size:12px}
+@media(prefers-reduced-motion:reduce){.tour-routes .route-flow path{animation:none}#tour-story .tour-flow-toggle{display:none}}
+
+.tour-areas{position:absolute;inset:0;width:100%;height:100%;z-index:1;pointer-events:none;overflow:hidden}
+.tour-areas .area-fill{fill:#ffcc73;fill-opacity:.22;stroke:none}
+.tour-areas [data-kind="basin"] .area-fill{fill:#84e4ed;fill-opacity:.25}
+.tour-areas .area-halo,.tour-areas .area-border{fill:none;stroke-linecap:round;stroke-linejoin:round;vector-effect:non-scaling-stroke}
+.tour-areas .area-halo{stroke:#183841;stroke-width:4.8;stroke-opacity:.7}
+.tour-areas .area-border{stroke:#fff3c9;stroke-width:2.4}
+.tour-areas [data-kind="basin"] .area-border{stroke:#cefbff}
+
+/* Four discrete historical snapshots; equal steps represent periods, not years. */
+.tour-timeline{margin:0 0 12px;padding:9px 0 7px;border-bottom:1px solid #c9d6d9}
+.tour-timeline[hidden]{display:none}
+.tour-period-heading{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:11px;color:#42636b}
+.tour-period-heading output{font-weight:650;color:#234b59;font-variant-numeric:tabular-nums}
+#tour-period{display:block;width:100%;height:28px;margin:3px 0 0;accent-color:#407b8c;cursor:pointer}
+.tour-period-labels{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:3px}
+#tour-story .tour-period-labels button{min-height:36px;padding:4px 2px;border:0;border-radius:5px;font-family:inherit;font-size:10px;line-height:1.2;color:#60777d;background:transparent;cursor:pointer}
+#tour-story .tour-period-labels button[aria-pressed="true"]{color:#234b59;background:#e0edef;font-weight:650}
+#tour-story .tour-period-labels button:focus-visible,#tour-period:focus-visible{outline:2px solid #407b8c;outline-offset:2px}
+.tour-routes [data-wave="tin"],.tour-route-key [data-wave="tin"]{--route-color:#dce8fa}
+.tour-routes [data-wave="copper"],.tour-route-key [data-wave="copper"]{--route-color:#f4a471}
+.tour-routes [data-wave="timber"],.tour-route-key [data-wave="timber"]{--route-color:#b8df91}
+.tour-routes [data-wave="textiles-pottery"],.tour-route-key [data-wave="textiles-pottery"]{--route-color:#f0a4cb}
+.tour-routes [data-wave="furs"],.tour-route-key [data-wave="furs"]{--route-color:#d5b7f5}
+.tour-routes [data-wave="ceramics"],.tour-route-key [data-wave="ceramics"]{--route-color:#82dedf}
+.tour-routes .route-uncertain{opacity:.65}
+@media(max-width:700px) and (orientation:portrait){body:not(.customizing) aside.tour-story-open:has(.tour-timeline:not([hidden])){min-height:0;max-height:48dvh}#tour-story:has(.tour-timeline:not([hidden])) h2{font-size:25px}.tour-period-labels button{min-height:44px!important}}
+/* Sparse trade packets share one phase across cuts. Migration keeps its rhythm. */
+@keyframes trade-traffic{from{stroke-dashoffset:var(--traffic-from)}to{stroke-dashoffset:var(--traffic-to)}}
+.tour-routes .route-sporadic path{animation:trade-traffic var(--traffic-duration) linear infinite;stroke-dashoffset:var(--traffic-from)}
+.tour-routes.flow-paused .route-sporadic path{animation-play-state:paused}
+@media(prefers-reduced-motion:reduce){.tour-routes .route-sporadic path{animation:none}}

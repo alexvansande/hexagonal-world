@@ -1,0 +1,60 @@
+<!doctype html><html lang="en"><meta charset="utf-8"><title>Bake Pacific lighting</title>
+<h1>Rebuild Pacific lighting</h1><button id="start">Bake moved hexagons</button><pre id="status">Ready</pre>
+<canvas id="bake" style="width:256px;height:256px"></canvas><iframe src="/?bake-layers=1" style="width:1100px;height:800px"></iframe>
+<script type="module">
+const status=document.querySelector('#status'),frame=document.querySelector('iframe'),root='http://127.0.0.1:4177/';
+const save=async(name,data)=>{const r=await fetch(root+name,{method:'POST',body:data});if(!r.ok)throw Error('Save '+name+': '+r.status);};
+const blob=data=>fetch('data:image/png;base64,'+data).then(r=>r.blob());
+const pause=()=>new Promise(r=>setTimeout(r,30));
+document.querySelector('#start').onclick=async()=>{try{
+ document.querySelector('#start').disabled=true;status.textContent='Loading terrain and rivers…';
+ while(!frame.contentWindow.preparePacificLighting)await pause();
+ const meta=await frame.contentWindow.preparePacificLighting();
+ const entry=await (await fetch(root+'entry.json')).json();
+ meta.source=entry.path;meta.repeat=false;meta.lightingSource='pacific-terrain-rebake-v1';
+ await save('meta.json',JSON.stringify(meta));
+const {makeGeometry,layouts,canvasWorld}=await import('/geometry.mjs');
+   const {makeArrangement}=await import('/arrangements.mjs');
+   const state=entry.signature.state;
+   const {density,rect}=meta;
+   const geometry=makeGeometry(state.method,state.height),arr=makeArrangement(geometry,state.arrangement,layouts(geometry));
+   if(arr.tiling)rect[3]=Math.sqrt(3)*arr.tiling.size;
+   const width=Math.ceil(rect[2]*density),height=Math.ceil(rect[3]*density);
+   const net=meta.net.filter(t=>meta.regions.includes(t.id));
+   const angle=arr.tiling?0:state.gridRotation*Math.PI/180,c=Math.cos(angle),s=Math.sin(angle);
+   const groups=geometry.map(()=>[]);
+   for(const t of net)for(const p of (t.drawPatches||geometry[t.id].patches))for(let i=0;i<3;i++){
+    const [x,y]=canvasWorld(p.xy[i],t);groups[t.id].push(c*x-s*y,s*x+c*y,...p.xy[i],t.opacity,x,y);
+   }
+   const canvas=document.querySelector('canvas');const gl=canvas.getContext('webgl',{preserveDrawingBuffer:true,antialias:false});
+   if(window.cleanup)window.cleanup();
+   const program=gl.createProgram();
+   const sources=[`attribute vec2 p;attribute vec2 uv;attribute float alpha;attribute vec2 flatPoint;uniform vec4 box;varying vec2 at;varying float opacity;varying vec2 flatAt;void main(){vec2 q=(p-box.xy)/box.zw;gl_Position=vec4(q.x*2.-1.,1.-q.y*2.,0.,1.);at=vec2((uv.x+1.)/2.,(1.-uv.y)/2.);opacity=alpha;flatAt=flatPoint;}`,
+    `precision highp float;varying vec2 at;varying float opacity;varying vec2 flatAt;uniform sampler2D image;uniform int clip;void main(){if(clip==1){float y=-flatAt.y;float x=flatAt.x-sqrt(3.)*y;if(y<0.||y>sqrt(3.)||x< -1.||x>5.)discard;}gl_FragColor=vec4(texture2D(image,at).rgb*opacity,opacity);}`];
+   sources.forEach((source,i)=>{const shader=gl.createShader(i?gl.FRAGMENT_SHADER:gl.VERTEX_SHADER);gl.shaderSource(shader,source);gl.compileShader(shader);if(!gl.getShaderParameter(shader,gl.COMPILE_STATUS))throw Error(gl.getShaderInfoLog(shader));gl.attachShader(program,shader);gl.deleteShader(shader);});gl.linkProgram(program);gl.useProgram(program);
+   const buffers=[],textures=[];
+   for(let r=0;r<groups.length;r++){
+    const b=gl.createBuffer();buffers.push(b);gl.bindBuffer(gl.ARRAY_BUFFER,b);gl.bufferData(gl.ARRAY_BUFFER,new Float32Array(groups[r]),gl.STATIC_DRAW);
+    const image=await createImageBitmap(await (await fetch('http://127.0.0.1:4177/'+r+'.png',{cache:'no-store'})).blob());
+    const t=gl.createTexture();textures.push(t);gl.bindTexture(gl.TEXTURE_2D,t);for(const p of [gl.TEXTURE_MIN_FILTER,gl.TEXTURE_MAG_FILTER])gl.texParameteri(gl.TEXTURE_2D,p,gl.LINEAR);for(const p of [gl.TEXTURE_WRAP_S,gl.TEXTURE_WRAP_T])gl.texParameteri(gl.TEXTURE_2D,p,gl.CLAMP_TO_EDGE);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGB,gl.RGB,gl.UNSIGNED_BYTE,image);image.close();
+   }
+   const color=entry.signature.controls['background-color'];const rgb=[1,3,5].map(i=>parseInt(color.slice(i,i+2),16)/255);
+   window.cleanup=()=>{textures.forEach(t=>gl.deleteTexture(t));buffers.forEach(b=>gl.deleteBuffer(b));gl.deleteProgram(program);};
+   window.bakeChunk=(x,y)=>{
+    const w=Math.min(1024,width-x),h=Math.min(1024,height-y);canvas.width=w;canvas.height=h;gl.viewport(0,0,w,h);gl.clearColor(...rgb,1);gl.clear(gl.COLOR_BUFFER_BIT);gl.useProgram(program);gl.uniform4f(gl.getUniformLocation(program,'box'),rect[0]+x/density,rect[1]+y/density,w/density,h/density);gl.uniform1i(gl.getUniformLocation(program,'clip'),arr.clip?1:0);
+    gl.enable(gl.BLEND);gl.blendFunc(gl.ONE,gl.ONE_MINUS_SRC_ALPHA);
+    groups.forEach((vertices,r)=>{gl.bindTexture(gl.TEXTURE_2D,textures[r]);gl.bindBuffer(gl.ARRAY_BUFFER,buffers[r]);for(const [name,n,offset] of [['p',2,0],['uv',2,2],['alpha',1,4],['flatPoint',2,5]]){const a=gl.getAttribLocation(program,name);gl.enableVertexAttribArray(a);gl.vertexAttribPointer(a,n,gl.FLOAT,false,28,offset*4);}gl.drawArrays(gl.TRIANGLES,0,vertices.length/7);});
+    return canvas.toDataURL().split(',')[1];
+   };
+
+ const total=Math.ceil(width/1024)*Math.ceil(height/1024);let done=0;
+ for(let y=0;y<height;y+=1024)for(let x=0;x<width;x+=1024){
+  status.textContent=`Rebuilding ${++done} / ${total}: ${x}, ${y}`;await pause();
+  await save(`base-${x}-${y}.png`,await blob(window.bakeChunk(x,y)));
+  const plan={level:4,density,rect:[rect[0]+x/density,rect[1]+y/density,Math.min(1024,width-x)/density,Math.min(1024,height-y)/density],repeat:false};
+  const lighting=frame.contentWindow.bakeDefaultLighting(plan);
+  for(let i=0;i<2;i++)await save(`light-${i}-${x}-${y}.png`,await blob(lighting.images[i]));
+ }
+ status.textContent=`Complete: ${total} terrain lighting windows at ${density} pixels per map unit.`;
+}catch(error){status.textContent='FAILED: '+error.stack;document.querySelector('#start').disabled=false;}};
+</script></html>

@@ -60,6 +60,165 @@ See [AUDIT.md](AUDIT.md) for the September 2026 diagnosis, repairs, performance 
 
 ## Implemented
 
+The default Spaceship Earth + Lifezones map includes fifteen discovery dots from
+`dist/tour-markers.mjs`. Each record has a stable `id`, `title`, `latitude`,
+`longitude`, and an `overlay` field (a stable overlay ID for enabled stories, otherwise
+`null`). The reusable DOM layer emits a bubbling `tourselect` event with the
+complete record in `detail`. Coordinates are representative anchors.
+
+Selecting Silk Road fits the land and sea trade network into view and opens a compact
+story inside the existing picker shell. X or Escape removes the dotted routes,
+restores the previous camera and controls, and returns focus to the dot. Manual
+pan/zoom interrupts the transition; reduced motion skips it. Routes disappear
+when leaving the default map. `dist/tour-routes.mjs` contains the geographic
+waypoints, sources and projection; `dist/tour-story.mjs` renders the short card from `dist/tour-stories.md`.
+These are approximate corridors across different periods, including the Tarim
+branches, Dzungarian Gate/Zhetysu, Fergana, Pamir/Bactria, northern India, Persia
+and the Mediterranean. Paths split at map cuts and stay out of exports. Story
+selection has a clean root URL; existing map-camera hashes retain their original schema.
+Checks: `tour-route-tests.mjs`, `/tests/tour-story.html` and `?mobile=1`.
+
+`dist/tour-trade.mjs` assigns five animated commodity groups to those corridors:
+silk, gold/silver, glass/copper/tin, horses, and spices/cotton. Opposing traffic
+uses small parallel screen-space lanes, clipped at the map silhouette. Added
+Mediterranean and Red Sea legs connect Rome and India through Alexandria and an
+overland Nile–Berenike transfer. Directions indicate representative exchanges,
+not traffic volume. Pause and reduced motion reuse the migration controls.
+The editable color key is in `dist/tour-stories.md`; evidence and limitations
+are in `dist/silk-road-sources.md`.
+
+`dist/tour-trade-regions.mjs` supplies selected internal Chinese, Indian and
+Roman/Byzantine networks using named junctions. Constantinople connects Anatolia,
+the Aegean and the Via Egnatia. Regional routes retain the same commodity colors
+and directions; their reach does not represent imperial borders at one date.
+
+The Silk Road card now has four discrete stops: Bronze Age (c. 1300 BCE),
+Antiquity (c. 150 CE, default), Early Middle Ages (c. 900 CE), and High Middle
+Ages (c. 1300 CE). `dist/tour-trade-periods.mjs` selects/revises the shared
+corridors and supplies Bronze Age, northern river/steppe and medieval maritime
+networks. Tin itineraries are marked uncertain; the Bronze Age text separates
+trade disruption from a single-cause explanation of collapse. Every period's
+prose and color key is editable under its `silk-road-*` ID in
+`dist/tour-stories.md`. The period is shareable as `/silk-road/?period=bronze-age`
+(or `antiquity`, `early-middle-ages`, `high-middle-ages`). Changing it preserves
+Pause and smoothly refits the network; closing restores the original map camera.
+
+Startup imports only the small projection/rendering modules and loader.
+`dist/tour-data.mjs` dynamically imports the selected tour's dataset. Trade
+networks, migration coordinates, area geometry and Markdown are never prefetched
+on the default map, hover or idle. A direct tour URL counts as opening that tour.
+An opening token prevents a late load from reopening a closed story. Failed
+loads offer Retry; a portrait phone scrolls the card within half the viewport.
+Checks: `tour-period-tests.mjs` and `/tests/tour-periods.html` (`?mobile=1`),
+including the actual browser resource list before and after selection.
+
+Egypt, Mesopotamia, India and China open approximate imperial extents for
+Thutmose III, Neo-Assyria, Ashoka’s Mauryas and Qianlong’s Qing respectively.
+The Amazon shows the HydroBASINS v1c level-03 Amazon catchment (HYBAS_ID
+6030007000), with a light cyan fill. Empire extents use a light amber fill.
+`dist/tour-areas.mjs` clips spherical polygon rings to the renderer’s exact
+patch cones; even/odd filling retains holes and concave fragments, while borders
+only stroke geographic edges, never artificial map cuts. The area layer follows
+the normal camera, stays on Lifezones and is excluded from canvas exports.
+The Norse tour uses the existing static dotted line through western Norway,
+Shetland, Faroes, Iceland, coastal Greenland, Baffin Island, Labrador and northern
+Newfoundland. Its six branches are in `dist/tour-vinland.mjs`.
+
+Sources, period choices, geographic uncertainty and data licenses are in
+`dist/territory-tours-sources.md`. To rebuild the small bundled area module, use
+`scripts/build-tour-areas.py` with pyshp/Shapely and the documented local source
+downloads. Edit imperial envelopes in `scripts/tour-area-envelopes.json`;
+Natural Earth land trims their coastlines without adding modern political borders.
+No GIS library or source archive loads in the browser. Checks:
+`tour-area-tests.mjs` and `/tests/tour-areas.html` (also `?mobile=1`).
+
+Origin of mankind opens an animated migration overview. `dist/tour-migrations.mjs`
+contains 26 directed, connected branches with source keys, broad evidence periods
+and uncertainty notes. The three color groups distinguish early dispersals,
+Eurasia/Sahul expansion, and later movements. CSS moves the same dotted stroke
+outward, with a matching halo; no per-frame map redraw or terrain pass is needed.
+The card offers Pause/Resume, and reduced-motion preferences keep the dots still.
+The existing net and lighting remain unchanged; cuts split routes rather than
+bridging empty space. X/Escape restores the camera.
+
+Research and route limitations are in `dist/human-migrations-sources.md`, linked
+from the card. This incorporates 2025 Sahul and 2026 South American studies without
+claiming their chronologies or proposed corridors are settled. The East African
+anchor is an entry point into a story of connected African populations, not an
+asserted single birthplace. Modern coastlines remain visible; routes are editorial
+schematics. Story copy and the three bullet lines of the color key are editable
+in `dist/tour-stories.md`. Tests: `tour-migration-tests.mjs` and
+`/tests/tour-migrations.html` (also `?mobile=1`).
+
+French Polynesia opens a Pacific view: the existing North and South America
+hexagons animate to exact Pacific-facing joins, while Asia/Pacific and Africa
+stay fixed. The merged image renderer clips and moves the original artwork
+during the transition, then uses `maps/tours/pacific-v1` for the two Americas
+pieces: unchanged unlit base colors/rivers with newly projected terrain lighting
+at their final positions. Light stays at the same screen-space azimuth as the
+fixed pieces. The default view still uses only tiled images. The dotted
+Polynesian Triangle uses short spherical arcs, including the Hawaiian island
+chain, Aotearoa New Zealand and Rapa Nui. X/Escape restores the source arrangement.
+The `/french-polynesia/` URL reconstructs this layout; a camera-only hash does not. Tours use a 1.25-second
+transition and a looser framing; reduced motion skips animation.
+
+All nine implemented tours have root-level landing pages, registered in
+`dist/tour-pages.mjs`: `/origin-of-mankind/`, `/ancient-egypt/`, `/mesopotamia/`,
+`/silk-road/`, `/iceland-to-vinland/`, `/french-polynesia/`, `/amazon-mouth/`,
+`/india/`, and `/china/`. Direct entry loads Spaceship Earth + Lifezones and opens
+the matching story/overlay. Clicking a dot pushes its URL; Back/Forward restores
+selection, and closing returns to the map and its previous camera. Reloading a
+tour preserves the return camera in the history entry. A direct link from outside
+closes to the default map. Tour URLs remain canonical while panning, including
+Polynesia’s temporary arrangement; they do not encode a transient tour camera.
+
+`build-share-pages.mjs` creates static canonical, Open Graph and Twitter tags plus
+sitemap entries. Descriptions come from the story Markdown; cards are distinct
+1200×630 JPEGs in `dist/social/tour-*.jpg`. To regenerate them, run
+`python3 scripts/save-social-previews.py`, then open
+`http://127.0.0.1:4173/tests/tour-social.html?save=1`. This local-only artwork view
+frames the actual tour overlays and captures the same image renderer, including
+Pacific lighting, without UI controls. Checks: `tour-page-tests.mjs` and
+`/tests/tour-pages.html` (also `?mobile=1`).
+
+The additive image inventory is prepared with `node scripts/prepare-tour-assets.mjs`.
+It includes the nine previews and the Pacific lighting tiles, without duplicating
+the global atlas. Upload requires explicit approval; the attempted upload on
+September 21 was rejected by automatic approval review and no upload occurred.
+After approval, `scripts/upload-r2-assets.py _asset-release/tours` uploads that
+inventory, and `node scripts/activate-tour-assets.mjs` verifies public checksums
+before creating `tour-asset-release.json`. Production staging and CI require this
+verified record and stop with an explanatory error while it is absent. The
+existing global asset release remains unchanged; production config uses narrow
+prefix overrides for the tour images. Local preview continues to use local files.
+
+Edit **`dist/tour-stories.md`** for all story titles, descriptions, small notes
+and source links. Keep the `## location-id` headings intact. The file includes
+instructions and empty sections for all other dots. It is loaded directly, so
+refresh the page after editing; no build step is required. The small safe parser
+supports paragraphs, bold, italics and HTTPS links, without running raw HTML.
+Checks: `tour-polynesia-tests.mjs` and `/tests/tour-polynesia.html` (`?mobile=1`).
+To regenerate the Pacific assets, prepare unlit bases with `merge-map-images.py`
+into `/tmp/hex-pacific-bake`, run `scripts/serve-pacific-bake.py`, open
+`/tests/bake-pacific.html`, and click Bake. After completion, run
+`scripts/finish-pacific-bake.py` with Pillow/NumPy available. The bake uses the
+full final net for terrain lighting, outputs only regions 0 and 2, and preserves
+the original assets. The helper listens only on loopback and writes only its
+named scratch files.
+
+Hovering the map shows latitude and longitude to four decimal places to the
+left of the positioning toolbar, using the same projection as the map. The
+readout disappears after three seconds without mouse movement. Negative values mean south
+and west. The readout hides off the map and is excluded from exports.
+
+Markers reuse the map's projection and follow pan/zoom. Their animated radii
+stay in screen pixels and convey clickability, never geographic extent. They
+hide all other dots while a story is selected, restoring them on close. They
+support keyboard activation and reduced motion, preserve drag/pinch gestures,
+and stay out of canvas/print exports. Other format/style presets and custom
+geography do not show this tour. Checks: `tour-marker-tests.mjs` and
+`/tests/tour-markers.html` (including a selection counter for manual gestures).
+
 - Tetrahedral faces expanded into regular hexagons through their alternating vertices and edge midpoints.
 - Four octahedral faces plus the three centroid-divided neighboring face pieces per hexagon.
 - Twelve rhombic dodecahedron faces partitioned into four groups of three rhombi.
@@ -457,3 +616,14 @@ remote release. The GitHub workflow verifies the pinned remote inventory and
 downloads binary test inputs before publishing. Image files are excluded from
 new source commits and from the Pages artifact; historical Git objects are retained. See [CLOUDFLARE-ASSETS.md](CLOUDFLARE-ASSETS.md)
 for the sequence, costs, domain setup and validation.
+
+
+Trade-flow experiment: `dist/tour-trade-traffic.mjs` generates stable irregular
+cluster/gap patterns only when the trade dataset loads. CSS advances these sparse
+packets without a JavaScript frame loop or map redraws. The route renderer splits
+paths at net cuts and carries the dash phase by cumulative drawn distance, never
+across the screen gap. Existing screen-space lanes, Pause and reduced motion
+remain; migration and static outlines retain their previous appearance. No
+historical volume weights are assigned: current frequency is explicitly visual.
+Checks: `tour-traffic-tests.mjs`, `/tests/tour-story.html` and
+`/tests/tour-periods.html` (including phone layout and lazy loading).

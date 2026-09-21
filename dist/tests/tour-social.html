@@ -1,0 +1,50 @@
+<!doctype html><html lang="en"><meta charset="utf-8"><title>Tour social previews</title>
+<style>body{font:15px system-ui;color:#234b59}iframe{width:1200px;height:630px;border:0}#previews{display:grid;grid-template-columns:repeat(3,360px);gap:16px}figure{margin:0}img{width:360px}figcaption{padding:6px}</style>
+<h1>Tour social previews</h1><p id="result">Preparing…</p><div id="previews"></div><iframe title="Tour artwork renderer"></iframe>
+<script type="module">
+import {tourPages} from '../tour-pages.mjs';
+import {parseTourContent} from '../tour-content.mjs';
+const frame=document.querySelector('iframe'),result=document.querySelector('#result'),params=new URLSearchParams(location.search);
+const pause=ms=>new Promise(r=>setTimeout(r,ms));
+async function until(test,label){for(let i=0;i<600;i++){if(test())return;await pause(100);}throw Error('Timed out: '+label);}
+const stories=parseTourContent(await (await fetch('../tour-stories.md')).text());
+async function drawSVG(ctx,svg){
+ if(getComputedStyle(svg).display==='none')return;
+ const copy=svg.cloneNode(true),originals=[svg,...svg.querySelectorAll('*')],copies=[copy,...copy.querySelectorAll('*')];
+ originals.forEach((el,i)=>{
+  const css=getComputedStyle(el);
+  for(const key of ['display','fill','fill-opacity','fill-rule','stroke','stroke-width','stroke-opacity','stroke-linecap','stroke-linejoin','stroke-dasharray','stroke-dashoffset','opacity'])copies[i].style.setProperty(key,css.getPropertyValue(key));
+  copies[i].style.animation='none';
+ });
+ copy.setAttribute('width','1200');copy.setAttribute('height','630');copy.setAttribute('xmlns','http://www.w3.org/2000/svg');
+ const url=URL.createObjectURL(new Blob([new XMLSerializer().serializeToString(copy)],{type:'image/svg+xml'}));
+ try{const image=new Image();image.src=url;await image.decode();ctx.drawImage(image,0,0);}finally{URL.revokeObjectURL(url);}
+}
+try{
+ const tours=tourPages.filter(t=>!params.get('only')||t.id===params.get('only'));let count=0;
+ for(const tour of tours){
+  result.textContent=`Rendering ${++count}/${tours.length}: ${tour.title}`;
+  const loaded=new Promise(resolve=>frame.onload=resolve);frame.src=tour.path+'?tour-artwork=1';await loaded;
+  await until(()=>frame.contentDocument?.querySelector('#tour-story')?.hidden===false,'story');await pause(2200);
+  const d=frame.contentDocument,map=d.querySelector('#map');
+  await until(()=>map.dataset.surfacePreview==='false'&&map.dataset.surfacePending==='0','map images');
+  if(tour.id==='french-polynesia')await until(()=>map.dataset.tourLighting==='pacific','Pacific lighting');
+  await pause(200);
+  const canvas=document.createElement('canvas');canvas.width=1200;canvas.height=630;const ctx=canvas.getContext('2d');
+  ctx.fillStyle=d.querySelector('#background-color').value;ctx.fillRect(0,0,1200,630);
+  ctx.save();ctx.beginPath();ctx.rect(0,150,1200,480);ctx.clip();
+  ctx.drawImage(map,0,0,1200,630);ctx.drawImage(d.querySelector('#overlay'),0,0,1200,630);
+  await drawSVG(ctx,d.querySelector('.tour-areas'));await drawSVG(ctx,d.querySelector('.tour-routes'));ctx.restore();
+  ctx.fillStyle='#234b59';ctx.font='bold 13px Arial,sans-serif';ctx.letterSpacing='2px';ctx.fillText('HEXAGONAL EARTH  /  LIFEZONES',44,35);ctx.letterSpacing='0px';
+  const title=stories[tour.id].title;let size=52;
+  do{ctx.font=`${size--}px Baskerville,Georgia,serif`;}while(ctx.measureText(title).width>1112);
+  ctx.fillText(title,42,96);ctx.font='15px Arial,sans-serif';ctx.fillStyle='#486771';ctx.fillText('Explore the story on a hexagonal world map',44,128);
+  ctx.textAlign='right';ctx.fillText('hexagonal.earth'+tour.path,1156,128);
+  const blob=await new Promise(resolve=>canvas.toBlob(resolve,'image/jpeg',.92));
+  const image=document.createElement('img'),figure=document.createElement('figure'),caption=document.createElement('figcaption');
+  image.src=URL.createObjectURL(blob);image.alt=tour.title;caption.textContent=tour.path;figure.append(image,caption);document.querySelector('#previews').append(figure);
+  if(params.has('save')){const response=await fetch('http://127.0.0.1:4176'+tour.image,{method:'POST',body:blob});if(!response.ok)throw Error('Could not save '+tour.image);}
+ }
+ result.textContent=`Ready: ${count} tour previews, 1200 × 630`;result.dataset.status='passed';
+}catch(error){result.textContent=error.message;result.dataset.status='failed';console.error(error);}
+</script></html>

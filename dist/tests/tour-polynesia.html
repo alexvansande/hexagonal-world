@@ -1,0 +1,47 @@
+<!doctype html><html lang="en"><meta charset="utf-8"><title>Polynesia tour checks</title>
+<style>body{font:14px system-ui;color:#18343d}iframe{width:1100px;height:760px;border:1px solid #ccc}li{margin:5px}</style>
+<h1>Polynesia tour checks</h1><p id="result">Running…</p><ol id="checks"></ol>
+<iframe title="Pacific map" src="/lifezones/spaceship-earth/"></iframe>
+<script type="module">
+const frame=document.querySelector('iframe'),result=document.querySelector('#result');
+if(new URLSearchParams(location.search).has('mobile')){frame.style.width='390px';frame.style.height='844px';}
+const pause=ms=>new Promise(r=>setTimeout(r,ms));
+const wait=async test=>{for(let i=0;i<300;i++){if(test())return;await pause(50);}throw Error('Timed out');};
+const check=(ok,text)=>{if(!ok)throw Error(text);document.querySelector('#checks').insertAdjacentHTML('beforeend',`<li>PASS: ${text}</li>`);};
+try{
+ await wait(()=>frame.contentDocument?.querySelectorAll('.tour-marker:not([hidden])').length===15);
+ const d=frame.contentDocument,win=frame.contentWindow,canvas=d.querySelector('#map'),card=d.querySelector('#tour-story'),close=d.querySelector('#tour-story-close');
+ const polynesia=d.querySelector('[data-tour-id="french-polynesia"]');
+ const positions=()=>[...d.querySelectorAll('.tour-marker')].map(b=>[b.style.left,b.style.top]);
+ const original=positions(),zoom=d.querySelector('#zoom-value').textContent;
+ polynesia.click();await pause(1450);
+ check(!card.hidden&&card.textContent.includes('Polynesian voyagers'),'Polynesian story loads from Markdown');
+ check(canvas.dataset.tourLayout==='pacific'&&canvas.dataset.merged==='true'&&canvas.dataset.renderPath==='images','Pacific layout retains the baked image renderer');
+ await wait(()=>canvas.dataset.tourLighting==='pacific'&&canvas.dataset.surfacePending==='0');
+ check(canvas.dataset.surfaceFailures==='0','Rebuilt Pacific lighting loads without errors');
+ check(!win.performance.getEntriesByType('resource').some(r=>/maps\/height\//.test(r.name)),'Default tour never loads live elevation or performs terrain lighting');
+ const route=d.querySelector('[data-route-id="polynesian-triangle"] .route-line');
+ check(route&&route.getAttribute('d').length>500,'Dotted triangle appears after the move');
+ const box=route.getBoundingClientRect(),panel=d.querySelector('#controls').getBoundingClientRect();
+ check(box.left>=0&&box.right<=win.innerWidth&&box.top>=0&&box.bottom<=win.innerHeight,'Whole Pacific triangle is framed');
+ check(panel.left>=0&&panel.right<=win.innerWidth&&panel.top>=0&&close.getBoundingClientRect().height>=44,'Story card and close control fit');
+ const r=d.querySelector('#stage').getBoundingClientRect();
+ polynesia.dispatchEvent(new win.PointerEvent('pointermove',{bubbles:true,pointerType:'mouse',clientX:r.left+parseFloat(polynesia.style.left),clientY:r.top+parseFloat(polynesia.style.top)}));
+ const numbers=d.querySelector('#map-coordinates').textContent.match(/-?\d+\.\d+/g).map(Number);
+ check(Math.abs(numbers[0]+17.65)<.002&&Math.abs(numbers[1]+149.43)<.002,'Tahiti remains at its true coordinate in the moved net');
+ d.querySelector('#zoom-in').click();await pause(80);check(route.getAttribute('d').length>500,'Outline follows manual zoom');
+ close.click();await pause(100);
+ check(canvas.dataset.tourLayout==='default'&&card.hidden&&getComputedStyle(d.querySelector('.tour-routes')).display==='none','Close removes outline and restores original layout');
+ check(canvas.dataset.tourLighting==='default','Close restores original lighting');
+ check(JSON.stringify(positions())===JSON.stringify(original)&&d.querySelector('#zoom-value').textContent===zoom,'Every discovery anchor returns to its exact original screen position');
+ polynesia.click();await pause(200);close.click();await pause(1450);
+ check(canvas.dataset.tourLayout==='default'&&JSON.stringify(positions())===JSON.stringify(original),'Closing during movement cancels it and restores everything');
+ polynesia.click();await pause(1450);d.dispatchEvent(new win.KeyboardEvent('keydown',{key:'Escape',bubbles:true}));await pause(100);
+ check(card.hidden&&d.activeElement===polynesia,'Escape restores focus to French Polynesia');
+ // Keyboard activation of a hidden settings control exercises preset invalidation.
+ polynesia.click();await pause(1450);d.querySelector('[data-style="satellite"]').click();await pause(100);
+ check(card.hidden&&canvas.dataset.tourLayout==='default','Changing style clears the temporary layout');
+ d.querySelector('[data-style="lifezones"]').click();await pause(100);polynesia.click();await pause(1450);
+ result.textContent='All checks passed. Pacific tour left open for visual review.';
+}catch(error){result.textContent='FAIL: '+error.message;}
+</script></html>

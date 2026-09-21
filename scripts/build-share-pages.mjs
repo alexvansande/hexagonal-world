@@ -3,10 +3,21 @@ import {resolve,dirname} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {aboutShapes,aboutPath} from '../dist/about-route.mjs';
 import {shareCombinations} from '../dist/share-routes.mjs';
+import {tourPages} from '../dist/tour-pages.mjs';
+import {parseTourContent} from '../dist/tour-content.mjs';
 const root=resolve(dirname(fileURLToPath(import.meta.url)),'..');
 export async function buildSharePages(output){
  const template=await readFile(resolve(root,'dist/index.html'),'utf8');
  const escape=text=>text.replaceAll('&','&amp;').replaceAll('"','&quot;').replaceAll('<','&lt;');
+ const stories=parseTourContent(await readFile(resolve(root,'dist/tour-stories.md'),'utf8'));
+ for(const tour of tourPages){
+  const story=stories[tour.id],title=`${tour.title} — Hexagonal Earth`,url='https://hexagonal.earth'+tour.path,image='https://hexagonal.earth'+tour.image;
+  const description=story.paragraphs[0].replace(/\[([^\]]+)\]\([^)]+\)/g,'$1').replace(/\*/g,''),alt=`${story.title}: Lifezones map with ${tour.id==='amazon-mouth'?'the Amazon drainage basin':tour.id==='french-polynesia'?'the Polynesian Triangle':tour.id==='origin-of-mankind'?'human migration routes':tour.id==='silk-road'?'Silk Road branches':tour.id==='iceland-to-vinland'?'Norse sea routes':'the approximate historical extent'}.`;
+  let page=template.replace(/<title>.*?<\/title>/,`<title>${escape(title)}</title>`).replace(/(<link rel="canonical" href=")[^"]+/,`$1${url}`);
+  const metadata={'description':description,'og:title':title,'og:description':description,'og:url':url,'og:image':image,'og:image:type':'image/jpeg','og:image:width':'1200','og:image:height':'630','og:image:alt':alt,'twitter:title':title,'twitter:description':description,'twitter:image':image,'twitter:image:alt':alt};
+  for(const [key,value] of Object.entries(metadata))page=page.replace(new RegExp(`(<meta (?:name|property)="${key}" content=")[^"]*`),(_,prefix)=>prefix+escape(value));
+  const destination=resolve(output,tour.path.slice(1),'index.html');await mkdir(dirname(destination),{recursive:true});await writeFile(destination,page);
+ }
  for(const pair of shareCombinations){
   const title=`${pair.style.name} · ${pair.layout.name} — Hexagonal Earth`,description=`${pair.style.name} in the ${pair.layout.name} format. Explore, customize and print a hexagonal world map.`,url='https://hexagonal.earth'+pair.path,image='https://hexagonal.earth'+pair.image;
   let html=template.replace(/<title>.*?<\/title>/,`<title>${escape(title)}</title>`).replace(/(<link rel="canonical" href=")[^"]+/,`$1${url}`);
@@ -23,6 +34,6 @@ export async function buildSharePages(output){
   for(const [key,value] of Object.entries(metadata))page=page.replace(new RegExp(`(<meta (?:name|property)="${key}" content=")[^"]*`),(_,prefix)=>prefix+escape(value));
   const destination=resolve(output,path.slice(1),'index.html');await mkdir(dirname(destination),{recursive:true});await writeFile(destination,page);
  }
- await writeFile(resolve(output,'sitemap.xml'),'<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'+['/','/about/',...aboutShapes.map(([id])=>aboutPath(id)),...shareCombinations.map(p=>p.path)].map(path=>`<url><loc>https://hexagonal.earth${path}</loc></url>`).join('\n')+'\n</urlset>\n');
+ await writeFile(resolve(output,'sitemap.xml'),'<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'+['/','/about/',...aboutShapes.map(([id])=>aboutPath(id)),...shareCombinations.map(p=>p.path),...tourPages.map(p=>p.path)].map(path=>`<url><loc>https://hexagonal.earth${path}</loc></url>`).join('\n')+'\n</urlset>\n');
 }
-if(process.argv[1]===fileURLToPath(import.meta.url)){await buildSharePages(resolve(process.argv[2]||'dist'));console.log('Generated About, 64 share pages and sitemap.');}
+if(process.argv[1]===fileURLToPath(import.meta.url)){await buildSharePages(resolve(process.argv[2]||'dist'));console.log(`Generated About, 64 map pages, ${tourPages.length} tour pages and sitemap.`);}

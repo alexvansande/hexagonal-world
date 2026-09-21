@@ -1,0 +1,7 @@
+<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Tour preview cards · Hexagonal Earth</title>
+<style>body{margin:32px;background:#f5f2ee;color:#234b59;font:16px system-ui}h1{font:42px Georgia,serif}main{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:24px;max-width:1400px}figure{margin:0}img{width:100%;border-radius:10px;box-shadow:0 4px 20px #234b5918}figcaption{padding:10px 0}a{color:inherit;text-decoration:none}a:hover{text-decoration:underline}</style>
+<h1>A story behind every dot</h1><p>Nine tour previews. Select a card to open its Lifezones view.</p><main></main>
+<script type="module">
+import {tourPages} from '../tour-pages.mjs';
+for(const tour of tourPages){const a=document.createElement('a'),figure=document.createElement('figure'),img=document.createElement('img'),caption=document.createElement('figcaption');a.href=tour.path;img.src=tour.image;img.alt=tour.title;img.width=1200;img.height=630;img.style.height='auto';caption.textContent=tour.path;figure.append(img,caption);a.append(figure);document.querySelector('main').append(a);}
+</script></html>

@@ -1,0 +1,46 @@
+<!doctype html><html lang="en"><meta charset="utf-8"><title>Territory tour checks</title>
+<style>body{font:14px system-ui;color:#18343d}iframe{width:1100px;height:760px;border:1px solid #ccc}li{margin:5px}</style>
+<h1>Territory tour checks</h1><p id="result">Running…</p><ol id="checks"></ol>
+<iframe title="Tour map" src="/lifezones/spaceship-earth/"></iframe>
+<script type="module">
+const frame=document.querySelector('iframe'),result=document.querySelector('#result'),params=new URLSearchParams(location.search);
+if(params.has('mobile')){frame.style.width='390px';frame.style.height='844px';}
+const wait=async test=>{for(let i=0;i<300;i++){if(test())return;await new Promise(r=>setTimeout(r,50));}throw Error('Timed out');};
+const pause=ms=>new Promise(r=>setTimeout(r,ms));
+const check=(ok,text)=>{if(!ok)throw Error(text);const li=document.createElement('li');li.textContent='PASS: '+text;document.querySelector('#checks').append(li);};
+try{
+ await wait(()=>frame.contentDocument?.querySelectorAll('.tour-marker:not([hidden])').length===15);
+ const d=frame.contentDocument,win=frame.contentWindow,card=d.querySelector('#tour-story'),areas=d.querySelector('.tour-areas'),routes=d.querySelector('.tour-routes'),close=d.querySelector('#tour-story-close');
+ const ids=['ancient-egypt','mesopotamia','amazon-mouth','india','china','iceland-to-vinland'];
+ const camera=()=>d.querySelector('#zoom-value').textContent;
+ const origin=d.querySelector('[data-tour-id="origin-of-mankind"]'),before=[camera(),origin.style.left,origin.style.top];
+ for(const id of ids){
+  const marker=d.querySelector(`[data-tour-id="${id}"]`);marker.click();await pause(2500);
+  check(!card.hidden&&d.querySelector('.tour-story-body p').textContent.length>40,id+' opens its Markdown story');
+  check(d.querySelector('[data-style="lifezones"]').getAttribute('aria-pressed')==='true',id+' keeps Lifezones');
+  const isRoute=id==='iceland-to-vinland',layer=isRoute?routes:areas,other=isRoute?areas:routes;
+  check(layer.style.display==='block'&&other.style.display==='none',id+' shows only its own overlay');
+  const paths=[...layer.querySelectorAll(isRoute?'.route-line':'.area-fill')].filter(p=>getComputedStyle(p.parentNode).display!=='none');
+  check(paths.length===(isRoute?6:1),id+' draws all expected parts');
+  check(paths.every(p=>{const r=p.getBoundingClientRect();return r.width>0&&r.left>=0&&r.right<=win.innerWidth+1&&r.top>=0&&r.bottom<=win.innerHeight+1;}),id+' fits the complete overlay');
+  const rect=d.querySelector('#controls').getBoundingClientRect();
+  check(rect.top>=0&&rect.right<=win.innerWidth&&close.getBoundingClientRect().height>=44,id+' card fits and has an accessible close button');
+  const old=paths[0].getAttribute('d');d.querySelector('#zoom-in').click();await wait(()=>paths[0].getAttribute('d')!==old);
+  check(paths[0].getAttribute('d')!==old,id+' overlay follows zoom');
+  close.click();await wait(()=>card.hidden&&areas.style.display==='none'&&routes.style.display==='none');
+  check(card.hidden&&areas.style.display==='none'&&routes.style.display==='none',id+' closes completely');
+  check(JSON.stringify([camera(),origin.style.left,origin.style.top])===JSON.stringify(before),id+' restores the previous camera exactly');
+ }
+ d.querySelector('[data-tour-id="amazon-mouth"]').click();await pause(2500);
+ d.querySelector('[data-style="satellite"]').click();await wait(()=>card.hidden&&areas.style.display==='none');
+ check(card.hidden&&areas.style.display==='none','Changing style clears the area');
+ d.querySelector('[data-style="lifezones"]').click();await wait(()=>d.querySelector('#map-source').value==='ecology');
+ d.querySelector('#fit').click();await wait(()=>!d.querySelector('[data-tour-id="mesopotamia"]').hidden);
+
+ d.querySelector('[data-tour-id="mesopotamia"]').click();await pause(2500);
+ d.dispatchEvent(new win.KeyboardEvent('keydown',{key:'Escape',bubbles:true}));await wait(()=>card.hidden&&d.activeElement.dataset.tourId==='mesopotamia');
+ check(card.hidden&&d.activeElement.dataset.tourId==='mesopotamia','Escape closes and returns focus');
+ d.querySelector(`[data-tour-id="${params.get('tour')||'amazon-mouth'}"]`).click();await pause(2500);
+ result.textContent='All checks passed. Lifezones tour left open for visual review.';
+}catch(error){result.textContent='FAIL: '+error.message;}
+</script></html>

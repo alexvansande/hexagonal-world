@@ -30,3 +30,14 @@ __pycache__/
 
 # Generated About landing page.
 /dist/about/
+
+# Generated tour landing pages.
+/dist/origin-of-mankind/
+/dist/silk-road/
+/dist/french-polynesia/
+/dist/ancient-egypt/
+/dist/mesopotamia/
+/dist/iceland-to-vinland/
+/dist/amazon-mouth/
+/dist/india/
+/dist/china/

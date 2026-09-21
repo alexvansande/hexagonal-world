@@ -1,0 +1,50 @@
+<!doctype html><html lang="en"><meta charset="utf-8"><title>Human migration tour checks</title>
+<style>body{font:14px system-ui;color:#18343d}iframe{width:1100px;height:760px;border:1px solid #ccc}li{margin:5px}</style>
+<h1>Human migration tour checks</h1><p id="result">Running…</p><ol id="checks"></ol>
+<iframe title="Migration map" src="/lifezones/spaceship-earth/"></iframe>
+<script type="module">
+const frame=document.querySelector('iframe'),result=document.querySelector('#result');
+if(new URLSearchParams(location.search).has('mobile')){frame.style.width='390px';frame.style.height='844px';}
+const pause=ms=>new Promise(r=>setTimeout(r,ms));
+const wait=async test=>{for(let i=0;i<300;i++){if(test())return;await pause(50);}throw Error('Timed out');};
+const check=(ok,text)=>{if(!ok)throw Error(text);const li=document.createElement('li');li.textContent='PASS: '+text;document.querySelector('#checks').append(li);};
+try{
+ await wait(()=>frame.contentDocument?.querySelectorAll('.tour-marker:not([hidden])').length===15);
+ const d=frame.contentDocument,win=frame.contentWindow,origin=d.querySelector('[data-tour-id="origin-of-mankind"]'),card=d.querySelector('#tour-story'),canvas=d.querySelector('#map'),close=d.querySelector('#tour-story-close');
+ const positions=()=>[...d.querySelectorAll('.tour-marker')].map(b=>[b.style.left,b.style.top]);
+ const before=JSON.stringify(positions());origin.click();await pause(1600);
+ await wait(()=>card.querySelector('.tour-flow-toggle'));
+ check(!card.hidden&&card.textContent.includes('connected African populations'),'Origin opens the editable migration story');
+ check(d.querySelector('#map-source').value==='ecology'&&d.querySelector('[data-style="lifezones"]').getAttribute('aria-pressed')==='true','Migration keeps the Lifezones basemap');
+ const routes=d.querySelector('.tour-routes'),paths=[...routes.querySelectorAll('.route-flow .route-line')],path=paths[0],halo=path.previousElementSibling;
+ check(paths.length===26&&paths.every(p=>p.getAttribute('d').length>50),'All 26 migration branches render');
+ check(card.querySelectorAll('.tour-route-key li').length===3,'Three periods have an explained color key');
+ check(new Set(paths.map(p=>win.getComputedStyle(p).stroke)).size===3,'Wave colors distinguish the three broad groups');
+ const offset=()=>parseFloat(win.getComputedStyle(path).strokeDashoffset);
+ const a=offset();await pause(180);const b=offset();
+ if(!win.matchMedia('(prefers-reduced-motion: reduce)').matches){
+  check(((a-b+8.1)%8.1)>.1,'Dots advance toward the end of each route');
+  check(Math.abs(offset()-parseFloat(win.getComputedStyle(halo).strokeDashoffset))<.05,'Halos move in sync with the dots');
+  const toggle=card.querySelector('.tour-flow-toggle');toggle.click();await pause(50);const paused=offset();await pause(180);
+  check(offset()===paused&&toggle.textContent==='Resume flow','Pause freezes the animation');
+  toggle.click();await pause(180);check(offset()!==paused&&toggle.textContent==='Pause flow','Resume restarts outward movement');
+ }else check(win.getComputedStyle(path).animationName==='none','Reduced motion leaves static dotted routes');
+ const box=d.querySelector('#controls').getBoundingClientRect();
+ check(box.top>=0&&box.right<=win.innerWidth&&close.getBoundingClientRect().height>=44,'Story and close control fit');
+ check(paths.every(p=>{const r=p.getBoundingClientRect();return r.left>=-1&&r.right<=win.innerWidth+1&&r.top>=-1&&r.bottom<=win.innerHeight+1;}),'All migration branches fit the viewport');
+ const link=card.querySelector('.tour-story-source');check(link.href.endsWith('/human-migrations-sources.md')&&(await fetch(link.href)).ok,'Source notes resolve from a nested share route');
+ check(canvas.dataset.renderPath==='images'&&!win.performance.getEntriesByType('resource').some(r=>r.name.includes('/maps/height/')),'Migration flow preserves the lightweight map renderer');
+ const old=path.getAttribute('d');d.querySelector('#zoom-in').click();await pause(100);check(path.getAttribute('d')!==old,'Routes remain attached during zoom');
+ close.click();await pause(100);
+ check(card.hidden&&routes.style.display==='none'&&JSON.stringify(positions())===before,'Close clears the overlay and restores the exact camera');
+ d.querySelector('[data-tour-id="silk-road"]').click();await pause(1450);
+ check(!!card.querySelector('.tour-flow-toggle')&&[...routes.querySelectorAll('g')].filter(g=>g.style.display!=='none').every(g=>g.classList.contains('route-flow')),'Silk Road uses its own animated trade flows');
+ close.click();await pause(80);origin.click();await pause(1450);d.dispatchEvent(new win.KeyboardEvent('keydown',{key:'Escape',bubbles:true}));await pause(80);
+ check(card.hidden&&d.activeElement===origin,'Escape restores focus to the origin marker');
+ origin.click();await pause(1450);d.querySelector('[data-style="satellite"]').click();await pause(100);
+ check(card.hidden&&routes.style.display==='none','Changing style closes the migration view');
+ d.querySelector('[data-style="lifezones"]').click();await pause(100);origin.click();await pause(1450);
+ check(!card.hidden&&d.querySelector('#map-source').value==='ecology','Preview returns to Lifezones with migration open');
+ result.textContent='All migration checks passed. Migration left open on Lifezones.';
+}catch(error){result.textContent='FAIL: '+error.stack;}
+</script></html>

@@ -329,6 +329,223 @@ Evidence: September 15 supplied 16-color palette; subsequent explicit correction
 to ignore the false shadow flag and restore shadows.
 Checks: `palette-experiment-tests.mjs`, `style-tests.mjs`, `surface-tests.mjs`.
 
+## 13. Discovery starts with clickable dots only
+
+**Decision (September 21).** Add fifteen data-driven discovery markers only to the
+default Spaceship Earth + Lifezones view. Each has a stable ID, title, geographic
+anchor and reserved overlay metadata. Thin, staggered, fading ripples are a UI
+affordance with a fixed screen size; they do not represent geographic areas.
+
+**Location revision.** The user moved the Eurasian anchor from Kazakhstan to
+the green boreal belt in Russia’s Urals and added French Polynesia, Australia,
+Bering Strait, North America, the Amazon mouth, India and China. Retain the
+Eurasian ID when moving its anchor. French Polynesia is reserved for a later
+Polynesian story; its subsequent implementation is recorded below.
+
+**Coordinate picking.** The user requested a small cursor readout to resolve
+ambiguous location requests. Show latitude then longitude in decimal degrees
+from the existing map projection, including on marker hover. The user then
+replaced the cursor-following placement with a fixed readout to the left of the
+Pan canvas / Reposition globe toolbar, hidden after three seconds without mouse
+movement. Keep it out of exports and hide it off the map. The user selected
+the Dzungarian Gate at approximately 45.4°N, 82.4°E as the Silk Road anchor
+after reviewing its role as a northern trade passage between mountains. This
+supersedes both the tentative 47°N, 83°E point and the earlier Pamir/Alay
+approximation, retaining the same marker ID. The historical basis is the
+northern route through the Gate described in Encyclopaedia Iranica,
+“Chinese Turkestan ii. In Pre-Islamic Times”; Getty’s geographic record
+1108383 places the pass near 45.4167°N, 82.4167°E.
+
+**Silk Road story (September 21).** The user subsequently requested the first
+story: clicking Silk Road focuses the main overland network, draws dotted routes,
+and replaces the compact picker with a matching title/text/close card. Closing
+or Escape restores the previous camera and controls. This supersedes the dots-only
+restriction for Silk Road. Later user requests below extend stories to other
+dots, including routes and area overlays; the original dots-only scope no longer
+applies to those explicitly requested tours.
+
+The route data is an editorial schematic combining corridors from different
+periods, not a surveyed track or a claim that one passage was always busiest.
+Include both Tarim oasis branches, the northern Dzungarian/Zhetysu branch,
+Fergana, Pamir/Bactria, northern India, Persia and the Mediterranean connection.
+Keep source links with the data. Project routes with the existing geographic
+transform and split at net cuts; dots, story and paths remain screen-only.
+The default image renderer, format/style settings and saved URL schema stay intact.
+
+**Trade flows (September 21).** The user requested colored moving dots for
+commodities instead of one static Silk Road stroke. Preserve the overland
+corridors and distinguish silk, gold/silver, glass/copper/tin, horses and
+spices/cotton. Group precious metals regardless of coins, bullion or objects,
+as explicitly requested; do not add a separate money category. Representative
+Mediterranean and Red Sea links connect Rome and India, with a Nile/desert
+transfer rather than a modern Suez shortcut. Small screen-space lanes separate
+overlapping flows, not geographic roads. Keep the legend in Markdown and reuse
+Pause/reduced-motion behavior. Sources distinguish attested commodity exchanges
+from editorial itineraries and mixed periods. This supersedes the static Silk
+Road behavior; other tours retain their existing rendering.
+
+**Sparse trade experiment (September 21).** The user requested irregular moving
+dots with clusters and empty intervals to reduce visual clutter, using relative
+volume only if evidence permits it. Trade periods now use independent, sparse
+random patterns; this supersedes their regularly spaced animated stroke. Keep
+migration and other tour lines unchanged. No comparable route/commodity volume
+series was established from the current sources, so frequency remains explicitly
+illustrative. Individual cargo weights and transport-cost estimates are not
+network volume weights. Future weighting requires period-specific, comparable
+sources and units. Preserve lazy loading, colors, Pause/reduced motion, and
+continuity across map cuts. Stable random seeds and CSS animation avoid map
+redraws or per-frame particle allocation. The user subsequently requested twice
+the frequency so routes remain visible: halve dot-to-dot intervals while keeping
+dot size, travel speed and irregular clustering. This supersedes the initial
+sparser density; frequency is still illustrative, not measured trade volume.
+
+**Regional trade networks (September 21).** The user approved the colored flows
+and requested internal Chinese, European and Indian networks, explicitly adding
+Byzantium. Extend the same five categories through selected regional corridors:
+Chinese capitals, canals and river connections; Indian inland markets and coastal
+ports; Roman roads, river corridors and shipping. Constantinople joins Anatolia,
+the Aegean and the Via Egnatia/Adriatic connection to Italy. This supersedes the
+single-terminal treatment of China, India and Europe. Show the geographic reach
+of trade without implying one date, one polity or exact imperial boundaries.
+Preserve the existing color key, animation, parallel lanes and Lifezones map.
+
+**Pacific story and writing workflow (September 21).** Clicking French Polynesia
+moves the North America and South America hexagons to the Pacific-facing joins
+of the existing Asia/Pacific piece. Keep the Asia/Pacific and Africa pieces fixed;
+use oriented edge matching, not the approximate infinite tiling. The existing
+baked terrain travels with each whole hexagon during the transition. In the final
+Pacific positions, use fresh terrain lighting for the two Americas pieces at the
+same screen-space light azimuth (315°) as the fixed pieces. Rotating the original
+baked shadows was superseded by the user’s lighting correction. Reuse the unlit
+base colors and rivers; bake the new terrain lighting at 2048 pixels per map
+unit and load it as tiled images, without live relief work in default views.
+Closing restores the original
+arrangement and camera. The temporary arrangement does not change presets. Its root tour URL now
+reconstructs it; do not persist a misleading camera-only URL.
+
+Draw the same dotted stroke around the broad Polynesian Triangle, including
+Hawaiʻi, Aotearoa New Zealand and Rapa Nui. Include the Hawaiian island chain at
+the northern corner; cross the date line along short Pacific arcs. This is a
+cultural extent, not a unified empire or surveyed border. Basis: Te Ara,
+“Polynesian languages” and “Pacific migrations”. The user's infinite-honeycomb
+screenshot is the reference for surrounding Tahiti with ocean.
+
+Tours now animate over 1.25 seconds and fit with 18% more breathing room than
+the initial Silk Road focus. All story titles, prose, notes and source links live
+in `dist/tour-stories.md`; blank sections for the other locations are writing
+space, not invented stories. Reloading reads the Markdown directly.
+
+**Preserve.** Reuse the map projection, maintain pan/zoom and keyboard access,
+honor reduced motion, keep markers out of exported map artwork, and expose a
+single selection event for future content. The representative coordinates are
+implementation choices, not precise historical claims or reviewed boundaries.
+
+**Selected story focus (September 21).** While a tour is selected, hide all other
+discovery dots, including their hit targets and keyboard stops. Keep the selected
+dot visible when in view; restore the other dots when the tour closes. This
+supersedes leaving all markers visible over an active story and its overlays.
+
+Evidence: September 21 feature request. Checks: `tour-marker-tests.mjs` and
+`dist/tests/tour-markers.html`, `tour-route-tests.mjs`, and
+`dist/tests/tour-story.html` (also `?mobile=1`).
+
+**Dated trade networks and deferred data (September 21).** The user requested a
+small period slider, including the Bronze Age copper/tin trading world before
+the collapse, and explicitly required that its information load only on opening
+the tour. Four snapshots now replace the combined-period trade overview:
+c. 1300 BCE, 150 CE, 900 CE and 1300 CE. “Early Middle Ages” and “High Middle
+Ages” avoid an ambiguous “low” label. Dates centre broader windows; they do not
+claim annual completeness. Each period changes routes, goods and Markdown text.
+The northern medieval networks include river/portage links and Golden Horde
+steppe exchanges. Preserve commodity colors where categories persist, Pause,
+keyboard access and the saved map camera. URL query `period` preserves the
+selection without changing the positional map-state schema.
+
+Separate British tin provenance evidence from an uncertain itinerary. Show the
+latter more faintly. Explain trade disruption within a multi-causal Bronze Age
+crisis, not a proven tin-shortage cause. The user approved adding a proposed
+eastern tin corridor from Central Asia/Afghanistan through Iran and Mesopotamia
+to the Mediterranean. This supersedes the western-only tin network. Keep both
+source branches and every eastern leg explicitly uncertain; regional ancient
+mining evidence does not prove Mediterranean exports or relative volumes.
+The Bronze Age view covers Mediterranean
+and western Asian connections, without inventing a contemporary Silk Road to
+China. The research and remaining geographic uncertainty are in the source notes.
+
+Route datasets, migration data, area geometry and story Markdown now load only
+on selection (or direct opening of a story URL). Keep renderers independent of
+data exports; static re-exports can accidentally undo this. Do not prefetch these
+payloads on map startup, hover or idle. Browser resource checks verify zero
+historical payload requests before selection and that opening trade does not
+load migration/area data. Closing while loading must discard the late result.
+
+**Human migration story (September 21).** The user requested an outward-flowing
+migration network inspired by their Wikipedia map. Origin of mankind now opens
+a global overview using the existing Silk Road dotted stroke, animated toward
+each branch endpoint. Preserve the current net and baked lighting. Keep motion
+independent of map redraws, offer Pause/Resume, honor reduced motion, and restore
+the original camera on close. The other stories retain their static routes.
+The user explicitly reaffirmed that migration belongs on the Lifezones basemap;
+opening the story must preserve Lifezones. Diagnostic previews that exercise
+other styles must return to Lifezones with the migration visible afterward.
+
+The story text now places these Homo sapiens routes within repeated earlier
+dispersals of human relatives from Africa, including Homo erectus. The user
+requested this context without adding species layers. Distinguish overlapping
+broad corridors from identical routes or a single shared birthplace; the drawn
+network remains explicitly Homo sapiens only.
+
+Use current research with explicit uncertainty rather than copying the old
+haplogroup tree or its dates. The first overview contains early departures,
+Eurasian/Sahul expansion, and later migrations through Beringia and the Americas.
+The route coordinates are an editorial schematic; modern shorelines remain.
+The user revised the Siberian branch through 58°N, 84°E; 57°N, 104°E;
+and 63°N, 123°E to avoid the visual impression of crossing the roughest
+terrain. These supersede the earlier intermediate waypoints and remain
+illustrative choices, not new historical evidence.
+The East African anchor is not a claim of one precise birthplace. Sources,
+including 2025 Sahul and 2026 South American research, and unresolved chronology
+conflicts are documented in `dist/human-migrations-sources.md`. Descriptions and
+the color key stay in the editable `dist/tour-stories.md`.
+
+**Territory and North Atlantic stories (September 21).** The user requested
+maximum extents for Egypt, Mesopotamia, India and China, an Amazon drainage basin,
+and Norse routes through the North Atlantic. They explicitly selected the
+Neo-Assyrian Empire for Mesopotamia. Current editorial choices for the other
+imperial tours are Thutmose III, Ashoka’s Mauryan Empire and Qianlong’s Qing;
+these period choices and approximate frontier envelopes remain open to refinement.
+Do not equate indirect rule, tributary status and uniformly administered territory.
+
+Preserve Lifezones beneath these overlays and the existing story/close/camera
+interaction. Show lightly shaded areas with geographic borders clipped through
+the real projection; never bridge map cuts or outline artificial patch edges.
+The Amazon is the HydroBASINS drainage catchment, not the rainforest or Legal
+Amazon, and excludes the separate Tocantins catchment. Norse lines are schematic
+sea corridors around southern Iceland and Greenland, combining voyages over time.
+Western Norway near Bergen is only a geographic anchor: early settlement voyages
+predate the city. All descriptions stay in `dist/tour-stories.md`; provenance and
+historical limitations are in `dist/territory-tours-sources.md`.
+
+**Shareable tours (September 21).** The user requested a root URL and an OG image
+for every implemented tour. Use stable location IDs as root paths, with static
+HTML metadata so social crawlers need not execute the app. Each link opens the
+Lifezones story and its routes/areas directly, including Polynesia’s special net
+and lighting. The nine current stories get distinct 1200×630 images rendered
+from actual map artwork. Placeholder dots do not acquire empty story pages.
+
+Clicking a dot adds a history entry. Back/Forward changes the selected tour;
+closing restores the original map camera. A direct-entry tour closes to the
+Lifezones map, and reloading an in-app tour retains its return camera. Keep tour
+URLs clean during pan/zoom. This supersedes the earlier restriction against
+persisting tour selection, without changing the compact map-state schema.
+
+Images retain the existing R2 hosting architecture and need a separate, immutable
+additive release. The upload is currently awaiting explicit approval following
+an automatic approval-review rejection; all images and pages exist locally.
+Production preparation must fail clearly until the public image inventory has
+been uploaded and verified, rather than publish broken OG links. This change
+does not authorize publishing the website.
+
 ## Maintaining this record
 
 When a decision changes, update its section with the new reason and identify what

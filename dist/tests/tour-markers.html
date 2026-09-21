@@ -1,0 +1,50 @@
+<!doctype html><html lang="en"><meta charset="utf-8"><title>Tour marker checks</title>
+<style>body{font:14px system-ui;color:#18343d}iframe{width:1100px;height:760px;border:1px solid #ccc}li{margin:4px}#events{font-weight:bold}</style>
+<h1>Tour marker checks</h1><p id="result">Running…</p><ol id="checks"></ol><p id="events">Selections: 0</p>
+<iframe title="Tour map" src="/lifezones/spaceship-earth/"></iframe>
+<script type="module">
+const frame=document.querySelector('iframe'),result=document.querySelector('#result');
+if(new URLSearchParams(location.search).has('mobile')){frame.style.width='390px';frame.style.height='844px';}
+const tick=()=>new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));
+const wait=async test=>{for(let i=0;i<300;i++){if(test())return;await new Promise(r=>setTimeout(r,50));}throw Error('Timed out');};
+const check=(ok,text)=>{if(!ok)throw Error(text);const li=document.createElement('li');li.textContent='PASS: '+text;document.querySelector('#checks').append(li);};
+try{
+ await wait(()=>frame.contentDocument?.querySelectorAll('.tour-marker:not([hidden])').length===15);
+ const d=frame.contentDocument,layer=d.querySelector('.tour-markers'),buttons=[...layer.querySelectorAll('button')];
+ let events=0;d.addEventListener('tourselect',e=>{document.querySelector('#events').textContent=`Selections: ${++events} · ${e.detail.id}`;});
+ check(buttons.length===15&&buttons.every(b=>!b.hidden),'Fifteen accessible location buttons on the default map');
+ check(new Set(buttons.map(b=>b.dataset.tourId)).size===15,'Stable, unique location IDs');
+ check(buttons.every(b=>b.getAttribute('aria-label')&&b.querySelectorAll('.tour-ripple').length===3),'Named buttons with three ripple rings each');
+ for(const button of buttons){button.click();if(!d.querySelector('#tour-story').hidden)d.querySelector('#tour-story-close').click();}
+ check(events===15,'Every dot dispatches the shared selection event');
+ const coordinates=d.querySelector('#map-coordinates'),silk=buttons.find(b=>b.dataset.tourId==='silk-road');
+ // Inline projected coordinates avoid the browser's 1/64-pixel layout rounding.
+ const hover=button=>{const r=d.querySelector('#stage').getBoundingClientRect();button.dispatchEvent(new frame.contentWindow.PointerEvent('pointermove',{bubbles:true,pointerType:'mouse',clientX:r.left+parseFloat(button.style.left),clientY:r.top+parseFloat(button.style.top)}));};
+ hover(silk);
+ let numbers=coordinates.textContent.match(/-?\d+\.\d+/g).map(Number);
+ check(!coordinates.hidden&&Math.abs(numbers[0]-45.4)<.002&&Math.abs(numbers[1]-82.4)<.002,'Hover coordinates match the known Silk Road location');
+ hover(buttons.find(b=>b.dataset.tourId==='andean-empires'));
+ numbers=coordinates.textContent.match(/-?\d+\.\d+/g).map(Number);
+ check(Math.abs(numbers[0]+13.5)<.002&&Math.abs(numbers[1]+72)<.002,'Southern and western coordinates have the correct signs');
+ const canvas=d.querySelector('#map'),r=canvas.getBoundingClientRect();canvas.dispatchEvent(new frame.contentWindow.PointerEvent('pointermove',{bubbles:true,pointerType:'mouse',clientX:r.left+1,clientY:r.top+1}));
+ check(coordinates.hidden,'Coordinate readout hides outside the map silhouette');
+ const first=buttons[0],before=[first.style.left,first.style.top];d.querySelector('#zoom-in').click();await tick();
+ check(first.style.left!==before[0]||first.style.top!==before[1],'Markers follow map zoom');
+ check(getComputedStyle(first).width==='32px','Hit area stays the same screen size after zoom');
+ d.querySelector('#fit').click();await tick();
+ d.querySelector('[data-style="satellite"]').click();await tick();check(layer.hidden,'Tour hidden on Satellite');
+ d.querySelector('[data-style="lifezones"]').click();await tick();check(!layer.hidden,'Tour returns on Lifezones');
+ d.querySelector('[data-arrangement="felv"]').click();await tick();check(layer.hidden,'Tour hidden on Felv');
+ d.querySelector('[data-arrangement="dymaxion"]').click();await tick();check(!layer.hidden,'Tour returns on Spaceship Earth');
+ hover(silk);
+ const readoutRect=coordinates.getBoundingClientRect(),toolbarRect=d.querySelector('.view-tools').getBoundingClientRect();
+ check(readoutRect.right<toolbarRect.left&&Math.abs((readoutRect.top+readoutRect.bottom-toolbarRect.top-toolbarRect.bottom)/2)<1,'Coordinates sit to the left of the toolbar, vertically centered');
+ await new Promise(r=>setTimeout(r,1600));hover(first);
+ await new Promise(r=>setTimeout(r,1600));check(!coordinates.hidden,'Mouse movement restarts the three-second timeout');
+ await new Promise(r=>setTimeout(r,1500));check(coordinates.hidden,'Coordinates disappear after three seconds without mouse movement');
+ d.querySelector('#zoom-in').click();await tick();check(coordinates.hidden,'Redrawing the map does not revive an idle readout');
+ d.querySelector('#fit').click();await tick();hover(silk);check(!coordinates.hidden,'Mouse movement restores coordinates');
+ events=0;document.querySelector('#events').textContent='Selections: 0';
+ result.textContent='All automatic checks passed. Click, keyboard-activate or drag a marker below; only clicks should increment selections.';
+}catch(error){result.textContent='FAIL: '+error.message;}
+</script></html>

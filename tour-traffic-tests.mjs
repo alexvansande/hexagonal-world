@@ -1,0 +1,28 @@
+import assert from 'node:assert/strict';
+import {tradeTraffic} from './dist/tour-trade-traffic.mjs';
+import {routeFragments} from './dist/tour-route-renderer.mjs';
+import {tradePeriods} from './dist/tour-trade-periods.mjs';
+import {migrationRoutes} from './dist/tour-migrations.mjs';
+const a=tradeTraffic('route-a'),b=tradeTraffic('route-b'),dash=a.dasharray.split(' ').map(Number);
+assert.deepEqual(a,tradeTraffic('route-a'),'Stable randomness through redraws');
+assert.notDeepEqual(a,b,'Routes have independent clusters and initial phases');
+assert.equal(a.length,dash.reduce((sum,n)=>sum+n,0),'Loop matches the complete pattern exactly');
+assert(dash.length%2===0&&dash.every((n,i)=>i%2?n>0:n===.1));
+const gaps=dash.filter((_,i)=>i%2);
+assert(gaps.some(n=>n<11)&&gaps.some(n=>n>50),'Both clustered dots and quiet stretches');
+assert(Math.abs(a.length-2354.7/2)<.1,'Same seeded dot count covers half the original distance: twice the frequency');
+assert(dash.length/2*3.5/a.length<.24,'Doubled dot coverage stays sparse, including round caps');
+assert(a.phase>=0&&a.phase<a.length&&a.speed>0);
+// A route split by a map cut must carry the phase forward by the travelled
+// distance, never by the huge screen gap between the two pieces.
+const tile={},other={},anchors=[{local:[0,0],tile},{local:[30,40],tile},{local:[1000,0],tile:other},{local:[1030,40],tile:other}];
+const fragments=routeFragments(anchors,p=>p);
+assert.deepEqual(fragments.map(f=>f.start),[0,50]);
+assert.equal(fragments[0].d,'M0.00,0.00 L30.00,40.00 ');
+assert.equal(fragments[1].d,'M1000.00,0.00 L1030.00,40.00 ');
+const moved=routeFragments(anchors,p=>[p[0]+200,p[1]-100]);
+assert.deepEqual(moved.map(f=>f.start),[0,50],'Panning does not alter packet phase');
+assert.deepEqual(routeFragments(anchors,p=>p.map(n=>2*n)).map(f=>f.start),[0,100],'Zoom preserves continuity between fragments');
+for(const period of tradePeriods)assert(period.routes.every(r=>r.traffic&&r.traffic.speed===13),'Every trade period uses sparse packets with no invented volume weights');
+assert(migrationRoutes.every(r=>!r.traffic),'Migration animation remains unchanged');
+console.log('Sparse trade: independent clusters/gaps, bounded density, exact loops, seam phases, pan/zoom and unchanged migrations pass.');

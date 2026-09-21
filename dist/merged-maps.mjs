@@ -32,7 +32,7 @@ export class MergedMaps{
  constructor(gl,redraw){
   this.gl=gl;this.cache=new PrecomputedSurfaces(gl,redraw,{root:'.',extension:'png'});
   const program=gl.createProgram();
-  for(const [kind,source] of [[gl.VERTEX_SHADER,`attribute vec2 point;uniform vec4 rect;uniform vec2 size;uniform vec3 view;varying vec2 uv;void main(){uv=point;vec2 p=((rect.xy+point*rect.zw)*view.x+view.yz)*2./size;gl_Position=vec4(p.x,-p.y,0.,1.);}`],[gl.FRAGMENT_SHADER,`precision highp float;varying vec2 uv;uniform sampler2D map;uniform vec2 pixels;void main(){gl_FragColor=vec4(texture2D(map,(1.+uv*(pixels-2.))/pixels).rgb,1.);}`]]){
+  for(const [kind,source] of [[gl.VERTEX_SHADER,`attribute vec2 point;uniform vec4 rect;uniform vec2 size;uniform vec3 view;uniform vec4 frames;uniform float turn;varying vec2 uv;varying vec2 sourcePosition;void main(){uv=point;sourcePosition=rect.xy+point*rect.zw;vec2 q=sourcePosition-frames.xy;float c=cos(turn),s=sin(turn);q=vec2(c*q.x-s*q.y,s*q.x+c*q.y)+frames.zw;vec2 p=(q*view.x+view.yz)*2./size;gl_Position=vec4(p.x,-p.y,0.,1.);}`],[gl.FRAGMENT_SHADER,`precision highp float;varying vec2 uv;uniform sampler2D map;uniform vec2 pixels;uniform vec4 frames;uniform float sourceAngle;uniform bool clipPiece;varying vec2 sourcePosition;void main(){if(clipPiece){vec2 q=sourcePosition-frames.xy;float c=cos(sourceAngle),s=sin(sourceAngle);q=abs(vec2(c*q.x+s*q.y,-s*q.x+c*q.y));if(q.y>.866025404||.866025404*q.x+.5*q.y>.866025404)discard;}gl_FragColor=vec4(texture2D(map,(1.+uv*(pixels-2.))/pixels).rgb,1.);}`]]){
    const shader=gl.createShader(kind);gl.shaderSource(shader,source);gl.compileShader(shader);
    if(!gl.getShaderParameter(shader,gl.COMPILE_STATUS))throw Error(gl.getShaderInfoLog(shader));
    gl.attachShader(program,shader);gl.deleteShader(shader);
@@ -40,23 +40,39 @@ export class MergedMaps{
   gl.linkProgram(program);if(!gl.getProgramParameter(program,gl.LINK_STATUS))throw Error(gl.getProgramInfoLog(program));
   this.program=program;this.buffer=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,this.buffer);
   gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([0,0,1,0,0,1,0,1,1,0,1,1]),gl.STATIC_DRAW);
-  this.point=gl.getAttribLocation(program,'point');this.uniforms=Object.fromEntries(['rect','size','view','map','pixels'].map(k=>[k,gl.getUniformLocation(program,k)]));
+  this.point=gl.getAttribLocation(program,'point');this.uniforms=Object.fromEntries(['rect','size','view','map','pixels','frames','turn','sourceAngle','clipPiece'].map(k=>[k,gl.getUniformLocation(program,k)]));
  }
- draw(meta,view){
-  const {gl:g,cache,uniforms:u}=this,plan=mergedPlan(meta,view);
-  cache.setRequired(new Set([...plan.coarse,...plan.tiles].map(t=>t.key)));
-  // Start the tiny overview before detail, including on slow connections.
-  const previews=plan.coarse.map(t=>cache.request(t.key,true));
-  const ready=previews.every(Boolean);
+ hasOverview(meta){return meta.levels[0].tiles.every(key=>this.cache.cache.has(`${meta.path}/0/${key}`));}
+ draw(meta,view,pieces=null,preload=[]){
+  const {gl:g,cache,uniforms:u}=this;
+  const plans=(pieces||[null]).map(piece=>{
+   if(!piece)return {...mergedPlan(meta,view),piece};
+   const c=Math.cos(piece.angle),s=Math.sin(piece.angle),unit=view.unit;
+   const center=[-view.panX/unit-piece.target[0],-view.panY/unit-piece.target[1]];
+   const sourceCenter=[c*center[0]+s*center[1]+piece.source[0],-s*center[0]+c*center[1]+piece.source[1]];
+   const plan=mergedPlan(piece.meta||meta,{...view,width:Math.abs(c)*view.width+Math.abs(s)*view.height,height:Math.abs(s)*view.width+Math.abs(c)*view.height,panX:-sourceCenter[0]*unit,panY:-sourceCenter[1]*unit},40);
+   // Cull image tiles outside this source hexagon's bounding circle.
+   const touches=t=>{const [x,y,w,h]=t.rect;return x<=piece.source[0]+1&&x+w>=piece.source[0]-1&&y<=piece.source[1]+1&&y+h>=piece.source[1]-1;};
+   return {...plan,coarse:plan.coarse.filter(touches),tiles:plan.tiles.filter(touches),piece};
+  });
+  const preloadKeys=preload.flatMap(m=>m.levels[0].tiles.map(key=>`${m.path}/0/${key}`));
+  cache.setRequired(new Set([...preloadKeys,...plans.flatMap(p=>[...p.coarse,...p.tiles].map(t=>t.key))]));
+  for(const key of preloadKeys)cache.request(key,true);
+  const ready=plans.flatMap(p=>p.coarse.map(t=>cache.request(t.key,true))).every(Boolean);
   g.useProgram(this.program);g.bindBuffer(g.ARRAY_BUFFER,this.buffer);
   for(let i=0;i<g.getParameter(g.MAX_VERTEX_ATTRIBS);i++)g.disableVertexAttribArray(i);
   g.enableVertexAttribArray(this.point);g.vertexAttribPointer(this.point,2,g.FLOAT,false,0,0);
   g.uniform2f(u.size,view.width,view.height);g.uniform3f(u.view,view.unit,view.panX,view.panY);g.uniform1i(u.map,0);g.activeTexture(g.TEXTURE0);g.disable(g.BLEND);
-  for(const tile of [...plan.coarse,...(ready?plan.tiles:[])]){
-   const image=cache.request(tile.key);if(!image)continue;
-   g.bindTexture(g.TEXTURE_2D,image.texture);g.uniform4fv(u.rect,tile.rect);g.uniform2f(u.pixels,image.width,image.height);g.drawArrays(g.TRIANGLES,0,6);
+  for(const plan of plans){
+   const piece=plan.piece;g.uniform1i(u.clipPiece,piece?1:0);
+   g.uniform4fv(u.frames,piece?[...piece.source,...piece.target]:[0,0,0,0]);g.uniform1f(u.turn,piece?.angle||0);g.uniform1f(u.sourceAngle,piece?.sourceAngle||0);
+   for(const tile of [...plan.coarse,...(ready?plan.tiles:[])]){
+    const image=cache.request(tile.key);if(!image)continue;
+    g.bindTexture(g.TEXTURE_2D,image.texture);g.uniform4fv(u.rect,tile.rect);g.uniform2f(u.pixels,image.width,image.height);g.drawArrays(g.TRIANGLES,0,6);
+   }
   }
-  return {...plan,ready};
+  return {level:Math.max(...plans.map(p=>p.level)),ready};
  }
+
  dispose(){this.cache.dispose();this.gl.deleteProgram(this.program);this.gl.deleteBuffer(this.buffer);}
 }
