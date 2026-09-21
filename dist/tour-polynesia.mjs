@@ -6,14 +6,33 @@
 import {definePeriods,bothWays} from './tour-periods.mjs?v=chapters-1';
 const p={bismarck:[-5,150],santaCruz:[-10.7,166],vanuatu:[-17.7,168.3],newCaledonia:[-22,166],fiji:[-17.8,178],tonga:[-21.2,-175.2],samoa:[-13.9,-171.8],
  cooks:[-21.2,-159.8],tahiti:[-17.65,-149.43],tuamotu:[-15.1,-147.6],marquesas:[-8.9,-140.1],southMarquesas:[-10.5,-138.6],mangareva:[-23.1,-135],pitcairn:[-25.07,-130.1],austral:[-23.4,-149.5],
- hawaii:[19.5,-155.5],rapaNui:[-27.12,-109.35],aotearoa:[-35.5,174],kermadec:[-29.3,-177.9],chatham:[-44,-176.5],ecuador:[-1,-80.7],colombia:[3.9,-77],arica:[-18.5,-70.3]};
+ hawaii:[19.5,-155.5],rapaNui:[-27.12,-109.35],aotearoa:[-35.5,174],kermadec:[-29.3,-177.9],chatham:[-44,-176.5],ecuador:[-1,-80.7],colombia:[3.9,-77],arica:[-18.5,-70.3],
+ sunda:[2,110],newGuinea:[-5,139],manus:[-2,147],newBritain:[-5.3,150.1],newIreland:[-3.2,151.9],buka:[-5.4,154.7],solomons:[-9.6,160],taiwan:[23.5,121],luzon:[16,121],guam:[13.5,144.8],chuuk:[7.4,151.8],pohnpei:[6.9,158.2]};
 const coords=stops=>Object.freeze(stops.map(stop=>Object.freeze(typeof stop==='string'?p[stop]:stop)));
 const voyage=(id,title,wave,period,stops,extra={})=>Object.freeze({id:'polynesia-'+id,title,wave,period,animated:true,geodesic:true,lane:0,coordinates:coords(stops),...extra});
 // Interisland voyaging is denser than one-off settlement crossings.
 const twoWay=(id,title,period,stops,extra={})=>bothWays([voyage(id,title,'voyaging',period,stops,{lane:3,frequency:1.5,...extra})]);
 const contact=(id,title,period,stops)=>bothWays([voyage(id,title,'contact',period,stops,{lane:3,frequency:.5,uncertain:true})]);
+// Pleistocene Near Oceania: Sahul, the Bismarcks and the Solomons were settled
+// tens of thousands of years before Lapita; obsidian moved between islands.
+export const nearOceaniaRoutes=Object.freeze([
+ voyage('near-sahul','Wallacea to New Guinea','settlement','Sahul: about 65,000–50,000 years ago',['sunda',[0,123],[-1,132],'newGuinea'],{uncertain:true}),
+ voyage('near-bismarck','New Guinea to the Bismarck Archipelago','settlement','Bismarcks: about 40,000 years ago',['newGuinea',[-5.5,145],'newBritain',[-4,151],'newIreland']),
+ voyage('near-manus','Crossing to Manus','settlement','Manus: about 13,000 years ago or earlier',['newIreland',[-2.5,149.5],'manus'],{uncertain:true}),
+ voyage('near-solomons','Into the Solomon Islands','settlement','Buka: about 29,000 years ago',['newIreland',[-4.5,153.5],'buka',[-8,158],'solomons']),
+ ...twoWay('near-obsidian','New Britain obsidian to New Ireland','Obsidian exchange from about 20,000 years ago',['newBritain',[-4.5,151],'newIreland']),
+]);
+// Austronesian speakers reach the Pacific from island Southeast Asia; Lapita
+// carries their descendants into Remote Oceania, and Micronesia follows.
+export const austronesianRoutes=Object.freeze([
+ voyage('austronesian-philippines','Taiwan to the Philippines','settlement','About 2000–1500 BCE',['taiwan',[19,121.5],'luzon'],{uncertain:true}),
+ voyage('austronesian-marianas','Philippines to the Mariana Islands','settlement','Marianas: about 1500 BCE',['luzon',[14.5,130],[14,138],'guam'],{uncertain:true}),
+ voyage('austronesian-bismarck','Island Southeast Asia to the Bismarcks','settlement','About 1500 BCE',['luzon',[8,124],[2,128],[-2,140],[-4,147],'newBritain'],{uncertain:true}),
+ voyage('austronesian-carolines','Melanesia to the Caroline Islands','settlement','Carolines: about 2,000 years ago',['solomons',[-3,160],[2,157],'pohnpei',[7,155],'chuuk'],{uncertain:true}),
+]);
 export const lapitaRoutes=Object.freeze([
- voyage('lapita-melanesia','Bismarck Archipelago to Vanuatu and New Caledonia','settlement','Lapita: about 3,300–3,000 years ago',['bismarck',[-8,158],'santaCruz','vanuatu','newCaledonia']),
+ ...austronesianRoutes,
+ voyage('lapita-melanesia','Bismarck Archipelago to Vanuatu and New Caledonia','settlement','Lapita: about 3,300–3,000 years ago',['newBritain',[-8,158],'santaCruz','vanuatu','newCaledonia']),
  voyage('lapita-fiji','Vanuatu to Fiji, Tonga and Samoa','settlement','West Polynesia: about 1100–800 BCE',['vanuatu',[-18,173],'fiji',[-19.5,-178.5],'tonga',[-17,-173.5],'samoa']),
  ...twoWay('west-polynesia','Fiji, Tonga and Samoa','Continuing exchange',['fiji',[-19.5,-178.5],'tonga',[-17,-173.5],'samoa']),
  ...twoWay('fiji-samoa','Fiji and Samoa','Continuing exchange',['fiji',[-15,-179],'samoa']),
@@ -49,7 +68,8 @@ export const contactRoutes=Object.freeze([
 ]);
 const voyaging=routes=>routes.filter(r=>r.wave==='voyaging');
 export const polynesiaChapters=definePeriods('french-polynesia',[
- {id:'lapita',label:'Lapita',date:'c. 1000 BCE',year:-1000,routes:lapitaRoutes,waves:['settlement','voyaging']},
+ {id:'near-oceania',label:'Near Oceania',date:'c. 40,000 years ago',year:-40000,routes:nearOceaniaRoutes,waves:['settlement','voyaging']},
+ {id:'lapita',label:'Austronesians & Lapita',date:'c. 1500 BCE – 1 CE',year:-1500,routes:lapitaRoutes,waves:['settlement','voyaging']},
  {id:'east-polynesia',label:'East Polynesia',date:'c. 1000–1200 CE',year:1000,routes:[...voyaging(lapitaRoutes),...eastPolynesiaRoutes],waves:['settlement','voyaging']},
  {id:'far-corners',label:'Far corners',date:'c. 1200–1300 CE',year:1200,routes:[...voyaging(lapitaRoutes),...voyaging(eastPolynesiaRoutes),...farCornerRoutes],waves:['settlement','voyaging']},
  {id:'south-america',label:'South America',date:'c. 1200–1400 CE',year:1300,routes:[...voyaging(lapitaRoutes),...voyaging(eastPolynesiaRoutes),...voyaging(farCornerRoutes),...contactRoutes],waves:['voyaging','contact']},

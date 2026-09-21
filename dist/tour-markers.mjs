@@ -7,7 +7,7 @@ import {patchProjector} from './indicatrix.mjs?v=tetra-area-2';
 export const tourLocations=Object.freeze([
  {id:'origin-of-mankind',title:'Origin of mankind',latitude:3.5,longitude:36,overlay:'human-migrations'},
  {id:'silk-road',title:'Silk Road',latitude:45.4,longitude:82.4,overlay:'silk-road'},
- {id:'iceland-to-vinland',title:'Iceland to Vinland',latitude:64.8,longitude:-18.5,overlay:'norse-voyages'},
+ {id:'iceland-to-vinland',title:'Viking expansion',latitude:64.8,longitude:-18.5,overlay:'norse-voyages'},
  {id:'french-polynesia',title:'French Polynesia',latitude:-17.65,longitude:-149.43,overlay:'polynesia'},
  {id:'americas-exchange',title:'Americas exchange',latitude:-13.5,longitude:-72,overlay:'americas-exchange'},
 ].map(Object.freeze));

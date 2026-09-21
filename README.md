@@ -61,8 +61,8 @@ See [AUDIT.md](AUDIT.md) for the September 2026 diagnosis, repairs, performance 
 ## Implemented
 
 The default Spaceship Earth + Lifezones map includes five discovery dots from
-`dist/tour-markers.mjs`: Origin of mankind, Silk Road, Iceland to Vinland, French
-Polynesia and Americas exchange. Each record has a stable `id`, `title`,
+`dist/tour-markers.mjs`: Origin of mankind, Silk Road, Viking expansion (at the
+`/iceland-to-vinland/` URL), French Polynesia and Americas exchange. Each record has a stable `id`, `title`,
 `latitude`, `longitude`, and an `overlay` field (a stable overlay ID). The earlier
 imperial-extent and Amazon-basin dots were retired as entry points on September 21;
 their area geometry, clipping renderer and tests remain for future use. The reusable DOM layer emits a bubbling `tourselect` event with the
@@ -112,11 +112,17 @@ partner on the same signed lane for two-way traffic). `loadTourData` returns
 `{heading, periods, periodFor}` for all five tours and the app selects a chapter
 from `?period=` or the story default. Human migrations have four chapters
 (`tour-migrations.mjs`: early hominins, Neanderthals and Denisovans, Homo sapiens
-expansion, later movements), Norse voyages five (`tour-vinland.mjs`), Polynesia
-four (`tour-polynesia.mjs`, with an uncertain South American contact chapter) and
-the Americas four (`tour-americas.mjs`). Evidence notes: `human-migrations-sources.md`,
+expansion, later movements; early hominins run outward only), the Viking story five
+(`tour-vinland.mjs`: first raids, Rus and Danelaw, settlements, kings and conquests,
+then the Iceland–Greenland–Vinland story as its final chapter), Polynesia five
+(`tour-polynesia.mjs`: Pleistocene Near Oceania, Austronesians and Lapita, East
+Polynesia, the far corners, and an uncertain South American contact chapter) and
+the Americas four (`tour-americas.mjs`, including Amazonian river pottery and
+greenstone networks drawn as uncertain links). Evidence notes: `human-migrations-sources.md`,
 `territory-tours-sources.md`, `polynesia-sources.md` and `americas-exchange-sources.md`.
-Checks: `tour-chapter-tests.mjs` and the `/tests/tour-*.html` pages.
+Chapter changes refit the camera without replaying the Pacific piece animation.
+Checks: `tour-chapter-tests.mjs`, `tour-performance-tests.mjs` (route, sample,
+path, timing and module-size budgets) and the `/tests/tour-*.html` pages.
 
 Startup imports only the small projection/rendering modules and loader.
 `dist/tour-data.mjs` dynamically imports the selected tour's dataset. Trade
@@ -135,10 +141,12 @@ The Amazon shows the HydroBASINS v1c level-03 Amazon catchment (HYBAS_ID
 patch cones; even/odd filling retains holes and concave fragments, while borders
 only stroke geographic edges, never artificial map cuts. The area layer follows
 the normal camera, stays on Lifezones and is excluded from canvas exports.
-The Norse tour animates its six base corridors (western Norway, Shetland, Faroes,
-Iceland, coastal Greenland, Baffin Island, Labrador and northern Newfoundland)
-across five chapters in `dist/tour-vinland.mjs`, with two-way sailing, a Gaelic
-settlement route, Norðrsetur hunting grounds, Markland timber trips and Thule contact.
+The Viking tour in `dist/tour-vinland.mjs` follows raids, settlement and trade from
+Lindisfarne to the Rus rivers and the North Sea kingdoms, then ends with the six
+North Atlantic corridors (western Norway, Shetland, Faroes, Iceland, coastal
+Greenland, Baffin Island, Labrador and northern Newfoundland) told as one chapter
+with two-way sailing, a Gaelic settlement route, Norðrsetur hunting grounds,
+Markland timber trips and Thule contact.
 
 Sources, period choices, geographic uncertainty and data licenses are in
 `dist/territory-tours-sources.md`. To rebuild the small bundled area module, use

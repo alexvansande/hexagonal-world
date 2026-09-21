@@ -552,6 +552,18 @@ sources files. Preserve lazy loading, Pause/Resume, reduced motion, route
 clipping at cuts, clean root URLs with `?period=`, camera restore and marker
 hiding while a story is open.
 
+**Follow-up corrections (September 21).** Early hominin lines run outward only,
+so that chapter reads as expansion rather than exchange. Chapter changes must not
+replay the Pacific piece animation; only the story opening moves the net.
+Polynesia gained a Pleistocene Near Oceania chapter and the Austronesian, Marianas
+and Caroline crossings. The Norse story became a wider Viking expansion in four
+chapters with the Iceland–Greenland–Vinland story as its final chapter; the dot
+keeps its `/iceland-to-vinland/` URL and is titled “Viking expansion”. The
+Americas story gained Amazonian river pottery and greenstone links, drawn
+uncertain; no Marajó-to-Inca line is drawn because no evidence was found for it.
+Performance budgets (routes, samples, SVG paths, timing, module sizes) are
+enforced in `tour-performance-tests.mjs`.
+
 Evidence: September 21 feature request and confirmation. Checks:
 `tour-chapter-tests.mjs`, `tour-marker-tests.mjs`, `tour-page-tests.mjs`,
 `/tests/tour-areas.html` (Norse), `/tests/tour-migrations.html`, `/tests/tour-polynesia.html`.

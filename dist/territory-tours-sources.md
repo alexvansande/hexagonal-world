@@ -65,10 +65,18 @@ discusses the sagas and the archaeological settlement at L’Anse aux Meadows.
 [Parks Canada: Management plan](https://parks.canada.ca/lhn-nhs/nl/meadows/info/gestion-management-2019)
 explains its role as a base for wider exploration.
 
-The Norse story now has five chapters: the Northern Isles (c. 800), settling
-Iceland (c. 870–930), Greenland (c. 985–1000), Vinland (c. 1000–1020) and the
-later trade (c. 1250–1350). Each is a snapshot of active sea lanes; two-way
-lines mark regular return sailing and are not ship counts. Additional evidence:
+The story now follows the wider Viking expansion in four chapters, first raids
+(c. 790–830), Rus and the Danelaw (c. 860–900), settlements (c. 900–1000) and
+kings and conquests (c. 1000–1066), then closes with the Iceland, Greenland and
+Vinland story as one final chapter (c. 870–1350). Each chapter is a snapshot of
+active sea and river lanes; two-way lines mark regular return sailing and are
+not ship counts. General context for the raids, the Danelaw, Normandy and the
+Rus river routes: [Britannica: Viking](https://www.britannica.com/topic/Viking-people),
+[UNESCO: Archaeological Border complex of Hedeby and the Danevirke](https://whc.unesco.org/en/list/1553/)
+and [UNESCO: Birka and Hovgården](https://whc.unesco.org/en/list/555/). The Loire,
+Iberian and Rus attack lines and the 1066 Norman crossing are drawn fainter: the
+Normans were descendants of Scandinavian settlers rather than a Viking fleet, and
+the southern raids are known from annals rather than routes. Additional evidence:
 
 - [Kuitems et al., Nature (2021): Evidence for European presence in the Americas in AD 1021](https://www.nature.com/articles/s41586-021-03972-8).
   Tree rings from L’Anse aux Meadows give the exact year 1021 for Norse wood-cutting

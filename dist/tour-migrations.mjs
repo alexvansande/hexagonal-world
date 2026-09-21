@@ -91,8 +91,11 @@ const link=(id,title,wave,period,sources,stops,extra={})=>Object.freeze({
 });
 const twoWay=(...args)=>bothWays([link(...args,{lane:3})]);
 export const homininRoutes=Object.freeze([
- ...twoWay('early-homo-south','Early Homo across eastern and southern Africa','early-homo','Early Homo: more than 2 million years ago',['erectus'],['origin',[-5,35],[-15,33],[-20,29],'sterkfontein']),
- ...twoWay('early-homo-north','Early Homo toward North Africa','early-homo','Early Homo: about 2.4–1.8 million years ago',['erectus'],['origin',[10,32],[20,25],[28,15],[33,8],'ainHanech']),
+ // Early Homo spreads outward from the East African anchor; no return lanes, so
+ // the chapter reads as expansion rather than exchange.
+ link('early-homo-south','Early Homo across eastern and southern Africa','early-homo','Early Homo: more than 2 million years ago',['erectus'],['origin',[-5,35],[-15,33],[-20,29],'sterkfontein']),
+ link('early-homo-north','Early Homo toward North Africa','early-homo','Early Homo: about 2.4–1.8 million years ago',['erectus'],['origin',[10,32],[20,25],[28,15],[33,8],'ainHanech']),
+ link('early-homo-west','Early Homo toward the Sahel and West Africa','early-homo','Early Homo: about 2 million years ago; sparse evidence',['erectus'],['origin',[8,30],[10,22],[12,14],[13,6]]),
  link('erectus-levant','Out of Africa into the Caucasus','erectus','Dmanisi: about 1.8 million years ago',['dmanisi','erectus'],['origin',[10,37],[20,34],[27,33],[30,34],'levant',[36,37],[39,41],'dmanisi']),
  link('erectus-asia','Southern Asia toward Java','erectus','Sangiran: about 1.3 million years ago',['sangiran','erectus'],['levant',[33,42],[33,48],[30,60],[27,68],[22,76],[20,84],'bengal',[18,97],[13,100],[8,100],[2,104],[-4,106],'sangiran']),
  link('erectus-china','Into East Asia','erectus','Shangchen tools: about 2.1 million years ago; Zhoukoudian later',['shangchen','erectus'],['bengal',[25,96],[26,102],[29,107],'shangchen',[38,113],[40,116]]),

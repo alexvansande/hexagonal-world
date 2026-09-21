@@ -4,7 +4,13 @@ Research checked September 21, 2026. Story copy is in `tour-stories.md`; the geo
 
 ## Reading the map
 
-The four stages are editorial snapshots: Lapita and West Polynesia, the East Polynesian expansion, the far corners of the triangle, and contact with South America. Routes are schematic great-circle arcs between representative islands, not reconstructed canoe tracks, and the moving dots do not count voyages. One-way “settlement” lines mark first crossings whose departure island is inferred; two-way “voyaging” lines mark continuing exchange between islands. The Pacific view moves the two American map pieces to Pacific-facing joins so that these arcs stay continuous across the date line.
+The five stages are editorial snapshots: Pleistocene Near Oceania, the Austronesian and Lapita movements into Remote Oceania and Micronesia, the East Polynesian expansion, the far corners of the triangle, and contact with South America. Routes are schematic great-circle arcs between representative islands, not reconstructed canoe tracks, and the moving dots do not count voyages. One-way “settlement” lines mark first crossings whose departure island is inferred; two-way “voyaging” lines mark continuing exchange between islands. The Pacific view moves the two American map pieces to Pacific-facing joins so that these arcs stay continuous across the date line.
+
+## Near Oceania and the Austronesian arrival
+
+- [Te Ara: Pacific migrations](https://teara.govt.nz/en/pacific-migrations). Summarizes settlement of New Guinea, the Bismarck Archipelago and the Solomon Islands tens of thousands of years ago, the long stop at the edge of Near Oceania, and the later Austronesian movement out of island Southeast Asia. The Sahul crossing is shared with the human migrations story (see `human-migrations-sources.md` for the Sahul chronology and its debate) and is drawn fainter here.
+- Pleistocene dates for the Bismarcks (about 40,000 years ago), Buka in the Solomons (about 29,000 years ago) and Manus are archaeological consensus figures from cave sites such as Buang Merabak, Matenkupkum, Kilu and Pamwak; the routes between them are inferred. New Britain obsidian reaching New Ireland from about 20,000 years ago is the earliest evidence of interisland exchange in the region and is drawn as a two-way link.
+- The Austronesian expansion from Taiwan through the Philippines is a linguistic and archaeological model; the Marianas settlement around 1500 BCE from the Philippines and the later settlement of the Caroline Islands from Melanesia around 2,000 years ago are drawn fainter because departure points and dates remain debated.
 
 ## Lapita and West Polynesia
 

@@ -11,6 +11,7 @@ const p={
  santaElena:[-2.2,-80.9],manta:[-1,-80.7],buenaventura:[3.9,-77],panama:[8.5,-80],cacaoAmazon:[-4.5,-79],chavin:[-9.6,-77.2],ucayali:[-8.4,-74.5],moche:[-8.1,-79],lambayeque:[-6.7,-79.8],chanChan:[-8.1,-79.1],
  wari:[-13.1,-74.2],pikillacta:[-13.6,-71.7],cusco:[-13.5,-72],cerroBaul:[-17.1,-70.85],tiwanaku:[-16.55,-68.67],moquegua:[-17.2,-70.9],cochabamba:[-17.4,-66.2],atacama:[-22.9,-68.2],madreDeDios:[-12.5,-69.2],
  quito:[-.2,-78.5],cajamarca:[-7.2,-78.5],huanuco:[-9.9,-76.8],chincha:[-13.4,-76.1],laPaz:[-16.5,-68.2],tupiza:[-21.4,-65.7],santiago:[-33.4,-70.6],
+ marajo:[-.9,-49.5],santarem:[-2.4,-54.7],manaus:[-3.1,-60],casiquiare:[2,-66.9],guianas:[5,-55],southwestAmazon:[-12,-63],
 };
 const coords=stops=>Object.freeze(stops.map(stop=>Object.freeze(typeof stop==='string'?p[stop]:stop)));
 const flow=(id,title,wave,stops,extra={})=>Object.freeze({id:'americas-'+id,title,wave,animated:true,lane:0,coordinates:coords(stops),...extra});
@@ -24,6 +25,7 @@ export const earlyRoutes=Object.freeze([
  ...twoWay('early-amazon-chavin','Tropical forest goods and Chavín','feathers',['ucayali',[-9,-76],'chavin'],{uncertain:true}),
  flow('early-maize','Maize spreading south','crops',['balsas',[16,-96],[14,-90],[12,-86],[9,-80],'panama',[5,-75],[1,-78],[-4,-79.5],[-8,-79]],{uncertain:true}),
  flow('early-cacao','Cacao from the upper Amazon toward Mesoamerica','crops',['cacaoAmazon','manta','buenaventura','panama',[12,-86],'soconusco'],{uncertain:true,lane:3}),
+ flow('early-manioc','Manioc from the southwest Amazon along the rivers','crops',['southwestAmazon',[-8,-60],'manaus',[0,-62],'casiquiare','orinoco','trinidad'],{uncertain:true}),
 ]);
 export const classicRoutes=Object.freeze([
  flow('classic-obsidian-teotihuacan','Pachuca obsidian to Teotihuacan and the Maya','obsidian',['pachuca','teotihuacan',[18.5,-96],[17,-93],[15.5,-91],'kaminaljuyu',[15.8,-89.8],'tikal']),
@@ -36,6 +38,8 @@ export const classicRoutes=Object.freeze([
  flow('classic-copper-hopewell','Lake Superior copper to the Ohio valley','metals',['superior',[45,-87],[42,-85],'hopewell'],{lane:3}),
  flow('classic-cacao','Soconusco cacao to Teotihuacan','crops',[...gulfCoast,'teotihuacan'],{lane:3}),
  flow('classic-saladoid','Saladoid pottery makers through the Lesser Antilles','ceramics',['orinoco','trinidad','grenada',[13.5,-61.2],[14.6,-61],'guadeloupe',[17.3,-63],'puertoRico']),
+ ...twoWay('classic-amazon-river','Marajó, Santarém and the middle Amazon','ceramics',['marajo',[-1.5,-52],'santarem',[-2.8,-57.5],'manaus'],{uncertain:true}),
+ ...twoWay('classic-arawak','Rio Negro, Casiquiare and the Orinoco','ceramics',['manaus',[0,-63],'casiquiare',[5,-66],'orinoco'],{uncertain:true}),
 ]);
 export const andeanRoutes=Object.freeze([
  flow('andean-obsidian-chichen','Pachuca obsidian to Tula and Chichén Itzá','obsidian',['pachuca','tula',[20,-97],[19.5,-93],[20,-90.5],'chichen']),
@@ -50,6 +54,10 @@ export const andeanRoutes=Object.freeze([
  flow('andean-macaws','Scarlet macaws to Chaco Canyon','feathers',[[17,-96],[20,-100],[24,-104],[28,-107],[32,-108],'chaco'],{uncertain:true}),
  flow('andean-cacao-chaco','Cacao to Chaco Canyon','crops',[[17,-96],[20,-100],[24,-104],[28,-107],[32,-108],'chaco'],{uncertain:true,lane:3}),
  flow('andean-metallurgy','Metalworking knowledge by sea to West Mexico','metals',['manta','buenaventura','panama',[12,-88],[16,-96],'colima'],{uncertain:true}),
+ ...twoWay('andean-marajo','Marajoara mounds and the lower Amazon','ceramics',['marajo',[-1.5,-52],'santarem'],{uncertain:true}),
+ ...twoWay('andean-negro-orinoco','Middle Amazon, Rio Negro and Orinoco','ceramics',['santarem',[-2.8,-57.5],'manaus',[0,-63],'casiquiare',[5,-66],'orinoco'],{uncertain:true}),
+ flow('andean-muiraquita','Muiraquitã greenstone amulets toward the Guianas and Caribbean','jade',['santarem',[1,-52],'guianas',[8,-59],'trinidad'],{uncertain:true}),
+ ...twoWay('andean-ucayali','Ucayali lowlands and the central highlands','feathers',['ucayali',[-9,-76],'huanuco'],{uncertain:true}),
 ]);
 export const lateRoutes=Object.freeze([
  flow('late-obsidian-tenochtitlan','Pachuca obsidian to Tenochtitlan','obsidian',['pachuca','tenochtitlan']),
@@ -70,10 +78,13 @@ export const lateRoutes=Object.freeze([
  flow('late-guanin','Guanín gold-copper alloys from the mainland','metals',['orinoco','trinidad','grenada',[14.6,-61],'guadeloupe',[17.3,-63],'puertoRico','hispaniola'],{uncertain:true}),
  ...twoWay('late-taino-cuba','Taíno exchange: Hispaniola and Cuba','ceramics',['hispaniola',[20,-74],'cuba']),
  ...twoWay('late-taino-puerto-rico','Taíno exchange: Hispaniola and Puerto Rico','ceramics',['hispaniola','puertoRico']),
+ ...twoWay('late-tapajos','Santarém pottery along the lower Amazon','ceramics',['santarem',[-1.5,-52],'marajo'],{uncertain:true}),
+ ...twoWay('late-amazon-river','Middle Amazon and Rio Negro','ceramics',['santarem',[-2.8,-57.5],'manaus',[0,-63],'casiquiare'],{uncertain:true}),
+ ...twoWay('late-ucayali','Ucayali lowlands and the Inca frontier','feathers',['ucayali',[-9,-76],'huanuco'],{uncertain:true}),
 ]);
 export const americasChapters=definePeriods('americas-exchange',[
  {id:'early-exchange',label:'Early exchange',date:'c. 1000 BCE',year:-1000,routes:earlyRoutes,waves:['obsidian','jade','shell','crops','feathers']},
  {id:'classic',label:'Classic & Hopewell',date:'c. 400 CE',year:400,routes:classicRoutes,waves:['obsidian','jade','shell','metals','crops','ceramics']},
- {id:'andean-networks',label:'Wari, Tiwanaku & Chaco',date:'c. 1000 CE',year:1000,routes:andeanRoutes,waves:['obsidian','shell','metals','crops','feathers']},
+ {id:'andean-networks',label:'Wari, Tiwanaku & Chaco',date:'c. 1000 CE',year:1000,routes:andeanRoutes,waves:['obsidian','jade','shell','metals','crops','feathers','ceramics']},
  {id:'late-precolumbian',label:'Aztec, Inca & Taíno',date:'c. 1450 CE',year:1450,routes:lateRoutes,waves:['obsidian','shell','crops','metals','feathers','ceramics']},
 ],'late-precolumbian',{heading:'Exchange through time'});

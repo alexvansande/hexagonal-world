@@ -301,6 +301,7 @@ body:not(.customizing) aside.tour-story-open>#tour-story{display:block}
 .tour-routes [data-wave="expansion"],.tour-route-key [data-wave="expansion"]{--route-color:#fff3c9}
 .tour-routes [data-wave="admixture"],.tour-route-key [data-wave="admixture"]{--route-color:#e79cff}
 .tour-routes [data-wave="holocene"],.tour-route-key [data-wave="holocene"]{--route-color:#9fe3b5}
+.tour-routes [data-wave="raids"],.tour-route-key [data-wave="raids"]{--route-color:#ff9f8a}
 .tour-routes [data-wave="voyages"],.tour-route-key [data-wave="voyages"]{--route-color:#d7ecff}
 .tour-routes [data-wave="trade"],.tour-route-key [data-wave="trade"]{--route-color:#ffd15c}
 .tour-routes [data-wave="settlement"],.tour-route-key [data-wave="settlement"]{--route-color:#fff3c9}

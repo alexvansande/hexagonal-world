@@ -247,10 +247,12 @@ function animateTourView(target){
  cancelAnimationFrame(tourAnimation);tourAnimation=0;
  const from={zoom:state.zoom,panX:state.panX,panY:state.panY},start=performance.now();
  const duration=matchMedia('(prefers-reduced-motion: reduce)').matches?0:1250;
+ // The Pacific pieces move only while the story opens; chapter changes keep the settled net.
+ const moveNet=!!tourNetTo&&tourLayoutProgress<1;
  const step=now=>{
   const t=duration?Math.min(1,(now-start)/duration):1,ease=1-(1-t)**3;
   for(const key of ['zoom','panX','panY'])state[key]=from[key]+(target[key]-from[key])*ease;
-  if(tourNetTo){tourLayoutProgress=ease;net=tourNetCurrent=t<1?interpolateTourNet(tourNetFrom,tourNetTo,ease):tourNetTo;meshSignature=null;}
+  if(moveNet){tourLayoutProgress=ease;net=tourNetCurrent=t<1?interpolateTourNet(tourNetFrom,tourNetTo,ease):tourNetTo;meshSignature=null;}
   draw();tourAnimation=t<1?requestAnimationFrame(step):0;
  };
  tourAnimation=requestAnimationFrame(step);

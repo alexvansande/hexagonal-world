@@ -91,23 +91,37 @@ Yuan China’s cities and the port of **Quanzhou** joined an expanding maritime 
 ## french-polynesia
 ### A world across the Pacific
 
-Polynesian voyagers settled islands across an immense ocean, from Hawaiʻi to Aotearoa New Zealand and Rapa Nui. Move through four stages to follow settlement, continuing voyages between islands, and contact with South America.
+Polynesian voyagers settled islands across an immense ocean, from Hawaiʻi to Aotearoa New Zealand and Rapa Nui. Move through five stages, from the first crossings into Near Oceania tens of thousands of years ago to continuing voyages between islands and contact with South America.
 
 > Schematic sea routes across the Polynesian Triangle, a broad cultural region rather than an empire or exact boundary. Canoe dots show connections, not counts of voyages.
 
 [Sources and voyage notes ↗](./polynesia-sources.md)
 
+## french-polynesia-near-oceania
+### Near Oceania
+
+People crossed from Wallacea to **New Guinea** more than 50,000 years ago and were living in the **Bismarck Archipelago** by about 40,000 years ago and on Buka in the Solomons by about 29,000 years ago. These are among the earliest sea crossings anywhere.
+
+By 20,000 years ago obsidian from New Britain was reaching New Ireland, the first sign of exchange between islands. Beyond the Solomons lay open ocean that no one crossed for tens of thousands of years.
+
+- **Settlement** · first crossings to new islands
+- **Voyaging** · exchange between islands
+
+> The Sahul crossing is shared with the human migrations story and drawn fainter here. Routes between cave sites are inferred.
+
+[Sources and voyage notes ↗](./polynesia-sources.md)
+
 ## french-polynesia-lapita
-### Lapita and West Polynesia
+### Austronesians and Lapita
 
-People making distinctive **Lapita pottery** sailed east from the Bismarck Archipelago through Vanuatu and New Caledonia, then across a wide sea gap to Fiji, Tonga and Samoa around 3,000 years ago.
+Around 3,500 years ago, **Austronesian**-speaking voyagers from island Southeast Asia reached the Bismarcks and, separately, the **Mariana Islands**. People making distinctive **Lapita pottery** then sailed east through Vanuatu and New Caledonia and across a wide sea gap to Fiji, Tonga and Samoa.
 
-For many centuries the voyaging world then centred on **Fiji, Tonga and Samoa**. Distinctively Polynesian language and culture took shape here before the long pause that preceded eastern settlement.
+For many centuries the voyaging world then centred on **Fiji, Tonga and Samoa**, where Polynesian language and culture took shape. The Caroline Islands were settled from Melanesia around 2,000 years ago.
 
 - **Settlement** · first crossings to new islands
 - **Voyaging** · continuing exchange between islands
 
-> Lapita sites date the arrival of settlers; the exact order of crossings is inferred. Te Ara dates West Polynesian settlement to about 1100–800 BCE.
+> Lapita sites date the arrival of settlers; the Austronesian, Marianas and Caroline crossings are drawn fainter because departure points and dates remain debated. Te Ara dates West Polynesian settlement to about 1100–800 BCE.
 
 [Sources and voyage notes ↗](./polynesia-sources.md)
 
@@ -174,7 +188,7 @@ Crossing sea gaps in Southeast Asia, hominins reached Flores and Luzon, where sm
 - **Early Homo** · movement within Africa
 - **Homo erectus & relatives** · repeated dispersals out of Africa
 
-> Two-way lines show ranges, not journeys. Fossil sites date presence; the corridors between them are reconstructions and remain uncertain.
+> Every line runs outward: these are expansions, not exchange. Fossil sites date presence; the corridors between them are reconstructions and remain uncertain, and the West African branch rests on sparse evidence.
 
 [Sources and route notes ↗](./human-migrations-sources.md)
 
@@ -223,76 +237,85 @@ In the Holocene, farming spread from Anatolia into Europe, steppe herders follow
 [Sources and route notes ↗](./human-migrations-sources.md)
 
 ## iceland-to-vinland
-### Westward to Vinland
+### Vikings across the seas
 
-Norse voyagers crossed the North Atlantic through the **Shetlands, Faroes, Iceland and Greenland**. Around a thousand years ago, journeys continued past Baffin Island and Labrador to shores already inhabited for millennia, reaching northern Newfoundland. Move through five stages, from the Northern Isles to the last Greenland trade.
+From the late 8th century, Scandinavian raiders, traders and settlers reached Britain, Ireland, the Frankish lands, the Baltic and the rivers of eastern Europe, then Iceland, Greenland and briefly North America. Move through five stages, ending with the story of Iceland, Greenland and Vinland.
 
-> Schematic sea corridors across several generations. L’Anse aux Meadows is an archaeological anchor; the full extent of Vinland remains uncertain.
+> Schematic sea and river corridors across several generations. Lines show connections, not fleets; the wider expansion involved many peoples and motives.
 
 [Sources and voyage notes ↗](./territory-tours-sources.md)
 
-## iceland-to-vinland-northern-isles
-### The Northern Isles
+## iceland-to-vinland-first-raids
+### First raids
 
-By around 800 CE, ships from western Norway were sailing to **Shetland, Orkney and the Faroes**, then south through the Hebrides toward Ireland. These islands became stepping stones for everything that followed.
+The raid on **Lindisfarne** in 793 announced the Viking Age to England. Ships from Norway struck the Northern Isles, Iona and Ireland, while Danish fleets raided **Frisia** and the Frankish coast. Shetland, Orkney and the Faroes were settled early as stepping stones.
 
-- **Voyages** · settlement, raiding and exploration
+At home, trading towns such as **Hedeby, Kaupang and Birka** linked the North Sea and the Baltic.
+
+- **Raids** · attacks and warfare
+- **Settlement** · new farms and towns
+- **Trade** · goods between markets
 
 > Two-way lines show regular sailing. The Faroes may have been visited before the Norse: sediment DNA points to sheep there centuries earlier.
 
 [Sources and voyage notes ↗](./territory-tours-sources.md)
 
-## iceland-to-vinland-iceland-settlement
-### Settling Iceland
+## iceland-to-vinland-rus-and-danelaw
+### Rus and the Danelaw
 
-From about 870 CE, settlers reached **Iceland** by way of the Faroes and across the open sea. Ancient genomes show that many came from Norway, but also from the Hebrides and Ireland, some of them enslaved.
+In 865 a **great Danish army** landed in East Anglia and took York; the Danelaw followed. Fleets sailed up the Seine to Paris and the Loire, and some ventured toward Iberia. Norse towns grew at Dublin and on the Irish Sea, and Norway’s settlers reached **Iceland** in the 870s.
 
-Ships carried timber, grain and iron west; wool cloth and other goods sailed east.
+In the east, Swedes known as the **Rus** followed the rivers from Ladoga to Novgorod, Kyiv and Constantinople, and down the Volga to Bulgar and Itil, trading furs and enslaved people for silver.
 
-- **Voyages** · settlement and exploration
-- **Trade** · timber, grain, wool and iron
+- **Raids** · attacks and warfare
+- **Settlement** · new farms and towns
+- **Trade** · furs, silver and goods along rivers and seas
 
-> The Gaelic route is inferred from genetics and sagas rather than a recorded passage, so it is drawn fainter.
-
-[Sources and voyage notes ↗](./territory-tours-sources.md)
-
-## iceland-to-vinland-greenland
-### Greenland
-
-Around 985 CE, Erik the Red led settlers from Iceland around Cape Farewell to the fjords of the **Eastern Settlement**, with a smaller **Western Settlement** further up the coast. Farms, churches and later a bishopric grew there.
-
-- **Voyages** · settlement and exploration
-- **Trade** · goods between Norway, Iceland and Greenland
-
-> Greenland was already home to earlier Arctic peoples in the north; the Norse settled its southwest. The Kujataa landscape records this farming society.
+> River routes include portages. The Loire, Iberian and Constantinople attack lines are drawn fainter because they are known from annals rather than routes.
 
 [Sources and voyage notes ↗](./territory-tours-sources.md)
 
-## iceland-to-vinland-vinland
-### Vinland
+## iceland-to-vinland-settlements
+### Settlements
 
-From Greenland, Leif Erikson and others sailed past **Helluland** (Baffin Island) and **Markland** (Labrador) to **Vinland**. Tree rings cut in 1021 CE at L’Anse aux Meadows date a Norse presence in Newfoundland precisely.
+By 911 **Normandy** was granted to Rollo’s Norse followers. Iceland filled with farms; in 985 Erik the Red led settlers to **Greenland**. The Danelaw, Dublin and the Isle of Man remained Norse, and renewed raids struck England in the 990s.
 
-The sagas describe several return voyages carrying timber and grapes, and encounters with the people already living there. The settlement was short-lived.
+Trade carried silver west from Baghdad’s markets through the Volga and Dnieper routes, and timber, grain and cloth between Norway and Iceland.
 
-- **Voyages** · exploration and return journeys
-- **Trade** · goods between Norway, Iceland and Greenland
+- **Raids** · attacks and warfare
+- **Settlement** · new farms and towns
+- **Trade** · goods between markets
 
-> The Vinland legs are drawn fainter: the sagas’ places are identified only approximately, and Vinland extended beyond the one excavated site.
+> Settlement lines mark repeated migration over decades, not single voyages.
 
 [Sources and voyage notes ↗](./territory-tours-sources.md)
 
-## iceland-to-vinland-later-atlantic
-### Later trade and the last voyages
+## iceland-to-vinland-kings
+### Kings and conquests
 
-Through the 13th and 14th centuries, ships linked **Bergen** with Iceland and Greenland. Greenlanders hunted walrus in the far northern **Norðrsetur** grounds; their ivory reached European markets.
+**Cnut** conquered England in 1016 and ruled Denmark, England and Norway together. In 1066 **Harald Hardrada** of Norway fell at Stamford Bridge, and weeks later William of Normandy, a descendant of Norse settlers, won at Hastings. Meanwhile Greenlanders sailed to **Vinland** around 1000–1020.
 
-A ship from Markland reached Iceland in 1347, showing that voyages for timber continued. Norse objects in the far north record contact with **Thule Inuit**. The Western Settlement was abandoned around 1350 and the Eastern by about 1450.
+The river and Baltic trade continued, and Iceland and Greenland stayed linked to Norway.
 
-- **Voyages** · hunting, timber and northern contact
-- **Trade** · walrus ivory east, European goods west
+- **Raids** · conquest and warfare
+- **Voyages** · exploration
+- **Trade** · goods between markets
 
-> Later voyages are known from annals and finds rather than tracks; the Markland and Thule lines are drawn fainter.
+> The Norman crossing is drawn fainter: it was a Norman, not a Viking, fleet. The Vinland voyage is a schematic composite of several journeys.
+
+[Sources and voyage notes ↗](./territory-tours-sources.md)
+
+## iceland-to-vinland-north-atlantic
+### Iceland, Greenland and Vinland
+
+Settlers reached **Iceland** from Norway, the Hebrides and Ireland from the 870s. Around 985 Erik the Red led ships around Cape Farewell to Greenland’s **Eastern and Western Settlements**. From there Leif Erikson and others sailed past **Helluland** and **Markland** to **Vinland**; tree rings cut in 1021 at L’Anse aux Meadows date a Norse presence in Newfoundland exactly.
+
+For centuries ships linked Bergen, Iceland and Greenland. Greenlanders hunted walrus in the northern **Norðrsetur**, met Thule Inuit, and still fetched timber from Markland in 1347. The Western Settlement was abandoned around 1350 and the Eastern by about 1450.
+
+- **Voyages** · settlement, exploration and return journeys
+- **Trade** · walrus ivory east, timber and European goods west
+
+> The Vinland, Gaelic, Markland and Thule legs are drawn fainter; saga places are identified only approximately, and Vinland extended beyond the one excavated site.
 
 [Sources and voyage notes ↗](./territory-tours-sources.md)
 
@@ -334,9 +357,9 @@ In the Caribbean, **Saladoid** pottery makers had spread from the Orinoco throug
 - **Spondylus & shell** · Gulf → Ohio; Ecuador → Peru
 - **Copper & metals** · Lake Superior → Ohio
 - **Crops** · Soconusco cacao → Teotihuacan
-- **Pottery & people** · Saladoid spread through the islands
+- **Pottery & river networks** · Saladoid islands; Amazon, Rio Negro and Orinoco
 
-> Sourcing studies identify origins; the corridors between them are schematic.
+> Sourcing studies identify origins; the corridors between them are schematic. Amazonian river links are drawn fainter.
 
 [Sources and exchange notes ↗](./americas-exchange-sources.md)
 
@@ -345,15 +368,17 @@ In the Caribbean, **Saladoid** pottery makers had spread from the Orinoco throug
 
 Around 1000 CE, **Wari** roads and **Tiwanaku** llama caravans tied the Andean highlands to coastal valleys, the Atacama and the eastern slopes. Spondylus reached Lambayeque and Chimú lords on the north coast.
 
-Far to the north, **Chaco Canyon** received scarlet macaws and cacao from Mesoamerica, **Cahokia** gathered Gulf shell and northern copper, and metalworking techniques appear in West Mexico with South American parallels.
+Far to the north, **Chaco Canyon** received scarlet macaws and cacao from Mesoamerica, **Cahokia** gathered Gulf shell and northern copper, and metalworking techniques appear in West Mexico with South American parallels. On the Amazon, **Marajoara** mound builders and the river towns of the middle Amazon exchanged pottery along the rivers, and greenstone amulets travelled toward the Guianas.
 
 - **Obsidian** · Pachuca → Tula and Chichén Itzá
+- **Greenstone** · muiraquitã amulets, lower Amazon → Guianas
 - **Spondylus & shell** · Ecuador → coast and highlands; Gulf → Cahokia
 - **Copper & metals** · Lake Superior → Cahokia; know-how by sea
 - **Crops** · caravans between ecological zones; cacao → Chaco
-- **Feathers, textiles & forest goods** · macaws, cloth and coca
+- **Feathers, textiles & forest goods** · macaws, cloth, coca and lowland goods
+- **Pottery** · Marajoara and river networks
 
-> Macaw and cacao routes to Chaco, the highland Spondylus links and the maritime metallurgy hypothesis are drawn fainter.
+> Macaw and cacao routes to Chaco, the highland Spondylus links, the maritime metallurgy hypothesis and the Amazonian river links are drawn fainter.
 
 [Sources and exchange notes ↗](./americas-exchange-sources.md)
 
@@ -362,14 +387,14 @@ Far to the north, **Chaco Canyon** received scarlet macaws and cacao from Mesoam
 
 By 1450 CE, **pochteca** merchants carried obsidian, cloth and tribute between Tenochtitlan, the Gulf and Soconusco, while Maya canoes worked the Yucatán coast. The **Qhapaq Ñan** road system moved gold, silver and fine cloth between Quito, Cusco and Chile.
 
-**Taíno** communities exchanged goods across the Greater Antilles and received guanín, a gold-copper alloy, from the mainland. In the southeast, shell and copper still reached Mississippian towns.
+**Taíno** communities exchanged goods across the Greater Antilles and received guanín, a gold-copper alloy, from the mainland. On the Amazon, Santarém pottery and lowland goods moved along the rivers toward the Inca frontier. In the southeast, shell and copper still reached Mississippian towns.
 
 - **Obsidian** · Pachuca → Tenochtitlan and merchant routes
 - **Spondylus & shell** · Ecuador → Cusco; Gulf → Mississippian towns
 - **Crops** · cacao and canoe cargoes
 - **Metals** · Inca tribute; copper; guanín
 - **Feathers, textiles & forest goods** · quetzal, macaws, cloth, coca
-- **Pottery & island exchange** · Taíno networks
+- **Pottery & river networks** · Taíno islands; Santarém and the Amazon
 
 > Roads and sea lanes are simplified; state control of trade varied. Guanín and Amazon links are drawn fainter.
 

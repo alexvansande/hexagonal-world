@@ -57,28 +57,36 @@ const [hominins,archaic,sapiens,later]=migration.periods;
 assert.deepEqual(migration.periods.map(p=>p.id),['early-hominins','archaic-eurasia','sapiens-expansion','later-movements']);
 assert.equal(migration.defaultId,'sapiens-expansion');
 assert(find(hominins,'erectus').length>=4&&hominins.routes.every(r=>r.uncertain),'Early hominin dispersals are all schematic and uncertain');
+assert(hominins.routes.every(r=>!r.returnOf),'Early hominin chapter is expansion only: no return lanes');
 assert(find(archaic,'neanderthal').every(r=>r.uncertain)&&find(archaic,'neanderthal').some(r=>r.returnOf),'Neanderthal ranges are two-way links');
 assert(find(archaic,'denisovan').length>=2&&find(archaic,'sapiens-africa').length>=2&&find(archaic,'early').length===2,'Chapter 2 pairs archaic ranges with the first sapiens departures');
 assert(find(sapiens,'admixture').every(r=>r.returnOf||sapiens.routes.some(o=>o.returnOf===r.id)),'Admixture zones are bidirectional');
 assert(!find(sapiens,'neanderthal').length&&!find(later,'neanderthal').length,'No Neanderthal line continues into the sapiens chapters as an ancestor route');
 assert(find(later,'holocene').length>=5&&find(later,'beringia').length===1,'Later movements combine Ice Age Americas with Holocene dispersals');
 assert.match(stories['origin-of-mankind-archaic-eurasia'].note,/not from descent/,'Story text rules out reading Neanderthals as a direct ancestor of everyone');
-// Norse: chapters accumulate active lanes, return sailing is explicit, Vinland stays uncertain.
+// Vikings: four chapters of the wider expansion, then the Iceland–Greenland–Vinland story on its own.
 const norse=tourChapters['iceland-to-vinland'];
-assert.deepEqual(norse.periods.map(p=>p.id),['northern-isles','iceland-settlement','greenland','vinland','later-atlantic']);
-assert(norse.periods[3].routes.some(r=>r.id==='norse-vinland'&&r.uncertain)&&norse.periods[3].routes.some(r=>r.id==='norse-vinland-return'),'Vinland voyages go out and back, and stay uncertain');
-assert(!norse.periods[0].routes.some(r=>r.id.includes('iceland'))&&!norse.periods[2].routes.some(r=>r.id.includes('vinland')),'Earlier chapters do not preview later crossings');
-assert(norse.periods[4].routes.some(r=>r.id==='norse-nordrsetur')&&norse.periods[4].routes.some(r=>r.id==='norse-thule'&&r.uncertain),'Later trade adds hunting grounds and uncertain Thule contact');
-assert(norse.periods.slice(1).every(p=>p.routes.some(r=>r.wave==='trade'&&r.returnOf)),'Trade runs both ways from the Iceland settlement onward');
+assert.deepEqual(norse.periods.map(p=>p.id),['first-raids','rus-and-danelaw','settlements','kings','north-atlantic']);
+assert.equal(norse.defaultId,'north-atlantic');
+const last=norse.periods[4];
+assert(last.routes.some(r=>r.id==='norse-vinland'&&r.uncertain)&&last.routes.some(r=>r.id==='norse-vinland-return'),'Vinland voyages go out and back, and stay uncertain');
+assert(last.routes.some(r=>r.id==='norse-nordrsetur')&&last.routes.some(r=>r.id==='norse-thule'&&r.uncertain)&&last.routes.some(r=>r.id==='norse-gaelic'),'Final chapter carries the whole North Atlantic story');
+assert(last.routes.every(r=>r.wave!=='raids'),'The final chapter is not a raiding map');
+assert(norse.periods[0].routes.some(r=>r.id==='viking-lindisfarne'&&r.wave==='raids')&&!norse.periods[0].routes.some(r=>r.id.includes('iceland')),'First raids predate Iceland');
+assert(norse.periods[1].routes.some(r=>r.id==='viking-dnieper')&&norse.periods[1].routes.some(r=>r.id==='viking-volga-return'),'Rus river trade runs both ways');
+assert(norse.periods[3].routes.some(r=>r.id==='viking-normans'&&r.uncertain)&&norse.periods[3].routes.some(r=>r.id==='viking-vinland'),'Kings chapter marks the Norman crossing as a caveat and includes Vinland');
+assert(norse.periods.slice(0,4).every(p=>p.routes.some(r=>r.wave==='raids')),'Each expansion chapter has raids or conquest');
 // Polynesia: settlement is one-way, voyaging two-way and denser, South America uncertain and sparse.
 const poly=tourChapters['french-polynesia'];
-assert.deepEqual(poly.periods.map(p=>p.id),['lapita','east-polynesia','far-corners','south-america']);
+assert.deepEqual(poly.periods.map(p=>p.id),['near-oceania','lapita','east-polynesia','far-corners','south-america']);
+assert(poly.periods[0].routes.some(r=>r.id==='polynesia-near-bismarck')&&poly.periods[0].routes.some(r=>r.id==='polynesia-near-obsidian-return'),'Near Oceania predates Lapita with Pleistocene crossings and obsidian exchange');
+assert(poly.periods[1].routes.some(r=>r.id==='polynesia-austronesian-marianas'&&r.uncertain),'Marianas settlement joins the Austronesian chapter as a fainter line');
 assert(poly.periods.every(p=>p.routes.filter(r=>r.wave==='settlement').every(r=>!r.returnOf&&!p.routes.some(o=>o.returnOf===r.id))),'Settlement crossings are one-way');
 assert(poly.periods.every(p=>p.routes.filter(r=>r.wave==='voyaging').every(r=>r.frequency===1.5&&(r.returnOf||p.routes.some(o=>o.returnOf===r.id)))),'Voyaging is two-way and busier');
-const contact=poly.periods[3].routes.filter(r=>r.wave==='contact');
+const contact=poly.periods[4].routes.filter(r=>r.wave==='contact');
 assert(contact.length===4&&contact.every(r=>r.uncertain&&r.frequency===.5),'South American contact is two-way, uncertain and sparse');
 assert(contact.some(r=>r.coordinates.some(([lat,lon])=>lon>-82&&lon<-69)),'Contact lines reach the South American coast');
-const corners=poly.periods[2].routes;for(const point of [[19.5,-155.5],[-27.12,-109.35],[-35.5,174]])assert(corners.some(r=>r.coordinates.some(p=>p.join()===point.join())),'Far corners reach Hawaiʻi, Rapa Nui and Aotearoa');
+const corners=poly.periods[3].routes;for(const point of [[19.5,-155.5],[-27.12,-109.35],[-35.5,174]])assert(corners.some(r=>r.coordinates.some(p=>p.join()===point.join())),'Far corners reach Hawaiʻi, Rapa Nui and Aotearoa');
 for(const route of projectTourRoutes(tiles,pacific,state,contact)){
  for(let i=1;i<route.anchors.length;i++){const a=route.anchors[i-1],b=route.anchors[i],p=world(a.local,a.tile),q=world(b.local,b.tile);assert(Math.hypot(p[0]-q[0],p[1]-q[1])<.02,'Contact arcs stay continuous on the Pacific arrangement');}
 }
@@ -92,4 +100,6 @@ assert(['americas-andean-macaws','americas-andean-cacao-chaco','americas-andean-
 assert(!americas.periods.some(p=>p.routes.some(r=>/turquoise/.test(r.id))),'Contested turquoise sourcing is not drawn');
 assert(americas.periods.some(p=>p.routes.some(r=>r.coordinates.some(([lat])=>lat>35)))&&americas.periods.every(p=>p.routes.some(r=>r.coordinates.some(([lat])=>lat<-5))),'Networks span North America to the Andes');
 assert(americas.periods[3].routes.some(r=>r.id==='americas-late-amazon-return'),'Amazon exchange runs both ways');
+assert(americas.periods[2].routes.some(r=>r.id==='americas-andean-marajo')&&americas.periods[2].routes.some(r=>r.id==='americas-andean-muiraquita'&&r.uncertain)&&americas.periods[3].routes.some(r=>r.id==='americas-late-tapajos-return'),'Amazonian river pottery and greenstone networks are drawn as uncertain links');
+assert(!americas.periods.some(p=>p.routes.some(r=>r.id.includes('marajo')&&r.coordinates.some(([lat,lon])=>lat<-10&&lon<-70))),'No Marajó-to-Inca line is invented');
 console.log('Chapters: five dated stories, matching Markdown and colors, two-way pairs, per-chapter fits without bridged cuts, and species/voyage/exchange semantics pass.');
