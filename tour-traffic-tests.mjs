@@ -23,7 +23,7 @@ assert.equal(fragments[1].d,'M1000.00,0.00 L1030.00,40.00 ');
 const moved=routeFragments(anchors,p=>[p[0]+200,p[1]-100]);
 assert.deepEqual(moved.map(f=>f.start),[0,50],'Panning does not alter packet phase');
 assert.deepEqual(routeFragments(anchors,p=>p.map(n=>2*n)).map(f=>f.start),[0,100],'Zoom preserves continuity between fragments');
-for(const period of tradePeriods)assert(period.routes.every(r=>r.traffic&&r.traffic.speed===13),'Every trade period uses sparse packets with no invented volume weights');
+for(const period of tradePeriods)assert(period.routes.every(r=>[r.traffic].flat().every(t=>t&&t.speed===13)),'Every trade period uses sparse packets with no invented volume weights');
 assert(migrationRoutes.every(r=>!r.traffic),'Raw migration data carries no timing; chapters attach it');
 const busy=tradeTraffic('route-a',1.5),sparse=tradeTraffic('route-a',.5);
 assert(busy.length<a.length&&sparse.length>a.length,'Frequency only compresses or stretches the gaps');

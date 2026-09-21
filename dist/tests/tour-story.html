@@ -3,7 +3,7 @@
 <h1>Silk Road story checks</h1><p id="result">Running…</p><ol id="checks"></ol>
 <iframe title="Tour map" src="/lifezones/spaceship-earth/"></iframe>
 <script type="module">
-import {tradePeriod} from '../tour-trade-periods.mjs?v=sporadic-1';
+import {tradePeriod} from '../tour-trade-periods.mjs?v=strands-2';
 const silkRoadTradeRoutes=tradePeriod('antiquity').routes;
 const frame=document.querySelector('iframe'),result=document.querySelector('#result'),mobile=new URLSearchParams(location.search).has('mobile');
 if(mobile){frame.style.width='390px';frame.style.height='844px';}

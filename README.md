@@ -120,19 +120,26 @@ Polynesia, the far corners, and an uncertain South American contact chapter) and
 the Americas four (`tour-americas.mjs`, including Amazonian river pottery and
 greenstone networks drawn as uncertain links). Evidence notes: `human-migrations-sources.md`,
 `territory-tours-sources.md`, `polynesia-sources.md` and `americas-exchange-sources.md`.
-Corridor relaxation (prototype on the Homo sapiens expansion chapter):
-`scripts/relax-tour-routes.py` builds a 0.2° passability raster from the height
-overview (slope and elevation), Holdridge life zones (deserts, tundra, ice), big
-HydroRIVERS lines (bonus) and coasts (cheaper than open sea), then runs a
-least-cost search between each route's hard stops (endpoints and named places)
-inside a soft corridor around the authored polyline. Three strands per route use
-different smooth noise, so parallel courses jiggle through valleys and along
-coasts while the stops stay exact. The result is the generated
-`dist/tour-migrations-relaxed.mjs`; routes carry `strands`, the renderer draws
-each strand with its own share of the sparse traffic, and nothing runs at
-runtime beyond the usual projection. The raster is modern geography: ice-age
-land bridges and green Sahara phases need period overrides before the method is
-applied to other chapters. Needs numpy and Pillow in a local virtualenv.
+Corridor relaxation (every chapter of every story): `scripts/dump-tour-routes.mjs`
+writes one JSON per tour with its unique routes, hard stops (endpoints, named
+places and junctions shared by routes) and settings; `scripts/relax-tour-routes.py`
+builds a 0.2° passability raster from the height overview (slope and elevation),
+Holdridge life zones (deserts, tundra, ice), big HydroRIVERS lines (bonus) and
+coasts, then runs a least-cost search between hard stops inside a soft corridor
+that scales with each leg. Two strands per route on the dense Silk Road and
+Americas stories, three elsewhere, each with its own smooth noise, so parallel
+courses jiggle through valleys and along coasts while the stops stay exact.
+Return routes reuse their partner's strands reversed. Sea handling per tour:
+`coastal` prefers shorelines (Norse, Americas, migrations, Silk Road), `open`
+treats open water as free as coast and islands as stops (Polynesia); the
+Beringia leg is a `landBridge` so modern sea inside its corridor costs like land.
+Results live in `dist/tour-<tour>-relaxed.mjs`, keyed by route ID plus a hash of
+the authored coordinates; `definePeriods` attaches them, and the renderer draws
+each strand with its own share of the sparse traffic. Dots fade in at a route's
+first stop and out at its last through a per-route luminance mask, instead of
+appearing and vanishing. Nothing runs at runtime beyond the usual projection.
+Regenerate with a local virtualenv holding numpy and Pillow:
+`node scripts/dump-tour-routes.mjs _relax && python3 scripts/relax-tour-routes.py _relax/<tour>.json dist/tour-<tour>-relaxed.mjs`.
 Checks: `tour-relaxed-tests.mjs`.
 Chapter changes refit the camera without replaying the Pacific piece animation.
 Checks: `tour-chapter-tests.mjs`, `tour-performance-tests.mjs` (route, sample,

@@ -2,8 +2,9 @@
 // volume estimates. Waypoints are [latitude, longitude] along plausible coastal,
 // river and highland corridors. `uncertain` marks hypotheses or contested
 // provenance rather than well-documented sourcing. Sources: americas-exchange-sources.md.
-import {definePeriods,bothWays} from './tour-periods.mjs?v=chapters-1';
-const p={
+import {definePeriods,bothWays} from './tour-periods.mjs?v=strands-2';
+import {relaxedStrands} from './tour-americas-exchange-relaxed.mjs?v=strands-2';
+export const americasPlaces={
  chayal:[14.7,-90.4],pachuca:[20.1,-98.7],sanLorenzo:[17.75,-94.75],laVenta:[18.1,-94],motagua:[15,-89.5],teotihuacan:[19.7,-98.85],kaminaljuyu:[14.63,-90.55],tikal:[17.2,-89.6],copan:[14.84,-89.14],
  soconusco:[15,-92.5],chichen:[20.68,-88.57],tula:[20.05,-99.35],tenochtitlan:[19.43,-99.13],xicalango:[18.6,-91.9],cozumel:[20.4,-86.9],ulua:[15.7,-88.6],guanaja:[16.45,-85.9],mayapan:[20.63,-89.46],colima:[19,-104.3],
  balsas:[18,-100],paquime:[30.4,-107.95],chaco:[36.06,-107.96],zuni:[35.1,-108.8],yellowstone:[44.8,-110.7],hopewell:[39.4,-83],superior:[47.5,-88],tampa:[27.8,-82.6],cahokia:[38.65,-90.06],moundville:[33,-87.6],spiro:[35.3,-94.6],etowah:[34.1,-84.8],
@@ -13,6 +14,7 @@ const p={
  quito:[-.2,-78.5],cajamarca:[-7.2,-78.5],huanuco:[-9.9,-76.8],chincha:[-13.4,-76.1],laPaz:[-16.5,-68.2],tupiza:[-21.4,-65.7],santiago:[-33.4,-70.6],
  marajo:[-.9,-49.5],santarem:[-2.4,-54.7],manaus:[-3.1,-60],casiquiare:[2,-66.9],guianas:[5,-55],southwestAmazon:[-12,-63],
 };
+const p=americasPlaces;
 const coords=stops=>Object.freeze(stops.map(stop=>Object.freeze(typeof stop==='string'?p[stop]:stop)));
 const flow=(id,title,wave,stops,extra={})=>Object.freeze({id:'americas-'+id,title,wave,animated:true,lane:0,coordinates:coords(stops),...extra});
 const twoWay=(id,title,wave,stops,extra={})=>bothWays([flow(id,title,wave,stops,{lane:3,...extra})]);
@@ -87,4 +89,4 @@ export const americasChapters=definePeriods('americas-exchange',[
  {id:'classic',label:'Classic & Hopewell',date:'c. 400 CE',year:400,routes:classicRoutes,waves:['obsidian','jade','shell','metals','crops','ceramics']},
  {id:'andean-networks',label:'Wari, Tiwanaku & Chaco',date:'c. 1000 CE',year:1000,routes:andeanRoutes,waves:['obsidian','jade','shell','metals','crops','feathers','ceramics']},
  {id:'late-precolumbian',label:'Aztec, Inca & Taíno',date:'c. 1450 CE',year:1450,routes:lateRoutes,waves:['obsidian','shell','crops','metals','feathers','ceramics']},
-],'late-precolumbian',{heading:'Exchange through time'});
+],'late-precolumbian',{heading:'Exchange through time',strands:relaxedStrands});

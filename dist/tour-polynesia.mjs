@@ -3,11 +3,13 @@
 // line. Two-way links mark documented or inferred return voyaging; the South
 // American links are an evidence-based hypothesis with uncertain direction.
 // Sources and caveats: polynesia-sources.md.
-import {definePeriods,bothWays} from './tour-periods.mjs?v=chapters-1';
-const p={bismarck:[-5,150],santaCruz:[-10.7,166],vanuatu:[-17.7,168.3],newCaledonia:[-22,166],fiji:[-17.8,178],tonga:[-21.2,-175.2],samoa:[-13.9,-171.8],
+import {definePeriods,bothWays} from './tour-periods.mjs?v=strands-2';
+import {relaxedStrands} from './tour-french-polynesia-relaxed.mjs?v=strands-2';
+export const polynesiaPlaces={bismarck:[-5,150],santaCruz:[-10.7,166],vanuatu:[-17.7,168.3],newCaledonia:[-22,166],fiji:[-17.8,178],tonga:[-21.2,-175.2],samoa:[-13.9,-171.8],
  cooks:[-21.2,-159.8],tahiti:[-17.65,-149.43],tuamotu:[-15.1,-147.6],marquesas:[-8.9,-140.1],southMarquesas:[-10.5,-138.6],mangareva:[-23.1,-135],pitcairn:[-25.07,-130.1],austral:[-23.4,-149.5],
  hawaii:[19.5,-155.5],rapaNui:[-27.12,-109.35],aotearoa:[-35.5,174],kermadec:[-29.3,-177.9],chatham:[-44,-176.5],ecuador:[-1,-80.7],colombia:[3.9,-77],arica:[-18.5,-70.3],
  sunda:[2,110],newGuinea:[-5,139],manus:[-2,147],newBritain:[-5.3,150.1],newIreland:[-3.2,151.9],buka:[-5.4,154.7],solomons:[-9.6,160],taiwan:[23.5,121],luzon:[16,121],guam:[13.5,144.8],chuuk:[7.4,151.8],pohnpei:[6.9,158.2]};
+const p=polynesiaPlaces;
 const coords=stops=>Object.freeze(stops.map(stop=>Object.freeze(typeof stop==='string'?p[stop]:stop)));
 const voyage=(id,title,wave,period,stops,extra={})=>Object.freeze({id:'polynesia-'+id,title,wave,period,animated:true,geodesic:true,lane:0,coordinates:coords(stops),...extra});
 // Interisland voyaging is denser than one-off settlement crossings.
@@ -73,4 +75,4 @@ export const polynesiaChapters=definePeriods('french-polynesia',[
  {id:'east-polynesia',label:'East Polynesia',date:'c. 1000–1200 CE',year:1000,routes:[...voyaging(lapitaRoutes),...eastPolynesiaRoutes],waves:['settlement','voyaging']},
  {id:'far-corners',label:'Far corners',date:'c. 1200–1300 CE',year:1200,routes:[...voyaging(lapitaRoutes),...voyaging(eastPolynesiaRoutes),...farCornerRoutes],waves:['settlement','voyaging']},
  {id:'south-america',label:'South America',date:'c. 1200–1400 CE',year:1300,routes:[...voyaging(lapitaRoutes),...voyaging(eastPolynesiaRoutes),...voyaging(farCornerRoutes),...contactRoutes],waves:['voyaging','contact']},
-],'far-corners',{heading:'Settlement through time'});
+],'far-corners',{heading:'Settlement through time',strands:relaxedStrands});

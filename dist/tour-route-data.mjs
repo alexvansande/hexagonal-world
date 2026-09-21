@@ -7,7 +7,7 @@ export const silkRoadSources=Object.freeze([
  {title:'UNESCO · Baghdad and the Silk Route',url:'https://en.unesco.org/silkroad/sites/default/files/knowledge-bank-article/baghdad_and_silk_route.pdf'},
  {title:'University of Washington · Trade routes',url:'https://depts.washington.edu/silkroad/exhibit/trade/essay.html'},
 ]);
-const places={
+export const silkRoadPlaces={
  xian:[34.26,108.94],lanzhou:[36.06,103.83],wuwei:[37.93,102.64],zhangye:[38.93,100.45],jiuquan:[39.73,98.49],dunhuang:[40.14,94.66],
  hami:[42.83,93.51],turfan:[42.95,89.19],karashahr:[42.06,86.57],korla:[41.76,86.15],kucha:[41.72,82.96],aksu:[41.17,80.26],tumshuq:[39.87,79.08],kashgar:[39.47,75.99],
  miran:[39.23,88.99],niya:[37.97,82.7],khotan:[37.11,79.93],yarkand:[38.42,77.25],
@@ -18,7 +18,7 @@ const places={
  sarakhs:[36.54,61.16],nishapur:[36.21,58.8],damghan:[36.17,54.35],ray:[35.59,51.44],hamadan:[34.8,48.52],kermanshah:[34.31,47.07],baghdad:[33.31,44.37],palmyra:[34.55,38.27],aleppo:[36.2,37.16],antioch:[36.2,36.16],
 };
 // Named junctions keep branches connected when a location is corrected.
-const route=(id,title,stops)=>Object.freeze({id,title,coordinates:Object.freeze(stops.map(stop=>Object.freeze(typeof stop==='string'?places[stop]:stop)))});
+const route=(id,title,stops)=>Object.freeze({id,title,coordinates:Object.freeze(stops.map(stop=>Object.freeze(typeof stop==='string'?silkRoadPlaces[stop]:stop)))});
 export const silkRoadRoutes=Object.freeze([
  route('hexi','Chang’an and the Hexi corridor',['xian',[35.58,104.62],'lanzhou','wuwei','zhangye','jiuquan','dunhuang']),
  route('tarim-north','Northern Tarim oases',['dunhuang','hami','turfan','karashahr','korla','kucha','aksu','tumshuq','kashgar']),

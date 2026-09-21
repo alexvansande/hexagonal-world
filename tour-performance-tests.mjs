@@ -11,7 +11,7 @@ import {layoutOptions} from './dist/map-options.mjs';
 // camera change and CSS animates the dots, so sample counts and path counts are
 // the real costs. Timing budgets are generous so CI machines do not flake.
 const state=layoutOptions[0].state,tiles=makeGeometry(state.method,state.height),net=makeArrangement(tiles,state.arrangement,layouts(tiles)).net,pacific=pacificTourNet(tiles,net);
-const budgets={routes:70,samples:12000,paths:300,projectMs:400,pathMs:60};
+const budgets={routes:70,samples:24000,paths:420,projectMs:700,pathMs:120};
 let heaviest={samples:0};
 for(const [id,chapters] of Object.entries(tourChapters)){
  const layout=id==='french-polynesia'?pacific:net;
@@ -34,6 +34,9 @@ for(const [id,chapters] of Object.entries(tourChapters)){
 // Lazily loaded data modules stay small: a chapter must not cost more than a map tile.
 for(const name of ['tour-migrations.mjs','tour-vinland.mjs','tour-polynesia.mjs','tour-americas.mjs','tour-trade-periods.mjs','tour-periods.mjs','tour-trade-traffic.mjs']){
  const {size}=await stat('dist/'+name);assert(size<40000,`${name} is ${size} bytes`);
+}
+for(const name of ['silk-road','origin-of-mankind','iceland-to-vinland','french-polynesia','americas-exchange']){
+ const {size}=await stat(`dist/tour-${name}-relaxed.mjs`);assert(size<130000,`${name} strands are ${size} bytes`);
 }
 const stories=await stat('dist/tour-stories.md');assert(stories.size<80000,'Story Markdown stays a single small fetch');
 // Startup never pays for chapters: the eager import graph excludes every data module (also asserted in tour-period-tests).

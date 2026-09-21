@@ -571,10 +571,14 @@ exact; the authored polyline becomes a soft corridor; a least-cost search over a
 passability raster (relief, life zones, rivers, coasts) produces three strands per
 route with different smooth noise so individual dots appear to jiggle through
 valleys and along coasts. The dots remain a CSS dash animation on fixed SVG
-paths; no per-frame JavaScript or particle system. Applied first to the Homo
-sapiens expansion chapter for review; other chapters wait for period overrides
-(land bridges, green Sahara, oasis corridors) so modern rasters do not misroute
-ancient legs. Relaxed strands are visualization, not evidence of paths.
+paths; no per-frame JavaScript or particle system. After review the user asked
+for it on every story: all chapters now use relaxed strands, with per-tour sea
+handling (coastal preference, or open sea for Polynesia), a land-bridge override
+for Beringia, and named places plus shared junctions as hard stops. The user's
+suggestions for sea routes (a current map, historical data, or many hard stops)
+are recorded as future options; islands and ports already act as hard stops.
+Dots fade at route ends instead of popping. Relaxed strands are visualization,
+not evidence of paths, and the raster remains modern geography.
 
 Evidence: September 21 feature request and confirmation. Checks:
 `tour-chapter-tests.mjs`, `tour-marker-tests.mjs`, `tour-page-tests.mjs`,

@@ -89,8 +89,8 @@ const contact=poly.periods[4].routes.filter(r=>r.wave==='contact');
 assert(contact.length===4&&contact.every(r=>r.uncertain&&r.frequency===.5),'South American contact is two-way, uncertain and sparse');
 assert(contact.some(r=>r.coordinates.some(([lat,lon])=>lon>-82&&lon<-69)),'Contact lines reach the South American coast');
 const corners=poly.periods[3].routes;for(const point of [[19.5,-155.5],[-27.12,-109.35],[-35.5,174]])assert(corners.some(r=>r.coordinates.some(p=>p.join()===point.join())),'Far corners reach Hawaiʻi, Rapa Nui and Aotearoa');
-for(const route of projectTourRoutes(tiles,pacific,state,contact)){
- for(let i=1;i<route.anchors.length;i++){const a=route.anchors[i-1],b=route.anchors[i],p=world(a.local,a.tile),q=world(b.local,b.tile);assert(Math.hypot(p[0]-q[0],p[1]-q[1])<.02,'Contact arcs stay continuous on the Pacific arrangement');}
+for(const route of projectTourRoutes(tiles,pacific,state,contact))for(const anchors of route.strandAnchors){
+ for(let i=1;i<anchors.length;i++){const a=anchors[i-1],b=anchors[i],p=world(a.local,a.tile),q=world(b.local,b.tile);assert(Math.hypot(p[0]-q[0],p[1]-q[1])<.05,'Contact arcs stay continuous on the Pacific arrangement');}
 }
 // Americas: four periods, evidence-based defaults, hypotheses marked uncertain, turquoise omitted.
 const americas=tourChapters['americas-exchange'];

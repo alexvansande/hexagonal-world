@@ -4,10 +4,11 @@
 // References and caveats: territory-tours-sources.md. Coordinates are [lat,lon].
 // Four chapters follow the wider expansion; the last tells the Iceland,
 // Greenland and Vinland story on its own. Two-way links show return sailing.
-import {definePeriods,bothWays} from './tour-periods.mjs?v=chapters-1';
+import {definePeriods,bothWays} from './tour-periods.mjs?v=strands-2';
+import {relaxedStrands} from './tour-iceland-to-vinland-relaxed.mjs?v=strands-2';
 const norway=[60.4,5.3],shetland=[60.15,-1.15],faroe=[62,-6.8],iceland=[64.15,-21.94],eastSettlement=[61.15,-45.5],westSettlement=[64.18,-51.72];
 const orkney=[59,-3],hebrides=[57.5,-7],dublin=[53.35,-6.26],disko=[69.2,-53],markland=[56,-60],meadows=[51.596,-55.533],smithSound=[76.5,-68.7];
-const p={norway,shetland,faroe,iceland,orkney,hebrides,dublin,iona:[56.33,-6.42],lindisfarne:[55.67,-1.8],york:[53.96,-1.08],eastAnglia:[52.6,1.3],london:[51.5,-.1],maldon:[51.73,.68],stamford:[53.99,-.91],hastings:[50.85,.57],man:[54.2,-4.5],
+export const vikingPlaces={norway,shetland,faroe,iceland,orkney,hebrides,dublin,eastSettlement,westSettlement,disko,markland,meadows,smithSound,iona:[56.33,-6.42],lindisfarne:[55.67,-1.8],york:[53.96,-1.08],eastAnglia:[52.6,1.3],london:[51.5,-.1],maldon:[51.73,.68],stamford:[53.99,-.91],hastings:[50.85,.57],man:[54.2,-4.5],
  hedeby:[54.5,9.57],kaupang:[59.1,10.05],trondheim:[63.43,10.4],birka:[59.33,17.55],gotland:[57.5,18.5],ladoga:[60,32.3],novgorod:[58.52,31.28],kyiv:[50.45,30.52],constantinople:[41.01,28.98],bulgar:[54.97,49.05],itil:[46,47.8],
  dorestad:[51.98,5.1],seine:[49.5,.1],rouen:[49.44,1.1],paris:[48.86,2.35],nantes:[47.22,-1.55],seville:[37.39,-5.99]};
 export const vinlandRoutes=[
@@ -19,6 +20,7 @@ export const vinlandRoutes=[
  {id:'norse-vinland',title:'Markland to northern Newfoundland',geodesic:true,coordinates:[markland,[55.2,-58.7],[54.1,-56.8],[52.6,-55.2],meadows]},
 ];
 const base=Object.fromEntries(vinlandRoutes.map(r=>[r.id,r]));
+const p=vikingPlaces;
 const coords=stops=>stops.map(stop=>typeof stop==='string'?p[stop]:stop);
 const sail=(id,wave,route,extra={})=>Object.freeze({...route,id,wave,animated:true,geodesic:true,lane:3,...extra});
 const leg=(id,title,wave,stops,extra={})=>sail(id,wave,{title,coordinates:coords(stops)},extra);
@@ -71,4 +73,4 @@ export const vinlandChapters=definePeriods('iceland-to-vinland',[
  {id:'settlements',label:'Settlements',date:'c. 900–1000 CE',year:950,routes:[normandy,danelaw,irishTowns,icelandSettlement,greenlandSettlement,settleIsles,maldon,...balticTrade,...rusNorth,...dnieper,...volga,...openSea],waves:['raids','settlement','trade']},
  {id:'kings',label:'Kings & conquests',date:'c. 1000–1066 CE',year:1016,routes:[cnutEngland,cnutNorway,hardrada,normans,vinlandVoyage,...balticTrade,...dnieper,...openSea,...greenlandTrade],waves:['raids','voyages','trade']},
  {id:'north-atlantic',label:'Iceland to Vinland',date:'c. 870–1350 CE',year:1000,routes:[...islands,northernIsles,...faroeIceland,gaelic,...openSea,...greenland,...western,...helluland,...vinland,...nordrsetur,...marklandTimber,...thule],waves:['voyages','trade']},
-],'north-atlantic',{heading:'Voyages through time'});
+],'north-atlantic',{heading:'Voyages through time',strands:relaxedStrands});

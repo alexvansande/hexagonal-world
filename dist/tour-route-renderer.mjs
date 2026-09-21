@@ -55,12 +55,20 @@ export function createTourRoutes(stage){
  const ns='http://www.w3.org/2000/svg',svg=document.createElementNS(ns,'svg');
  svg.classList.add('tour-routes');svg.setAttribute('aria-hidden','true');svg.style.display='none';stage.prepend(svg);
  const defs=document.createElementNS(ns,'defs'),clip=document.createElementNS(ns,'clipPath');clip.id='tour-route-map-clip';defs.append(clip);svg.append(defs);
+ // Dots fade in at a route's first stop and out at its last instead of popping:
+ // a luminance mask with a dark-centred radial gradient at each terminus.
+ const fade=document.createElementNS(ns,'radialGradient');fade.id='tour-route-fade';
+ for(const [offset,color] of [['0','#000'],['1','#fff']]){const stop=document.createElementNS(ns,'stop');stop.setAttribute('offset',offset);stop.setAttribute('stop-color',color);fade.append(stop);}
+ defs.append(fade);const fadeRadius=30;
  const paths=new Map();
  const pathFor=route=>{
   if(paths.has(route.id))return paths.get(route.id);
   const group=document.createElementNS(ns,'g');group.dataset.routeId=route.id;
   const halo=document.createElementNS(ns,'path'),line=document.createElementNS(ns,'path');halo.classList.add('route-halo');line.classList.add('route-line');
-  group.append(halo,line);svg.append(group);const value={group,halo,line,segments:[{halo,line}]};paths.set(route.id,value);return value;
+  const mask=document.createElementNS(ns,'mask');mask.id=`tour-route-fade-${paths.size}`;mask.setAttribute('maskUnits','userSpaceOnUse');
+  const cover=document.createElementNS(ns,'rect');cover.setAttribute('fill','#fff');mask.append(cover);defs.append(mask);
+  group.setAttribute('mask',`url(#${mask.id})`);
+  group.append(halo,line);svg.append(group);const value={group,halo,line,mask,cover,ends:[],segments:[{halo,line}]};paths.set(route.id,value);return value;
  };
  return {setPaused(paused){svg.classList.toggle('flow-paused',paused);},update(routes,point,width,height){
   svg.style.display=routes.length?'block':'none';svg.setAttribute('viewBox',`0 0 ${width} ${height}`);
@@ -77,6 +85,14 @@ export function createTourRoutes(stage){
    const strands=route.strandAnchors||[route.anchors];
    const fragments=strands.flatMap((anchors,s)=>{const t=Array.isArray(traffic)?traffic[s]:traffic;
     return t?routeFragments(anchors,point,route.lane).map(f=>({...f,traffic:t})):[{d:routePath(anchors,point,route.lane),start:0,traffic:null}];});
+   // Terminus fades follow the camera; cuts inside a route keep full strength.
+   const {mask,cover,ends}=value;cover.setAttribute('width',width);cover.setAttribute('height',height);
+   const termini=traffic?strands.flatMap(anchors=>anchors.length?[anchors[0],anchors.at(-1)]:[]):[];
+   while(ends.length>termini.length)ends.pop().remove();
+   termini.forEach((anchor,i)=>{
+    if(!ends[i]){const circle=document.createElementNS(ns,'circle');circle.setAttribute('r',fadeRadius);circle.setAttribute('fill','url(#tour-route-fade)');mask.append(circle);ends.push(circle);}
+    const [x,y]=point(anchor.local,anchor.tile);ends[i].setAttribute('cx',x.toFixed(1));ends[i].setAttribute('cy',y.toFixed(1));
+   });
    while(segments.length>fragments.length){const {halo,line}=segments.pop();halo.remove();line.remove();}
    fragments.forEach(({d,start,traffic},i)=>{
     if(!segments[i]){const halo=document.createElementNS(ns,'path'),line=document.createElementNS(ns,'path');halo.classList.add('route-halo');line.classList.add('route-line');group.append(halo,line);segments.push({halo,line});}

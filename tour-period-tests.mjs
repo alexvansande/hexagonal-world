@@ -3,7 +3,7 @@ import {readFile} from 'node:fs/promises';
 import {resolve,dirname} from 'node:path';
 import {tradePeriods,tradePeriod} from './dist/tour-trade-periods.mjs';
 import {parseTourContent} from './dist/tour-content.mjs';
-import {projectTourRoutes,routePath,sampleRoute} from './dist/tour-route-renderer.mjs';
+import {projectTourRoutes,routePath,sampleRoute,routeStrands} from './dist/tour-route-renderer.mjs';
 import {makeGeometry,layouts,world} from './dist/geometry.mjs';
 import {makeArrangement} from './dist/arrangements.mjs';
 import {layoutOptions} from './dist/map-options.mjs';
@@ -17,11 +17,11 @@ for(const period of tradePeriods){
  assert.equal(stories[period.storyId].legend.length,period.waves.length);
  assert.deepEqual([...new Set(period.routes.map(r=>r.wave))].sort(),[...period.waves].sort());
  for(const r of period.routes){assert(r.animated);assert(r.coordinates.length>=2);for(const [lat,lon] of r.coordinates)assert(Number.isFinite(lat)&&Math.abs(lat)<=90&&Number.isFinite(lon)&&Math.abs(lon)<=180);}
- for(const route of projectTourRoutes(tiles,net,state,period.routes)){
-  assert.equal(route.anchors.length,sampleRoute(route).length);
-  const d=routePath(route.anchors,world,route.lane);assert(!/NaN|Infinity/.test(d));
-  const commands=d.match(/[ML]/g);for(let i=1;i<commands.length;i++)if(route.anchors[i-1].tile!==route.anchors[i].tile)assert.equal(commands[i],'M','Period routes must never bridge a map cut');
- }
+ for(const route of projectTourRoutes(tiles,net,state,period.routes))routeStrands(route).forEach((strand,s)=>{
+  const anchors=route.strandAnchors[s];assert.equal(anchors.length,sampleRoute(strand).length);
+  const d=routePath(anchors,world,route.lane);assert(!/NaN|Infinity/.test(d));
+  const commands=d.match(/[ML]/g);for(let i=1;i<commands.length;i++)if(anchors[i-1].tile!==anchors[i].tile)assert.equal(commands[i],'M','Period routes must never bridge a map cut');
+ });
 }
 const [bronze,ancient,early,high]=tradePeriods;
 assert(!bronze.routes.some(r=>r.wave==='silk'));
@@ -48,6 +48,6 @@ async function walk(file){
  }
 }
 await walk('dist/app.mjs');
-for(const name of ['tour-trade-periods.mjs','tour-trade.mjs','tour-trade-regions.mjs','tour-route-data.mjs','tour-area-data.mjs','tour-migrations.mjs','tour-vinland.mjs','tour-polynesia.mjs','tour-americas.mjs','tour-periods.mjs','tour-trade-traffic.mjs'])assert(!seen.has(resolve('dist',name)),name+' must not be eagerly imported');
+for(const name of ['tour-trade-periods.mjs','tour-trade.mjs','tour-trade-regions.mjs','tour-route-data.mjs','tour-area-data.mjs','tour-migrations.mjs','tour-vinland.mjs','tour-polynesia.mjs','tour-americas.mjs','tour-periods.mjs','tour-trade-traffic.mjs','tour-silk-road-relaxed.mjs','tour-origin-of-mankind-relaxed.mjs','tour-iceland-to-vinland-relaxed.mjs','tour-french-polynesia-relaxed.mjs','tour-americas-exchange-relaxed.mjs'])assert(!seen.has(resolve('dist',name)),name+' must not be eagerly imported');
 const app=await readFile('dist/app.mjs','utf8');assert(!app.includes('tourStory.ready.then'), 'Story text must not be prefetched at startup');
 console.log('Trade periods: dated hubs, legends, route seams and no eager story datasets pass.');

@@ -3,10 +3,10 @@
 // app selects a chapter (URL ?period= or the story default) after loading.
 const chapters=({heading,periods,periodFor})=>({heading,periods,periodFor,routes:[],areas:[]});
 export async function loadTourData(id){
- if(id==='silk-road'){const {tradePeriods,tradePeriod,tradeHeading}=await import('./tour-trade-periods.mjs?v=chapters-1');return chapters({heading:tradeHeading,periods:tradePeriods,periodFor:tradePeriod});}
- if(id==='origin-of-mankind')return chapters((await import('./tour-migrations.mjs?v=strands-1')).migrationChapters);
- if(id==='iceland-to-vinland')return chapters((await import('./tour-vinland.mjs?v=chapters-1')).vinlandChapters);
- if(id==='french-polynesia')return chapters((await import('./tour-polynesia.mjs?v=chapters-1')).polynesiaChapters);
- if(id==='americas-exchange')return chapters((await import('./tour-americas.mjs?v=chapters-1')).americasChapters);
+ if(id==='silk-road'){const {tradePeriods,tradePeriod,tradeHeading}=await import('./tour-trade-periods.mjs?v=strands-2');return chapters({heading:tradeHeading,periods:tradePeriods,periodFor:tradePeriod});}
+ if(id==='origin-of-mankind')return chapters((await import('./tour-migrations.mjs?v=strands-2')).migrationChapters);
+ if(id==='iceland-to-vinland')return chapters((await import('./tour-vinland.mjs?v=strands-2')).vinlandChapters);
+ if(id==='french-polynesia')return chapters((await import('./tour-polynesia.mjs?v=strands-2')).polynesiaChapters);
+ if(id==='americas-exchange')return chapters((await import('./tour-americas.mjs?v=strands-2')).americasChapters);
  return {routes:[],areas:[]};
 }

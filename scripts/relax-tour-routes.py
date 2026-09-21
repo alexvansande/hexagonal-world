@@ -6,8 +6,11 @@ strand follows a low-cost path inside a soft corridor around the authored
 polyline, with its own smooth noise so parallel strands take slightly different
 courses. Output is an ordinary data module; the renderer stays unchanged.
 
-Usage: python3 scripts/relax-tour-routes.py routes.json dist/tour-<name>-relaxed.mjs
-Needs numpy and Pillow (a scratch virtualenv is fine). No network access.
+Usage: python3 scripts/relax-tour-routes.py <tour>.json dist/tour-<tour>-relaxed.mjs
+(inputs from scripts/dump-tour-routes.mjs). Per-tour settings: strands, noise,
+sea ('coastal' prefers shorelines; 'open' treats open water as free as coast),
+landBridge route IDs (sea inside their corridor costs like land, for ice-age
+shelves). Needs numpy and Pillow (a scratch virtualenv is fine). No network.
 """
 import heapq, json, math, sys, time
 import numpy as np
@@ -18,7 +21,8 @@ routes_file, output = sys.argv[1], sys.argv[2]
 spec = json.load(open(routes_file))
 STEP = 0.2                      # degrees per cell
 W, H = int(360 / STEP), int(180 / STEP)
-STRANDS, CORRIDOR, NOISE = 3, 2.5, 0.35   # strands per route, soft corridor (deg), noise amplitude
+STRANDS, NOISE, SEA = spec.get('strands', 3), spec.get('noise', .35), spec.get('sea', 'coastal')
+CORRIDOR_MAX, CORRIDOR_MIN = 2.5, .6   # soft corridor (deg) scales with each leg's length
 t0 = time.time()
 
 # --- rasters ---------------------------------------------------------------
@@ -65,8 +69,10 @@ cost[np.isin(eco, list(desert))] *= 1.8
 cost[np.isin(eco, list(polar))] *= 1.4
 cost[np.isin(eco, list(ice))] *= 3
 cost[rivers & land] *= .55
-cost[sea] = 5.0
-cost[coast] = 2.5
+land_cost = cost.copy()
+cost[sea] = 5.0 if SEA == 'coastal' else 1.0
+cost[coast] = 2.5 if SEA == 'coastal' else 1.0
+if SEA == 'open': cost[land] = np.maximum(cost[land], 8.0)   # islands are stops, not shortcuts
 print(json.dumps({'grid': [W, H], 'land': int(land.sum()), 'rivers': int((rivers & land).sum()), 'seconds': round(time.time() - t0, 1)}), flush=True)
 
 # --- helpers ---------------------------------------------------------------
@@ -84,12 +90,14 @@ def seg_distance(px, py, ax, ay, bx, by):
     return math.hypot(px - (ax + t * dx), py - (ay + t * dy))
 NEIGHBORS = [(dx, dy) for dx in (-2, -1, 0, 1, 2) for dy in (-2, -1, 0, 1, 2) if (dx, dy) != (0, 0) and math.gcd(abs(dx), abs(dy)) == 1]
 
-def relax(poly, noise):
+def relax(poly, noise, land_bridge=False):
     """Least-cost path from poly[0] to poly[-1] inside a soft corridor around poly (lat/lon)."""
     # Work in a longitude frame centred on the polyline so boxes never split at the date line.
     lon0 = poly[0][1]
     shift = lambda lon: ((lon - lon0 + 180) % 360) - 180
     pts = [(shift(lon), lat) for lat, lon in poly]
+    span = sum(math.hypot((b[0] - a[0]) * math.cos(math.radians((a[1] + b[1]) / 2)), b[1] - a[1]) for a, b in zip(pts, pts[1:]))
+    CORRIDOR = max(CORRIDOR_MIN, min(CORRIDOR_MAX, .25 * span))
     minx = min(p[0] for p in pts) - 4 * CORRIDOR; maxx = max(p[0] for p in pts) + 4 * CORRIDOR
     miny = min(p[1] for p in pts) - 4 * CORRIDOR; maxy = max(p[1] for p in pts) + 4 * CORRIDOR
     def corridor(x, y):
@@ -104,7 +112,8 @@ def relax(poly, noise):
     def local(x, y):
         key = (x, y)
         if key not in cache:
-            c = corridor(x, y); cache[key] = None if c is None else float(cost[y, x]) * c * math.exp(NOISE * noise[y, x])
+            c = corridor(x, y); base = float(land_cost[y, x]) * 1.2 if land_bridge and sea[y, x] else float(cost[y, x])
+            cache[key] = None if c is None else base * c * math.exp(NOISE * noise[y, x])
         return cache[key]
     while heap:
         d, (x, y) = heapq.heappop(heap)
@@ -149,24 +158,32 @@ def polyline_cost(poly):
 places = {tuple(p) for p in spec['places']}
 result, meta = {}, {}
 noises = [smooth_noise(11 + i) for i in range(STRANDS)]
+forward = {r['id']: r for r in spec['routes'] if not r.get('returnOf')}
 for route in spec['routes']:
+    if route.get('returnOf'):
+        if route['returnOf'] not in result: raise SystemExit('Return route before its partner: ' + route['id'])
+        result[route['id']] = [list(reversed(strand)) for strand in result[route['returnOf']]]
+        meta[route['id']] = {**meta[route['returnOf']], 'returnOf': route['returnOf']}
+        continue
     coords = [tuple(c) for c in route['coordinates']]
     hard = [0] + [i for i, c in enumerate(coords) if c in places and 0 < i < len(coords) - 1] + [len(coords) - 1]
     strands, costs = [], []
     for s in range(STRANDS):
         strand, total = [], 0.0
         for a, b in zip(hard, hard[1:]):
-            piece, c = relax(coords[a:b + 1], noises[s]); total += c
+            piece, c = relax(coords[a:b + 1], noises[s], route.get('landBridge', False)); total += c
             piece = simplify(piece, .12)
+            if len(piece) < 2: piece = [None, None]                      # stops share one raster cell
             piece[0] = list(coords[a]); piece[-1] = list(coords[b])     # hard stops exactly
             strand += piece if not strand else piece[1:]
-        strands.append([[round(lat, 2), round(lon, 2)] for lat, lon in strand]); costs.append(round(polyline_cost(strand), 3))
+        exact = {tuple(coords[i]) for i in hard}
+        strands.append([[lat, lon] if (lat, lon) in exact else [round(lat, 2), round(lon, 2)] for lat, lon in strand]); costs.append(round(polyline_cost(strand), 3))
     result[route['id']] = strands
     meta[route['id']] = {'authored': round(polyline_cost(coords), 3), 'relaxed': costs, 'hard': len(hard)}
-    print(route['id'], meta[route['id']], flush=True)
-header = ('// Generated by scripts/relax-tour-routes.py for %s / %s. Least-cost strands through a\n'
+    print(route['id'], meta[route['id']], flush=True) if len(spec['routes']) <= 40 else None
+header = ('// Generated by scripts/relax-tour-routes.py for %s (%s). Least-cost strands through a\n'
           '// passability raster (relief, life zones, rivers, coasts) inside a soft corridor around the\n'
-          '// authored polylines; hard stops are exact. Editorial visualization, not evidence of paths.\n') % (spec['tour'], spec['period'])
+          '// authored polylines; hard stops are exact. Editorial visualization, not evidence of paths.\n') % (spec['tour'], '%d strands, %s sea' % (STRANDS, SEA))
 body = 'export const relaxedStrands=' + json.dumps(result, separators=(',', ':')) + ';\n'
 body += 'export const relaxedMeta=' + json.dumps(meta, separators=(',', ':')) + ';\n'
 open(output, 'w').write(header + body)

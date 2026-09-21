@@ -8,11 +8,19 @@ import {tradeTraffic} from './tour-trade-traffic.mjs?v=frequency-1';
 export const reverseRoute=(route,id=route.id+'-return')=>Object.freeze({...route,id,returnOf:route.id,coordinates:Object.freeze([...route.coordinates].reverse())});
 export const bothWays=routes=>routes.flatMap(route=>[route,reverseRoute(route)]);
 
-export function definePeriods(tourId,periods,defaultId,{heading='Through time',seed=route=>route.id}={}){
+// Relaxed strands are keyed by route ID plus a hash of its authored coordinates,
+// so a route that changes course between chapters (Ctesiphon versus Baghdad) keeps
+// matching strands. Same FNV-1a as the traffic seeds.
+export function routeKey(route){
+ let h=2166136261;for(const ch of JSON.stringify(route.coordinates))h=Math.imul(h^ch.charCodeAt(0),16777619)>>>0;
+ return `${route.id}:${h.toString(16)}`;
+}
+export function definePeriods(tourId,periods,defaultId,{heading='Through time',seed=route=>route.id,strands=null}={}){
+ const relax=route=>strands?.[routeKey(route)]?{...route,strands:strands[routeKey(route)]}:route;
  const list=Object.freeze(periods.map(period=>Object.freeze({
   ...period,storyId:`${tourId}-${period.id}`,
   waves:Object.freeze(period.waves||[...new Set(period.routes.map(route=>route.wave).filter(Boolean))]),
-  routes:Object.freeze(period.routes.map(route=>Object.freeze({...route,animated:route.animated!==false,
+  routes:Object.freeze(period.routes.map(relax).map(route=>Object.freeze({...route,animated:route.animated!==false,
    // Relaxed strands share one route: each carries a share of the traffic on its own course.
    traffic:route.strands?route.strands.map((_,i)=>tradeTraffic(`${seed(route,period)}~${i}`,(route.frequency||1)/route.strands.length)):tradeTraffic(seed(route,period),route.frequency)}))),
  })));

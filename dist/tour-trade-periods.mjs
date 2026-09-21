@@ -1,11 +1,12 @@
 // Loaded only when the Silk Road story is opened. These are editorial networks
 // around four dates, not measured itineraries or annual trade-volume estimates.
-import {definePeriods} from './tour-periods.mjs?v=chapters-1';
+import {definePeriods} from './tour-periods.mjs?v=strands-2';
+import {relaxedStrands} from './tour-silk-road-relaxed.mjs?v=strands-2';
 import {silkRoadRoutes} from './tour-route-data.mjs?v=trade-periods-1';
 import {silkTradeRoutes} from './tour-trade.mjs?v=trade-regions-1';
 
 const mixed=silkTradeRoutes(silkRoadRoutes);
-const p={
+export const tradePlaces={
  rome:[41.9,12.5],antioch:[36.2,36.16],alexandria:[31.2,29.9],constantinople:[41.01,28.98],
  baghdad:[33.31,44.37],ctesiphon:[33.09,44.58],ray:[35.59,51.44],bukhara:[39.77,64.43],samarkand:[39.65,66.97],
  urgench:[42.32,59.15],bolgar:[54.97,49.05],itil:[46,47.8],saray:[47.2,47.4],saraychik:[47.5,51.7],
@@ -18,6 +19,7 @@ const p={
  cyprus:[35.13,33.94],ugarit:[35.6,35.78],byblos:[34.12,35.65],mycenae:[37.73,22.76],crete:[35.3,25.2],
  hattusa:[40.02,34.62],babylon:[32.54,44.42],nileDelta:[30.8,31.8],thebes:[25.72,32.65],nubia:[19.6,33.4],
 };
+const p=tradePlaces;
 const coords=stops=>stops.map(stop=>typeof stop==='string'?p[stop]:stop);
 const flow=(id,wave,stops,lane=0,extra={})=>({id,title:id,wave,lane,animated:true,coordinates:coords(stops),...extra});
 const reverse=(r,id=r.id+'-return',wave=r.wave)=>({...r,id,wave,coordinates:[...r.coordinates].reverse()});
@@ -113,7 +115,7 @@ const trade=definePeriods('silk-road',[
  {id:'antiquity',label:'Antiquity',date:'c. 150 CE',year:150,routes:ancient,waves:['silk','gold-silver','glass-metals','horses','spices-cotton']},
  {id:'early-middle-ages',label:'Early Middle Ages',date:'c. 900 CE',year:900,routes:early,waves:['silk','gold-silver','horses','spices-cotton','furs']},
  {id:'high-middle-ages',label:'High Middle Ages',date:'c. 1300 CE',year:1300,routes:high,waves:['silk','gold-silver','horses','spices-cotton','furs','ceramics']},
-],'antiquity',{heading:'Trade through time'});
+],'antiquity',{heading:'Trade through time',strands:relaxedStrands});
 export const tradePeriods=trade.periods;
 export const defaultTradePeriod=trade.defaultId;
 export const tradePeriod=trade.periodFor;
