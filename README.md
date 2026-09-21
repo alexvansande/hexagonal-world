@@ -208,15 +208,15 @@ Pacific lighting, without UI controls. Checks: `tour-page-tests.mjs` and
 `/tests/tour-pages.html` (also `?mobile=1`).
 
 The additive image inventory is prepared with `node scripts/prepare-tour-assets.mjs`.
-It includes the nine previews and the Pacific lighting tiles, without duplicating
-the global atlas. Upload requires explicit approval; the attempted upload on
-September 21 was rejected by automatic approval review and no upload occurred.
-After approval, `scripts/upload-r2-assets.py _asset-release/tours` uploads that
-inventory, and `node scripts/activate-tour-assets.mjs` verifies public checksums
-before creating `tour-asset-release.json`. Production staging and CI require this
-verified record and stop with an explanatory error while it is absent. The
-existing global asset release remains unchanged; production config uses narrow
-prefix overrides for the tour images. Local preview continues to use local files.
+It includes the five previews and the Pacific lighting tiles, without duplicating
+the global atlas. With explicit approval on September 21, `scripts/upload-r2-assets.py
+_asset-release/tours` uploaded and verified release `maps-98ad6c42082f23d0`, and
+`node scripts/activate-tour-assets.mjs` recorded its public checksum in
+`tour-asset-release.json`. Production staging and CI require this verified record
+and stop with an explanatory error while it is absent; re-rendered previews need a
+new inventory, upload and activation. The existing global asset release remains
+unchanged; production config uses narrow prefix overrides for the tour images.
+Local preview continues to use local files.
 
 Edit **`dist/tour-stories.md`** for all story titles, descriptions, small notes
 and source links. Keep the `## location-id` headings intact. The file includes
