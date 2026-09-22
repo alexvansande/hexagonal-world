@@ -5,9 +5,9 @@ import {makeGeometry,layouts,world,canvasWorld,hex,matching} from './dist/geomet
 import {makeArrangement,markEdges} from './dist/arrangements.mjs';
 import {layoutOptions} from './dist/map-options.mjs';
 import {pacificTourNet,interpolateTourNet,tourImagePieces} from './dist/tour-layout.mjs';
-import {polynesiaRoutes,projectTourRoutes,tourChapters} from './dist/tour-routes.mjs';
-import {parseTourContent} from './dist/tour-content.mjs';
-import {tourLocations} from './dist/tour-markers.mjs';
+import {projectTourRoutes} from './dist/tour-route-renderer.mjs';
+import {assembleRoutes} from './dist/history-loader.mjs';
+import {parsePeriod} from './dist/tour-content.mjs';
 import pacificLighting from './dist/maps/pacific-manifest.mjs';
 const state=layoutOptions[0].state,tiles=makeGeometry(state.method,state.height),source=makeArrangement(tiles,state.arrangement,layouts(tiles)).net;
 const target=pacificTourNet(tiles,source),saved=JSON.stringify(source);
@@ -55,19 +55,18 @@ for(const piece of tourImagePieces(source,settled,state.gridRotation,pacificLigh
   assert(Math.hypot(...piece.source.map((v,i)=>v-piece.target[i]))<1e-12);
  }else assert.equal(piece.meta,null,'Keep original fixed-piece artwork');
 }
-const route=projectTourRoutes(tiles,target,state,polynesiaRoutes)[0];
-for(let i=1;i<route.anchors.length;i++){
- const a=route.anchors[i-1],b=route.anchors[i],p=world(a.local,a.tile),q=world(b.local,b.tile);
- assert(Math.hypot(p[0]-q[0],p[1]-q[1])<.01,'Pacific triangle is continuous across the date line and all seams');
- assert(b.location.longitude>160||b.location.longitude< -100,'Outline takes the short Pacific arc');
+// On the Pacific-facing net every Polynesian voyage is continuous across the date line and all seams.
+const voyages=['3k-ya','1000-ce','1400-ce'].flatMap(id=>JSON.parse(readFileSync(`dist/history/${id}.routes.json`,'utf8')).filter(r=>r.story==='french-polynesia'));assert(voyages.length>15);
+let seams=0;for(const route of projectTourRoutes(tiles,target,state,assembleRoutes(voyages))){
+ for(let i=1;i<route.anchors.length;i++){const a=route.anchors[i-1],b=route.anchors[i];if(a.tile===b.tile)continue;const p=world(a.local,a.tile),q=world(b.local,b.tile);assert(Math.hypot(p[0]-q[0],p[1]-q[1])<.01,route.id+' is continuous across seams on the Pacific net');seams++;}
 }
-const stories=parseTourContent(readFileSync('dist/tour-stories.md','utf8'));
-const storyIds=[...tourLocations.map(p=>p.id),...Object.values(tourChapters).flatMap(c=>c.periods.map(p=>p.storyId))].sort();
-assert.deepEqual(Object.keys(stories).sort(),storyIds,'Every entry point and every chapter has editable Markdown, and nothing else');
-for(const id of ['silk-road','french-polynesia'])assert(stories[id].paragraphs.length&&stories[id].source);
-assert.equal(stories['french-polynesia'].source.url,'./polynesia-sources.md');
+assert(seams>0,'voyages cross joined seams');
+const bronze=parsePeriod(readFileSync('dist/history/3k-ya.md','utf8')).spots;
+for(const id of ['silk-road','french-polynesia'])assert(bronze[id].paragraphs.length&&bronze[id].source);
+assert.equal(bronze['french-polynesia'].source.url,'./polynesia-sources.md');
 assert(readFileSync('dist/polynesia-sources.md','utf8').includes('https://www.nature.com/articles/s41586-020-2487-2'),'Polynesian notes cite the 2020 gene-flow study');
-assert.equal(stories['silk-road'].source.url,'./silk-road-sources.md');
+assert.equal(bronze['silk-road'].source.url,'./silk-road-sources.md');
 assert(readFileSync('dist/silk-road-sources.md','utf8').includes('https://depts.washington.edu/silkroad/texts/periplus/periplus.html'));
-assert.equal(parseTourContent('## demo\n### New title\n\nEdited paragraph.\n\n> Note\n\n[Read](https://example.org)\n').demo.paragraphs[0],'Edited paragraph.');
-console.log('Polynesia: exact Pacific joins, unchanged source layout, image/geometry animation alignment, continuous date-line outline and editable stories pass.');
+const demo=parsePeriod('# Age · c. 1 CE\n\nIntro.\n\n## demo\n### New title\nspot: 1.5, -2\nview: fit\n\nEdited paragraph.\n\n- silk: **Silk** · east to west\n\n> Note\n\n[Read](https://example.org)\n');
+assert.deepEqual([demo.title,demo.spots.demo.title,demo.spots.demo.spot,demo.spots.demo.paragraphs[0],demo.spots.demo.waves,demo.spots.demo.note,demo.spots.demo.source.url],['Age · c. 1 CE','New title',[1.5,-2],'Edited paragraph.',['silk'],'Note','https://example.org']);
+console.log('Polynesia: exact Pacific joins, unchanged source layout, image/geometry animation alignment, continuous date-line voyages and period Markdown pass.');

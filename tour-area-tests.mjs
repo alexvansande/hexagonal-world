@@ -2,8 +2,6 @@ import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {projectTourAreas,tourAreaSets,areaPaths} from './dist/tour-areas.mjs';
 import {projectTourLocations,tourLocations} from './dist/tour-markers.mjs';
-import {vinlandRoutes} from './dist/tour-vinland.mjs';
-import {projectTourRoutes} from './dist/tour-routes.mjs';
 import {makeGeometry,layouts,world} from './dist/geometry.mjs';
 import {makeArrangement} from './dist/arrangements.mjs';
 import {layoutOptions} from './dist/map-options.mjs';
@@ -53,9 +51,4 @@ for(let lat=-20.3;lat<54;lat+=5)for(let lon=-65.7;lon<90;lon+=5){
 }
 assert.equal(tourAreaSets['amazon-mouth'][0].hybasId,6030007000);
 assert.equal(tourAreaSets['amazon-mouth'][0].sourceAreaKm2,5912922.8);
-assert.equal(vinlandRoutes.length,6);assert(vinlandRoutes.every(r=>!r.animated),'Base corridors stay static; chapters animate copies');
-const greenland=vinlandRoutes.find(r=>r.id==='norse-greenland').coordinates;
-assert(greenland.some(([lat,lon])=>lat<60&&lon<-40),'sea route rounds Cape Farewell');
-assert.deepEqual(vinlandRoutes.at(-1).coordinates.at(-1),[51.596,-55.533]);
-assert(projectTourRoutes(tiles,net,angles,vinlandRoutes).every(r=>r.anchors.length>20));
-console.log(`Tour areas: ${samples} global fill comparisons, holes/cuts, geographic landmarks, data provenance and Norse sea corridors pass.`);
+console.log(`Tour areas: ${samples} global fill comparisons, holes/cuts, geographic landmarks and data provenance pass.`);

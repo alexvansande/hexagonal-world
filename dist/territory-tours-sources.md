@@ -1,6 +1,6 @@
 # Territory and North Atlantic tours
 
-Compiled September 21, 2026. Story text is editable in `tour-stories.md`.
+Compiled September 21, 2026. Story text is editable in `history/<period>.md`.
 
 ## Reading these overlays
 

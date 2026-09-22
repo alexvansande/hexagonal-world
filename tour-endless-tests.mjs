@@ -4,7 +4,10 @@ import {makeGeometry,layouts,matching,canvasWorld} from './dist/geometry.mjs';
 import {makeArrangement} from './dist/arrangements.mjs';
 import {layoutOptions} from './dist/map-options.mjs';
 import {projectTourRoutes,routeFragments} from './dist/tour-route-renderer.mjs';
-import {tourChapters} from './dist/tour-routes.mjs';
+import {readFileSync} from 'node:fs';
+import {periods} from './dist/history/index.mjs';
+import {assembleRoutes} from './dist/history-loader.mjs';
+const periodRoutes=periods.map(p=>assembleRoutes(JSON.parse(readFileSync(`dist/history/${p.id}.routes.json`,'utf8')),JSON.parse(readFileSync(`dist/history/${p.id}.strands.json`,'utf8')).strands));
 const state=layoutOptions[0].state,tiles=makeGeometry(state.method,state.height),net=makeArrangement(tiles,state.arrangement,layouts(tiles)).net;
 const lattice=endlessLattice(tiles,net);
 assert(lattice,'Spaceship Earth admits a translation band');
@@ -34,7 +37,7 @@ assert.deepEqual(latticeOffset(lattice,1,0),[...P]);assert.deepEqual(latticeOffs
 // Unwrapping keeps a strand continuous across an exact join and follows the viewport centre.
 const Pc=[P[0],-P[1]],Qc=[Q[0],-Q[1]];
 const basis=a=>canvasWorld(a.local,a.tile);let crossings=0,routesChecked=0;
-for(const chapters of Object.values(tourChapters))for(const period of chapters.periods)for(const route of projectTourRoutes(tiles,net,state,period.routes)){
+for(const routes of periodRoutes)for(const route of projectTourRoutes(tiles,net,state,routes)){
  for(const anchors of route.strandAnchors){
   unwrapStrand(anchors,basis,Pc,Qc,[0,0]);
   const positions=anchors.map(a=>{const b=basis(a);return [b[0]+a.offset[0],b[1]+a.offset[1]];});
@@ -49,7 +52,7 @@ for(const chapters of Object.values(tourChapters))for(const period of chapters.p
 }
 assert(crossings>50&&routesChecked>500,`unwrapping exercised ${crossings} exact crossings over ${routesChecked} routes`);
 // Moving the viewport centre by one period moves a strand by one period.
-const sample=projectTourRoutes(tiles,net,state,[tourChapters['silk-road'].periods[1].routes[0]])[0].strandAnchors[0];
+const sample=projectTourRoutes(tiles,net,state,[periodRoutes[5].find(r=>r.story==='silk-road')])[0].strandAnchors[0];
 unwrapStrand(sample,basis,Pc,Qc,[0,0]);const before=sample[0].offset.slice();unwrapStrand(sample,basis,Pc,Qc,Pc);
 assert(Math.abs(sample[0].offset[0]-before[0]-Pc[0])<1e-9&&Math.abs(sample[0].offset[1]-before[1]-Pc[1])<1e-9,'offsets follow the centre by whole periods');
 // Dancing pieces: each piece picks the copy nearest the viewport centre along the band, with hysteresis.

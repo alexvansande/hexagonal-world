@@ -1,6 +1,6 @@
 # Ocean crossings: sources and route notes
 
-Research checked September 21, 2026. Story copy is in `tour-stories.md`; the geographic route data is in `tour-oceans.mjs`.
+Research checked September 21, 2026. Story copy is in `history/<period>.md`; the geographic route data is in `tour-oceans.mjs`.
 
 ## Reading the map
 

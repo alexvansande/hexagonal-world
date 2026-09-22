@@ -1,6 +1,6 @@
 # Polynesian voyaging: sources and route notes
 
-Research checked September 21, 2026. Story copy is in `tour-stories.md`; the geographic route data is in `tour-polynesia.mjs`.
+Research checked September 21, 2026. Story copy is in `history/<period>.md`; the geographic route data is in `tour-polynesia.mjs`.
 
 ## Reading the map
 

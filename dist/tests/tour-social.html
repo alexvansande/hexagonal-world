@@ -3,11 +3,13 @@
 <h1>Tour social previews</h1><p id="result">Preparing…</p><div id="previews"></div><iframe title="Tour artwork renderer"></iframe>
 <script type="module">
 import {tourPages} from '../tour-pages.mjs';
-import {parseTourContent} from '../tour-content.mjs';
+import {parsePeriod} from '../tour-content.mjs';
+import {periods} from '../history/index.mjs';
 const frame=document.querySelector('iframe'),result=document.querySelector('#result'),params=new URLSearchParams(location.search);
 const pause=ms=>new Promise(r=>setTimeout(r,ms));
 async function until(test,label){for(let i=0;i<600;i++){if(test())return;await pause(100);}throw Error('Timed out: '+label);}
-const stories=parseTourContent(await (await fetch('../tour-stories.md')).text());
+// Each preview is titled after the story's spot in its earliest period, the text the link opens on.
+const titles={};for(const tour of tourPages){const first=periods.find(p=>p.stories.includes(tour.id));titles[tour.id]=parsePeriod(await (await fetch(`../history/${first.id}.md`)).text()).spots[tour.id].title;}
 async function drawSVG(ctx,svg){
  if(getComputedStyle(svg).display==='none')return;
  const copy=svg.cloneNode(true),originals=[svg,...svg.querySelectorAll('*')],copies=[copy,...copy.querySelectorAll('*')];
@@ -36,9 +38,9 @@ try{
   ctx.fillStyle=d.querySelector('#background-color').value;ctx.fillRect(0,0,1200,630);
   ctx.save();ctx.beginPath();ctx.rect(0,150,1200,480);ctx.clip();
   ctx.drawImage(map,0,0,1200,630);ctx.drawImage(d.querySelector('#overlay'),0,0,1200,630);
-  await drawSVG(ctx,d.querySelector('.tour-areas'));await drawSVG(ctx,d.querySelector('.tour-routes'));ctx.restore();
+  await drawSVG(ctx,d.querySelector('.tour-routes'));ctx.restore();
   ctx.fillStyle='#234b59';ctx.font='bold 13px Arial,sans-serif';ctx.letterSpacing='2px';ctx.fillText('HEXAGONAL EARTH  /  LIFEZONES',44,35);ctx.letterSpacing='0px';
-  const title=stories[tour.id].title;let size=52;
+  const title=titles[tour.id];let size=52;
   do{ctx.font=`${size--}px Baskerville,Georgia,serif`;}while(ctx.measureText(title).width>1112);
   ctx.fillText(title,42,96);ctx.font='15px Arial,sans-serif';ctx.fillStyle='#486771';ctx.fillText('Explore the story on a hexagonal world map',44,128);
   ctx.textAlign='right';ctx.fillText('hexagonal.earth'+tour.path,1156,128);

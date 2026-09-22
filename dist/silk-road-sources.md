@@ -5,7 +5,7 @@ The slider selects four broad historical snapshots: c. 1300 BCE, 150 CE,
 illustrated exchange occurred in one calendar year. These are representative
 exchanges, not recovered shipment tracks or measures of volume. Goods changed hands at intermediate markets. The lanes
 are separated in screen pixels for readability, not because caravans used
-parallel roads. Story copy and the legend are in `tour-stories.md`.
+parallel roads. Story copy and the legend are in `history/<period>.md`.
 
 ## Commodities
 

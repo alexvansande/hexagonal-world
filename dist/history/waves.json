@@ -1,0 +1,174 @@
+{
+ "early-homo": {
+  "label": "Early Homo",
+  "color": "#d9a36b"
+ },
+ "erectus": {
+  "label": "Homo erectus & relatives",
+  "color": "#ffb37a"
+ },
+ "neanderthal": {
+  "label": "Neanderthals",
+  "color": "#b8a8ff"
+ },
+ "denisovan": {
+  "label": "Denisovans",
+  "color": "#ff9fa8"
+ },
+ "sapiens-africa": {
+  "label": "Homo sapiens in Africa",
+  "color": "#ffe08a"
+ },
+ "early": {
+  "label": "Early departures",
+  "color": "#f8c67e"
+ },
+ "expansion": {
+  "label": "Expansion",
+  "color": "#fff3c9"
+ },
+ "admixture": {
+  "label": "Admixture",
+  "color": "#e79cff"
+ },
+ "settlement": {
+  "label": "Settlement",
+  "color": "#fff3c9"
+ },
+ "voyaging": {
+  "label": "Voyaging",
+  "color": "#8fd9ff"
+ },
+ "later": {
+  "label": "Ice Age Americas",
+  "color": "#bceaf3"
+ },
+ "holocene": {
+  "label": "Holocene movements",
+  "color": "#9fe3b5"
+ },
+ "tin": {
+  "label": "Tin",
+  "color": "#dce8fa"
+ },
+ "copper": {
+  "label": "Copper",
+  "color": "#f4a471"
+ },
+ "gold-silver": {
+  "label": "Gold",
+  "color": "#ffd15c"
+ },
+ "glass-metals": {
+  "label": "Glass",
+  "color": "#aecfff"
+ },
+ "timber": {
+  "label": "Timber",
+  "color": "#b8df91"
+ },
+ "textiles-pottery": {
+  "label": "Textiles & pottery",
+  "color": "#f0a4cb"
+ },
+ "lapis-amber": {
+  "label": "Lapis, carnelian & amber",
+  "color": "#8fa8ff"
+ },
+ "obsidian": {
+  "label": "Obsidian",
+  "color": "#b9c4d6"
+ },
+ "jade": {
+  "label": "Jade",
+  "color": "#7fe0b0"
+ },
+ "shell": {
+  "label": "Spondylus & shell",
+  "color": "#ffb3a0"
+ },
+ "crops": {
+  "label": "Crops",
+  "color": "#f2e26b"
+ },
+ "feathers": {
+  "label": "Feathers & forest goods",
+  "color": "#b7ff8a"
+ },
+ "silk": {
+  "label": "Silk",
+  "color": "#fff3d6"
+ },
+ "horses": {
+  "label": "Horses",
+  "color": "#c4e79a"
+ },
+ "spices-cotton": {
+  "label": "Spices & cotton",
+  "color": "#f0a4cb"
+ },
+ "metals": {
+  "label": "Copper & metals",
+  "color": "#ffd15c"
+ },
+ "ceramics": {
+  "label": "Pottery & river networks",
+  "color": "#82dedf"
+ },
+ "gold-ivory": {
+  "label": "Gold, ivory & ebony",
+  "color": "#f5c542"
+ },
+ "salt-copper": {
+  "label": "Salt & copper",
+  "color": "#f4f0e6"
+ },
+ "cloth-beads": {
+  "label": "Cloth, beads & wine",
+  "color": "#9ad3ff"
+ },
+ "captives": {
+  "label": "Enslaved people",
+  "color": "#ff6b6b"
+ },
+ "furs": {
+  "label": "Furs",
+  "color": "#d5b7f5"
+ },
+ "raids": {
+  "label": "Raids",
+  "color": "#ff9f8a"
+ },
+ "trade": {
+  "label": "Trade",
+  "color": "#ffd15c"
+ },
+ "voyages": {
+  "label": "Voyages",
+  "color": "#d7ecff"
+ },
+ "contact": {
+  "label": "Contact",
+  "color": "#ff9fb2"
+ },
+ "porcelain-silk": {
+  "label": "Porcelain & silk",
+  "color": "#fff3d6"
+ },
+ "cotton-cloth": {
+  "label": "Cotton cloth",
+  "color": "#9ad3ff"
+ },
+ "spices-pepper": {
+  "label": "Spices & pepper",
+  "color": "#f0a4cb"
+ },
+ "bullion": {
+  "label": "Silver & gold",
+  "color": "#ffd15c"
+ },
+ "sugar-tobacco": {
+  "label": "Sugar, tobacco & rum",
+  "color": "#c9f28a"
+ }
+}

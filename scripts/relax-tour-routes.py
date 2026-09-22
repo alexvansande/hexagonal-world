@@ -4,24 +4,28 @@ raster built from the height overview, Holdridge life zones and HydroRIVERS.
 Hard stops (route endpoints and named places) stay fixed. Between them each
 strand follows a low-cost path inside a soft corridor around the authored
 polyline, with its own smooth noise so parallel strands take slightly different
-courses. Output is an ordinary data module; the renderer stays unchanged.
+courses. Output is the generated sidecar dist/history/<period>.strands.json,
+stamped with a hash of the routes file so a stale sidecar is detectable.
 
-Usage: python3 scripts/relax-tour-routes.py <tour>.json dist/tour-<tour>-relaxed.mjs
-(inputs from scripts/dump-tour-routes.mjs). Per-tour settings: strands, noise,
-sea ('coastal' prefers shorelines; 'open' treats open water as free as coast),
-landBridge route IDs (sea inside their corridor costs like land, for ice-age
-shelves). Needs numpy and Pillow (a scratch virtualenv is fine). No network.
+Usage: python3 scripts/relax-tour-routes.py <period-id>|all
+Inputs: dist/history/<period>.routes.json and dist/history/relax.json (per story:
+strands, noise, sea 'coastal' prefers shorelines / 'open' treats open water as
+free as coast and islands as stops; landBridge route IDs make modern sea inside
+the corridor cost like land; places are named hard stops). Two-way routes are
+relaxed once; the loader mirrors their strands. Needs numpy and Pillow (a
+scratch virtualenv is fine). No network.
 """
 import heapq, json, math, sys, time
 import numpy as np
 from PIL import Image
 
 root = __import__('pathlib').Path(__file__).resolve().parent.parent
-routes_file, output = sys.argv[1], sys.argv[2]
-spec = json.load(open(routes_file))
+history = root / 'dist/history'
+relax_settings = json.load(open(history / 'relax.json'))
+ids = [p.stem.replace('.routes', '') for p in sorted(history.glob('*.routes.json'))] if sys.argv[1] == 'all' else sys.argv[1:]
 STEP = 0.2                      # degrees per cell
 W, H = int(360 / STEP), int(180 / STEP)
-STRANDS, NOISE, SEA = spec.get('strands', 3), spec.get('noise', .35), spec.get('sea', 'coastal')
+MAX_STRANDS = max([relax_settings['default']['strands']] + [s.get('strands', 0) for s in relax_settings['stories'].values()])
 CORRIDOR_MAX, CORRIDOR_MIN = 2.5, .6   # soft corridor (deg) scales with each leg's length
 t0 = time.time()
 
@@ -70,9 +74,14 @@ cost[np.isin(eco, list(polar))] *= 1.4
 cost[np.isin(eco, list(ice))] *= 3
 cost[rivers & land] *= .55
 land_cost = cost.copy()
-cost[sea] = 5.0 if SEA == 'coastal' else 1.0
-cost[coast] = 2.5 if SEA == 'coastal' else 1.0
-if SEA == 'open': cost[land] = np.maximum(cost[land], 8.0)   # islands are stops, not shortcuts
+# One cost raster per sea mode; each story picks its own.
+costs = {}
+for mode in ('coastal', 'open'):
+    c = land_cost.copy()
+    c[sea] = 5.0 if mode == 'coastal' else 1.0
+    c[coast] = 2.5 if mode == 'coastal' else 1.0
+    if mode == 'open': c[land] = np.maximum(c[land], 8.0)   # islands are stops, not shortcuts
+    costs[mode] = c
 print(json.dumps({'grid': [W, H], 'land': int(land.sum()), 'rivers': int((rivers & land).sum()), 'seconds': round(time.time() - t0, 1)}), flush=True)
 
 # --- helpers ---------------------------------------------------------------
@@ -90,7 +99,7 @@ def seg_distance(px, py, ax, ay, bx, by):
     return math.hypot(px - (ax + t * dx), py - (ay + t * dy))
 NEIGHBORS = [(dx, dy) for dx in (-2, -1, 0, 1, 2) for dy in (-2, -1, 0, 1, 2) if (dx, dy) != (0, 0) and math.gcd(abs(dx), abs(dy)) == 1]
 
-def relax(poly, noise, land_bridge=False):
+def relax(poly, noise, cost, NOISE, land_bridge=False):
     """Least-cost path from poly[0] to poly[-1] inside a soft corridor around poly (lat/lon)."""
     # Work in a longitude frame centred on the polyline so boxes never split at the date line.
     lon0 = poly[0][1]
@@ -145,7 +154,7 @@ def simplify(points, tol):
     if best > tol: return simplify(points[:index + 1], tol)[:-1] + simplify(points[index:], tol)
     return [a, b]
 
-def polyline_cost(poly):
+def polyline_cost(poly, cost):
     total, length = 0.0, 0.0
     for a, b in zip(poly, poly[1:]):
         n = max(2, int(math.hypot(a[0] - b[0], a[1] - b[1]) / STEP))
@@ -155,36 +164,42 @@ def polyline_cost(poly):
     return total / max(1, length)
 
 # --- routes ----------------------------------------------------------------
-places = {tuple(p) for p in spec['places']}
-result, meta = {}, {}
-noises = [smooth_noise(11 + i) for i in range(STRANDS)]
-forward = {r['id']: r for r in spec['routes'] if not r.get('returnOf')}
-for route in spec['routes']:
-    if route.get('returnOf'):
-        if route['returnOf'] not in result: raise SystemExit('Return route before its partner: ' + route['id'])
-        result[route['id']] = [list(reversed(strand)) for strand in result[route['returnOf']]]
-        meta[route['id']] = {**meta[route['returnOf']], 'returnOf': route['returnOf']}
-        continue
-    coords = [tuple(c) for c in route['coordinates']]
-    hard = [0] + [i for i, c in enumerate(coords) if c in places and 0 < i < len(coords) - 1] + [len(coords) - 1]
-    strands, costs = [], []
-    for s in range(STRANDS):
-        strand, total = [], 0.0
-        for a, b in zip(hard, hard[1:]):
-            piece, c = relax(coords[a:b + 1], noises[s], route.get('landBridge', False)); total += c
-            piece = simplify(piece, .12)
-            if len(piece) < 2: piece = [None, None]                      # stops share one raster cell
-            piece[0] = list(coords[a]); piece[-1] = list(coords[b])     # hard stops exactly
-            strand += piece if not strand else piece[1:]
-        exact = {tuple(coords[i]) for i in hard}
-        strands.append([[lat, lon] if (lat, lon) in exact else [round(lat, 2), round(lon, 2)] for lat, lon in strand]); costs.append(round(polyline_cost(strand), 3))
-    result[route['id']] = strands
-    meta[route['id']] = {'authored': round(polyline_cost(coords), 3), 'relaxed': costs, 'hard': len(hard)}
-    print(route['id'], meta[route['id']], flush=True) if len(spec['routes']) <= 40 else None
-header = ('// Generated by scripts/relax-tour-routes.py for %s (%s). Least-cost strands through a\n'
-          '// passability raster (relief, life zones, rivers, coasts) inside a soft corridor around the\n'
-          '// authored polylines; hard stops are exact. Editorial visualization, not evidence of paths.\n') % (spec['tour'], '%d strands, %s sea' % (STRANDS, SEA))
-body = 'export const relaxedStrands=' + json.dumps(result, separators=(',', ':')) + ';\n'
-body += 'export const relaxedMeta=' + json.dumps(meta, separators=(',', ':')) + ';\n'
-open(output, 'w').write(header + body)
-print(json.dumps({'output': output, 'routes': len(result), 'bytes': len(header + body), 'seconds': round(time.time() - t0, 1)}))
+def fnv(text):
+    h = 2166136261
+    for ch in text: h = ((h ^ ord(ch)) * 16777619) & 0xffffffff
+    return format(h, 'x')
+noises = [smooth_noise(11 + i) for i in range(MAX_STRANDS)]
+for period_id in ids:
+    routes_text = open(history / ('%s.routes.json' % period_id)).read()
+    routes = json.loads(routes_text)
+    # Junctions: a coordinate used by two different routes is a hard stop.
+    counts = {}
+    for r in routes:
+        for c in {tuple(c) for c in r['coordinates']}: counts[c] = counts.get(c, 0) + 1
+    junctions = {c for c, n in counts.items() if n > 1}
+    result, meta, t1 = {}, {}, time.time()
+    for route in routes:
+        settings = {**relax_settings['default'], **relax_settings['stories'].get(route['story'], {})}
+        STRANDS, NOISE, SEA = settings['strands'], settings['noise'], settings['sea']
+        cost = costs[SEA]
+        places = {tuple(p) for p in relax_settings.get('places', {}).get(route['story'], {}).values()} | junctions
+        land_bridge = route['id'] in relax_settings.get('landBridge', [])
+        coords = [tuple(c) for c in route['coordinates']]
+        hard = [0] + [i for i, c in enumerate(coords) if c in places and 0 < i < len(coords) - 1] + [len(coords) - 1]
+        strands, strand_costs = [], []
+        for st in range(STRANDS):
+            strand, total = [], 0.0
+            for a, b in zip(hard, hard[1:]):
+                piece, c = relax(coords[a:b + 1], noises[st], cost, NOISE, land_bridge); total += c
+                piece = simplify(piece, .12)
+                if len(piece) < 2: piece = [None, None]                      # stops share one raster cell
+                piece[0] = list(coords[a]); piece[-1] = list(coords[b])     # hard stops exactly
+                strand += piece if not strand else piece[1:]
+            exact = {tuple(coords[i]) for i in hard}
+            strands.append([[lat, lon] if (lat, lon) in exact else [round(lat, 2), round(lon, 2)] for lat, lon in strand]); strand_costs.append(round(polyline_cost(strand, cost), 3))
+        result[route['id']] = strands
+        meta[route['id']] = {'authored': round(polyline_cost(coords, cost), 3), 'relaxed': strand_costs, 'hard': len(hard)}
+    output = history / ('%s.strands.json' % period_id)
+    body = json.dumps({'generated': True, 'routesHash': fnv(routes_text), 'strands': result}, separators=(',', ':')) + '\n'
+    open(output, 'w').write(body)
+    print(json.dumps({'period': period_id, 'routes': len(result), 'bytes': len(body), 'seconds': round(time.time() - t1, 1)}), flush=True)

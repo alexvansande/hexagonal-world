@@ -3,6 +3,7 @@
 <h1>Tour URL checks</h1><p id="result">Running…</p><ol id="checks"></ol><iframe title="Tour navigation map"></iframe>
 <script type="module">
 import {tourPages} from '../tour-pages.mjs';
+import {periods} from '../history/index.mjs';
 const frame=document.querySelector('iframe'),result=document.querySelector('#result');
 if(new URLSearchParams(location.search).has('mobile')){frame.style.width='390px';frame.style.height='844px';}
 const pause=ms=>new Promise(r=>setTimeout(r,ms));
@@ -10,33 +11,25 @@ async function wait(test,label){for(let i=0;i<300;i++){if(test())return;await pa
 const check=(ok,text)=>{if(!ok)throw Error(text);const li=document.createElement('li');li.textContent='PASS: '+text;document.querySelector('#checks').append(li);};
 const load=async path=>{const loaded=new Promise(r=>frame.onload=r);frame.src=path;await loaded;};
 const doc=()=>frame.contentDocument,win=()=>frame.contentWindow;
-async function opened(id){await wait(()=>doc()?.querySelector('#tour-story')?.hidden===false&&win().location.pathname===`/${id}/`,'tour '+id);await pause(2200);}
 const visible=selector=>[...doc().querySelectorAll(selector)].filter(el=>getComputedStyle(el.parentNode).display!=='none');
 try{
+ // Every story URL opens the map on Lifezones with the timeline at that story's first period and its card open.
  for(const tour of tourPages){
-  await load(tour.path);await opened(tour.id);
-  check(doc().querySelector('#map-source').value==='ecology'&&doc().querySelector('[data-style="lifezones"]').getAttribute('aria-pressed')==='true',tour.path+' directly opens on Lifezones');
-  check(win().location.hash===''&&doc().title.includes(tour.title),tour.path+' keeps a clean URL and matching title');
-  check(visible('.tour-routes .route-line').length+visible('.tour-areas .area-fill').length>0,tour.path+' opens the overlay without clicking');
-  if(tour.id==='french-polynesia')await wait(()=>doc().querySelector('#map').dataset.tourLighting==='pacific','Pacific relighting');
-  doc().querySelector('#tour-story-close').click();await wait(()=>win().location.pathname==='/lifezones/spaceship-earth/'&&doc().querySelector('#tour-story').hidden&&doc().querySelector('#map').dataset.tourLayout==='default','direct close');
-  check(doc().querySelector('#map').dataset.tourLayout==='dancing',tour.path+' closes to the endless Spaceship Earth');
+  await load(tour.path);await wait(()=>doc()?.querySelector('#tour-story')?.hidden===false,'story '+tour.id);await pause(2200);
+  const first=periods.find(p=>p.stories.includes(tour.id));
+  await wait(()=>win().location.pathname==='/lifezones/spaceship-earth/','map URL');
+  check(doc().querySelector('#map-source').value==='ecology',tour.path+' directly opens on Lifezones · Spaceship Earth');
+  check(doc().querySelector('#show-history').checked&&!doc().querySelector('.history-tools').hidden&&win().location.search.includes('history='+first.id),tour.path+' opens the timeline at '+first.id);
+  check(visible('.tour-routes .route-line').length>0,tour.path+' draws the period without clicking');
+  check(doc().querySelector('#tour-story-title').textContent.length>0&&doc().querySelectorAll('#tour-story .tour-story-body p').length>0,tour.path+' shows the spot text');
+  await wait(()=>doc().querySelector('#map').dataset.tourLayout==='dancing','dancing pieces');
+  doc().querySelector('#tour-story-close').click();await wait(()=>doc().querySelector('#tour-story').hidden,'close');await pause(300);
+  check(doc().querySelector('#show-history').checked&&visible('.tour-routes .route-line').length>0&&win().location.pathname==='/lifezones/spaceship-earth/',tour.path+' closes to the timeline, still drawn, on the map URL');
  }
  await load('/lifezones/spaceship-earth/');await wait(()=>doc().querySelectorAll('.tour-marker:not([hidden])').length===7,'base map');
- doc().querySelector('#zoom-in').click();await pause(500);
- const base=win().location.href,origin=doc().querySelector('[data-tour-id="origin-of-mankind"]'),camera=[origin.style.left,origin.style.top];
- doc().querySelector('[data-tour-id="french-polynesia"]').click();await opened('french-polynesia');
- check(win().history.state.tourReturnURL===new URL(base).pathname+new URL(base).hash,'Click records the original saved camera URL');
- win().history.back();await wait(()=>doc().querySelector('#tour-story').hidden,'Back');
- await wait(()=>origin.style.left===camera[0]&&origin.style.top===camera[1],'restored camera');
- check(win().location.href===base,'Back restores the exact URL and camera');
- win().history.forward();await opened('french-polynesia');check(doc().querySelector('#map').dataset.tourLayout==='dancing','Forward reopens the story on the endless band');
- const reloaded=new Promise(r=>frame.onload=r);win().location.reload();await reloaded;await opened('french-polynesia');
- check(win().location.hash==='','Reload preserves the clean tour URL');
- doc().querySelector('#tour-story-close').click();await wait(()=>win().location.href===base&&doc().querySelector('#tour-story').hidden,'close after reload');
- await wait(()=>{const p=doc().querySelector('[data-tour-id="origin-of-mankind"]');return p.style.left===camera[0]&&p.style.top===camera[1];},'return camera after reload');
- check(true,'Close after reload restores the saved camera');
- await load('/origin-of-mankind/');await opened('origin-of-mankind');
- result.textContent='All checks passed. Migration root URL left open.';
-}catch(error){result.textContent='FAIL: '+error.message;console.error(error);}
+ doc().querySelector('[data-tour-id="french-polynesia"]').click();await wait(()=>doc().querySelector('#tour-story')?.hidden===false,'dot');await pause(1500);
+ const first=periods.find(p=>p.stories.includes('french-polynesia'));
+ check(doc().querySelector('#show-history').checked&&win().location.search.includes('history='+first.id)&&win().location.pathname==='/lifezones/spaceship-earth/','A dot off the timeline switches history on at that story’s first period');
+ result.textContent='All checks passed.';result.dataset.status='passed';
+}catch(error){result.textContent='FAIL: '+error.message;result.dataset.status='failed';console.error(error);}
 </script></html>

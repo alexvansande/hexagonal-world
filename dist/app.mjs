@@ -1,13 +1,12 @@
 import {assetURL} from './asset-url.mjs';
-import {readTourPath,initTourNavigation,readPeriod,withPeriod} from './tour-pages.mjs?v=stories-7';
-import {createTourMarkers,projectTourLocations,tourEnabled,tourLocations,pacificLayoutEnabled,pacificLightingEnabled} from './tour-markers.mjs?v=felv-pieces-1';
-import {createTourRoutes,projectTourRoutes} from './tour-route-renderer.mjs?v=endless-1';
-import {loadTourData} from './tour-data.mjs?v=stories-7';
-import {createTourAreas,projectTourAreas} from './tour-area-renderer.mjs?v=sporadic-1';
-import {pacificTourNet,interpolateTourNet,tourImagePieces,endlessLattice,bandOffsets} from './tour-layout.mjs?v=dancing-2';
+import {readTourPath} from './tour-pages.mjs?v=history-1';
+import {createTourMarkers,projectTourLocations,tourEnabled,tourLocations,pacificLightingEnabled} from './tour-markers.mjs?v=history-1';
+import {createTourRoutes,projectTourRoutes} from './tour-route-renderer.mjs?v=history-1';
+import {loadPeriod} from './history-loader.mjs?v=history-1';
+import {pacificTourNet,tourImagePieces,endlessLattice,bandOffsets} from './tour-layout.mjs?v=dancing-2';
 import pacificLighting from './maps/pacific-manifest.mjs?v=pacific-light-1';
-import {createTourStory} from './tour-story.mjs?v=chapters-1';
-import {timelineStops,timelineStop,timelineRoutes,timelinePeriod} from './tour-timeline.mjs?v=stories-7';
+import {createTourStory} from './tour-story.mjs?v=history-1';
+import {periods,period as periodInfo} from './history/index.mjs?v=history-1';
 import {MergedMaps,mergedEntry,mergedCompatible} from './merged-maps.mjs?v=endless-1';
 import {riverFieldGLSL} from './river-layers.mjs?v=cloud-assets-1';
 import {DefaultLayers,defaultLayerPreset,imageVertex,imageFragment,graticuleFragment} from './default-layers.mjs?v=cloud-assets-1';
@@ -42,16 +41,13 @@ import {layoutOptions,styleOptions,layoutIcon} from './map-options.mjs?v=backdro
 const $=id=>document.getElementById(id), canvas=$('map'),overlay=$('overlay'),ctx=overlay.getContext('2d');
 const tourMarkers=createTourMarkers($('stage'),canvas);
 const tourRoutes=createTourRoutes($('stage'));
-const tourAreas=createTourAreas($('stage'));
-let tourAreaProjection=null,tourAreaProjectionKey='';
-const tourStory=createTourStory($('controls'),()=>closeTour(),paused=>{if(historyFocus){historyPaused=paused;syncHistoryTools();}tourRoutes.setPaused(paused);},id=>selectTourPeriod(id));
+const tourStory=createTourStory($('controls'),()=>closeHistoryFocus(true));
+// A story URL such as /silk-road/ opens the timeline focused on that story.
 const initialTour=readTourPath(location.pathname);
-let pendingTour=initialTour?.id||null;
-let activeTourData=null,activeTourRoutes=[],activeTourAreas=[],tourLoadToken=0;
-let activeTour=null,tourReturnView=null,tourProjection=null,tourProjectionKey='',tourAnimation=0;
-let tourNetFrom=null,tourNetStart=null,tourNetTo=null,tourNetCurrent=null,tourLayoutProgress=1;
-// History mode state lives here so the net and tour helpers above can read it safely.
-let historyOn=false,historyStopId=new URLSearchParams(location.search).get('history'),historyData=null,historyLoad=0,historyProjection=null,historyProjectionKey='',historyPaused=false,historyPeriodHint=null;
+let tourAnimation=0;
+// History timeline: one period at a time from dist/history (see history-loader.mjs).
+let historyOn=false,historyPeriodId=null,historyPeriod=null,historyLoad=0,historyProjection=null,historyProjectionKey='';
+let historyFocus=initialTour?.id||null,historyFocusView=null,historyFocusPending=!!initialTour;
 const coordinateReadout=document.createElement('div');
 coordinateReadout.id='map-coordinates';coordinateReadout.hidden=true;
 coordinateReadout.setAttribute('aria-label','Coordinates under pointer');document.querySelector('.view-tools').prepend(coordinateReadout);
@@ -253,20 +249,27 @@ function danceGrid(){
  }
  return danceModes;
 }
-function danceActive(){return !!renderMerged&&state.arrangement==='dymaxion'&&!tourNetFrom&&!exporting&&!!danceGrid();}
+function danceActive(){return !!renderMerged&&state.arrangement==='dymaxion'&&!exporting&&!!danceGrid();}
 function danceSettled(){return danceActive()&&danceTweens.size===0;}
 function resetDance(){if(!danceBase)return;for(const t of net){const b=danceBase.find(a=>a.id===t.id);if(b&&(t.x!==b.x||t.y!==b.y||t.r!==b.r)){t.x=b.x;t.y=b.y;t.r=b.r;meshSignature=null;}}danceMode='base';danceOffsets={};danceTweens.clear();danceShift=[0,0];}
-// A drag that runs along the other band switches modes once its direction is clear.
+// A deliberate pan along the other band switches modes: the drag must run a
+// 40% of that band's period on screen (never less than 120 px), so a nudge
+// to look around never re-forms the group. The piece nearest the viewport centre
+// is the anchor: it keeps its place (turning on the spot if it must) and the
+// others re-form around it, so what the user is looking at does not move away.
 function danceConsiderDrag(dx,dy){
- if(!danceActive())return;danceDrag.x+=dx;danceDrag.y+=dy;const length=Math.hypot(danceDrag.x,danceDrag.y);if(length<70)return;
- const along=mode=>{const P=danceModes[mode].lattice.period,b=rotateScreen([P[0],-P[1]]);return Math.abs(danceDrag.x*b[0]+danceDrag.y*b[1])/Math.hypot(b[0],b[1])/length;};
- const base=along('base'),vertical=along('pacific'),want=vertical>base*1.15?'pacific':base>vertical*1.15?'base':danceMode;
- danceDrag={x:0,y:0};if(want===danceMode)return;
- // Re-shape the group where it currently is: Asia/Pacific never turns, so the new
- // arrangement is anchored on its present slot rather than on the origin.
- const asia=net.find(t=>t.id===1),tween=danceTweens.get(1),home=danceModes[want].net.find(t=>t.id===1);
- danceShift=[(tween?tween.tx:asia.x)-home.x,(tween?tween.ty:asia.y)-home.y];
- danceMode=want;danceOffsets={};draw();
+ if(!danceActive())return;danceDrag.x+=dx;danceDrag.y+=dy;
+ const unit=scale*state.zoom,other=danceMode==='base'?'pacific':'base';
+ const along=mode=>{const P=danceModes[mode].lattice.period,b=rotateScreen([P[0],-P[1]]);return Math.abs(danceDrag.x*b[0]+danceDrag.y*b[1])/Math.hypot(b[0],b[1]);};
+ const towardOther=along(other),towardCurrent=along(danceMode),need=Math.max(120,.4*Math.hypot(...danceModes[other].lattice.period)*unit);
+ if(towardOther<need)return;
+ danceDrag={x:0,y:0};if(towardOther<towardCurrent*1.3)return;
+ const c=rotateScreen([-state.panX/unit,-state.panY/unit],-state.gridRotation*Math.PI/180),centre=[c[0],-c[1]];
+ const placed=t=>{const tween=danceTweens.get(t.id);return tween?[tween.tx,tween.ty]:[t.x,t.y];};
+ const anchor=net.reduce((best,t)=>{const p=placed(t),d=Math.hypot(p[0]-centre[0],p[1]-centre[1]);return d<best.d?{t,p,d}:best;},{d:Infinity});
+ const home=danceModes[other].net.find(a=>a.id===anchor.t.id);
+ danceShift=[anchor.p[0]-home.x,anchor.p[1]-home.y];
+ danceMode=other;danceOffsets={};draw();
 }
 const easeOutBack=p=>p>=1?1:1+2*Math.pow(p-1,3)+1*Math.pow(p-1,2);
 function danceStep(now){
@@ -287,49 +290,28 @@ function danceStep(now){
  }
  return moving;
 }
-// Tours reuse geographic anchors and the normal camera; no map settings change.
-function projectedRoutes(){
- const key=[activeTour,state.method,state.height,state.arrangement,state.lon,state.lat,state.roll].join('/');
- if(!tourProjection||key!==tourProjectionKey){tourProjection=projectTourRoutes(tiles,tourNetTo||net,state,activeTourRoutes);tourProjectionKey=key;}
- return tourProjection;
+// History routes for the current period, projected on the live net (the dancing
+// pieces move the net objects in place, so cached anchors follow). Detail routes
+// appear only once the camera passes their zoom level.
+function historyRoutes(){
+ if(!historyOn||!historyPeriod)return [];
+ const key=[historyPeriod.period.id,state.method,state.height,state.arrangement,state.lon,state.lat,state.roll].join('/');
+ if(!historyProjection||key!==historyProjectionKey){historyProjection=projectTourRoutes(tiles,net,state,historyPeriod.routes);historyProjectionKey=key;}
+ return historyProjection.filter(route=>!route.zoom||state.zoom>=route.zoom);
 }
-function projectedAreas(){
- const key=[activeTour,state.method,state.height,state.arrangement,state.lon,state.lat,state.roll].join('/');
- if(!tourAreaProjection||key!==tourAreaProjectionKey){tourAreaProjection=projectTourAreas(tiles,tourNetTo||net,state,activeTourAreas);tourAreaProjectionKey=key;}
- return tourAreaProjection;
-}
-// Pieces move between the base arrangement and the Pacific-facing one (Spaceship
-// Earth only). tourNetFrom is always the base net (artwork source frames);
-// tourNetStart is where the current move began. Returning to base settles back
-// to the plain renderer.
-function settleTourNet(){if(tourNetFrom&&tourNetTo===tourNetFrom){net=tourNetFrom;tourNetFrom=tourNetStart=tourNetTo=tourNetCurrent=null;}}
-function moveTourNet(target){
- if(danceActive())return false;
- const wantPacific=target==='pacific'&&pacificLayoutEnabled(renderDefault)&&state.arrangement==='dymaxion';
- if(!wantPacific&&!tourNetFrom)return false;
- // The story alone gets the full Pacific view (Africa joins the Atlantic edge); timeline stops keep Eurasia and Africa joined.
- const base=tourNetFrom||net,goal=wantPacific?pacificTourNet(tiles,base,{atlantic:activeTour==='french-polynesia'}):base;
- if(tourNetTo&&JSON.stringify(tourNetTo)===JSON.stringify(goal))return false;
- if(!tourNetTo&&!wantPacific)return false;
- if(!tourNetFrom){tourNetFrom=net;tourNetCurrent=net;}
- tourNetStart=net;tourNetTo=goal;tourLayoutProgress=0;tourProjection=null;historyProjection=null;return true;
-}
-function cancelTourAnimation(){cancelAnimationFrame(tourAnimation);tourAnimation=0;if(tourNetTo&&tourLayoutProgress<1){net=tourNetCurrent=tourNetTo;tourLayoutProgress=1;settleTourNet();meshSignature=null;draw();}}
+function historySpots(){return historyPeriod?historyPeriod.spots:[];}
+function cancelTourAnimation(){cancelAnimationFrame(tourAnimation);tourAnimation=0;}
 function animateTourView(target){
  cancelAnimationFrame(tourAnimation);tourAnimation=0;
  const from={zoom:state.zoom,panX:state.panX,panY:state.panY},start=performance.now();
  const duration=matchMedia('(prefers-reduced-motion: reduce)').matches?0:1250;
- // The Pacific pieces move only while the story opens; chapter changes keep the settled net.
- const moveNet=!!tourNetTo&&tourLayoutProgress<1;
  const step=now=>{
   const t=duration?Math.min(1,(now-start)/duration):1,ease=1-(1-t)**3;
   for(const key of ['zoom','panX','panY'])state[key]=from[key]+(target[key]-from[key])*ease;
-  if(moveNet){tourLayoutProgress=ease;net=tourNetCurrent=t<1?interpolateTourNet(tourNetStart,tourNetTo,ease):tourNetTo;meshSignature=null;if(t>=1)settleTourNet();}
   draw();tourAnimation=t<1?requestAnimationFrame(step):0;
  };
  tourAnimation=requestAnimationFrame(step);
 }
-function focusTour(){focusPoints([...projectedRoutes(),...projectedAreas()].flatMap(route=>route.anchors.map(({local,tile})=>rotateScreen(canvasWorld(local,tile)))));}
 function focusPoints(points){
  if(!points.length)return;
  const xs=points.map(p=>p[0]),ys=points.map(p=>p[1]);
@@ -342,124 +324,69 @@ function focusPoints(points){
  const zoom=Math.min(maximumZoom(scale),Math.max(.25,unit/scale));
  animateTourView({zoom,panX:(left+right-w)/2-(bounds[0]+bounds[2])/2*scale*zoom,panY:(top+bottom-h)/2-(bounds[1]+bounds[3])/2*scale*zoom});
 }
-function closeTour(restore=true,navigate=true){
- if(historyFocus)return closeHistoryFocus(restore);
- if(!activeTour)return;
- ++tourLoadToken;activeTourData=null;activeTourRoutes=[];activeTourAreas=[];tourProjection=null;tourAreaProjection=null;
- cancelAnimationFrame(tourAnimation);tourAnimation=0;const selectedId=activeTour;activeTour=null;tourStory.close();
- if(!(historyOn&&historyWantsPacific())){if(tourNetFrom&&net===tourNetCurrent){net=tourNetFrom;meshSignature=null;}tourNetFrom=tourNetStart=tourNetTo=tourNetCurrent=null;tourLayoutProgress=1;}
- if(restore&&tourReturnView){scale=tourReturnView.scale;Object.assign(state,tourReturnView.view);setSidebarExpanded(tourReturnView.expanded,false);}
- tourReturnView=null;
- if(navigate)tourNavigation.close(restore);
- if(historyOn)tourRoutes.setPaused(historyPaused);syncHistoryTools();
- if(restore){draw();requestAnimationFrame(()=>{if(!activeTour)document.querySelector(`[data-tour-id="${selectedId}"]`)?.focus({preventScroll:true});});}
-}
-function selectedStory(location){return {...location,animated:activeTourRoutes.some(r=>r.animated),waves:[...new Set(activeTourRoutes.map(r=>r.wave).filter(Boolean))]};}
-function selectTourPeriod(id,writeURL=true){
- if(!activeTour||!activeTourData?.periodFor)return;
- const period=activeTourData.periodFor(id);activeTourRoutes=period.routes;tourProjection=null;tourProjectionKey='';
- tourStory.update({...selectedStory(tourLocations.find(t=>t.id===activeTour)),storyId:period.storyId,periodId:period.id,waves:period.waves});
- if(writeURL&&readTourPath(window.location.pathname)?.id===activeTour)history.replaceState(history.state,'',withPeriod(window.location.href,period.id));
- focusTour();draw();
-}
-async function finishOpeningTour(location){
- const token=++tourLoadToken;
- try{
-  const [data]=await Promise.all([loadTourData(location.id),tourStory.ready]);
-  if(token!==tourLoadToken||activeTour!==location.id)return;
-  activeTourData=data;activeTourRoutes=data.routes;activeTourAreas=data.areas;tourProjection=null;tourAreaProjection=null;
-  if(data.periods){const period=data.periodFor(readPeriod(window.location.search)||historyPeriodHint);historyPeriodHint=null;tourStory.setPeriods(data.periods,period.id,data.heading);selectTourPeriod(period.id,false);}
-  else {tourStory.update(selectedStory(location));focusTour();draw();}
- }catch(error){if(token===tourLoadToken&&activeTour===location.id)tourStory.error(()=>finishOpeningTour(location));}
-}
-function openTour(location,navigate=true){
- if(!location?.overlay||!tourEnabled(renderDefault)||activeTour)return;
- if(navigate)updateMapUrl();
- tourReturnView={scale,view:{zoom:state.zoom,panX:state.panX,panY:state.panY},expanded:state.sidebarExpanded};
- setSidebarExpanded(false,false);activeTour=location.id;
- if(navigate)tourNavigation.open(activeTour);
- if(activeTour==='french-polynesia')moveTourNet('pacific');
- tourStory.open(location);hideCoordinateReadout();syncHistoryTools();draw();finishOpeningTour(location);
-}
-const tourNavigation=initTourNavigation({mapPath:()=>shareSelection.path,show:id=>{
- pendingTour=null;
- if(activeTour!==id)closeTour(true,false);
- if(!id||activeTour===id)return;
- pendingTour=id;
- if(!tourEnabled(renderDefault)){
-  const pair=sharePair('lifezones','dymaxion');applyMapOption(pair.layout,'layout');applyMapOption(pair.style,'style');
- }
- draw();
-}});
-$('stage').addEventListener('tourselect',event=>{if(historyOn)focusHistoryStory(event.detail);else openTour(event.detail);});
-// History focus: one slider only. All stories stay drawn for the stop; a dot or
-// chip frames that story's chapter and shows its text in the card, without the
-// card's own period slider. Closing restores the camera; changing the stop
-// re-reads the same story's chapter or closes when it has none there.
-let historyFocus=null,historyFocusView=null;
-function historyChapter(id){const period=timelinePeriod(historyStop(),id),data=historyData?.[id];return period&&data?.periodFor?data.periodFor(period):null;}
-function focusHistoryStory(location){
- if(!historyOn||!historyData||activeTour)return;
- const period=historyChapter(location.id);if(!period)return;
+// Focus: a dot frames its story's routes for this period and shows the spot text
+// from the period Markdown. Every other story stays drawn; the scrubber stays.
+function focusHistoryStory(id){
+ if(!historyOn||!historyPeriod)return;const spot=historyPeriod.text.spots[id];if(!spot)return;
  if(!historyFocus)historyFocusView={scale,view:{zoom:state.zoom,panX:state.panX,panY:state.panY},expanded:state.sidebarExpanded};
- historyFocus=location.id;setSidebarExpanded(false,false);
- tourStory.ready.catch(()=>{});tourStory.open(location);tourStory.update({...location,animated:true,waves:period.waves,storyId:period.storyId,periodId:period.id});
- tourRoutes.setPaused(historyPaused);hideCoordinateReadout();
- focusPoints(projectTourRoutes(tiles,tourNetTo||net,state,period.routes).flatMap(route=>route.anchors.map(({local,tile})=>rotateScreen(canvasWorld(local,tile)))));
- syncHistoryTools();draw();
+ historyFocus=id;setSidebarExpanded(false,false);
+ tourStory.show(historySpots().find(s=>s.id===id)||{id,title:spot.title},{...spot,storyId:id});
+ hideCoordinateReadout();
+ const box=spot.view.match(/(-?[\d.]+)\s*,\s*(-?[\d.]+)\s*(?:→|->)\s*(-?[\d.]+)\s*,\s*(-?[\d.]+)/);
+ const points=box?projectTourLocations(tiles,net,state,[[+box[1],+box[2]],[+box[3],+box[4]],[+box[1],+box[4]],[+box[3],+box[2]]].map(([latitude,longitude])=>({latitude,longitude}))).map(({local,tile})=>rotateScreen(canvasWorld(local,tile)))
+  :projectTourRoutes(tiles,net,state,historyPeriod.routes.filter(r=>r.story===id)).flatMap(route=>route.anchors.map(({local,tile})=>rotateScreen(canvasWorld(local,tile))));
+ focusPoints(points);syncHistoryTools();draw();
 }
 function closeHistoryFocus(restore=true){
- if(!historyFocus)return;const selectedId=historyFocus;historyFocus=null;tourStory.close();
- cancelAnimationFrame(tourAnimation);tourAnimation=0;
+ if(!historyFocus)return;const selectedId=historyFocus;historyFocus=null;historyFocusPending=false;tourStory.close();
+ cancelTourAnimation();
  if(restore&&historyFocusView){scale=historyFocusView.scale;Object.assign(state,historyFocusView.view);setSidebarExpanded(historyFocusView.expanded,false);}
- historyFocusView=null;tourRoutes.setPaused(historyPaused);syncHistoryTools();draw();
+ historyFocusView=null;syncHistoryTools();draw();
  requestAnimationFrame(()=>{document.querySelector(`[data-tour-id="${selectedId}"]`)?.focus({preventScroll:true});});
 }
 function syncHistoryFocus(){
- if(!historyFocus)return;const location=tourLocations.find(t=>t.id===historyFocus),period=historyChapter(historyFocus);
- if(!period){closeHistoryFocus(true);return;}
- tourStory.update({...location,animated:true,waves:period.waves,storyId:period.storyId,periodId:period.id});
+ if(!historyFocus||historyFocusPending)return;const spot=historyPeriod?.text.spots[historyFocus];
+ if(!spot){closeHistoryFocus(true);return;}
+ tourStory.show(historySpots().find(s=>s.id===historyFocus)||{id:historyFocus,title:spot.title},{...spot,storyId:historyFocus});
 }
-// History mode: the unified timeline draws one stop across every story. Data for
-// all five stories loads only when the checkbox is switched on; the positioning
-// toolbox gives way to the scrubber; story dots filter to the stop's stories and
-// open at that stop's chapter. The selected stop travels in the URL as ?history=.
+const firstPeriodFor=id=>periods.find(p=>p.stories.includes(id))?.id||null;
+$('stage').addEventListener('tourselect',event=>{
+ if(historyOn)focusHistoryStory(event.detail.id);
+ else{historyPeriodId=firstPeriodFor(event.detail.id)||historyPeriodId;historyFocus=event.detail.id;historyFocusPending=true;enableHistory(true);}
+});
+// Scrubber: nine approximate dates; the age name sits in the panel heading.
 const historyToggle=$('show-history'),historyTools=document.querySelector('.history-tools'),historySlider=$('history-stop'),historyDate=$('history-date'),historyLabels=document.querySelector('.history-stop-labels'),historyNote=$('history-note');
-function historyStop(){return timelineStop(historyStopId);}
-function historyRoutes(){
- if(!historyOn||!historyData)return [];
- const stop=historyStop(),key=[stop.id,tourNetTo?'moved':'base',state.method,state.height,state.arrangement,state.lon,state.lat,state.roll].join('/');
- if(!historyProjection||key!==historyProjectionKey){historyProjection=projectTourRoutes(tiles,tourNetTo||net,state,timelineRoutes(stop,historyData));historyProjectionKey=key;}
- return historyProjection;
-}
-historySlider.max=String(timelineStops.length-1);historyLabels.style.setProperty('--stop-count',String(timelineStops.length));
-for(const stop of timelineStops){const b=document.createElement('button');b.type='button';b.dataset.stop=stop.id;b.setAttribute('aria-label',`${stop.label}, ${stop.date}`);b.textContent=stop.tick;b.onclick=()=>selectHistoryStop(stop.id);historyLabels.append(b);}
+function readHistoryParam(value){if(!value)return null;return periods.find(p=>p.id===value||p.stop===value)?.id||null;}
+historyPeriodId=readHistoryParam(new URLSearchParams(location.search).get('history'))||(initialTour?firstPeriodFor(initialTour.id):null);
+function currentPeriod(){return periodInfo(historyPeriodId);}
+historySlider.max=String(periods.length-1);historyLabels.style.setProperty('--stop-count',String(periods.length));
+for(const p of periods){const b=document.createElement('button');b.type='button';b.dataset.stop=p.id;b.setAttribute('aria-label',`${p.label}, ${p.date}`);b.textContent=p.tick;b.onclick=()=>selectHistoryPeriod(p.id);historyLabels.append(b);}
 function syncHistoryTools(){
- const stop=historyStop(),shown=historyOn&&!activeTour;
- historyToggle.checked=historyOn;historyTools.hidden=!shown;document.body.classList.toggle('history',shown);
- historySlider.value=String(timelineStops.indexOf(stop));historySlider.setAttribute('aria-valuetext',`${stop.label}, ${stop.date}`);historyDate.textContent=`${stop.label} · ${stop.date}`;
- for(const b of historyLabels.children)b.setAttribute('aria-pressed',String(b.dataset.stop===stop.id));
- const note=historyData?stop.note||(stop.chapters.length?'':'Nothing written for this period yet.'):'Loading stories…';
+ const info=currentPeriod();
+ historyToggle.checked=historyOn;historyTools.hidden=!historyOn;document.body.classList.toggle('history',historyOn);
+ historySlider.value=String(periods.indexOf(info));historySlider.setAttribute('aria-valuetext',`${info.label}, ${info.date}`);historyDate.textContent=`${info.label} · ${info.date}`;
+ for(const b of historyLabels.children)b.setAttribute('aria-pressed',String(b.dataset.stop===info.id));
+ const note=!historyPeriod?'Loading stories…':historyPeriod.period.id!==info.id?'Loading stories…':historyPeriod.text.intro.note||(historyPeriod.routes.length?'':'Nothing written for this period yet.');
  historyNote.textContent=note;historyNote.hidden=!note;
 }
-// Pacific stops (any Polynesian chapter) use the Pacific-facing arrangement on Spaceship Earth.
-const historyWantsPacific=()=>historyOn&&historyStop().tours.includes('french-polynesia');
-function syncHistoryNet(){if(activeTour)return;if(moveTourNet(historyWantsPacific()?'pacific':'base'))animateTourView({zoom:state.zoom,panX:state.panX,panY:state.panY});}
-function selectHistoryStop(id,writeURL=true){historyStopId=timelineStop(id).id;historyProjection=null;syncHistoryFocus();syncHistoryTools();if(writeURL)updateMapUrl();syncHistoryNet();draw();}
+function selectHistoryPeriod(id,writeURL=true){historyPeriodId=periodInfo(id).id;historyProjection=null;syncHistoryTools();if(writeURL)updateMapUrl();loadHistoryPeriod();draw();}
+async function loadHistoryPeriod(){
+ const token=++historyLoad,id=currentPeriod().id;
+ try{const data=await loadPeriod(id);if(token!==historyLoad||!historyOn)return;historyPeriod=data;historyProjection=null;
+  if(historyFocusPending){historyFocusPending=false;if(historyFocus)focusHistoryStory(historyFocus);}else syncHistoryFocus();
+  syncHistoryTools();draw();}
+ catch{if(token===historyLoad){historyNote.textContent='Could not load this period. Try again.';historyNote.hidden=false;}}
+}
 async function enableHistory(on){
- if(historyOn===on&&(historyData||!on)){syncHistoryTools();return;}
+ if(historyOn===on){syncHistoryTools();return;}
  historyOn=on;
  // Judge eligibility from the current settings, not from a renderer that may not be ready yet.
  if(on&&!tourEnabled(renderDefault||activeDefault())){const pair=sharePair('lifezones','dymaxion');applyMapOption(pair.layout,'layout');applyMapOption(pair.style,'style');}
- if(!on){++historyLoad;closeHistoryFocus(false);tourRoutes.setPaused(false);syncHistoryTools();updateMapUrl();syncHistoryNet();draw();return;}
- tourRoutes.setPaused(historyPaused);syncHistoryTools();updateMapUrl();syncHistoryNet();draw();
- if(historyData)return;
- const token=++historyLoad;
- try{const entries=await Promise.all(tourLocations.map(async t=>[t.id,await loadTourData(t.id)]));if(token!==historyLoad)return;historyData=Object.fromEntries(entries);historyProjection=null;syncHistoryTools();draw();}
- catch{if(token===historyLoad){historyNote.textContent='Could not load the stories. Try again.';historyNote.hidden=false;}}
+ if(!on){++historyLoad;historyPeriod=null;historyProjection=null;closeHistoryFocus(false);syncHistoryTools();updateMapUrl();draw();return;}
+ syncHistoryTools();updateMapUrl();loadHistoryPeriod();draw();
 }
 historyToggle.addEventListener('change',()=>enableHistory(historyToggle.checked));
-historySlider.addEventListener('input',()=>selectHistoryStop(timelineStops[+historySlider.value].id));
+historySlider.addEventListener('input',()=>selectHistoryPeriod(periods[+historySlider.value].id));
 
 // Manual map gestures interrupt the camera transition immediately.
 $('stage').addEventListener('pointerdown',cancelTourAnimation,true);
@@ -659,18 +586,18 @@ function syncSettingsVisibility(){
  }
 }
 document.addEventListener('change',syncSettingsVisibility);
-function render(refined=false,exportMode=false){if(exporting&&!exportMode)return;queued=false;document.documentElement.style.setProperty('--map-background',$('background-color').value);const background=$('background-color').value,brightness=[1,3,5].reduce((sum,i,k)=>sum+parseInt(background.slice(i,i+2),16)*[.299,.587,.114][k],0);document.documentElement.style.setProperty('--heading-ink',brightness>145?'#193c49':'#f6f4ed');for(const id of ['background-color','border-color','hex-grid-color','puzzle-color','graticule-color','river-color','backdrop-color'])$(id+'-value').value=$(id).value;syncOptionCards();syncSettingsVisibility();updateDistortionLegend();$('zoom-value').textContent=Math.round(state.zoom*100)+'%';if(!ready||!gl)return;const currentDefault=activeDefault();if(activeTour&&(!tourEnabled(currentDefault)||isAboutPath(location.pathname)))closeTour(false);const previousPath=!!renderDefault;selectRenderPath(currentDefault);initializeProgram(!!renderDefault);if(previousPath&&!renderDefault&&($('relief-enabled').checked||['ivory','elevation'].includes(displayedSource)))ensureRelief();if(!program)return;if(renderDefault&&!defaultLayers)defaultLayers=new DefaultLayers(gl,draw);if(renderDefault)defaultLayers.prepare(renderDefault);const wasMerged=!!renderMerged;renderMerged=!separateComparison?mergedEntry(renderDefault):null;if(renderMerged&&!wasMerged){if(surfaceCache===defaultLayers.base)surfaceCache=null;defaultLayers.dispose();defaultLayers=new DefaultLayers(gl,draw);defaultLayers.prepare(renderDefault);}if(!renderMerged&&mergedMaps){if(surfaceCache===mergedMaps.cache)surfaceCache=null;mergedMaps.dispose();mergedMaps=null;}const lighting=renderMerged?null:renderDefault?defaultLayers.lighting(renderDefault,scale*state.zoom,dpr,w,h,state.panX,state.panY,{capToBase:$('lighting-resolution-test').value==='map',compareHighest:$('lighting-resolution-test').value!=='auto'}):$('relief-enabled').checked&&relief?.ready?cachedLighting():null;canvas.dataset.renderPath=renderDefault?'images':'live';if(!renderDefault&&$('rivers-visible').checked&&uploadedRiverKey!==state.riverLevels+'/field'&&!offlineBake)updateRiverLayer();updateVisibleMesh();if(!exportMode)updateHeadingVisibility();gl.bindFramebuffer(gl.FRAMEBUFFER,null);gl.viewport(0,0,canvas.width,canvas.height);gl.clearColor(...[1,3,5].map(i=>parseInt(background.slice(i,i+2),16)/255),1);gl.clear(gl.COLOR_BUFFER_BIT);gl.useProgram(program);gl.uniform1f(uniforms.gridRotation,state.gridRotation*Math.PI/180);gl.uniform2f(uniforms.size,w,h);gl.uniform3f(uniforms.view,scale*state.zoom,state.panX,state.panY);gl.uniform3f(uniforms.angles,state.lon*Math.PI/180,state.lat*Math.PI/180,state.roll*Math.PI/180);gl.uniform1f(uniforms.bias,state.bias);gl.uniform1f(uniforms.blend,+$('interpolation').value);gl.uniform1f(uniforms.grid,$('graticule').checked?state.grid*Math.PI/180:0);gl.uniform1f(uniforms.gridWidth,.6*state.graticuleWidth/(scale*state.zoom));gl.uniform3fv(uniforms.gridColor,[1,3,5].map(i=>parseInt($('graticule-color').value.slice(i,i+2),16)/255));gl.uniform1i(uniforms.palette,displayedSource==='continents'?['atlas','original','night'].indexOf($('palette').value):1);gl.uniform1i(uniforms.distortion,derivativeSupport?($('distortion').checked?3:0):0);gl.uniform1f(uniforms.distortionOpacity,state.distortionOpacity);gl.uniform1f(uniforms.pixelScale,scale*state.zoom*dpr);gl.uniform1i(uniforms.map,0);gl.uniform1i(uniforms.felvClip,arrangement.clip?1:0);
+function render(refined=false,exportMode=false){if(exporting&&!exportMode)return;queued=false;document.documentElement.style.setProperty('--map-background',$('background-color').value);const background=$('background-color').value,brightness=[1,3,5].reduce((sum,i,k)=>sum+parseInt(background.slice(i,i+2),16)*[.299,.587,.114][k],0);document.documentElement.style.setProperty('--heading-ink',brightness>145?'#193c49':'#f6f4ed');for(const id of ['background-color','border-color','hex-grid-color','puzzle-color','graticule-color','river-color','backdrop-color'])$(id+'-value').value=$(id).value;syncOptionCards();syncSettingsVisibility();updateDistortionLegend();$('zoom-value').textContent=Math.round(state.zoom*100)+'%';if(!ready||!gl)return;const currentDefault=activeDefault();const previousPath=!!renderDefault;selectRenderPath(currentDefault);initializeProgram(!!renderDefault);if(previousPath&&!renderDefault&&($('relief-enabled').checked||['ivory','elevation'].includes(displayedSource)))ensureRelief();if(!program)return;if(renderDefault&&!defaultLayers)defaultLayers=new DefaultLayers(gl,draw);if(renderDefault)defaultLayers.prepare(renderDefault);const wasMerged=!!renderMerged;renderMerged=!separateComparison?mergedEntry(renderDefault):null;if(renderMerged&&!wasMerged){if(surfaceCache===defaultLayers.base)surfaceCache=null;defaultLayers.dispose();defaultLayers=new DefaultLayers(gl,draw);defaultLayers.prepare(renderDefault);}if(!renderMerged&&mergedMaps){if(surfaceCache===mergedMaps.cache)surfaceCache=null;mergedMaps.dispose();mergedMaps=null;}const lighting=renderMerged?null:renderDefault?defaultLayers.lighting(renderDefault,scale*state.zoom,dpr,w,h,state.panX,state.panY,{capToBase:$('lighting-resolution-test').value==='map',compareHighest:$('lighting-resolution-test').value!=='auto'}):$('relief-enabled').checked&&relief?.ready?cachedLighting():null;canvas.dataset.renderPath=renderDefault?'images':'live';if(!renderDefault&&$('rivers-visible').checked&&uploadedRiverKey!==state.riverLevels+'/field'&&!offlineBake)updateRiverLayer();updateVisibleMesh();if(!exportMode)updateHeadingVisibility();gl.bindFramebuffer(gl.FRAMEBUFFER,null);gl.viewport(0,0,canvas.width,canvas.height);gl.clearColor(...[1,3,5].map(i=>parseInt(background.slice(i,i+2),16)/255),1);gl.clear(gl.COLOR_BUFFER_BIT);gl.useProgram(program);gl.uniform1f(uniforms.gridRotation,state.gridRotation*Math.PI/180);gl.uniform2f(uniforms.size,w,h);gl.uniform3f(uniforms.view,scale*state.zoom,state.panX,state.panY);gl.uniform3f(uniforms.angles,state.lon*Math.PI/180,state.lat*Math.PI/180,state.roll*Math.PI/180);gl.uniform1f(uniforms.bias,state.bias);gl.uniform1f(uniforms.blend,+$('interpolation').value);gl.uniform1f(uniforms.grid,$('graticule').checked?state.grid*Math.PI/180:0);gl.uniform1f(uniforms.gridWidth,.6*state.graticuleWidth/(scale*state.zoom));gl.uniform3fv(uniforms.gridColor,[1,3,5].map(i=>parseInt($('graticule-color').value.slice(i,i+2),16)/255));gl.uniform1i(uniforms.palette,displayedSource==='continents'?['atlas','original','night'].indexOf($('palette').value):1);gl.uniform1i(uniforms.distortion,derivativeSupport?($('distortion').checked?3:0):0);gl.uniform1f(uniforms.distortionOpacity,state.distortionOpacity);gl.uniform1f(uniforms.pixelScale,scale*state.zoom*dpr);gl.uniform1i(uniforms.map,0);gl.uniform1i(uniforms.felvClip,arrangement.clip?1:0);
  const drawColor=(width=w,height=h,baseOnly=false,overlayOnly=false)=>{gl.useProgram(program);gl.uniform1i(uniforms.overlayOnly,overlayOnly?1:0);gl.uniform1f(uniforms.grid,!baseOnly&&$('graticule').checked?state.grid*Math.PI/180:0);gl.uniform1i(uniforms.distortion,!baseOnly&&derivativeSupport?($('distortion').checked?3:0):0);gl.uniform2f(uniforms.size,width,height);if(!renderDefault){bindMaterialUniforms();bindRiverUniforms();}gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,texture);if(!overlayOnly&&drawPrecomputedSurface())return;gl.uniform1i(uniforms.bakedOn,0);if(!overlayOnly&&liveSourceKey!==sourceKey(displayedSource)){if(!$('map-loading').textContent)updateMapSource();return;}drawGeometry(program);};
  if(renderMerged){
   if(!mergedMaps)mergedMaps=new MergedMaps(gl,draw);
   defaultLayers.base.setRequired(new Set());defaultLayers.detail.setRequired(new Set());
-  const relit=(tourNetFrom&&tourLayoutProgress===1||danceSettled()&&danceMode==='pacific')&&pacificLightingEnabled(renderDefault)&&mergedMaps.hasOverview(pacificLighting)?pacificLighting:null;
+  const relit=danceSettled()&&danceMode==='pacific'&&pacificLightingEnabled(renderDefault)&&mergedMaps.hasOverview(pacificLighting)?pacificLighting:null;
   const dancing=danceActive()&&danceStep(performance.now());if(dancing)requestAnimationFrame(draw);
-  const plan=mergedMaps.draw(renderMerged,{width:w,height:h,unit:scale*state.zoom,dpr,panX:state.panX,panY:state.panY},danceActive()?tourImagePieces(danceBase,net,state.gridRotation,relit):tourNetFrom?tourImagePieces(tourNetFrom,net,state.gridRotation,relit):null,(tourNetFrom||danceActive())&&pacificLightingEnabled(renderDefault)?[pacificLighting]:[]);
-  canvas.dataset.tourLighting=relit?'pacific':tourNetFrom||danceMode==='pacific'?pacificLightingEnabled(renderDefault)?'loading':'rotated':'default';
+  const plan=mergedMaps.draw(renderMerged,{width:w,height:h,unit:scale*state.zoom,dpr,panX:state.panX,panY:state.panY},danceActive()?tourImagePieces(danceBase,net,state.gridRotation,relit):null,danceActive()&&pacificLightingEnabled(renderDefault)?[pacificLighting]:[]);
+  canvas.dataset.tourLighting=relit?'pacific':danceMode==='pacific'?pacificLightingEnabled(renderDefault)?'loading':'rotated':'default';
   surfaceCache=mergedMaps.cache;canvas.dataset.surface='precomputed';canvas.dataset.surfacePreview=String(!plan.ready);canvas.dataset.surfaceLevel=String(plan.level);canvas.dataset.surfacePending=String(surfaceCache.pending.size);canvas.dataset.surfaceTiles=String(surfaceCache.cache.size);canvas.dataset.surfaceFailures=String(surfaceCache.failures.size);
  }else drawColor(w,h,!!lighting);
- canvas.dataset.merged=String(!!renderMerged);canvas.dataset.tourLayout=tourNetFrom?'pacific':danceActive()?'dancing':'default';canvas.dataset.tourProgress=tourLayoutProgress.toFixed(2);canvas.dataset.bandOffsets=danceActive()?net.map(t=>`${t.id}:${danceOffsets[t.id]||0}`).join(' '):'';canvas.dataset.danceMode=danceActive()?danceMode:'';canvas.dataset.danceMoving=String(danceTweens.size>0);canvas.dataset.danceShift=danceShift.map(v=>v.toFixed(2)).join(',');canvas.dataset.dancePositions=net.map(t=>`${t.id}:${t.x.toFixed(2)},${t.y.toFixed(2)},${t.r.toFixed(2)}`).join(' ');
+ canvas.dataset.merged=String(!!renderMerged);canvas.dataset.tourLayout=danceActive()?'dancing':'default';canvas.dataset.bandOffsets=danceActive()?net.map(t=>`${t.id}:${danceOffsets[t.id]||0}`).join(' '):'';canvas.dataset.danceMode=danceActive()?danceMode:'';canvas.dataset.danceMoving=String(danceTweens.size>0);canvas.dataset.danceShift=danceShift.map(v=>v.toFixed(2)).join(',');canvas.dataset.dancePositions=net.map(t=>`${t.id}:${t.x.toFixed(2)},${t.y.toFixed(2)},${t.r.toFixed(2)}`).join(' ');
  if(lighting){(renderDefault?defaultLayers:projectedLighting).composite(lighting,w,h,scale*state.zoom,state.panX,state.panY,state.shadowOpacity,state.lightOpacity);
   if(!renderDefault&&($('graticule').checked||$('distortion').checked)){gl.enable(gl.BLEND);gl.blendFuncSeparate(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA,gl.ONE,gl.ONE_MINUS_SRC_ALPHA);drawColor(w,h,false,true);gl.disable(gl.BLEND);}
  }
@@ -682,14 +609,10 @@ function render(refined=false,exportMode=false){if(exporting&&!exportMode)return
  updateLoadingStatus();
  if(!exportMode){
   const enabled=tourEnabled(renderDefault)&&!isAboutPath(location.pathname);
-  if(activeTour&&!enabled)closeTour(false);
-  if(pendingTour&&enabled&&persistenceReady){const id=pendingTour;pendingTour=null;openTour(tourLocations.find(t=>t.id===id));}
   if(historyOn&&!enabled)enableHistory(false);
- // A direct ?history= load reaches a Pacific stop before the map was ready: catch up once it is.
- if(historyOn&&enabled&&!activeTour&&tourLayoutProgress===1&&!!tourNetFrom!==historyWantsPacific())syncHistoryNet();
- tourMarkers.update(enabled?projectTourLocations(tiles,net,state,activeTour?tourLocations.filter(location=>location.id===activeTour):historyOn?tourLocations.filter(location=>historyStop().tours.includes(location.id)):tourLocations):[],point,w,h);
-  tourAreas.update(activeTour&&tourLayoutProgress===1?projectedAreas():[],point,w,h);
-  tourRoutes.update(activeTour&&tourLayoutProgress===1?projectedRoutes():historyOn&&enabled&&!activeTour&&tourLayoutProgress===1?historyRoutes():[],point,w,h);updateCoordinateReadout();
+  // Off the timeline the seven entry dots invite a click; on it each period places its own spots.
+  tourMarkers.update(enabled?projectTourLocations(tiles,net,state,historyOn?historySpots():tourLocations):[],point,w,h);
+  tourRoutes.update(historyOn&&enabled?historyRoutes():[],point,w,h);updateCoordinateReadout();
  }
 
  ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,w,h);ctx.lineJoin='round';
@@ -1002,7 +925,7 @@ function captureSettings(){
  return {version:1,state:{...state,...applied},controls,view:{scale,zoom:state.zoom,panX:state.panX,panY:state.panY},details:Object.fromEntries([...document.querySelectorAll('aside > details')].map(el=>[el.id,el.open]))};
 }
 function readMapStateFromUrl(){const hash=location.hash;if(!hash.startsWith('#m=')&&!hash.startsWith('#p='))return null;try{return decodeMapState(hash.slice(3));}catch{return null;}}
-function updateMapUrl(){if(activeTour||readTourPath(location.pathname)||!persistenceReady||exporting||isAboutPath(location.pathname))return;clearTimeout(saveTimer);try{const url=new URL(location.href);if(!location.pathname.startsWith('/tests/'))url.pathname=shareSelection.path;const preset=presetSettings(shareSelection),defaults={state:{...urlDefaults.state,...preset.state},controls:{...urlDefaults.controls,...preset.controls},details:urlDefaults.details,view:defaultView};const encoded=encodeMapState(captureSettings(),defaults);url.hash=encoded?'m='+encoded:'';if(historyOn)url.searchParams.set('history',historyStop().id);else url.searchParams.delete('history');history.replaceState(null,'',url);}catch{}}
+function updateMapUrl(){if(!persistenceReady||exporting||isAboutPath(location.pathname))return;clearTimeout(saveTimer);try{const url=new URL(location.href);if(!location.pathname.startsWith('/tests/'))url.pathname=shareSelection.path;const preset=presetSettings(shareSelection),defaults={state:{...urlDefaults.state,...preset.state},controls:{...urlDefaults.controls,...preset.controls},details:urlDefaults.details,view:defaultView};const encoded=encodeMapState(captureSettings(),defaults);url.hash=encoded?'m='+encoded:'';if(historyOn)url.searchParams.set('history',currentPeriod().id);else url.searchParams.delete('history');history.replaceState(null,'',url);}catch{}}
 function scheduleSave(){if(!persistenceReady)return;clearTimeout(saveTimer);saveTimer=setTimeout(updateMapUrl,180);}
 document.addEventListener('input',scheduleSave);document.addEventListener('change',scheduleSave);
 
@@ -1135,13 +1058,10 @@ installColumnOptions();
 
 urlDefaults=captureSettings();
 restoreSettings(presetSettings(shareSelection));
+// A story URL keeps the preset camera: the timeline frames the story once its period loads.
 if(!initialTour)restoreSettings(readMapStateFromUrl());
-else if(typeof history.state?.tourReturnURL==='string'){
- // Reloading a tour keeps the original return camera in its history entry.
- try{const hash=new URL(history.state.tourReturnURL,location.origin).hash;if(/^#[mp]=/.test(hash))restoreSettings(decodeMapState(hash.slice(3)));}catch{}
-}
 initAnalytics(initialTour?.path||shareSelection.path);setSidebarExpanded(state.sidebarExpanded,false);rebuild(false);initializeMapTexture();
-if(historyStopId&&!initialTour)enableHistory(true);
+if(historyPeriodId)enableHistory(true);
 document.querySelectorAll('aside details').forEach(el=>el.addEventListener('toggle',scheduleSave));
 new ResizeObserver(resize).observe($('stage'));
 updateRelief();

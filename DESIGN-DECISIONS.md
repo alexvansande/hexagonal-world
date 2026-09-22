@@ -640,9 +640,30 @@ own options at the end of Overlays, and for the map never to be draggable fully
 out of view, returning elastically so a sliver stays visible. Both are default
 behaviour; the grid keys are appended to the positional map-state lists.
 
+**History folder (September 22).** Reviewing the general flow map, the user
+asked for the scrubber to show approximate dates, for spots to move with the
+period (Vikings on Norway in 1000 CE, on Vinland in 1400), and for texts and
+routes to become very accessible data: a folder with one Markdown per period
+(all texts, spot and zoom localisation) and JSON routes, consistent colours across
+ages. Decisions, confirmed by the user: JSON for routes with a detail `zoom` field
+so some routes appear only when zoomed in; relaxed strands as a generated sidecar
+stamped with a hash of the routes ("I trust you"); all texts derived from the
+period Markdown, since the separate story pages were testing artifacts, so a
+story URL now simply opens the timeline focused on that story. The old story
+modules, chapter registry, inner story slider, pause button, area overlays in
+the app and the `?period=` chapter URLs were removed; area geometry stays as
+tested code. Wave colours moved from the stylesheet to `waves.json`.
+
+**Dance anchored on the centre (September 22).** The user saw a small drag down,
+made only to see an arrangement better, re-form the group and move the pieces in
+front of them away. Decision: a band switch needs a deliberate pan (40% of the
+other band's period on screen, never under 120 px), and the piece nearest
+the viewport centre is the anchor that keeps its place while the others re-form
+around it.
+
 Evidence: September 21 feature request and confirmation. Checks:
-`tour-chapter-tests.mjs`, `tour-marker-tests.mjs`, `tour-page-tests.mjs`,
-`/tests/tour-areas.html` (Norse), `/tests/tour-migrations.html`, `/tests/tour-polynesia.html`.
+`history-tests.mjs`, `tour-marker-tests.mjs`, `tour-page-tests.mjs`,
+`/tests/tour-history.html`, `/tests/tour-pages.html`.
 
 **Shareable tours (September 21).** The user requested a root URL and an OG image
 for every implemented tour. Use stable location IDs as root paths, with static

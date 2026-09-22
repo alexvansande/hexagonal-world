@@ -61,117 +61,77 @@ See [AUDIT.md](AUDIT.md) for the September 2026 diagnosis, repairs, performance 
 ## Implemented
 
 The Spaceship Earth and Felv arrangements, in every pre-rendered style except
-political borders and the distortion analysis, include seven discovery dots from
+political borders and the distortion analysis, include seven story dots from
 `dist/tour-markers.mjs`: Origin of mankind, Silk Road, Viking expansion (at the
 `/iceland-to-vinland/` URL), French Polynesia, Americas exchange, African networks
-and Ocean crossings. The Pacific-facing piece move and its relit artwork remain a
-Spaceship Earth feature (relit for Lifezones only; other styles rotate the
-original artwork). Each record has a stable `id`, `title`,
-`latitude`, `longitude`, and an `overlay` field (a stable overlay ID). The earlier
-imperial-extent and Amazon-basin dots were retired as entry points on September 21;
-their area geometry, clipping renderer and tests remain for future use. On re-cut arrangements such as Felv, where one hexagon appears as
-several placed pieces, a point projects onto the piece whose polygon contains
-it, so dots and routes never land in the empty space beside a moved piece.
-The reusable DOM layer emits a bubbling `tourselect` event with the
-complete record in `detail`. Coordinates are representative anchors.
+and Ocean crossings. Each record has a stable `id`, `title`, `latitude`,
+`longitude` and an `overlay` ID. On re-cut arrangements such as Felv, where one
+hexagon appears as several placed pieces, a point projects onto the piece whose
+polygon contains it. The DOM layer emits a bubbling `tourselect` event; off the
+timeline a dot switches history on at that story's first period, on the timeline
+it focuses that story.
 
-Selecting Silk Road fits the land and sea trade network into view and opens a compact
-story inside the existing picker shell. X or Escape removes the dotted routes,
-restores the previous camera and controls, and returns focus to the dot. Manual
-pan/zoom interrupts the transition; reduced motion skips it. Routes disappear
-when leaving the default map. `dist/tour-routes.mjs` contains the geographic
-waypoints, sources and projection; `dist/tour-story.mjs` renders the short card from `dist/tour-stories.md`.
-These are approximate corridors across different periods, including the Tarim
-branches, Dzungarian Gate/Zhetysu, Fergana, Pamir/Bactria, northern India, Persia
-and the Mediterranean. Paths split at map cuts and stay out of exports. Story
-selection has a clean root URL; existing map-camera hashes retain their original schema.
-Checks: `tour-route-tests.mjs`, `/tests/tour-story.html` and `?mobile=1`.
+History data lives in **`dist/history/`**, one period at a time, and is the only
+source of story content:
 
-`dist/tour-trade.mjs` assigns five animated commodity groups to those corridors:
-silk, gold/silver, glass/copper/tin, horses, and spices/cotton. Opposing traffic
-uses small parallel screen-space lanes, clipped at the map silhouette. Added
-Mediterranean and Red Sea legs connect Rome and India through Alexandria and an
-overland Nile–Berenike transfer. Directions indicate representative exchanges,
-not traffic volume. Pause and reduced motion reuse the migration controls.
-The editable color key is in `dist/tour-stories.md`; evidence and limitations
-are in `dist/silk-road-sources.md`.
+- `index.mjs` lists the nine periods in order (`id`, old `stop` name, scrubber
+  `tick`, `label`, `date`, `year`, and the `stories` present).
+- `<period>.md` holds the texts: an H1 `Label · date`, an intro paragraph, then one
+  `## story-id` section per spot with `### Title`, `spot: lat, lon` (where the
+  dot sits at that moment: the Vikings on Norway in 1000 CE, on Greenland in
+  1400), `view: fit` (frame the story's routes) or `view: lat,lon → lat,lon`
+  (an explicit box), paragraphs, legend lines `- wave: **Label** · text`, a `>`
+  caveat and a source link to the evidence notes (`dist/*-sources.md`).
+- `<period>.routes.json` is the authored route list: `id`, `story`, `wave`,
+  `title`, `coordinates` (lat/lon stops), optional `lane`, `uncertain`,
+  `geodesic`, `frequency`, `twoWay` (the loader adds the reversed partner on the
+  same lane) and `zoom`, the detail level: a route with `zoom: 1.6` is drawn only
+  once the camera is at 160% or closer, so regional networks appear as you zoom in.
+  Evidence dates and sources ride along as `period`, `sources`, `uncertainty`.
+- `<period>.strands.json` is generated (see relaxation below): the relaxed strands
+  per route plus a hash of the routes file, so a stale sidecar fails `history-tests.mjs`.
+- `waves.json` maps every wave to one label and colour, used by routes and legends
+  in every period, injected as CSS variables when history loads.
+- `relax.json` holds the relaxation settings and named hard stops per story.
 
-`dist/tour-trade-regions.mjs` supplies selected internal Chinese, Indian and
-Roman/Byzantine networks using named junctions. Constantinople connects Anatolia,
-the Aegean and the Via Egnatia. Regional routes retain the same commodity colors
-and directions; their reach does not represent imperial borders at one date.
+`dist/history-loader.mjs` fetches a period on demand (never at startup), parses the
+Markdown with `parsePeriod` from `dist/tour-content.mjs`, assembles the routes
+with sparse traffic timing per strand, and caches the result.
+`dist/tour-story.mjs` renders the card from the spot text it is given.
 
-The Silk Road card now has four discrete stops: Bronze Age (c. 1300 BCE),
-Antiquity (c. 150 CE, default), Early Middle Ages (c. 900 CE), and High Middle
-Ages (c. 1300 CE). `dist/tour-trade-periods.mjs` selects/revises the shared
-corridors and supplies Bronze Age, northern river/steppe and medieval maritime
-networks. Tin itineraries are marked uncertain; the Bronze Age text separates
-trade disruption from a single-cause explanation of collapse. Every period's
-prose and color key is editable under its `silk-road-*` ID in
-`dist/tour-stories.md`. The period is shareable as `/silk-road/?period=bronze-age`
-(or `antiquity`, `early-middle-ages`, `high-middle-ages`). Changing it preserves
-Pause and smoothly refits the network; closing restores the original map camera.
-
-Every story now uses the same chapter slider. `dist/tour-periods.mjs` builds dated
-periods from route lists: each period gets a `storyId` (`<tour>-<period>`), its
-wave order, and sparse traffic timing per route (`bothWays` adds a reversed
-partner on the same signed lane for two-way traffic). `loadTourData` returns
-`{heading, periods, periodFor}` for all five tours and the app selects a chapter
-from `?period=` or the story default. Human migrations have four chapters
-(`tour-migrations.mjs`: early hominins, Neanderthals and Denisovans, Homo sapiens
-expansion, later movements; early hominins run outward only), the Viking story five
-(`tour-vinland.mjs`: first raids, Rus and Danelaw, settlements, kings and conquests,
-then the Iceland–Greenland–Vinland story as its final chapter), Polynesia five
-(`tour-polynesia.mjs`: Pleistocene Near Oceania, Austronesians and Lapita, East
-Polynesia, the far corners, and an uncertain South American contact chapter) and
-the Americas four (`tour-americas.mjs`, including Amazonian river pottery and
-greenstone networks drawn as uncertain links), African networks five
-(`tour-africa.mjs`: Garamantes and Aksum, Ghana and the Swahili coast, Mali and
-Kilwa, Songhai and the Portuguese, the Atlantic slave trade, with enslaved people
-as their own red wave) and Ocean crossings three (`tour-oceans.mjs`: Ming fleets
-and the monsoon, Iberian routes, galleons and companies). The Silk Road Bronze
-Age and Antiquity chapters gained the Indus–Gulf, lapis lazuli, amber and Punt
-lanes. Evidence notes: `african-networks-sources.md` and `ocean-crossings-sources.md`. Evidence notes: `human-migrations-sources.md`,
-`territory-tours-sources.md`, `polynesia-sources.md` and `americas-exchange-sources.md`.
-Corridor relaxation (every chapter of every story): `scripts/dump-tour-routes.mjs`
-writes one JSON per tour with its unique routes, hard stops (endpoints, named
-places and junctions shared by routes) and settings; `scripts/relax-tour-routes.py`
-builds a 0.2° passability raster from the height overview (slope and elevation),
-Holdridge life zones (deserts, tundra, ice), big HydroRIVERS lines (bonus) and
-coasts, then runs a least-cost search between hard stops inside a soft corridor
-that scales with each leg. Two strands per route on the dense Silk Road and
-Americas stories, three elsewhere, each with its own smooth noise, so parallel
-courses jiggle through valleys and along coasts while the stops stay exact.
-Return routes reuse their partner's strands reversed. Sea handling per tour:
-`coastal` prefers shorelines (Norse, Americas, migrations, Silk Road), `open`
-treats open water as free as coast and islands as stops (Polynesia); the
-Beringia leg is a `landBridge` so modern sea inside its corridor costs like land.
-Results live in `dist/tour-<tour>-relaxed.mjs`, keyed by route ID plus a hash of
-the authored coordinates; `definePeriods` attaches them, and the renderer draws
-each strand with its own share of the sparse traffic. Dots fade in at a route's
-first stop and out at its last through a per-route luminance mask, instead of
-appearing and vanishing. Nothing runs at runtime beyond the usual projection.
-Regenerate with a local virtualenv holding numpy and Pillow:
-`node scripts/dump-tour-routes.mjs _relax && python3 scripts/relax-tour-routes.py _relax/<tour>.json dist/tour-<tour>-relaxed.mjs`.
-Checks: `tour-relaxed-tests.mjs`.
-History timeline: a “Show history” checkbox sits in the collapsed sidebar
-between the style strip and More options. Switching it on loads all five story
-datasets (never before), replaces the pan/reposition toolbox with a scrubber of
-nine fixed stops from `dist/tour-timeline.mjs` (Early hominins, Out of Africa,
+History timeline: a “Show history” checkbox sits in the collapsed sidebar between
+the style strip and More options. Switching it on replaces the pan/reposition
+toolbox with one scrubber over the nine periods (Early hominins, Out of Africa,
 Ice Age to farming, Bronze Age, Antiquity, Middle Ages, High Middle Ages,
 Globalization, Plantations & empires), ticked with approximate dates (2M ya,
 50k ya, 10k ya, 3k ya, 200 CE, 1000 CE, 1400 CE, 1600 CE, 1800 CE) while the
-panel heading names the age, and draws the union of every chapter placed on the
-chosen stop. The panel holds only the scrubber: no pause button and no story chips. Stops are editorial snapshots on a three-zone scale,
-not evenly spaced years; every chapter belongs to exactly one stop, and a stop
-entry may restrict a chapter to some waves (the Norse composite chapter shows
-only its trade lanes at 1300). Story dots and chips filter to the stop’s stories
-and open the story at that stop’s chapter; closing returns to the same stop. The
-stop persists as `?history=<stop>` on the map URL. The scrubber is the only
-slider: every story stays drawn for the stop, and clicking a dot or chip frames
-that story's chapter and shows its text in the card without a second period
-slider. Scrubbing while a story is focused re-reads its chapter at the new stop
-or closes the card when the story has none there; closing restores the camera.
+panel heading names the age. Every story of the period is drawn at once; the
+scrubber is the only slider. Clicking a spot frames that story (its `view`) and
+shows its text in the card, with no pause button, chips or inner slider; scrubbing
+while focused re-reads the story at the new period or closes the card when the
+story has no spot there; closing restores the camera. The period persists as
+`?history=<period>` on the map URL (old stop names still resolve). Story URLs
+such as `/silk-road/` open the timeline at that story's first period with its
+card open. Leaving an eligible map switches history off.
+
+Corridor relaxation: `scripts/relax-tour-routes.py <period>|all` builds a 0.2°
+passability raster from the height overview (slope and elevation), Holdridge
+life zones (deserts, tundra, ice), big HydroRIVERS lines (bonus) and coasts, then
+runs a least-cost search between hard stops (route endpoints, the named places
+in `relax.json` and coordinates shared by two routes) inside a soft corridor that
+scales with each leg. Two strands per route by default, three for migrations,
+Vikings and Polynesia, each with its own smooth noise, so parallel courses jiggle
+through valleys and along coasts while the stops stay exact. Sea handling per
+story: `coastal` prefers shorelines, `open` treats open water as free as coast and
+islands as stops (Polynesia, Ocean crossings); the Beringia leg is a `landBridge`.
+Dots fade in at a route's first stop and out at its last through a per-route
+luminance mask. Nothing runs at runtime beyond the usual projection. Regenerate
+with a local virtualenv holding numpy and Pillow. Checks: `history-tests.mjs`
+(every period parses, spots for every story, routes valid, strands fresh and
+covering every route, one colour per wave), `tour-performance-tests.mjs`
+(per-period route, sample, path, timing and file-size budgets),
+`tour-traffic-tests.mjs`, `tour-endless-tests.mjs` and `/tests/tour-history.html`
+(also `?mobile=1`).
 
 Back grid (Overlays → “Back grid”): a faint hexagonal lattice, one main hexagon
 per cell, on the empty background of any finite map; on by default for Spaceship
@@ -205,89 +165,40 @@ overshoot; instant under reduced motion), so cached routes, dots and the
 coordinate readout follow. Exports use the base positions; the North and South
 Atlantic are cuts on the vertical band, the South Atlantic on the diagonal one. The lattice
 stacking and copy helpers (`endlessCopies`, `unwrapStrand`) stay as tested
-geometry but are not used by the app. Checks: `tour-endless-tests.mjs`. Leaving an
-eligible map switches history off. Checks: `tour-timeline-tests.mjs` and `/tests/tour-history.html`
-(also `?mobile=1`).
-Chapter changes refit the camera without replaying the Pacific piece animation.
-Checks: `tour-chapter-tests.mjs`, `tour-performance-tests.mjs` (route, sample,
-path, timing and module-size budgets) and the `/tests/tour-*.html` pages.
+geometry but are not used by the app. Checks: `tour-endless-tests.mjs`. Band switches
+are anchored on the piece nearest the viewport centre, which keeps its place.
 
-Startup imports only the small projection/rendering modules and loader.
-`dist/tour-data.mjs` dynamically imports the selected tour's dataset. Trade
-networks, migration coordinates, area geometry and Markdown are never prefetched
-on the default map, hover or idle. A direct tour URL counts as opening that tour.
-An opening token prevents a late load from reopening a closed story. Failed
-loads offer Retry; a portrait phone scrolls the card within half the viewport.
-Checks: `tour-period-tests.mjs` and `/tests/tour-periods.html` (`?mobile=1`),
-including the actual browser resource list before and after selection.
+Story content notes: the Silk Road spans Bronze Age tin and lapis lanes to
+Mongol-era and maritime networks; Origin of mankind keeps directed, connected
+dispersal branches with early hominins running outward only, Neanderthals as a
+sister lineage that interbred, and 2025 Sahul and 2026 South American studies
+noted without settling their chronologies; the Viking story runs from raids to
+the Iceland–Greenland–Vinland voyages; Polynesia from Lapita to an uncertain
+South American contact; the Americas include Amazonian river pottery and
+greenstone links drawn uncertain; African networks name enslaved people as their
+own red wave. Per the user, stories draw overall trends, never individual
+journeys. Evidence notes: `human-migrations-sources.md`,
+`territory-tours-sources.md`, `polynesia-sources.md`, `silk-road-sources.md`,
+`americas-exchange-sources.md`, `african-networks-sources.md` and
+`ocean-crossings-sources.md`. Area geometry (`dist/tour-areas.mjs`, the clipping
+renderer and `scripts/build-tour-areas.py`) is kept and tested
+(`tour-area-tests.mjs`) but no longer drawn.
 
-Egypt, Mesopotamia, India and China open approximate imperial extents for
-Thutmose III, Neo-Assyria, Ashoka’s Mauryas and Qianlong’s Qing respectively.
-The Amazon shows the HydroBASINS v1c level-03 Amazon catchment (HYBAS_ID
-6030007000), with a light cyan fill. Empire extents use a light amber fill.
-`dist/tour-areas.mjs` clips spherical polygon rings to the renderer’s exact
-patch cones; even/odd filling retains holes and concave fragments, while borders
-only stroke geographic edges, never artificial map cuts. The area layer follows
-the normal camera, stays on Lifezones and is excluded from canvas exports.
-The Viking tour in `dist/tour-vinland.mjs` follows raids, settlement and trade from
-Lindisfarne to the Rus rivers and the North Sea kingdoms, then ends with the six
-North Atlantic corridors (western Norway, Shetland, Faroes, Iceland, coastal
-Greenland, Baffin Island, Labrador and northern Newfoundland) told as one chapter
-with two-way sailing, a Gaelic settlement route, Norðrsetur hunting grounds,
-Markland timber trips and Thule contact.
+The Pacific-facing arrangement (`pacificTourNet`) rotates the North and South
+America hexagons to exact Pacific joins; the vertical dancing band uses it, with
+`maps/tours/pacific-v1` supplying relit terrain for the two moved pieces on
+Lifezones (other styles rotate the original artwork). Light stays at the same
+screen-space azimuth as the fixed pieces.
 
-Sources, period choices, geographic uncertainty and data licenses are in
-`dist/territory-tours-sources.md`. To rebuild the small bundled area module, use
-`scripts/build-tour-areas.py` with pyshp/Shapely and the documented local source
-downloads. Edit imperial envelopes in `scripts/tour-area-envelopes.json`;
-Natural Earth land trims their coastlines without adding modern political borders.
-No GIS library or source archive loads in the browser. Checks:
-`tour-area-tests.mjs` and `/tests/tour-areas.html` (also `?mobile=1`).
-
-Origin of mankind opens an animated dispersal story. `dist/tour-migrations.mjs`
-keeps the 26 directed, connected Homo sapiens branches with source keys, broad
-evidence periods and uncertainty notes, and adds hominin, Neanderthal/Denisovan,
-admixture and Holocene links. Ranges and contact zones are two-way; Neanderthals
-are described as a sister lineage that interbred, never as a direct ancestor of
-everyone. The chapters use the shared sparse traffic dots with a matching halo;
-no per-frame map redraw or terrain pass is needed.
-The card offers Pause/Resume, and reduced-motion preferences keep the dots still.
-The existing net and lighting remain unchanged; cuts split routes rather than
-bridging empty space. X/Escape restores the camera.
-
-Research and route limitations are in `dist/human-migrations-sources.md`, linked
-from the card. This incorporates 2025 Sahul and 2026 South American studies without
-claiming their chronologies or proposed corridors are settled. The East African
-anchor is an entry point into a story of connected African populations, not an
-asserted single birthplace. Modern coastlines remain visible; routes are editorial
-schematics. Story copy and the three bullet lines of the color key are editable
-in `dist/tour-stories.md`. Tests: `tour-migration-tests.mjs` and
-`/tests/tour-migrations.html` (also `?mobile=1`).
-
-French Polynesia opens a Pacific view: the existing North and South America
-hexagons animate to exact Pacific-facing joins, while Asia/Pacific and Africa
-stay fixed. The merged image renderer clips and moves the original artwork
-during the transition, then uses `maps/tours/pacific-v1` for the two Americas
-pieces: unchanged unlit base colors/rivers with newly projected terrain lighting
-at their final positions. Light stays at the same screen-space azimuth as the
-fixed pieces. The default view still uses only tiled images. Four chapters draw
-settlement crossings one way and interisland voyaging both ways with denser canoe
-dots; the last chapter adds sparse, uncertain contact links to the Colombian–Ecuadorian
-and Peruvian–Chilean coasts, supported by genetic and sweet-potato evidence. X/Escape restores the source arrangement.
-The `/french-polynesia/` URL reconstructs this layout; a camera-only hash does not. Tours use a 1.25-second
-transition and a looser framing; reduced motion skips animation.
-
-All five tours have root-level landing pages, registered in
+All seven stories have root-level landing pages, registered in
 `dist/tour-pages.mjs`: `/origin-of-mankind/`, `/silk-road/`, `/iceland-to-vinland/`,
-`/french-polynesia/` and `/americas-exchange/`. Direct entry loads Spaceship Earth + Lifezones and opens
-the matching story/overlay. Clicking a dot pushes its URL; Back/Forward restores
-selection, and closing returns to the map and its previous camera. Reloading a
-tour preserves the return camera in the history entry. A direct link from outside
-closes to the default map. Tour URLs remain canonical while panning, including
-Polynesia’s temporary arrangement; they do not encode a transient tour camera.
+`/french-polynesia/`, `/americas-exchange/`, `/african-networks/` and
+`/ocean-crossings/`. Direct entry loads Spaceship Earth + Lifezones with the
+timeline on at that story's first period and its card open; the URL then becomes
+the map URL with `?history=`.
 
 `build-share-pages.mjs` creates static canonical, Open Graph and Twitter tags plus
-sitemap entries. Descriptions come from the story Markdown; cards are distinct
+sitemap entries. Descriptions come from the period Markdown; cards are distinct
 1200×630 JPEGs in `dist/social/tour-*.jpg`. To regenerate them, run
 `python3 scripts/save-social-previews.py`, then open
 `http://127.0.0.1:4173/tests/tour-social.html?save=1`. This local-only artwork view
@@ -306,12 +217,12 @@ new inventory, upload and activation. The existing global asset release remains
 unchanged; production config uses narrow prefix overrides for the tour images.
 Local preview continues to use local files.
 
-Edit **`dist/tour-stories.md`** for all story titles, descriptions, small notes
-and source links. Keep the `## location-id` headings intact. The file includes
-instructions and empty sections for all other dots. It is loaded directly, so
-refresh the page after editing; no build step is required. The small safe parser
-supports paragraphs, bold, italics and HTTPS links, without running raw HTML.
-Checks: `tour-polynesia-tests.mjs` and `/tests/tour-polynesia.html` (`?mobile=1`).
+Edit **`dist/history/<period>.md`** for story titles, texts, spot positions,
+views, legends and source links, and `<period>.routes.json` for routes; keep the
+`## story-id` headings intact. Files are fetched directly, so refresh the page
+after editing; only new or moved routes need `scripts/relax-tour-routes.py`. The
+small safe parser supports paragraphs, bold, italics and HTTPS links, without
+running raw HTML. Checks: `tour-polynesia-tests.mjs`.
 To regenerate the Pacific assets, prepare unlit bases with `merge-map-images.py`
 into `/tmp/hex-pacific-bake`, run `scripts/serve-pacific-bake.py`, open
 `/tests/bake-pacific.html`, and click Bake. After completion, run
@@ -739,5 +650,4 @@ paths at net cuts and carries the dash phase by cumulative drawn distance, never
 across the screen gap. Existing screen-space lanes, Pause and reduced motion
 remain; migration and static outlines retain their previous appearance. No
 historical volume weights are assigned: current frequency is explicitly visual.
-Checks: `tour-traffic-tests.mjs`, `/tests/tour-story.html` and
-`/tests/tour-periods.html` (including phone layout and lazy loading).
+Checks: `tour-traffic-tests.mjs` and `/tests/tour-history.html` (including phone layout and lazy loading).
