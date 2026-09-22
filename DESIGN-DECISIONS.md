@@ -580,6 +580,23 @@ are recorded as future options; islands and ports already act as hard stops.
 Dots fade at route ends instead of popping. Relaxed strands are visualization,
 not evidence of paths, and the raster remains modern geography.
 
+**Unified history timeline (September 21).** The user asked for a “Show history”
+checkbox between the style strip and More options that swaps the positioning
+toolbox for one scrubber showing every story at once. Agreed stops, cut down
+from a ten-stop proposal: at most three for human migrations (Early hominins,
+Out of Africa with the Neanderthal/Denisovan context folded in, Ice Age to
+farming), then Bronze Age, Antiquity, Middle Ages (c. 950: Baghdad, Vikings,
+Chaco, East Polynesia, Vinland), High Middle Ages (c. 1300: Mongols, far
+Pacific, Greenland’s last trade), Globalization (c. 1450–1520, the user’s name,
+preferred over “Age of Discovery” or “Great Navigations”) and a separate
+Plantations & empires stop (c. 1750) for the Atlantic slave trade and
+colonization rather than merging them into Globalization. The timeline ends
+there; later mass migrations are out of scope. Only one stop is drawn at a time,
+so adding stops does not add screen density or startup cost. Each chapter maps
+to exactly one stop (tested); reading points are the existing story dots for
+now, opening at the stop’s chapter. Stop dates are editorial; Silk Road
+snapshots are treated as ±150-year windows when assigned.
+
 Evidence: September 21 feature request and confirmation. Checks:
 `tour-chapter-tests.mjs`, `tour-marker-tests.mjs`, `tour-page-tests.mjs`,
 `/tests/tour-areas.html` (Norse), `/tests/tour-migrations.html`, `/tests/tour-polynesia.html`.

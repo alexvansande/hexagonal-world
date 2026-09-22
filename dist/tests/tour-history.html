@@ -1,0 +1,48 @@
+<!doctype html><html lang="en"><meta charset="utf-8"><title>History timeline checks</title>
+<style>body{font:14px system-ui;color:#18343d}iframe{width:1100px;height:800px;border:1px solid #ccc}li{margin:4px}</style>
+<h1>History timeline</h1><p id="result">Running…</p><ol id="checks"></ol>
+<iframe title="Tour map" src="/lifezones/spaceship-earth/"></iframe>
+<script type="module">
+import {timelineStops} from '../tour-timeline.mjs';
+const frame=document.querySelector('iframe'),result=document.querySelector('#result'),mobile=new URLSearchParams(location.search).has('mobile');
+if(mobile){frame.style.width='390px';frame.style.height='844px';}
+const pause=ms=>new Promise(r=>setTimeout(r,ms));
+const until=async(test,label)=>{for(let i=0;i<400;i++){if(test())return;await pause(50);}throw Error('Timed out: '+label);};
+const check=(ok,label)=>{if(!ok)throw Error(label);const li=document.createElement('li');li.textContent='PASS: '+label;document.querySelector('#checks').append(li);};
+try{
+ await until(()=>frame.contentDocument?.querySelectorAll('.tour-marker:not([hidden])').length===5,'map');
+ let d=frame.contentDocument,w=frame.contentWindow;await pause(400);
+ const toggle=d.querySelector('#show-history'),tools=d.querySelector('.history-tools'),routes=d.querySelector('.tour-routes'),viewTools=d.querySelector('.view-tools');
+ check(getComputedStyle(d.querySelector('#history-toggle')).display!=='none'&&tools.hidden,'Show history checkbox sits in the collapsed sidebar; scrubber hidden');
+ check(!w.performance.getEntriesByType('resource').some(r=>/tour-(trade|migrations|vinland|polynesia|americas|relaxed)/.test(r.name)),'No story data before enabling history');
+ toggle.click();await until(()=>!tools.hidden&&[...routes.querySelectorAll('g[data-route-id]')].some(g=>g.style.display!=='none'),'history routes');await pause(600);
+ const visible=()=>[...routes.querySelectorAll('g[data-route-id]')].filter(g=>g.style.display!=='none');
+ check(getComputedStyle(viewTools).display==='none'&&!tools.hidden,'Scrubber replaces the positioning toolbox');
+ const slider=d.querySelector('#history-stop');check(slider.max===String(timelineStops.length-1)&&d.querySelectorAll('.history-stop-labels button').length===timelineStops.length,'One label per stop');
+ check(w.location.search.includes('history=middle-ages'),'URL carries the default stop');
+ const middle=timelineStops.find(s=>s.id==='middle-ages');
+ check(new Set(visible().map(g=>g.dataset.routeId.split('-')[0])).size>=3,'Middle Ages draws several stories at once');
+ check(d.querySelectorAll('.tour-marker:not([hidden])').length===middle.tours.length&&d.querySelectorAll('.history-stories button').length===middle.tours.length,'Story dots and chips filter to the stop');
+ const counts=[];
+ for(const [i,stop] of timelineStops.entries()){slider.value=i;slider.dispatchEvent(new w.Event('input',{bubbles:true}));await pause(250);counts.push(visible().length);
+  check(w.location.search.includes('history='+stop.id),'URL preserves '+stop.id);
+  check(d.querySelector('#history-date').textContent===`${stop.label} · ${stop.date}`,'Date for '+stop.id);
+  if(!stop.chapters.length)check(!d.querySelector('#history-note').hidden&&visible().length===0,'Empty stop explains itself');
+ }
+ check(new Set(counts).size>=5,'Stops draw different networks');
+ // Open a story from a chip, land on that stop's chapter, and return to history mode on close.
+ slider.value=timelineStops.findIndex(s=>s.id==='high-middle-ages');slider.dispatchEvent(new w.Event('input',{bubbles:true}));await pause(250);
+ d.querySelector('.history-stories button[data-tour-id="silk-road"]').click();await until(()=>!d.querySelector('.tour-timeline').hidden,'story');await pause(1500);
+ check(d.querySelector('#tour-story-title').textContent.includes('Mongol')&&tools.hidden,'Chip opens the Silk Road at the High Middle Ages chapter and hides the scrubber');
+ d.querySelector('#tour-story-close').click();await until(()=>!tools.hidden,'back');await pause(300);
+ check(w.location.search.includes('history=high-middle-ages')&&visible().length>0,'Closing the story returns to the same stop');
+ d.querySelector('#history-pause').click();check(routes.classList.contains('flow-paused'),'Pause freezes the unified flow');d.querySelector('#history-pause').click();
+ toggle.click();await until(()=>tools.hidden,'off');await pause(200);
+ check(getComputedStyle(viewTools).display!=='none'&&routes.style.display==='none'&&d.querySelectorAll('.tour-marker:not([hidden])').length===5&&!w.location.search.includes('history='),'Unchecking restores the toolbox, dots and URL');
+ // Direct URL entry restores the stop.
+ frame.src='/lifezones/spaceship-earth/?history=bronze-age';await until(()=>frame.contentDocument?.querySelector('.history-tools')&&!frame.contentDocument.querySelector('.history-tools').hidden,'reload');
+ d=frame.contentDocument;await until(()=>[...d.querySelectorAll('.tour-routes g[data-route-id]')].some(g=>g.style.display!=='none'),'reload routes');
+ check(d.querySelector('#history-date').textContent.endsWith(timelineStops.find(s=>s.id==='bronze-age').date),'Reload restores the Bronze Age stop');
+ result.textContent='All checks passed.';result.dataset.status='passed';
+}catch(error){result.textContent='FAIL: '+error.message;result.dataset.status='failed';console.error(error);}
+</script></html>

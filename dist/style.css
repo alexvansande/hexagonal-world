@@ -74,7 +74,7 @@ aside .welcome-copy{font-size:12px;line-height:1.7;color:#5e737a;margin:12px 0 2
 #collapse-customize span{display:block;pointer-events:none}
 #customize{display:none}
 body:not(.customizing) aside{top:auto;bottom:24px;left:24px;right:auto;width:344px;height:auto;max-width:calc(100vw - 48px);max-height:none;padding:12px;border-radius:16px;overflow:visible}
-body:not(.customizing) aside>:not(.layout-presets):not(.style-presets):not(#customize):not(#tour-story){display:none}
+body:not(.customizing) aside>:not(.layout-presets):not(.style-presets):not(#history-toggle):not(#customize):not(#tour-story){display:none}
 body:not(.customizing) .layout-presets,body:not(.customizing) .style-presets{display:flex;flex-wrap:nowrap;gap:8px;overflow-x:auto;overscroll-behavior-x:contain;scrollbar-width:thin;scrollbar-color:#c6d4d7 transparent;margin:0;padding:2px 2px 8px;scroll-snap-type:x proximity}
 body:not(.customizing) .layout-preset-card,body:not(.customizing) .style-preset-card{flex:0 0 74px;padding:4px;border-radius:8px;scroll-snap-align:start;min-width:0;background:#f4f7f6;border-color:transparent}
 body:not(.customizing) .layout-preset-card b,body:not(.customizing) .style-preset-card b{display:none}
@@ -320,3 +320,26 @@ body:not(.customizing) aside.tour-story-open>#tour-story{display:block}
 .tour-routes .route-sporadic path{animation:trade-traffic var(--traffic-duration) linear infinite;stroke-dashoffset:var(--traffic-from)}
 .tour-routes.flow-paused .route-sporadic path{animation-play-state:paused}
 @media(prefers-reduced-motion:reduce){.tour-routes .route-sporadic path{animation:none}}
+
+/* History mode: one stop of the unified timeline replaces the positioning toolbox. */
+#history-toggle{display:flex;align-items:center;gap:8px;margin:10px 0 2px;padding:8px 10px;border:1px solid var(--line);border-radius:8px;font-size:12px;font-weight:600;color:#34545e;background:#f7fafa;cursor:pointer}
+#history-toggle input{margin:0;width:16px;height:16px;accent-color:#407b8c}
+body:not(.customizing) aside.tour-story-open>#history-toggle{display:none}
+body.history .view-tools{display:none}
+.history-tools{position:fixed;z-index:6;right:24px;bottom:24px;width:min(440px,calc(100% - 48px));display:flex;flex-direction:column;gap:6px;padding:12px 14px 10px;background:rgba(255,255,255,.94);border:1px solid rgba(205,218,220,.95);border-radius:12px;box-shadow:0 12px 36px rgba(22,52,59,.18);backdrop-filter:blur(18px)}
+.history-tools[hidden]{display:none}
+.history-head{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:11px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:#6e858d}
+.history-head output{font-weight:650;letter-spacing:0;text-transform:none;font-size:12px;color:#234b59;font-variant-numeric:tabular-nums}
+#history-stop{display:block;width:100%;height:28px;margin:0;accent-color:#407b8c;cursor:pointer}
+.history-stop-labels{display:grid;grid-template-columns:repeat(var(--stop-count,9),minmax(0,1fr));gap:2px}
+.history-stop-labels button{min-height:34px;padding:3px 1px;border:0;border-radius:5px;font-family:inherit;font-size:9px;line-height:1.15;color:#60777d;background:transparent;cursor:pointer}
+.history-stop-labels button[aria-pressed="true"]{color:#234b59;background:#e0edef;font-weight:650}
+.history-stop-labels button:focus-visible,#history-stop:focus-visible{outline:2px solid #407b8c;outline-offset:2px}
+.history-stories{display:flex;flex-wrap:wrap;gap:6px;min-height:0}
+.history-stories:empty{display:none}
+.history-stories button{padding:5px 10px;border:1px solid #c9d6d9;border-radius:999px;background:#fff;font-size:11px;color:#234b59;cursor:pointer}
+.history-stories button:hover{background:#e0edef}
+.history-note{margin:0;font-size:11px;line-height:1.45;color:#60777d}
+#history-pause{align-self:flex-start;min-height:36px;padding:6px 10px;font-size:12px}
+@media(max-width:700px){body.history .map-heading{display:none}body.history #legend-toggle{top:calc(env(safe-area-inset-top) + 252px)}.history-tools{left:12px;right:12px;bottom:auto;top:calc(env(safe-area-inset-top) + 64px);width:auto;padding:10px 12px 8px;gap:5px}.history-stop-labels{display:none}.history-stories button{font-size:10px;padding:4px 8px}#history-pause{min-height:32px;padding:4px 8px;font-size:11px}}
+@media(prefers-reduced-motion:reduce){#history-pause{display:none}}

@@ -141,6 +141,21 @@ appearing and vanishing. Nothing runs at runtime beyond the usual projection.
 Regenerate with a local virtualenv holding numpy and Pillow:
 `node scripts/dump-tour-routes.mjs _relax && python3 scripts/relax-tour-routes.py _relax/<tour>.json dist/tour-<tour>-relaxed.mjs`.
 Checks: `tour-relaxed-tests.mjs`.
+History timeline: a “Show history” checkbox sits in the collapsed sidebar
+between the style strip and More options. Switching it on loads all five story
+datasets (never before), replaces the pan/reposition toolbox with a scrubber of
+nine fixed stops from `dist/tour-timeline.mjs` (Early hominins, Out of Africa,
+Ice Age to farming, Bronze Age, Antiquity, Middle Ages, High Middle Ages,
+Globalization, Plantations & empires), and draws the union of every chapter
+placed on the chosen stop. Stops are editorial snapshots on a three-zone scale,
+not evenly spaced years; every chapter belongs to exactly one stop, and a stop
+entry may restrict a chapter to some waves (the Norse composite chapter shows
+only its trade lanes at 1300). Story dots and chips filter to the stop’s stories
+and open the story at that stop’s chapter; closing returns to the same stop. The
+stop persists as `?history=<stop>` on the map URL. The last two stops are
+placeholders with a note until their stories are written. Leaving Lifezones
+switches history off. Checks: `tour-timeline-tests.mjs` and `/tests/tour-history.html`
+(also `?mobile=1`).
 Chapter changes refit the camera without replaying the Pacific piece animation.
 Checks: `tour-chapter-tests.mjs`, `tour-performance-tests.mjs` (route, sample,
 path, timing and module-size budgets) and the `/tests/tour-*.html` pages.

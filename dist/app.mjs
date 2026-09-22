@@ -7,6 +7,7 @@ import {createTourAreas,projectTourAreas} from './tour-area-renderer.mjs?v=spora
 import {pacificTourNet,interpolateTourNet,tourImagePieces} from './tour-layout.mjs?v=pacific-light-1';
 import pacificLighting from './maps/pacific-manifest.mjs?v=pacific-light-1';
 import {createTourStory} from './tour-story.mjs?v=chapters-1';
+import {timelineStops,timelineStop,timelineRoutes,timelinePeriod} from './tour-timeline.mjs?v=history-1';
 import {MergedMaps,mergedEntry,mergedCompatible} from './merged-maps.mjs?v=pacific-light-1';
 import {riverFieldGLSL} from './river-layers.mjs?v=cloud-assets-1';
 import {DefaultLayers,defaultLayerPreset,imageVertex,imageFragment,graticuleFragment} from './default-layers.mjs?v=cloud-assets-1';
@@ -279,6 +280,7 @@ function closeTour(restore=true,navigate=true){
  if(restore&&tourReturnView){scale=tourReturnView.scale;Object.assign(state,tourReturnView.view);setSidebarExpanded(tourReturnView.expanded,false);}
  tourReturnView=null;
  if(navigate)tourNavigation.close(restore);
+ if(historyOn)tourRoutes.setPaused(historyPaused);syncHistoryTools();
  if(restore){draw();requestAnimationFrame(()=>{if(!activeTour)document.querySelector(`[data-tour-id="${selectedId}"]`)?.focus({preventScroll:true});});}
 }
 function selectedStory(location){return {...location,animated:activeTourRoutes.some(r=>r.animated),waves:[...new Set(activeTourRoutes.map(r=>r.wave).filter(Boolean))]};}
@@ -295,7 +297,7 @@ async function finishOpeningTour(location){
   const [data]=await Promise.all([loadTourData(location.id),tourStory.ready]);
   if(token!==tourLoadToken||activeTour!==location.id)return;
   activeTourData=data;activeTourRoutes=data.routes;activeTourAreas=data.areas;tourProjection=null;tourAreaProjection=null;
-  if(data.periods){const period=data.periodFor(readPeriod(window.location.search));tourStory.setPeriods(data.periods,period.id,data.heading);selectTourPeriod(period.id,false);}
+  if(data.periods){const period=data.periodFor(readPeriod(window.location.search)||historyPeriodHint);historyPeriodHint=null;tourStory.setPeriods(data.periods,period.id,data.heading);selectTourPeriod(period.id,false);}
   else {tourStory.update(selectedStory(location));focusTour();draw();}
  }catch(error){if(token===tourLoadToken&&activeTour===location.id)tourStory.error(()=>finishOpeningTour(location));}
 }
@@ -306,7 +308,7 @@ function openTour(location,navigate=true){
  setSidebarExpanded(false,false);activeTour=location.id;
  if(navigate)tourNavigation.open(activeTour);
  if(activeTour==='french-polynesia'){tourNetFrom=net;tourNetTo=pacificTourNet(tiles,net);tourNetCurrent=net;tourLayoutProgress=0;}
- tourStory.open(location);hideCoordinateReadout();draw();finishOpeningTour(location);
+ tourStory.open(location);hideCoordinateReadout();syncHistoryTools();draw();finishOpeningTour(location);
 }
 const tourNavigation=initTourNavigation({mapPath:()=>shareSelection.path,show:id=>{
  pendingTour=null;
@@ -318,7 +320,48 @@ const tourNavigation=initTourNavigation({mapPath:()=>shareSelection.path,show:id
  }
  draw();
 }});
-$('stage').addEventListener('tourselect',event=>openTour(event.detail));
+$('stage').addEventListener('tourselect',event=>{if(historyOn)historyPeriodHint=timelinePeriod(historyStop(),event.detail.id);openTour(event.detail);});
+// History mode: the unified timeline draws one stop across every story. Data for
+// all five stories loads only when the checkbox is switched on; the positioning
+// toolbox gives way to the scrubber; story dots filter to the stop's stories and
+// open at that stop's chapter. The selected stop travels in the URL as ?history=.
+const historyToggle=$('show-history'),historyTools=document.querySelector('.history-tools'),historySlider=$('history-stop'),historyDate=$('history-date'),historyLabels=document.querySelector('.history-stop-labels'),historyStories=document.querySelector('.history-stories'),historyNote=$('history-note'),historyPause=$('history-pause');
+let historyOn=false,historyStopId=readHistoryStop(location.search),historyData=null,historyLoad=0,historyProjection=null,historyProjectionKey='',historyPaused=false,historyPeriodHint=null;
+function readHistoryStop(search){return new URLSearchParams(search).get('history');}
+function historyStop(){return timelineStop(historyStopId);}
+function historyRoutes(){
+ if(!historyOn||!historyData)return [];
+ const stop=historyStop(),key=[stop.id,state.method,state.height,state.arrangement,state.lon,state.lat,state.roll].join('/');
+ if(!historyProjection||key!==historyProjectionKey){historyProjection=projectTourRoutes(tiles,net,state,timelineRoutes(stop,historyData));historyProjectionKey=key;}
+ return historyProjection;
+}
+historySlider.max=String(timelineStops.length-1);historyLabels.style.setProperty('--stop-count',String(timelineStops.length));
+for(const stop of timelineStops){const b=document.createElement('button');b.type='button';b.textContent=stop.label;b.dataset.stop=stop.id;b.onclick=()=>selectHistoryStop(stop.id);historyLabels.append(b);}
+function syncHistoryTools(){
+ const stop=historyStop(),shown=historyOn&&!activeTour;
+ historyToggle.checked=historyOn;historyTools.hidden=!shown;document.body.classList.toggle('history',shown);
+ historySlider.value=String(timelineStops.indexOf(stop));historySlider.setAttribute('aria-valuetext',`${stop.label}, ${stop.date}`);historyDate.textContent=`${stop.label} · ${stop.date}`;
+ for(const b of historyLabels.children)b.setAttribute('aria-pressed',String(b.dataset.stop===stop.id));
+ historyStories.replaceChildren(...stop.tours.map(id=>{const location=tourLocations.find(t=>t.id===id),b=document.createElement('button');b.type='button';b.textContent=location.title;b.dataset.tourId=id;b.onclick=()=>{historyPeriodHint=timelinePeriod(stop,id);openTour(location);};return b;}));
+ const note=historyData?stop.note||(stop.chapters.length?'':'Nothing written for this period yet.'):'Loading stories…';
+ historyNote.textContent=note;historyNote.hidden=!note;
+ historyPause.textContent=historyPaused?'Resume flow':'Pause flow';historyPause.setAttribute('aria-pressed',String(historyPaused));
+}
+function selectHistoryStop(id,writeURL=true){historyStopId=timelineStop(id).id;historyProjection=null;syncHistoryTools();if(writeURL)updateMapUrl();draw();}
+async function enableHistory(on){
+ if(historyOn===on&&(historyData||!on)){syncHistoryTools();return;}
+ historyOn=on;
+ if(on&&!tourEnabled(renderDefault)){const pair=sharePair('lifezones','dymaxion');applyMapOption(pair.layout,'layout');applyMapOption(pair.style,'style');}
+ if(!on){++historyLoad;tourRoutes.setPaused(false);syncHistoryTools();updateMapUrl();draw();return;}
+ tourRoutes.setPaused(historyPaused);syncHistoryTools();updateMapUrl();draw();
+ if(historyData)return;
+ const token=++historyLoad;
+ try{const entries=await Promise.all(tourLocations.map(async t=>[t.id,await loadTourData(t.id)]));if(token!==historyLoad)return;historyData=Object.fromEntries(entries);historyProjection=null;syncHistoryTools();draw();}
+ catch{if(token===historyLoad){historyNote.textContent='Could not load the stories. Try again.';historyNote.hidden=false;}}
+}
+historyToggle.addEventListener('change',()=>enableHistory(historyToggle.checked));
+historySlider.addEventListener('input',()=>selectHistoryStop(timelineStops[+historySlider.value].id));
+historyPause.onclick=()=>{historyPaused=!historyPaused;tourRoutes.setPaused(historyPaused);syncHistoryTools();};
 // Manual map gestures interrupt the camera transition immediately.
 $('stage').addEventListener('pointerdown',cancelTourAnimation,true);
 $('stage').addEventListener('wheel',cancelTourAnimation,{capture:true,passive:true});
@@ -515,9 +558,10 @@ function render(refined=false,exportMode=false){if(exporting&&!exportMode)return
   const enabled=tourEnabled(renderDefault)&&!isAboutPath(location.pathname);
   if(activeTour&&!enabled)closeTour(false);
   if(pendingTour&&enabled&&persistenceReady){const id=pendingTour;pendingTour=null;openTour(tourLocations.find(t=>t.id===id));}
-  tourMarkers.update(enabled?projectTourLocations(tiles,net,state,activeTour?tourLocations.filter(location=>location.id===activeTour):tourLocations):[],point,w,h);
+  if(historyOn&&!enabled)enableHistory(false);
+ tourMarkers.update(enabled?projectTourLocations(tiles,net,state,activeTour?tourLocations.filter(location=>location.id===activeTour):historyOn?tourLocations.filter(location=>historyStop().tours.includes(location.id)):tourLocations):[],point,w,h);
   tourAreas.update(activeTour&&tourLayoutProgress===1?projectedAreas():[],point,w,h);
-  tourRoutes.update(activeTour&&tourLayoutProgress===1?projectedRoutes():[],point,w,h);updateCoordinateReadout();
+  tourRoutes.update(activeTour&&tourLayoutProgress===1?projectedRoutes():historyOn&&enabled&&!activeTour?historyRoutes():[],point,w,h);updateCoordinateReadout();
  }
 
  ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,w,h);ctx.lineJoin='round';
@@ -809,7 +853,7 @@ function captureSettings(){
  return {version:1,state:{...state,...applied},controls,view:{scale,zoom:state.zoom,panX:state.panX,panY:state.panY},details:Object.fromEntries([...document.querySelectorAll('aside > details')].map(el=>[el.id,el.open]))};
 }
 function readMapStateFromUrl(){const hash=location.hash;if(!hash.startsWith('#m=')&&!hash.startsWith('#p='))return null;try{return decodeMapState(hash.slice(3));}catch{return null;}}
-function updateMapUrl(){if(activeTour||readTourPath(location.pathname)||!persistenceReady||exporting||isAboutPath(location.pathname))return;clearTimeout(saveTimer);try{const url=new URL(location.href);if(!location.pathname.startsWith('/tests/'))url.pathname=shareSelection.path;const preset=presetSettings(shareSelection),defaults={state:{...urlDefaults.state,...preset.state},controls:{...urlDefaults.controls,...preset.controls},details:urlDefaults.details,view:defaultView};const encoded=encodeMapState(captureSettings(),defaults);url.hash=encoded?'m='+encoded:'';history.replaceState(null,'',url);}catch{}}
+function updateMapUrl(){if(activeTour||readTourPath(location.pathname)||!persistenceReady||exporting||isAboutPath(location.pathname))return;clearTimeout(saveTimer);try{const url=new URL(location.href);if(!location.pathname.startsWith('/tests/'))url.pathname=shareSelection.path;const preset=presetSettings(shareSelection),defaults={state:{...urlDefaults.state,...preset.state},controls:{...urlDefaults.controls,...preset.controls},details:urlDefaults.details,view:defaultView};const encoded=encodeMapState(captureSettings(),defaults);url.hash=encoded?'m='+encoded:'';if(historyOn)url.searchParams.set('history',historyStop().id);else url.searchParams.delete('history');history.replaceState(null,'',url);}catch{}}
 function scheduleSave(){if(!persistenceReady)return;clearTimeout(saveTimer);saveTimer=setTimeout(updateMapUrl,180);}
 document.addEventListener('input',scheduleSave);document.addEventListener('change',scheduleSave);
 
@@ -948,6 +992,7 @@ else if(typeof history.state?.tourReturnURL==='string'){
  try{const hash=new URL(history.state.tourReturnURL,location.origin).hash;if(/^#[mp]=/.test(hash))restoreSettings(decodeMapState(hash.slice(3)));}catch{}
 }
 initAnalytics(initialTour?.path||shareSelection.path);setSidebarExpanded(state.sidebarExpanded,false);rebuild(false);initializeMapTexture();
+if(historyStopId&&!initialTour)enableHistory(true);
 document.querySelectorAll('aside details').forEach(el=>el.addEventListener('toggle',scheduleSave));
 new ResizeObserver(resize).observe($('stage'));
 updateRelief();
