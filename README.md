@@ -176,7 +176,9 @@ rotations: it runs straight up and down and joins the Pacific, Central America
 and Eurasia. The pan direction chooses the band (`danceConsiderDrag`); entering
 the vertical one turns those two pieces, using the relit Pacific artwork on
 Lifezones and the turned original elsewhere, after which every move is a
-translation again. Pieces tween in place on the live net (380 ms, slight
+translation again. A switch is anchored on the Asia/Pacific piece's current
+slot (it never turns), so periods already slid along the other band are kept
+and only the American pieces re-form around it. Pieces tween in place on the live net (380 ms, slight
 overshoot; instant under reduced motion), so cached routes, dots and the
 coordinate readout follow. Exports use the base positions; the North and South
 Atlantic are cuts on the vertical band, the South Atlantic on the diagonal one. The lattice

@@ -243,11 +243,11 @@ function point(p,t,offset){const v=rotateScreen(canvasWorld(p,t));if(offset){v[0
 // pieces (relit artwork for Lifezones), after which every move is a translation.
 // Slides tween in place on the live net objects with a slight overshoot, so
 // cached route and dot projections follow. Exports keep the base positions.
-let danceBase=null,danceKey='',danceModes=null,danceMode='base',danceOffsets={},danceTweens=new Map(),danceDrag={x:0,y:0};
+let danceBase=null,danceKey='',danceModes=null,danceMode='base',danceOffsets={},danceTweens=new Map(),danceDrag={x:0,y:0},danceShift=[0,0];
 function danceGrid(){
  const key=[state.method,state.height,state.arrangement,arrangement===arrangementCache.get(state.arrangement)?'a':'b'].join('/');
  if(key!==danceKey){
-  danceKey=key;danceBase=net.map(t=>({id:t.id,r:t.r,x:t.x,y:t.y}));danceMode='base';danceOffsets={};danceTweens.clear();danceModes=null;
+  danceKey=key;danceBase=net.map(t=>({id:t.id,r:t.r,x:t.x,y:t.y}));danceMode='base';danceOffsets={};danceTweens.clear();danceModes=null;danceShift=[0,0];
   if(state.arrangement==='dymaxion'){const pacific=pacificTourNet(tiles,danceBase).map(t=>({id:t.id,r:t.r,x:t.x,y:t.y})),base=endlessLattice(tiles,danceBase),vertical=endlessLattice(tiles,pacific);
    if(base&&vertical)danceModes={base:{net:danceBase,lattice:base},pacific:{net:pacific,lattice:vertical}};}
  }
@@ -255,22 +255,27 @@ function danceGrid(){
 }
 function danceActive(){return !!renderMerged&&state.arrangement==='dymaxion'&&!tourNetFrom&&!exporting&&!!danceGrid();}
 function danceSettled(){return danceActive()&&danceTweens.size===0;}
-function resetDance(){if(!danceBase)return;for(const t of net){const b=danceBase.find(a=>a.id===t.id);if(b&&(t.x!==b.x||t.y!==b.y||t.r!==b.r)){t.x=b.x;t.y=b.y;t.r=b.r;meshSignature=null;}}danceMode='base';danceOffsets={};danceTweens.clear();}
+function resetDance(){if(!danceBase)return;for(const t of net){const b=danceBase.find(a=>a.id===t.id);if(b&&(t.x!==b.x||t.y!==b.y||t.r!==b.r)){t.x=b.x;t.y=b.y;t.r=b.r;meshSignature=null;}}danceMode='base';danceOffsets={};danceTweens.clear();danceShift=[0,0];}
 // A drag that runs along the other band switches modes once its direction is clear.
 function danceConsiderDrag(dx,dy){
  if(!danceActive())return;danceDrag.x+=dx;danceDrag.y+=dy;const length=Math.hypot(danceDrag.x,danceDrag.y);if(length<70)return;
  const along=mode=>{const P=danceModes[mode].lattice.period,b=rotateScreen([P[0],-P[1]]);return Math.abs(danceDrag.x*b[0]+danceDrag.y*b[1])/Math.hypot(b[0],b[1])/length;};
  const base=along('base'),vertical=along('pacific'),want=vertical>base*1.15?'pacific':base>vertical*1.15?'base':danceMode;
- danceDrag={x:0,y:0};if(want!==danceMode){danceMode=want;danceOffsets={};draw();}
+ danceDrag={x:0,y:0};if(want===danceMode)return;
+ // Re-shape the group where it currently is: Asia/Pacific never turns, so the new
+ // arrangement is anchored on its present slot rather than on the origin.
+ const asia=net.find(t=>t.id===1),tween=danceTweens.get(1),home=danceModes[want].net.find(t=>t.id===1);
+ danceShift=[(tween?tween.tx:asia.x)-home.x,(tween?tween.ty:asia.y)-home.y];
+ danceMode=want;danceOffsets={};draw();
 }
 const easeOutBack=p=>p>=1?1:1+2*Math.pow(p-1,3)+1*Math.pow(p-1,2);
 function danceStep(now){
  if(!danceActive())return false;
  const {net:modeBase,lattice}=danceModes[danceMode],unit=scale*state.zoom,c=rotateScreen([-state.panX/unit,-state.panY/unit],-state.gridRotation*Math.PI/180),centre=[c[0],-c[1]];
- danceOffsets=bandOffsets(lattice,modeBase,centre,danceOffsets);
+ danceOffsets=bandOffsets(lattice,modeBase,[centre[0]-danceShift[0],centre[1]-danceShift[1]],danceOffsets);
  const instant=matchMedia('(prefers-reduced-motion: reduce)').matches,duration=380;let moving=false;
  for(const t of net){
-  const b=modeBase.find(a=>a.id===t.id),k=danceOffsets[t.id]||0,tx=b.x+k*lattice.period[0],ty=b.y+k*lattice.period[1],tr=b.r;
+  const b=modeBase.find(a=>a.id===t.id),k=danceOffsets[t.id]||0,tx=b.x+danceShift[0]+k*lattice.period[0],ty=b.y+danceShift[1]+k*lattice.period[1],tr=b.r;
   let tween=danceTweens.get(t.id);
   if(!tween||tween.tx!==tx||tween.ty!==ty||tween.tr!==tr){
    if(Math.hypot(tx-t.x,ty-t.y)<1e-6&&t.r===tr){danceTweens.delete(t.id);continue;}
@@ -611,7 +616,7 @@ function render(refined=false,exportMode=false){if(exporting&&!exportMode)return
   canvas.dataset.tourLighting=relit?'pacific':tourNetFrom||danceMode==='pacific'?pacificLightingEnabled(renderDefault)?'loading':'rotated':'default';
   surfaceCache=mergedMaps.cache;canvas.dataset.surface='precomputed';canvas.dataset.surfacePreview=String(!plan.ready);canvas.dataset.surfaceLevel=String(plan.level);canvas.dataset.surfacePending=String(surfaceCache.pending.size);canvas.dataset.surfaceTiles=String(surfaceCache.cache.size);canvas.dataset.surfaceFailures=String(surfaceCache.failures.size);
  }else drawColor(w,h,!!lighting);
- canvas.dataset.merged=String(!!renderMerged);canvas.dataset.tourLayout=tourNetFrom?'pacific':danceActive()?'dancing':'default';canvas.dataset.tourProgress=tourLayoutProgress.toFixed(2);canvas.dataset.bandOffsets=danceActive()?net.map(t=>`${t.id}:${danceOffsets[t.id]||0}`).join(' '):'';canvas.dataset.danceMode=danceActive()?danceMode:'';canvas.dataset.danceMoving=String(danceTweens.size>0);
+ canvas.dataset.merged=String(!!renderMerged);canvas.dataset.tourLayout=tourNetFrom?'pacific':danceActive()?'dancing':'default';canvas.dataset.tourProgress=tourLayoutProgress.toFixed(2);canvas.dataset.bandOffsets=danceActive()?net.map(t=>`${t.id}:${danceOffsets[t.id]||0}`).join(' '):'';canvas.dataset.danceMode=danceActive()?danceMode:'';canvas.dataset.danceMoving=String(danceTweens.size>0);canvas.dataset.danceShift=danceShift.map(v=>v.toFixed(2)).join(',');canvas.dataset.dancePositions=net.map(t=>`${t.id}:${t.x.toFixed(2)},${t.y.toFixed(2)},${t.r.toFixed(2)}`).join(' ');
  if(lighting){(renderDefault?defaultLayers:projectedLighting).composite(lighting,w,h,scale*state.zoom,state.panX,state.panY,state.shadowOpacity,state.lightOpacity);
   if(!renderDefault&&($('graticule').checked||$('distortion').checked)){gl.enable(gl.BLEND);gl.blendFuncSeparate(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA,gl.ONE,gl.ONE_MINUS_SRC_ALPHA);drawColor(w,h,false,true);gl.disable(gl.BLEND);}
  }

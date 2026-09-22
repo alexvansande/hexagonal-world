@@ -615,7 +615,9 @@ place with hysteresis and, at the user's request, faster with a little elastic
 overshoot. Up-and-down panning uses a second band: with the two American pieces
 rotated as in the Polynesian view the pieces translate vertically, so the pan
 direction switches between the diagonal and vertical bands and the rotation is
-the only non-translation move (relit artwork for Lifezones). Exports use the
+the only non-translation move (relit artwork for Lifezones). The user noticed
+pieces springing back toward the origin on a switch; the new arrangement is now
+anchored on Asia/Pacific's current slot so slid periods are never discarded. Exports use the
 base positions; the Pacific and Africa piece moves are
 retired from the app (kept as tested geometry). Only the South Atlantic join is
 unavailable this way, so Atlantic slave-trade lanes still cross a cut. Content passes added two
