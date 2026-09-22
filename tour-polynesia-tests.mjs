@@ -1,6 +1,5 @@
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
-import {existsSync} from './test-asset-index.mjs';
 import {makeGeometry,layouts,world,canvasWorld,hex,matching} from './dist/geometry.mjs';
 import {makeArrangement,markEdges} from './dist/arrangements.mjs';
 import {layoutOptions} from './dist/map-options.mjs';
@@ -46,7 +45,7 @@ assert.equal(pacificLighting.density,2048,'Keep full map resolution');
 assert.equal(pacificLighting.lighting.reliefAzimuth,315,'Retain screen-space illumination instead of rotating the old light');
 assert.equal(pacificLighting.angle,state.gridRotation*Math.PI/180);
 assert.deepEqual(pacificLighting.net,target,'Lighting was generated with the exact final terrain arrangement');
-for(const [z,level] of Object.entries(pacificLighting.levels))for(const tile of level.tiles)assert(existsSync(`dist/${pacificLighting.path}/${z}/${tile}.png`),'Every lighting image exists');
+// The relit Pacific artwork is retired from the app and its release; the manifest stays as bake metadata.
 const settled=interpolateTourNet(source,target,1);
 for(const piece of tourImagePieces(source,settled,state.gridRotation,pacificLighting)){
  if([0,2].includes(piece.id)){
