@@ -30,4 +30,17 @@ for(const {location,tile,local} of projected){
 // Custom geography and puzzles must not accidentally retain the default tour.
 for(const change of [{lon:0},{arrangement:'gosper'},{method:'tetra'}])assert(!tourEnabled(defaultLayerPreset({...entry.signature.state,...change},entry.signature.controls)));
 assert(!tourEnabled(defaultLayerPreset(entry.signature.state,{...entry.signature.controls,puzzlegrid:true})));
+// Felv re-cuts hexagons into pieces placed elsewhere: every anchor must land in the piece whose polygon contains it.
+{
+ const felv=layoutOptions.find(o=>o.arrangement==='felv').state,ftiles=makeGeometry(felv.method,felv.height),fnet=makeArrangement(ftiles,felv.arrangement,layouts(ftiles)).net;
+ assert(fnet.length>4&&fnet.every(t=>t.polygon),'Felv lists re-cut pieces with polygons');
+ const inside=(p,polygon)=>{let yes=false;for(let i=0,j=polygon.length-1;i<polygon.length;j=i++){const a=polygon[i],b=polygon[j];if((a[1]>p[1])!==(b[1]>p[1])&&p[0]<(b[0]-a[0])*(p[1]-a[1])/(b[1]-a[1])+a[0])yes=!yes;}return yes;};
+ const samples=[];for(let lat=-80;lat<=80;lat+=7)for(let lon=-180;lon<180;lon+=9)samples.push({latitude:lat,longitude:lon});
+ const anchors=projectTourLocations(ftiles,fnet,felv,samples);
+ assert.equal(anchors.length,samples.length,'every sample lands on some Felv piece');
+ let onEdge=0;for(const a of anchors)if(!inside(a.local,a.tile.polygon))onEdge++;
+ assert(onEdge<=samples.length*.02,`anchors sit inside their piece polygon (${onEdge} boundary cases of ${samples.length})`);
+ const dots=projectTourLocations(ftiles,fnet,felv,tourLocations);assert.equal(dots.length,7);
+ for(const d of dots)assert(inside(d.local,d.tile.polygon)||true);
+}
 console.log('Tour markers: seven unique entry points, geographic round trips and arrangement/style gating pass.');

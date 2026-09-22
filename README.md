@@ -69,7 +69,10 @@ Spaceship Earth feature (relit for Lifezones only; other styles rotate the
 original artwork). Each record has a stable `id`, `title`,
 `latitude`, `longitude`, and an `overlay` field (a stable overlay ID). The earlier
 imperial-extent and Amazon-basin dots were retired as entry points on September 21;
-their area geometry, clipping renderer and tests remain for future use. The reusable DOM layer emits a bubbling `tourselect` event with the
+their area geometry, clipping renderer and tests remain for future use. On re-cut arrangements such as Felv, where one hexagon appears as
+several placed pieces, a point projects onto the piece whose polygon contains
+it, so dots and routes never land in the empty space beside a moved piece.
+The reusable DOM layer emits a bubbling `tourselect` event with the
 complete record in `detail`. Coordinates are representative anchors.
 
 Selecting Silk Road fits the land and sea trade network into view and opens a compact

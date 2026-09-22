@@ -29,15 +29,24 @@ export const pacificLightingEnabled=entry=>!!entry?.path?.endsWith('/dymaxion/li
 export function projectTourLocations(tiles,net,angles,locations=tourLocations){
  const matrix=rotation(angles);
  const patches=net.flatMap(tile=>tiles[tile.id].patches.map(patch=>({tile,projector:patchProjector(patch)})));
+ // Re-cut arrangements (Felv) list several pieces of one hexagon, each with a
+ // polygon in the hexagon's local frame; a point belongs to the piece that
+ // contains it, not to the first piece of that hexagon.
+ const inside=(p,polygon)=>{let yes=false;for(let i=0,j=polygon.length-1;i<polygon.length;j=i++){const a=polygon[i],b=polygon[j];if((a[1]>p[1])!==(b[1]>p[1])&&p[0]<(b[0]-a[0])*(p[1]-a[1])/(b[1]-a[1])+a[0])yes=!yes;}return yes;};
  return locations.map(location=>{
   const lat=location.latitude*Math.PI/180,lon=location.longitude*Math.PI/180;
   const geographic=[Math.cos(lat)*Math.cos(lon),Math.cos(lat)*Math.sin(lon),Math.sin(lat)];
   const sphere=[0,1,2].map(i=>geographic.reduce((sum,v,j)=>sum+matrix[j*3+i]*v,0));
+  let fallback=null;
   for(const {tile,projector} of patches){
    const weights=projector.coefficients(sphere);
-   if(weights.every(v=>v>=-1e-9))return {location,tile,local:projector.point(weights)};
+   if(!weights.every(v=>v>=-1e-9))continue;
+   const local=projector.point(weights);
+   if(!tile.polygon)return {location,tile,local};
+   if(inside(local,tile.polygon))return {location,tile,local};
+   fallback??={location,tile,local};
   }
-  return null;
+  return fallback;
  }).filter(Boolean);
 }
 

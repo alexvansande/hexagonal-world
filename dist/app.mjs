@@ -1,6 +1,6 @@
 import {assetURL} from './asset-url.mjs';
 import {readTourPath,initTourNavigation,readPeriod,withPeriod} from './tour-pages.mjs?v=stories-7';
-import {createTourMarkers,projectTourLocations,tourEnabled,tourLocations,pacificLayoutEnabled,pacificLightingEnabled} from './tour-markers.mjs?v=endless-1';
+import {createTourMarkers,projectTourLocations,tourEnabled,tourLocations,pacificLayoutEnabled,pacificLightingEnabled} from './tour-markers.mjs?v=felv-pieces-1';
 import {createTourRoutes,projectTourRoutes} from './tour-route-renderer.mjs?v=endless-1';
 import {loadTourData} from './tour-data.mjs?v=stories-7';
 import {createTourAreas,projectTourAreas} from './tour-area-renderer.mjs?v=sporadic-1';
@@ -451,7 +451,8 @@ function selectHistoryStop(id,writeURL=true){historyStopId=timelineStop(id).id;h
 async function enableHistory(on){
  if(historyOn===on&&(historyData||!on)){syncHistoryTools();return;}
  historyOn=on;
- if(on&&!tourEnabled(renderDefault)){const pair=sharePair('lifezones','dymaxion');applyMapOption(pair.layout,'layout');applyMapOption(pair.style,'style');}
+ // Judge eligibility from the current settings, not from a renderer that may not be ready yet.
+ if(on&&!tourEnabled(renderDefault||activeDefault())){const pair=sharePair('lifezones','dymaxion');applyMapOption(pair.layout,'layout');applyMapOption(pair.style,'style');}
  if(!on){++historyLoad;closeHistoryFocus(false);tourRoutes.setPaused(false);syncHistoryTools();updateMapUrl();syncHistoryNet();draw();return;}
  tourRoutes.setPaused(historyPaused);syncHistoryTools();updateMapUrl();syncHistoryNet();draw();
  if(historyData)return;

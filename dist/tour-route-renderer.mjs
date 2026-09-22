@@ -1,4 +1,4 @@
-import {projectTourLocations} from './tour-markers.mjs?v=endless-1';
+import {projectTourLocations} from './tour-markers.mjs?v=felv-pieces-1';
 import {hex} from './geometry.mjs';
 
 export function sampleRoute(route,step=.18){
