@@ -424,7 +424,7 @@ function syncHistoryFocus(){
 // all five stories loads only when the checkbox is switched on; the positioning
 // toolbox gives way to the scrubber; story dots filter to the stop's stories and
 // open at that stop's chapter. The selected stop travels in the URL as ?history=.
-const historyToggle=$('show-history'),historyTools=document.querySelector('.history-tools'),historySlider=$('history-stop'),historyDate=$('history-date'),historyLabels=document.querySelector('.history-stop-labels'),historyStories=document.querySelector('.history-stories'),historyNote=$('history-note'),historyPause=$('history-pause');
+const historyToggle=$('show-history'),historyTools=document.querySelector('.history-tools'),historySlider=$('history-stop'),historyDate=$('history-date'),historyLabels=document.querySelector('.history-stop-labels'),historyNote=$('history-note');
 function historyStop(){return timelineStop(historyStopId);}
 function historyRoutes(){
  if(!historyOn||!historyData)return [];
@@ -433,16 +433,14 @@ function historyRoutes(){
  return historyProjection;
 }
 historySlider.max=String(timelineStops.length-1);historyLabels.style.setProperty('--stop-count',String(timelineStops.length));
-for(const stop of timelineStops){const b=document.createElement('button');b.type='button';b.dataset.stop=stop.id;b.setAttribute('aria-label',`${stop.label}, ${stop.date}`);const text=document.createElement('span');text.textContent=stop.label;b.append(text);b.onclick=()=>selectHistoryStop(stop.id);historyLabels.append(b);}
+for(const stop of timelineStops){const b=document.createElement('button');b.type='button';b.dataset.stop=stop.id;b.setAttribute('aria-label',`${stop.label}, ${stop.date}`);b.textContent=stop.tick;b.onclick=()=>selectHistoryStop(stop.id);historyLabels.append(b);}
 function syncHistoryTools(){
  const stop=historyStop(),shown=historyOn&&!activeTour;
  historyToggle.checked=historyOn;historyTools.hidden=!shown;document.body.classList.toggle('history',shown);
  historySlider.value=String(timelineStops.indexOf(stop));historySlider.setAttribute('aria-valuetext',`${stop.label}, ${stop.date}`);historyDate.textContent=`${stop.label} · ${stop.date}`;
  for(const b of historyLabels.children)b.setAttribute('aria-pressed',String(b.dataset.stop===stop.id));
- historyStories.replaceChildren(...stop.tours.map(id=>{const location=tourLocations.find(t=>t.id===id),b=document.createElement('button');b.type='button';b.textContent=location.title;b.dataset.tourId=id;b.setAttribute('aria-pressed',String(historyFocus===id));b.onclick=()=>focusHistoryStory(location);return b;}));
  const note=historyData?stop.note||(stop.chapters.length?'':'Nothing written for this period yet.'):'Loading stories…';
  historyNote.textContent=note;historyNote.hidden=!note;
- historyPause.textContent=historyPaused?'Resume flow':'Pause flow';historyPause.setAttribute('aria-pressed',String(historyPaused));
 }
 // Pacific stops (any Polynesian chapter) use the Pacific-facing arrangement on Spaceship Earth.
 const historyWantsPacific=()=>historyOn&&historyStop().tours.includes('french-polynesia');
@@ -462,7 +460,7 @@ async function enableHistory(on){
 }
 historyToggle.addEventListener('change',()=>enableHistory(historyToggle.checked));
 historySlider.addEventListener('input',()=>selectHistoryStop(timelineStops[+historySlider.value].id));
-historyPause.onclick=()=>{historyPaused=!historyPaused;tourRoutes.setPaused(historyPaused);syncHistoryTools();};
+
 // Manual map gestures interrupt the camera transition immediately.
 $('stage').addEventListener('pointerdown',cancelTourAnimation,true);
 $('stage').addEventListener('wheel',cancelTourAnimation,{capture:true,passive:true});

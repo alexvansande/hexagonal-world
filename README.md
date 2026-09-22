@@ -159,8 +159,10 @@ between the style strip and More options. Switching it on loads all five story
 datasets (never before), replaces the pan/reposition toolbox with a scrubber of
 nine fixed stops from `dist/tour-timeline.mjs` (Early hominins, Out of Africa,
 Ice Age to farming, Bronze Age, Antiquity, Middle Ages, High Middle Ages,
-Globalization, Plantations & empires), and draws the union of every chapter
-placed on the chosen stop. Stops are editorial snapshots on a three-zone scale,
+Globalization, Plantations & empires), ticked with approximate dates (2M ya,
+50k ya, 10k ya, 3k ya, 200 CE, 1000 CE, 1400 CE, 1600 CE, 1800 CE) while the
+panel heading names the age, and draws the union of every chapter placed on the
+chosen stop. The panel holds only the scrubber: no pause button and no story chips. Stops are editorial snapshots on a three-zone scale,
 not evenly spaced years; every chapter belongs to exactly one stop, and a stop
 entry may restrict a chapter to some waves (the Norse composite chapter shows
 only its trade lanes at 1300). Story dots and chips filter to the stop’s stories

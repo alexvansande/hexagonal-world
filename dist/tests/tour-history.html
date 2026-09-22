@@ -22,14 +22,14 @@ try{
  check(w.location.search.includes('history=middle-ages'),'URL carries the default stop');
  const middle=timelineStops.find(s=>s.id==='middle-ages');
  check(new Set(visible().map(g=>g.dataset.routeId.split('-')[0])).size>=3,'Middle Ages draws several stories at once');
- check(d.querySelectorAll('.tour-marker:not([hidden])').length===middle.tours.length&&d.querySelectorAll('.history-stories button').length===middle.tours.length,'Story dots and chips filter to the stop');
+ check(d.querySelectorAll('.tour-marker:not([hidden])').length===middle.tours.length,'Story dots filter to the stop');
  const counts=[];
  const map=d.querySelector('#map');
  const drawn=()=>visible().map(g=>g.dataset.routeId).sort().join();
  for(const [i,stop] of timelineStops.entries()){const previous=drawn();slider.value=i;slider.dispatchEvent(new w.Event('input',{bubbles:true}));
   await until(()=>map.dataset.tourProgress==='1.00'&&drawn()!==previous&&(!stop.chapters.length||visible().length>0),'settled '+stop.id);await pause(150);counts.push(visible().length);
   check(w.location.search.includes('history='+stop.id),'URL preserves '+stop.id);
-  check(d.querySelector('#history-date').textContent===`${stop.label} · ${stop.date}`,'Date for '+stop.id);
+  check(d.querySelector('#history-date').textContent===`${stop.label} · ${stop.date}`&&d.querySelector(`.history-stop-labels button[data-stop="${stop.id}"]`).textContent===stop.tick,'Date and tick for '+stop.id);
   if(!stop.chapters.length)check(!d.querySelector('#history-note').hidden&&visible().length===0,'Empty stop explains itself');
   else check(visible().length>0,'Stop draws routes: '+stop.id);
   check(map.dataset.tourLayout==='dancing','Endless band stays on for '+stop.id);
@@ -39,19 +39,18 @@ try{
  // Open a story from a chip, land on that stop's chapter, and return to history mode on close.
  const prevDrawn=drawn();slider.value=timelineStops.findIndex(s=>s.id==='high-middle-ages');slider.dispatchEvent(new w.Event('input',{bubbles:true}));await until(()=>drawn()!==prevDrawn&&map.dataset.tourProgress==='1.00','high middle ages');await pause(400);
  const drawnBefore=visible().length,zoomBefore=d.querySelector('#zoom-value').textContent;
- d.querySelector('.history-stories button[data-tour-id="silk-road"]').click();await until(()=>!d.querySelector('#tour-story').hidden,'story');await pause(1500);
+ d.querySelector('.tour-marker[data-tour-id="silk-road"]').click();await until(()=>!d.querySelector('#tour-story').hidden,'story');await pause(1500);
  check(d.querySelector('#tour-story-title').textContent.includes('Mongol')&&d.querySelector('.tour-timeline').hidden,'Chip shows the Silk Road High Middle Ages text with no second slider');
- check(!tools.hidden&&visible().length===drawnBefore&&d.querySelectorAll('.history-stories button').length>1&&d.querySelector('.history-stories button[data-tour-id="silk-road"]').getAttribute('aria-pressed')==='true','The scrubber and every story stay while a story is focused');
+ check(!tools.hidden&&visible().length===drawnBefore&&!d.querySelector('.history-tools button[id]'),'The scrubber and every story stay while a story is focused; no pause button or chips');
  check(d.querySelector('#zoom-value').textContent!==zoomBefore&&w.location.pathname==='/lifezones/spaceship-earth/','Focusing zooms to the chapter and keeps the map URL');
  slider.value=timelineStops.findIndex(s=>s.id==='middle-ages');slider.dispatchEvent(new w.Event('input',{bubbles:true}));await pause(400);
  check(!d.querySelector('#tour-story').hidden&&d.querySelector('#tour-story-title').textContent.includes('caravans'),'Scrubbing re-reads the focused story at the new stop');
  slider.value=timelineStops.findIndex(s=>s.id==='early-hominins');slider.dispatchEvent(new w.Event('input',{bubbles:true}));await pause(400);
  check(d.querySelector('#tour-story').hidden,'A stop without that story closes the card');
  slider.value=timelineStops.findIndex(s=>s.id==='high-middle-ages');slider.dispatchEvent(new w.Event('input',{bubbles:true}));await pause(400);
- d.querySelector('.history-stories button[data-tour-id="silk-road"]').click();await until(()=>!d.querySelector('#tour-story').hidden,'story again');await pause(1500);
+ d.querySelector('.tour-marker[data-tour-id="silk-road"]').click();await until(()=>!d.querySelector('#tour-story').hidden,'story again');await pause(1500);
  d.querySelector('#tour-story-close').click();await until(()=>d.querySelector('#tour-story').hidden,'back');await pause(300);
  check(w.location.search.includes('history=high-middle-ages')&&visible().length>0&&d.querySelector('#zoom-value').textContent===zoomBefore,'Closing the card restores the camera at the same stop');
- d.querySelector('#history-pause').click();check(routes.classList.contains('flow-paused'),'Pause freezes the unified flow');d.querySelector('#history-pause').click();
  toggle.click();await until(()=>tools.hidden&&routes.style.display==='none'&&d.querySelectorAll('.tour-marker:not([hidden])').length===7,'off');await pause(200);
  check(getComputedStyle(viewTools).display!=='none'&&routes.style.display==='none'&&d.querySelectorAll('.tour-marker:not([hidden])').length===7&&!w.location.search.includes('history='),'Unchecking restores the toolbox, dots and URL');
  // Direct URL entry restores the stop.
