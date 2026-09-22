@@ -278,16 +278,18 @@ function danceFill(centre=danceCentre()){
  const placed=dancePlaced();
  let anchor=null,nearest=Infinity;
  for(const p of placed){const d=Math.hypot(p.x-centre[0],p.y-centre[1]);if(d<nearest){nearest=d;anchor=p;}}
- // The anchor's corner nearest the centre, kept while the previous one is nearly as close.
- const corners=hex.map((v,k)=>{const q=world(v,anchor);return {k,d:Math.hypot(q[0]-centre[0],q[1]-centre[1])};}).sort((a,b)=>a.d-b.d);
+ // The anchor's nearest three-piece corner (the two edges meeting there must name
+ // two different pieces; on this sphere every other corner is a face meeting
+ // itself), kept while the previous one is nearly as close.
+ const corners=hex.map((v,k)=>{const q=world(v,anchor);return {k,d:Math.hypot(q[0]-centre[0],q[1]-centre[1])};}).filter(c=>{const a=danceJoin(anchor,(c.k+5)%6),b=danceJoin(anchor,c.k);return a&&b&&a.id!==b.id;}).sort((a,b)=>a.d-b.d);
+ if(!corners.length)return;
  let corner=corners[0].k;
- if(danceVertex&&danceVertex.anchor===anchor.id){const previous=corners.find(c=>c.k===danceVertex.corner);if(previous.d<corners[0].d+.15)corner=previous.k;}
+ if(danceVertex&&danceVertex.anchor===anchor.id){const previous=corners.find(c=>c.k===danceVertex.corner);if(previous&&previous.d<corners[0].d+.15)corner=previous.k;}
  if(danceVertex&&danceVertex.anchor===anchor.id&&danceVertex.corner===corner)return;
  danceVertex={anchor:anchor.id,corner};danceCentreState=`${anchor.id}:${corner}`;
  const targets=new Map([[anchor.id,{x:anchor.x,y:anchor.y,r:anchor.r}]]),taken=cell=>[...targets.values()].some(q=>sameCell(q,cell));
- // The two edges meeting at the corner; when both name the same piece it takes the nearer cell.
- const wanted=[danceJoin(anchor,(corner+5)%6),danceJoin(anchor,corner)].filter(Boolean).sort((a,b)=>Math.hypot(a.x-centre[0],a.y-centre[1])-Math.hypot(b.x-centre[0],b.y-centre[1]));
- for(const j of wanted)if(!targets.has(j.id)&&!taken(j))targets.set(j.id,{x:j.x,y:j.y,r:j.r});
+ // The two pieces across the corner's edges: three plates always meet at the vertex.
+ for(const j of [danceJoin(anchor,(corner+5)%6),danceJoin(anchor,corner)])targets.set(j.id,{x:j.x,y:j.y,r:j.r});
  for(const p of placed.sort((a,b)=>Math.hypot(a.x-centre[0],a.y-centre[1])-Math.hypot(b.x-centre[0],b.y-centre[1]))){
   if(targets.has(p.id))continue;
   const cur={x:p.x,y:p.y,r:p.r};
@@ -1140,6 +1142,21 @@ restoreSettings(presetSettings(shareSelection));
 if(!initialTour)restoreSettings(readMapStateFromUrl());
 initAnalytics(initialTour?.path||shareSelection.path);setSidebarExpanded(state.sidebarExpanded,false);rebuild(false);initializeMapTexture();
 if(historyPeriodId)enableHistory(true);
+// Rotation dial beside Fit: dragging around it turns the whole map in 30° steps
+// (the dot shows the current turn); arrow keys step it too. It drives the grid
+// rotation range so the map turns about the viewport centre like the slider.
+if($('rotate-dial')){
+ const dial=$('rotate-dial'),input=$('gridRotation');
+ const show=()=>dial.style.setProperty('--dial',`${state.gridRotation}deg`);
+ const set=degrees=>{let v=Math.round(degrees/30)*30;v=((v+180)%360+360)%360-180;if(v===state.gridRotation)return;input.value=v;input.dispatchEvent(new Event('input',{bubbles:true}));show();};
+ const angleAt=e=>{const r=dial.getBoundingClientRect();return Math.atan2(e.clientY-r.top-r.height/2,e.clientX-r.left-r.width/2)*180/Math.PI;};
+ let grab=null;
+ dial.addEventListener('pointerdown',e=>{if(e.button!==0)return;e.preventDefault();dial.setPointerCapture(e.pointerId);grab={id:e.pointerId,start:angleAt(e),base:state.gridRotation};});
+ dial.addEventListener('pointermove',e=>{if(!grab||e.pointerId!==grab.id)return;let d=angleAt(e)-grab.start;d=((d+540)%360)-180;set(grab.base+d);});
+ for(const type of ['pointerup','pointercancel'])dial.addEventListener(type,e=>{if(grab&&e.pointerId===grab.id)grab=null;});
+ dial.addEventListener('keydown',e=>{if(e.key==='ArrowRight'||e.key==='ArrowUp'){e.preventDefault();set(state.gridRotation+30);}else if(e.key==='ArrowLeft'||e.key==='ArrowDown'){e.preventDefault();set(state.gridRotation-30);}});
+ input.addEventListener('input',show);show();
+}
 document.querySelectorAll('aside details').forEach(el=>el.addEventListener('toggle',scheduleSave));
 new ResizeObserver(resize).observe($('stage'));
 updateRelief();

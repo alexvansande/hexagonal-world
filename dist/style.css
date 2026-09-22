@@ -27,6 +27,11 @@ main{display:block!important;position:relative;width:100%;height:100dvh!importan
 aside{position:fixed;z-index:8;left:20px;top:20px;bottom:20px;width:330px;max-height:calc(100dvh - 40px);display:flex;flex-direction:column;background:rgba(255,255,255,.94);border:1px solid rgba(205,218,220,.95);border-radius:14px;box-shadow:0 16px 46px rgba(22,52,59,.18);backdrop-filter:blur(18px);padding:24px 20px;overflow-y:auto}
 .canvas-top,.canvas-bottom{display:none!important}
 .view-tools{z-index:5;left:auto;right:24px;bottom:24px;transform:none}
+/* Rotation dial: a circle with an off-centre dot that shows the map's turn; dragging around it turns the map in 15° steps. */
+.rotate-dial{position:relative;width:34px;height:34px;min-width:34px;padding:0;margin-left:2px;border:2px solid #9aa8ac;border-radius:50%;background:#fff;cursor:grab;touch-action:none}
+.rotate-dial:active{cursor:grabbing}
+.rotate-dial .dial-dot{position:absolute;left:50%;top:50%;width:8px;height:8px;margin:-4px 0 0 -4px;border-radius:50%;background:#000;transform:rotate(var(--dial,0deg)) translate(0,-10px);transition:transform .12s ease}
+.rotate-dial:focus-visible{outline:2px solid #407b8c;outline-offset:2px}
 .aside-export{margin-top:auto;padding-top:20px;border-top:1px solid var(--line)}
 .export-split{display:grid;grid-template-columns:minmax(0,1fr);gap:8px;width:100%}
 .export-split #export{width:100%;min-height:44px;margin:0;border-radius:6px;font-size:14px;white-space:nowrap}

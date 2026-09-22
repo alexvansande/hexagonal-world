@@ -153,6 +153,13 @@ shared with a piece are left out. Saved in links as `backdrop-grid`,
 `backdrop-color`, `backdropWidth` and `backdropOpacity`, appended to the compact map-state key
 lists so older links stay valid.
 
+Rotation dial: to the right of Fit sits a small grey circle with an off-centre
+dot. Dragging around it turns the whole map in 30° steps (twelve positions)
+about the viewport centre
+(the arrow keys step it too); the dot shows the current turn. It drives the
+same grid-rotation setting as the slider in the positioning panel, so the turn
+is saved in links.
+
 Pan bound: a drag can never leave the map fully off screen. When a drag ends
 with less than a sliver visible, the camera springs back with a small overshoot
 (instant under reduced motion).
@@ -160,8 +167,9 @@ with less than a sliver visible, the camera springs back with a small overshoot
 Dancing pieces, experiment two (the user's rule): find the three-piece vertex
 nearest the viewport centre and flip the hexagons to it. The anchor is the
 placed piece nearest the centre and never moves; its corner nearest the centre
-names the vertex (kept while the previous corner is nearly as close); the two
-edges meeting there name the two pieces that must sit across them, at the
+names the vertex, choosing only corners where the two edges name two different
+pieces so three plates always meet there (kept while the previous corner is
+nearly as close); the two edges name the two pieces that must sit across them, at the
 rotations those spherical joins demand (`matching`; a translation plus a turn).
 The remaining piece keeps its place when that is still a valid join of the
 group, otherwise it takes the free join nearest to where it was. So the fewest

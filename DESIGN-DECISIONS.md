@@ -715,6 +715,26 @@ and the dance completes the vertex named by the anchor's nearest corner; the
 fourth piece keeps its place when it is still a valid join. The relit Pacific
 artwork is no longer used.
 
+**Three plates at the vertex, twelve turns (September 22).** The user asked that
+three plates always meet at the vertex nearest the centre with the fourth hex
+to the side as the leftover, which is what makes it the spaceship, and that
+the dial use twelve positions rather than twenty-four. Decision: the rule
+considers only corners whose two edges name different pieces (every other
+corner of this sphere is a face meeting itself), the dial steps by 30°, and its
+outer circle is grey.
+
+**Rotation dial and the tile bill (September 22).** The user accepted the vertex
+rule as the best way to navigate the hexes, with two side effects: it is easy
+to get lost and lose the original alignment, and pre-rendered shadows would
+need many more tiles. Decision: a dial beside Fit turns the whole map in 15°
+steps so any alignment can be recovered by eye. For shadows, the bill was
+computed rather than paid: lighting fixed to each piece and baked for the three
+rotations a piece can take means roughly twice today's lighting detail (about
+163k tiles, 2.0 GB across the six lit styles) as per-region lighting, or about
+19k larger lit composites (2.0 GB) in the Pacific-relight format; either way
+the light must be fixed to the map frame, turning with the dial, because
+screen-fixed light would multiply the bill by the 24 dial positions.
+
 **Dance anchored on the centre (September 22).** The user saw a small drag down,
 made only to see an arrangement better, re-form the group and move the pieces in
 front of them away. Decision: a band switch needs a deliberate pan (40% of the
