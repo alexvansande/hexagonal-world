@@ -496,7 +496,7 @@ function drawBackdropGrid(){
   for(let e=0;e<6;e++){
    const a=hex[e],b=hex[(e+1)%6],mx=x+(a[0]+b[0]),my=y+(a[1]+b[1]);
    if(occupied(mx,my))continue;
-   const key=`${(mx/2).toFixed(3)},${(my/2).toFixed(3)}`;if(seen.has(key))continue;seen.add(key);
+   const key=`${(x+(a[0]+b[0])/2).toFixed(3)},${(y+(a[1]+b[1])/2).toFixed(3)}`;if(seen.has(key))continue;seen.add(key);
    ctx.moveTo(...point(a,cell));ctx.lineTo(...point(b,cell));
   }
  }
