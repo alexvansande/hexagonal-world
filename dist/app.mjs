@@ -21,7 +21,7 @@ import {renderLifezonesLegend} from './lifezones-legend.mjs?v=lifezones-shadows-
 import {fadedLegendColor} from './legend-colors.mjs';
 import {ProjectedLighting,lightingSettings,lightingKey,lightingPlan,lightingCovers} from './projected-lighting.mjs?v=performance-1';
 import {compactDevice,mobileFitRect,maximumZoom,displayPixelRatio} from './device-profile.mjs?v=performance-1';
-import {readSharePath,sharePair,inferSharePair,presetSettings} from './share-routes.mjs?v=lifezones-shadows-3';
+import {readSharePath,sharePair,inferSharePair,presetSettings} from './share-routes.mjs?v=backdrop-4';
 import {initAnalytics,trackEvent} from './analytics.mjs';
 import {fractalRegion,fractalEdgeOwners,visibleFractalLines,fractalDetailPlan,fineFractalTiles,fractalFineScale,fractalOpacities,edgeKey} from './fractal-grid.mjs?v=fractal-zoom-10';
 import {pointInLoops} from './gosper-fractal.mjs';
@@ -38,7 +38,7 @@ import {visibleTiles} from './tiling.mjs';
 import {makeGeometry,layouts,matching,canvasWorld,hex,world} from './geometry.mjs?v=tetra-area-2';
 import {projectionGLSL} from './projection-shader.mjs?v=tetra-area-2';
 import {ReliefRenderer,reliefRanges,reliefDefaults,reliefLooks} from './relief.mjs?v=cloud-assets-1';
-import {layoutOptions,styleOptions,layoutIcon} from './map-options.mjs?v=lifezones-shadows-3';
+import {layoutOptions,styleOptions,layoutIcon} from './map-options.mjs?v=backdrop-3';
 const $=id=>document.getElementById(id), canvas=$('map'),overlay=$('overlay'),ctx=overlay.getContext('2d');
 const tourMarkers=createTourMarkers($('stage'),canvas);
 const tourRoutes=createTourRoutes($('stage'));
@@ -59,8 +59,8 @@ let coordinatePointer=null,coordinateHideTimer=null;
 const classOptions=[3,6,10,15];
 const classCount=id=>classOptions[Math.max(0,Math.min(3,Math.round(+$(id).value)))];
 function syncClassControl(id,count){const el=$(id);if(!el)return;const index=classOptions.indexOf(+count);if(index>=0)el.value=index;$(id+'-value').value=classOptions[+el.value];}
-const rangeSuffixes={puzzleWidth:'×',riverWidth:'×',subgridWidth:'×',graticuleWidth:'×',backdropWidth:'×'};
-const state={method:'tetra',lon:0,lat:0,roll:0,bias:1,height:1.5,grid:30,line:0.8,subgridWidth:1,puzzleWidth:1,graticuleWidth:1,backdropWidth:.8,shadowOpacity:1,lightOpacity:1,distortionOpacity:.7,clearance:0,riverWidth:1,riverLevels:6,layout:0,gridRotation:0,zoom:1,panX:0,panY:0,mode:'pan',arrangement:'infinite',sidebarExpanded:false,interpolation:0,...reliefDefaults};
+const rangeSuffixes={puzzleWidth:'×',riverWidth:'×',subgridWidth:'×',graticuleWidth:'×',backdropWidth:'px'};
+const state={method:'tetra',lon:0,lat:0,roll:0,bias:1,height:1.5,grid:30,line:0.8,subgridWidth:1,puzzleWidth:1,graticuleWidth:1,backdropWidth:2,shadowOpacity:1,lightOpacity:1,distortionOpacity:.7,clearance:0,riverWidth:1,riverLevels:6,layout:0,gridRotation:0,zoom:1,panX:0,panY:0,mode:'pan',arrangement:'infinite',sidebarExpanded:false,interpolation:0,...reliefDefaults};
 let mobileRepositioning=false;
 let exporting=false;
 let shareSelection=initialTour?sharePair('lifezones','dymaxion'):readSharePath(location.pathname)||inferSharePair(readMapStateFromUrl());
@@ -81,7 +81,7 @@ function range(parent,id,label,min,max,step,value,suffix=''){
 range('distortion-controls','distortionOpacity','Opacity',0,1,.05,.7);
 range('clearance-control','clearance','Minimum distance from land',0,9,1,0,'°');$('clearance').setAttribute('aria-label','Minimum distance from land');$('clearance-control').querySelector('.range-head').hidden=true;
 range('orientation','lon','Longitude',-180,180,1,0,'°');range('orientation','lat','Latitude',-90,90,1,0,'°');range('orientation','roll','Roll',-180,180,1,0,'°');range('shape-controls','bias','Shape bias',.4,2.5,.01,1);range('shape-controls','height','Pyramid tip distance',1.01,2,.01,1.5);range('display-controls','gridRotation','Grid rotation',-180,180,1,0,'°');range('graticule-controls','grid','Grid interval',10,60,5,30,'°');range('border-controls','line','Border weight',0,2,.1,.8);
-range('hex-grid-controls','subgridWidth','Hex grid thickness',0,5,.1,1,'×');range('backdrop-controls','backdropWidth','Backdrop grid thickness',0,3,.1,.8,'×');range('graticule-controls','graticuleWidth','Latitude / longitude thickness',0,5,.1,1,'×');
+range('hex-grid-controls','subgridWidth','Hex grid thickness',0,5,.1,1,'×');range('backdrop-controls','backdropWidth','Back grid thickness',0,4,.5,2,'px');range('graticule-controls','graticuleWidth','Latitude / longitude thickness',0,5,.1,1,'×');
 range('puzzle-controls','puzzleWidth','Puzzle line width',0,5,.1,1,'×');
 const syncSourceChoice=initSourcePicker({source:$('map-source'),palette:$('palette'),choice:$('map-source-choice')});
 range('river-controls','riverWidth','River width',.5,3,.25,1,'×');range('river-controls','riverLevels','Tributary levels',1,12,1,6);
@@ -476,19 +476,19 @@ function drawFractalGrid(){
  if(large>0)fractalPaths.forEach((path,level)=>{if(detail.large[level]===0)return;ctx.globalAlpha=detail.large[level];ctx.stroke(path);});
  if(fine>0)fineFractalPaths.forEach((path,level)=>{if(detail.fine[level]===0)return;ctx.globalAlpha=detail.fine[level];ctx.stroke(path);});ctx.restore();
 }
-// Backdrop grid: the empty cells of the main hexagon lattice around Spaceship
-// Earth, so the space the pieces slide into reads as part of the same grid.
-// Cells under a piece (including one mid-slide) and edges shared with a piece
-// are left out; the pieces' own borders are drawn later.
+// Back grid: the empty cells of the main hexagon lattice on the background of
+// any finite map (on by default for Spaceship Earth, whose pieces slide through
+// it). Cells under a piece, including one mid-slide, cells inside a map outline
+// and edges shared with a piece are left out; the map's own borders come later.
 function drawBackdropGrid(){
- if(!$('backdrop-grid').checked||state.backdropWidth<=0||state.arrangement!=='dymaxion'||tiling||arrangement.outline||arrangement.clip)return;
+ if(!$('backdrop-grid').checked||state.backdropWidth<=0||tiling)return;
  const unit=scale*state.zoom,angle=state.gridRotation*Math.PI/180,H=Math.sqrt(3)/2;
  const corners=[[0,0],[w,0],[w,h],[0,h]].map(([x,y])=>{const v=rotateScreen([(x-w/2-state.panX)/unit,(y-h/2-state.panY)/unit],-angle);return [v[0],-v[1]];});
  const xs=corners.map(c=>c[0]),ys=corners.map(c=>c[1]);
  const i0=Math.floor((Math.min(...xs)-2)/1.5),i1=Math.ceil((Math.max(...xs)+2)/1.5),j0=Math.floor((Math.min(...ys)-2)/H),j1=Math.ceil((Math.max(...ys)+2)/H);
  if((i1-i0)*(j1-j0)>4000)return;
- const occupied=(x,y)=>net.some(t=>Math.hypot(t.x-x,t.y-y)<1);
- ctx.save();ctx.strokeStyle=$('backdrop-color').value;ctx.globalAlpha=.45;ctx.lineWidth=Math.max(.5,state.backdropWidth);ctx.lineCap='round';ctx.beginPath();
+ const occupied=(x,y)=>net.some(t=>Math.hypot(t.x-x,t.y-y)<1)||(arrangement.outline&&pointInLoops([x,y],arrangement.outline))||(arrangement.clip&&pointInLoops([x,y],[arrangement.clip]));
+ ctx.save();ctx.strokeStyle=$('backdrop-color').value;ctx.globalAlpha=.45;ctx.lineWidth=state.backdropWidth;ctx.lineCap='round';ctx.beginPath();
  const seen=new Set();
  for(let i=i0;i<=i1;i++)for(let j=j0;j<=j1;j++){
   if(Math.abs((i+j)%2)===1)continue;const x=1.5*i,y=H*j;if(occupied(x,y))continue;
@@ -500,7 +500,7 @@ function drawBackdropGrid(){
    ctx.moveTo(...point(a,cell));ctx.lineTo(...point(b,cell));
   }
  }
- ctx.stroke();ctx.restore();
+ ctx.stroke();ctx.restore();canvas.dataset.backdropEdges=String(seen.size);
 }
 function drawPuzzle(){
  if(!$('puzzlegrid').checked||state.puzzleWidth<=0)return;
@@ -1080,7 +1080,7 @@ function applyMapOption(option,type){
   trackEvent(type==='layout'?'format':'style',type==='layout'?shareSelection.layout.arrangement:option.id);
   if(type==='layout'){
     for(const id of ['method','arrangement','lon','lat','roll','bias','height','clearance','gridRotation'])if(option.state[id]!==undefined){if(['method','arrangement'].includes(id))state[id]=option.state[id];else setOptionRange(id,option.state[id]);}
-    for(const id of ['interpolation','optimize'])if(option.controls[id]!==undefined)setOptionControl(id,option.controls[id]);
+    for(const id of ['interpolation','optimize','backdrop-grid'])if(option.controls[id]!==undefined)setOptionControl(id,option.controls[id]);
     state.layout=0;document.querySelectorAll('.method').forEach(el=>el.classList.toggle('active',el.dataset.method===state.method));
     rebuild();resize();if(option.viewOffset&&!compactDevice){state.panX=option.viewOffset[0]*scale;state.panY=option.viewOffset[1]*scale;draw();}defaultView={scale,zoom:state.zoom,panX:state.panX,panY:state.panY};updateRelief();
   }else{

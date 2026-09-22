@@ -164,12 +164,13 @@ only its trade lanes at 1300). Story dots and chips filter to the stop’s stori
 and open the story at that stop’s chapter; closing returns to the same stop. The
 stop persists as `?history=<stop>` on the map URL.
 
-Backdrop grid (Overlays → “Backdrop grid”, on by default): on Spaceship Earth a
-faint hexagonal lattice, one main hexagon per cell, fills the empty space the
-pieces can slide into. Cells under a piece, including one mid-slide, and edges
-shared with a piece are left out. Color and thickness are saved in links as
-`backdrop-grid`, `backdrop-color` and `backdropWidth`, appended to the compact
-map-state key lists so older links stay valid.
+Back grid (Overlays → “Back grid”): a faint hexagonal lattice, one main hexagon
+per cell, on the empty background of any finite map; on by default for Spaceship
+Earth (2 px, #9fb4b8) through the layout preset's controls, off elsewhere. Cells
+under a piece (including one mid-slide), cells inside a map outline and edges
+shared with a piece are left out. Saved in links as `backdrop-grid`,
+`backdrop-color` and `backdropWidth`, appended to the compact map-state key
+lists so older links stay valid.
 
 Pan bound: a drag can never leave the map fully off screen. When a drag ends
 with less than a sliver visible, the camera springs back with a small overshoot
