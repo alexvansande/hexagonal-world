@@ -350,7 +350,7 @@ function historyRoutes(){
  return historyProjection;
 }
 historySlider.max=String(timelineStops.length-1);historyLabels.style.setProperty('--stop-count',String(timelineStops.length));
-for(const stop of timelineStops){const b=document.createElement('button');b.type='button';b.textContent=stop.label;b.dataset.stop=stop.id;b.onclick=()=>selectHistoryStop(stop.id);historyLabels.append(b);}
+for(const stop of timelineStops){const b=document.createElement('button');b.type='button';b.dataset.stop=stop.id;b.setAttribute('aria-label',`${stop.label}, ${stop.date}`);const text=document.createElement('span');text.textContent=stop.label;b.append(text);b.onclick=()=>selectHistoryStop(stop.id);historyLabels.append(b);}
 function syncHistoryTools(){
  const stop=historyStop(),shown=historyOn&&!activeTour;
  historyToggle.checked=historyOn;historyTools.hidden=!shown;document.body.classList.toggle('history',shown);
