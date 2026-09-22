@@ -28,9 +28,9 @@ try{
  check(dots().length===middle.stories.length&&middle.stories.every(id=>dots().includes(id)),'Story dots are the period spots');
  check(!!d.querySelector('#wave-colours')&&getComputedStyle(visible()[0]).getPropertyValue('--route-color').trim().startsWith('#'),'Wave colours come from history/waves.json');
  // Detail routes appear only when zoomed in, and hide again.
- const overview=visible().length;for(let i=0;i<3;i++)d.querySelector('#zoom-in').click();await pause(500);
+ const overview=visible().length;for(let i=0;i<3;i++)d.querySelector('#zoom-in').click();await until(()=>visible().length>overview,'detail routes');
  check(visible().length>overview,'Regional detail routes appear when zoomed in');
- for(let i=0;i<3;i++)d.querySelector('#zoom-out').click();await pause(500);
+ for(let i=0;i<3;i++)d.querySelector('#zoom-out').click();await until(()=>visible().length===overview,'overview routes');await pause(300);
  check(visible().length===overview,'Detail routes hide again when zoomed out');
  const counts=[];
  for(const p of periods){
@@ -108,14 +108,15 @@ try{
  await until(()=>w.location.search.includes('history='+first.id),'story period in URL');
  check(!d.querySelector('.history-tools').hidden&&d.querySelector('#tour-story-title').textContent.length>0&&[...d.querySelectorAll('.tour-marker:not([hidden])')].some(b=>b.dataset.tourId==='iceland-to-vinland'),'Story URL opens the timeline at the Vikings’ first period with the card open');
  // The dance is the map's own response to pans: after any drag the cell under the centre holds a piece.
- frame.src='/lifezones/spaceship-earth/';await until(()=>frame.contentDocument?.querySelector('#map')?.dataset.tourLayout==='dancing','dancing map');
+ frame.src='/lifezones/spaceship-earth/';await until(()=>frame.contentDocument?.querySelector('#map')?.dataset.tourLayout==='dancing'&&frame.contentDocument.querySelector('#map').dataset.surfacePreview==='false','dancing map');
  d=frame.contentDocument;w=frame.contentWindow;const canvas=d.querySelector('#map');canvas.setPointerCapture=()=>{};canvas.releasePointerCapture=()=>{};
  for(let i=0;i<3;i++)d.querySelector('#zoom-in').click();await pause(400);
  const rect=canvas.getBoundingClientRect(),cx=rect.left+rect.width/2,cy=rect.top+rect.height/2;
  const drag=async(dx,dy)=>{const ev=(type,x,y)=>canvas.dispatchEvent(new w.PointerEvent(type,{bubbles:true,clientX:x,clientY:y,pointerId:1,pointerType:'mouse',isPrimary:true,button:0,buttons:type==='pointerup'?0:1}));ev('pointerdown',cx,cy);for(let i=1;i<=10;i++){ev('pointermove',cx+dx*i/10,cy+dy*i/10);await pause(30);}ev('pointerup',cx+dx,cy+dy);await pause(900);await until(()=>canvas.dataset.danceMoving==='false','pieces settle after drag');};
+ check(canvas.dataset.tourLighting==='unlit'&&canvas.dataset.merged==='false','Spaceship Earth draws the unlit per-piece base layer while the dance experiment runs');
  for(const [dx,dy] of [[0,500],[-500,0],[0,-500],[500,0],[350,350]]){
   await drag(dx,dy);const cells=Object.values(pos()).map(p=>p.slice(0,2).map(v=>v.toFixed(2)).join());
-  check(canvas.dataset.danceCentre==='filled'&&new Set(cells).size===4,`After a drag of ${dx},${dy} the cell under the centre holds a piece and no two pieces share a cell`);
+  check(canvas.dataset.danceValid==='true'&&new Set(cells).size===4,`After a drag of ${dx},${dy} every piece touches the group along a valid edge and no two share a cell`);
  }
  result.textContent='All checks passed.';result.dataset.status='passed';
 }catch(error){result.textContent='FAIL: '+error.message;result.dataset.status='failed';console.error(error);}

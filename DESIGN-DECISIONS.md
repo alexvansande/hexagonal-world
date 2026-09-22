@@ -704,6 +704,17 @@ uses the same joins. Rotations beyond the Pacific view mean the original
 artwork turns with its lighting on Lifezones for those placements; the relit
 artwork is used whenever an American piece lands at its baked rotation.
 
+**Vertex rule, no shadows (September 22).** The user chose to experiment with a
+different rule for the turning hexagons: first remove the shadows so turned
+pieces are not inconsistent (they may be rebuilt later), then find whichever
+three-piece vertex is nearest the centre and flip the hexagons to it, moving
+the fewest pieces, trying very hard not to move the hexagon at the centre, and
+ending with every hex connected along valid edges. Decision: Spaceship Earth
+now draws the unlit per-piece base layer instead of the lit merged composite,
+and the dance completes the vertex named by the anchor's nearest corner; the
+fourth piece keeps its place when it is still a valid join. The relit Pacific
+artwork is no longer used.
+
 **Dance anchored on the centre (September 22).** The user saw a small drag down,
 made only to see an arrangement better, re-form the group and move the pieces in
 front of them away. Decision: a band switch needs a deliberate pan (40% of the

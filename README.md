@@ -157,27 +157,26 @@ Pan bound: a drag can never leave the map fully off screen. When a drag ends
 with less than a sliver visible, the camera springs back with a small overshoot
 (instant under reduced motion).
 
-Dancing pieces: on Spaceship Earth the four pieces stay four, and the rule is the
-user's: fill the empty hexagon under the viewport centre with a plate, moving as
-little as possible of what is already on screen. Every cell next to a placed
-piece has exactly one piece that joins that edge (`matching` gives the spherical
-join; the placement is a translation plus the rotation the join demands, so
-pieces may turn). When the centre lands in an empty cell, the cheapest joining
-piece comes there: never the piece nearest the centre, off-screen pieces before
-visible ones, unturned before turned. Nothing snaps back; when the centre sits
-farther out the fill chains up to three cells. Focusing a story gathers its
-pieces around the one holding most of it by the same joins (South America comes
-to the Pacific piece for the Polynesian contact story, North America to Europe
-for Vinland) and frames the points where the pieces will settle. Pieces tween in
-place on the live net (380 ms, slight overshoot; instant under reduced motion),
-so cached routes, dots, labels and the coordinate readout follow. Lifezones
-uses the relit Pacific artwork (`maps/tours/pacific-v1`) for an American piece
-at its baked rotation and rotates the original artwork otherwise; other styles
-always rotate the original. Exports use the base positions. The band lattice
-helpers in `dist/tour-layout.mjs` (`endlessLattice`, `bandOffsets`,
-`endlessCopies`, `unwrapStrand`) stay as tested geometry but are no longer used
-by the app. Checks: `tour-endless-tests.mjs` and the drag checks in
-`/tests/tour-history.html`.
+Dancing pieces, experiment two (the user's rule): find the three-piece vertex
+nearest the viewport centre and flip the hexagons to it. The anchor is the
+placed piece nearest the centre and never moves; its corner nearest the centre
+names the vertex (kept while the previous corner is nearly as close); the two
+edges meeting there name the two pieces that must sit across them, at the
+rotations those spherical joins demand (`matching`; a translation plus a turn).
+The remaining piece keeps its place when that is still a valid join of the
+group, otherwise it takes the free join nearest to where it was. So the fewest
+pieces move and every piece always touches the group along a valid edge
+(exposed as `data-dance-valid`). Focusing a story gathers its pieces around the
+one holding most of it by the same joins and frames the points where the
+pieces will settle. While this experiment runs Spaceship Earth draws the unlit
+per-piece base layer of the layered renderer (no merged composite, no lighting
+layer), so turned pieces show no inconsistent shadows; shadows may come back
+later. Pieces tween in place on the live net (380 ms, slight overshoot; instant
+under reduced motion), so cached routes, dots, labels and the coordinate
+readout follow. Exports use the base positions. The band lattice helpers and
+`tourImagePieces` in `dist/tour-layout.mjs` stay as tested geometry but are no
+longer used by the app. Checks: `tour-endless-tests.mjs`,
+`tour-polynesia-tests.mjs` and the drag checks in `/tests/tour-history.html`.
 
 Story content notes: the Silk Road spans Bronze Age tin and lapis lanes to
 Mongol-era and maritime networks; Origin of mankind keeps directed, connected

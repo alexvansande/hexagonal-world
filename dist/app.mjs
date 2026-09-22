@@ -1,9 +1,9 @@
 import {assetURL} from './asset-url.mjs';
 import {readTourPath} from './tour-pages.mjs?v=history-2';
-import {createTourMarkers,createTourLabels,projectTourLocations,tourEnabled,tourLocations,pacificLightingEnabled} from './tour-markers.mjs?v=history-3';
+import {createTourMarkers,createTourLabels,projectTourLocations,tourEnabled,tourLocations} from './tour-markers.mjs?v=history-3';
 import {createTourRoutes,projectTourRoutes} from './tour-route-renderer.mjs?v=history-3';
 import {loadPeriod} from './history-loader.mjs?v=history-3';
-import {pacificTourNet,tourImagePieces} from './tour-layout.mjs?v=dancing-2';
+import {pacificTourNet} from './tour-layout.mjs?v=dancing-2';
 import pacificLighting from './maps/pacific-manifest.mjs?v=pacific-light-1';
 import {createTourStory} from './tour-story.mjs?v=history-3';
 import {periods,period as periodInfo} from './history/index.mjs?v=history-1';
@@ -231,28 +231,32 @@ function fitView(){
 function resize(){if(exporting)return;cancelTourAnimation();headingBounds=null;const rect=$('stage').getBoundingClientRect(),rotated=compactDevice&&persistenceReady&&(w>h)!==(rect.width>rect.height);w=rect.width;h=rect.height;dpr=Math.min(displayPixelRatio(w,h,window.devicePixelRatio,+$('quality').value,compactDevice),gl?graphicsLimit/Math.max(w,h):Infinity);const pixelWidth=Math.round(w*dpr),pixelHeight=Math.round(h*dpr);if(canvas.width!==pixelWidth||canvas.height!==pixelHeight){canvas.width=pixelWidth;canvas.height=pixelHeight;overlay.width=pixelWidth;overlay.height=pixelHeight;}
  if(!persistenceReady){fitView();const offset=shareSelection.layout.viewOffset;if(offset&&!compactDevice){state.panX=offset[0]*scale;state.panY=offset[1]*scale;}defaultView={scale,zoom:state.zoom,panX:state.panX,panY:state.panY};if(restoredView&&(!compactDevice||initialTour)){scale=restoredView.scale;state.zoom=restoredView.zoom;state.panX=restoredView.panX;state.panY=restoredView.panY;}persistenceReady=true;}else if(rotated&&!state.sidebarExpanded)fitView();draw();}
 function point(p,t,offset){const v=rotateScreen(canvasWorld(p,t));if(offset){v[0]+=offset[0];v[1]+=offset[1];}return [w/2+v[0]*scale*state.zoom+state.panX,h/2+v[1]*scale*state.zoom+state.panY];}
-// Dancing pieces: on Spaceship Earth the four pieces stay four, and the rule is
-// the user's: fill the empty hexagon under the viewport centre with a plate,
-// moving as little as possible of what is already on screen. Every cell next to
-// a placed piece has exactly one piece that joins that edge (a translation plus
-// the rotation the join demands). When the centre lands in an empty cell the
-// cheapest such piece comes there: never the piece nearest the centre, and
-// off-screen pieces before visible ones. Nothing ever snaps back. Focusing a
-// story gathers its pieces around the one holding most of it the same way.
-// Pieces tween in place on the live net objects with a slight overshoot, so
-// cached route and dot projections follow. Exports keep the base positions.
-let danceBase=null,danceKey='',danceTargets=new Map(),danceTweens=new Map(),danceCentreState='';
+// Dancing pieces on Spaceship Earth, experiment two (the user's rule): find the
+// three-piece vertex nearest the viewport centre and flip the hexagons to it.
+// The anchor is the placed piece nearest the centre and never moves; its corner
+// nearest the centre names the vertex; the two edges meeting there name the two
+// pieces that must sit across them, at the rotations those spherical joins
+// demand (a translation plus a turn). The remaining piece keeps its place when
+// that is still a valid join of the group, otherwise it takes the free join
+// nearest to where it was. So the fewest pieces move, and every piece always
+// touches the group along a valid edge. Spaceship Earth draws the unlit
+// per-piece base layer while this experiment runs, so turned pieces show no
+// inconsistent shadows. Pieces tween in place on the live net objects with a
+// slight overshoot; cached route, dot and label projections follow. Exports
+// keep the base positions.
+const spaceshipUnlit=()=>!!renderDefault&&state.arrangement==='dymaxion';
+let danceBase=null,danceKey='',danceTargets=new Map(),danceTweens=new Map(),danceCentreState='',danceVertex=null;
 function danceGrid(){
  const key=[state.method,state.height,state.arrangement,arrangement===arrangementCache.get(state.arrangement)?'a':'b'].join('/');
  if(key!==danceKey){
   danceKey=key;danceBase=state.arrangement==='dymaxion'?net.map(t=>({id:t.id,r:t.r,x:t.x,y:t.y})):null;
-  danceTargets=new Map((danceBase||[]).map(t=>[t.id,{x:t.x,y:t.y,r:t.r}]));danceTweens.clear();
+  danceTargets=new Map((danceBase||[]).map(t=>[t.id,{x:t.x,y:t.y,r:t.r}]));danceTweens.clear();danceVertex=null;
  }
  return danceBase;
 }
-function danceActive(){return !!renderMerged&&state.arrangement==='dymaxion'&&!exporting&&!!danceGrid();}
+function danceActive(){return spaceshipUnlit()&&!exporting&&!!danceGrid();}
 function danceSettled(){return danceActive()&&danceTweens.size===0;}
-function resetDance(){if(!danceBase)return;for(const t of net){const b=danceBase.find(a=>a.id===t.id);if(b&&(t.x!==b.x||t.y!==b.y||t.r!==b.r)){t.x=b.x;t.y=b.y;t.r=b.r;meshSignature=null;}}danceTargets=new Map(danceBase.map(t=>[t.id,{x:t.x,y:t.y,r:t.r}]));danceTweens.clear();}
+function resetDance(){if(!danceBase)return;for(const t of net){const b=danceBase.find(a=>a.id===t.id);if(b&&(t.x!==b.x||t.y!==b.y||t.r!==b.r)){t.x=b.x;t.y=b.y;t.r=b.r;meshSignature=null;}}danceTargets=new Map(danceBase.map(t=>[t.id,{x:t.x,y:t.y,r:t.r}]));danceTweens.clear();danceVertex=null;}
 // The piece that joins edge `e` of a placed piece: which one, turned how, where.
 function danceJoin(placed,e){
  const pair=matching(tiles,placed.id,e),a=world(hex[e],placed),b=world(hex[(e+1)%6],placed);
@@ -262,28 +266,37 @@ function danceJoin(placed,e){
 }
 const sameCell=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y)<1e-6;
 const dancePlaced=()=>[...danceTargets.entries()].map(([id,t])=>({id,...t}));
+const joined=(from,t)=>{for(let e=0;e<6;e++){const j=danceJoin(from,e);if(j&&j.id===t.id&&j.r===t.r&&sameCell(j,t))return true;}return false;};
 function danceCentre(){const unit=scale*state.zoom,c=rotateScreen([-state.panX/unit,-state.panY/unit],-state.gridRotation*Math.PI/180);return [c[0],-c[1]];}
-function danceVisible(target){const [sx,sy]=point([0,0],target),unit=scale*state.zoom;return sx>-unit&&sy>-unit&&sx<w+unit&&sy<h+unit;}
-// Fill the empty cell nearest the viewport centre, chaining a few cells when
-// the centre sits farther out, until the nearest cell holds a piece.
-function danceFill(){
- for(let step=0;step<3;step++){
-  const centre=danceCentre(),placed=dancePlaced();
-  let anchor=null,nearest=Infinity;
-  for(const p of placed){const d=Math.hypot(p.x-centre[0],p.y-centre[1]);if(d<nearest){nearest=d;anchor=p;}}
-  const options=[];
-  for(const p of placed)for(let e=0;e<6;e++){
-   const j=danceJoin(p,e);if(!j||placed.some(q=>sameCell(q,j)))continue;
-   const d=Math.hypot(j.x-centre[0],j.y-centre[1]);if(d<nearest-1e-9)options.push({...j,d});
-  }
-  if(!options.length){danceCentreState='filled';return;}
-  options.sort((a,b)=>a.d-b.d);const into=options.filter(o=>o.d<options[0].d+1e-6);
-  const cost=o=>{if(o.id===anchor.id)return Infinity;const cur=danceTargets.get(o.id);return Math.hypot(cur.x-o.x,cur.y-o.y)+(danceVisible(cur)?8:0)+(cur.r!==o.r?1:0);};
-  into.sort((a,b)=>cost(a)-cost(b));const pick=into[0];
-  if(!isFinite(cost(pick))){danceCentreState='blocked';return;}
-  danceTargets.set(pick.id,{x:pick.x,y:pick.y,r:pick.r});
+// Every piece reachable from the first through valid joins.
+function danceConnected(){
+ const placed=dancePlaced(),seen=new Set([placed[0].id]);let grew=true;
+ while(grew){grew=false;for(const p of placed)if(!seen.has(p.id)&&placed.some(q=>seen.has(q.id)&&joined(q,p))){seen.add(p.id);grew=true;}}
+ return seen.size===placed.length;
+}
+function danceFill(centre=danceCentre()){
+ const placed=dancePlaced();
+ let anchor=null,nearest=Infinity;
+ for(const p of placed){const d=Math.hypot(p.x-centre[0],p.y-centre[1]);if(d<nearest){nearest=d;anchor=p;}}
+ // The anchor's corner nearest the centre, kept while the previous one is nearly as close.
+ const corners=hex.map((v,k)=>{const q=world(v,anchor);return {k,d:Math.hypot(q[0]-centre[0],q[1]-centre[1])};}).sort((a,b)=>a.d-b.d);
+ let corner=corners[0].k;
+ if(danceVertex&&danceVertex.anchor===anchor.id){const previous=corners.find(c=>c.k===danceVertex.corner);if(previous.d<corners[0].d+.15)corner=previous.k;}
+ if(danceVertex&&danceVertex.anchor===anchor.id&&danceVertex.corner===corner)return;
+ danceVertex={anchor:anchor.id,corner};danceCentreState=`${anchor.id}:${corner}`;
+ const targets=new Map([[anchor.id,{x:anchor.x,y:anchor.y,r:anchor.r}]]),taken=cell=>[...targets.values()].some(q=>sameCell(q,cell));
+ // The two edges meeting at the corner; when both name the same piece it takes the nearer cell.
+ const wanted=[danceJoin(anchor,(corner+5)%6),danceJoin(anchor,corner)].filter(Boolean).sort((a,b)=>Math.hypot(a.x-centre[0],a.y-centre[1])-Math.hypot(b.x-centre[0],b.y-centre[1]));
+ for(const j of wanted)if(!targets.has(j.id)&&!taken(j))targets.set(j.id,{x:j.x,y:j.y,r:j.r});
+ for(const p of placed.sort((a,b)=>Math.hypot(a.x-centre[0],a.y-centre[1])-Math.hypot(b.x-centre[0],b.y-centre[1]))){
+  if(targets.has(p.id))continue;
+  const cur={x:p.x,y:p.y,r:p.r};
+  if(!taken(cur)&&[...targets.entries()].some(([id,t])=>joined({id,...t},{id:p.id,...cur}))){targets.set(p.id,cur);continue;}
+  let best=null;
+  for(const [id,t] of targets)for(let e=0;e<6;e++){const j=danceJoin({id,...t},e);if(!j||j.id!==p.id||taken(j))continue;const d=Math.hypot(j.x-p.x,j.y-p.y)+(j.r!==p.r?.5:0);if(!best||d<best.d)best={...j,d};}
+  targets.set(p.id,best?{x:best.x,y:best.y,r:best.r}:cur);
  }
- danceCentreState='chained';
+ for(const [id,t] of targets)danceTargets.set(id,t);
 }
 const easeOutBack=p=>p>=1?1:1+2*Math.pow(p-1,3)+1*Math.pow(p-1,2);
 function danceStep(now){
@@ -355,8 +368,9 @@ function animateTourView(target){
  };
  tourAnimation=requestAnimationFrame(step);
 }
-function focusPoints(points){
- if(!points.length)return;
+function focusPoints(points){const view=focusView(points);if(view)animateTourView(view);}
+function focusView(points){
+ if(!points.length)return null;
  const xs=points.map(p=>p[0]),ys=points.map(p=>p[1]);
  const bounds=[Math.min(...xs),Math.min(...ys),Math.max(...xs),Math.max(...ys)];
  const panel=$('controls').getBoundingClientRect(),portrait=w<=700&&h>w;
@@ -365,7 +379,7 @@ function focusPoints(points){
  const left=artwork?48:portrait?28:panel.right+32,right=w-(artwork?48:32),top=artwork?166:portrait?145:Math.max(72,legend.height?legend.bottom+24:72),bottom=artwork?h-38:portrait?panel.top-28:h-100;
  const unit=.82*Math.min(Math.max(100,right-left)/(bounds[2]-bounds[0]),Math.max(100,bottom-top)/(bounds[3]-bounds[1]));
  const zoom=Math.min(maximumZoom(scale),Math.max(.25,unit/scale));
- animateTourView({zoom,panX:(left+right-w)/2-(bounds[0]+bounds[2])/2*scale*zoom,panY:(top+bottom-h)/2-(bounds[1]+bounds[3])/2*scale*zoom});
+ return {zoom,panX:(left+right-w)/2-(bounds[0]+bounds[2])/2*scale*zoom,panY:(top+bottom-h)/2-(bounds[1]+bounds[3])/2*scale*zoom};
 }
 // Focus: a dot frames its story's routes for this period and shows the spot text
 // from the period Markdown. Every other story stays drawn; the scrubber stays.
@@ -377,7 +391,18 @@ function focusHistoryStory(id){
  const box=spot.view.match(/(-?[\d.]+)\s*,\s*(-?[\d.]+)\s*(?:→|->)\s*(-?[\d.]+)\s*,\s*(-?[\d.]+)/);
  const anchors=box?projectTourLocations(tiles,net,state,[[+box[1],+box[2]],[+box[3],+box[4]],[+box[1],+box[4]],[+box[3],+box[2]]].map(([latitude,longitude])=>({latitude,longitude})))
   :projectTourRoutes(tiles,net,state,historyPeriod.routes.filter(r=>r.story===id)).flatMap(route=>route.anchors);
- const points=danceFrame(anchors)||anchors.map(({local,tile})=>rotateScreen(canvasWorld(local,tile)));
+ let points=danceFrame(anchors);
+ if(points){
+  // Settle the vertex rule at the centre the camera will fly to, re-frame the
+  // pieces as they will then stand, and repeat until the destination is stable.
+  const settled=()=>anchors.map(a=>{const p=world(a.local,{id:a.tile.id,...danceTargets.get(a.tile.id)});return rotateScreen([p[0],-p[1]]);});
+  for(let i=0;i<4;i++){
+   const view=focusView(points);if(!view)break;
+   const unit=scale*view.zoom,c=rotateScreen([-view.panX/unit,-view.panY/unit],-state.gridRotation*Math.PI/180),before=JSON.stringify([...danceTargets]);
+   danceVertex=null;danceFill([c[0],-c[1]]);points=settled();
+   if(JSON.stringify([...danceTargets])===before)break;
+  }
+ }else points=anchors.map(({local,tile})=>rotateScreen(canvasWorld(local,tile)));
  focusPoints(points);syncHistoryTools();draw();
 }
 function closeHistoryFocus(restore=true){
@@ -640,19 +665,15 @@ function syncSettingsVisibility(){
  }
 }
 document.addEventListener('change',syncSettingsVisibility);
-function render(refined=false,exportMode=false){if(exporting&&!exportMode)return;queued=false;document.documentElement.style.setProperty('--map-background',$('background-color').value);const background=$('background-color').value,brightness=[1,3,5].reduce((sum,i,k)=>sum+parseInt(background.slice(i,i+2),16)*[.299,.587,.114][k],0);document.documentElement.style.setProperty('--heading-ink',brightness>145?'#193c49':'#f6f4ed');for(const id of ['background-color','border-color','hex-grid-color','puzzle-color','graticule-color','river-color','backdrop-color'])$(id+'-value').value=$(id).value;syncOptionCards();syncSettingsVisibility();updateDistortionLegend();$('zoom-value').textContent=Math.round(state.zoom*100)+'%';if(!ready||!gl)return;const currentDefault=activeDefault();const previousPath=!!renderDefault;selectRenderPath(currentDefault);initializeProgram(!!renderDefault);if(previousPath&&!renderDefault&&($('relief-enabled').checked||['ivory','elevation'].includes(displayedSource)))ensureRelief();if(!program)return;if(renderDefault&&!defaultLayers)defaultLayers=new DefaultLayers(gl,draw);if(renderDefault)defaultLayers.prepare(renderDefault);const wasMerged=!!renderMerged;renderMerged=!separateComparison?mergedEntry(renderDefault):null;if(renderMerged&&!wasMerged){if(surfaceCache===defaultLayers.base)surfaceCache=null;defaultLayers.dispose();defaultLayers=new DefaultLayers(gl,draw);defaultLayers.prepare(renderDefault);}if(!renderMerged&&mergedMaps){if(surfaceCache===mergedMaps.cache)surfaceCache=null;mergedMaps.dispose();mergedMaps=null;}const lighting=renderMerged?null:renderDefault?defaultLayers.lighting(renderDefault,scale*state.zoom,dpr,w,h,state.panX,state.panY,{capToBase:$('lighting-resolution-test').value==='map',compareHighest:$('lighting-resolution-test').value!=='auto'}):$('relief-enabled').checked&&relief?.ready?cachedLighting():null;canvas.dataset.renderPath=renderDefault?'images':'live';if(!renderDefault&&$('rivers-visible').checked&&uploadedRiverKey!==state.riverLevels+'/field'&&!offlineBake)updateRiverLayer();updateVisibleMesh();if(!exportMode)updateHeadingVisibility();gl.bindFramebuffer(gl.FRAMEBUFFER,null);gl.viewport(0,0,canvas.width,canvas.height);gl.clearColor(...[1,3,5].map(i=>parseInt(background.slice(i,i+2),16)/255),1);gl.clear(gl.COLOR_BUFFER_BIT);gl.useProgram(program);gl.uniform1f(uniforms.gridRotation,state.gridRotation*Math.PI/180);gl.uniform2f(uniforms.size,w,h);gl.uniform3f(uniforms.view,scale*state.zoom,state.panX,state.panY);gl.uniform3f(uniforms.angles,state.lon*Math.PI/180,state.lat*Math.PI/180,state.roll*Math.PI/180);gl.uniform1f(uniforms.bias,state.bias);gl.uniform1f(uniforms.blend,+$('interpolation').value);gl.uniform1f(uniforms.grid,$('graticule').checked?state.grid*Math.PI/180:0);gl.uniform1f(uniforms.gridWidth,.6*state.graticuleWidth/(scale*state.zoom));gl.uniform3fv(uniforms.gridColor,[1,3,5].map(i=>parseInt($('graticule-color').value.slice(i,i+2),16)/255));gl.uniform1i(uniforms.palette,displayedSource==='continents'?['atlas','original','night'].indexOf($('palette').value):1);gl.uniform1i(uniforms.distortion,derivativeSupport?($('distortion').checked?3:0):0);gl.uniform1f(uniforms.distortionOpacity,state.distortionOpacity);gl.uniform1f(uniforms.pixelScale,scale*state.zoom*dpr);gl.uniform1i(uniforms.map,0);gl.uniform1i(uniforms.felvClip,arrangement.clip?1:0);
+function render(refined=false,exportMode=false){if(exporting&&!exportMode)return;queued=false;document.documentElement.style.setProperty('--map-background',$('background-color').value);const background=$('background-color').value,brightness=[1,3,5].reduce((sum,i,k)=>sum+parseInt(background.slice(i,i+2),16)*[.299,.587,.114][k],0);document.documentElement.style.setProperty('--heading-ink',brightness>145?'#193c49':'#f6f4ed');for(const id of ['background-color','border-color','hex-grid-color','puzzle-color','graticule-color','river-color','backdrop-color'])$(id+'-value').value=$(id).value;syncOptionCards();syncSettingsVisibility();updateDistortionLegend();$('zoom-value').textContent=Math.round(state.zoom*100)+'%';if(!ready||!gl)return;const currentDefault=activeDefault();const previousPath=!!renderDefault;selectRenderPath(currentDefault);initializeProgram(!!renderDefault);if(previousPath&&!renderDefault&&($('relief-enabled').checked||['ivory','elevation'].includes(displayedSource)))ensureRelief();if(!program)return;if(renderDefault&&!defaultLayers)defaultLayers=new DefaultLayers(gl,draw);if(renderDefault)defaultLayers.prepare(renderDefault);const wasMerged=!!renderMerged;renderMerged=!separateComparison&&!spaceshipUnlit()?mergedEntry(renderDefault):null;if(renderMerged&&!wasMerged){if(surfaceCache===defaultLayers.base)surfaceCache=null;defaultLayers.dispose();defaultLayers=new DefaultLayers(gl,draw);defaultLayers.prepare(renderDefault);}if(!renderMerged&&mergedMaps){if(surfaceCache===mergedMaps.cache)surfaceCache=null;mergedMaps.dispose();mergedMaps=null;}const lighting=renderMerged||spaceshipUnlit()?(defaultLayers?.detail.setRequired(new Set()),null):renderDefault?defaultLayers.lighting(renderDefault,scale*state.zoom,dpr,w,h,state.panX,state.panY,{capToBase:$('lighting-resolution-test').value==='map',compareHighest:$('lighting-resolution-test').value!=='auto'}):$('relief-enabled').checked&&relief?.ready?cachedLighting():null;canvas.dataset.renderPath=renderDefault?'images':'live';if(!renderDefault&&$('rivers-visible').checked&&uploadedRiverKey!==state.riverLevels+'/field'&&!offlineBake)updateRiverLayer();if(danceActive()&&danceStep(performance.now()))requestAnimationFrame(draw);updateVisibleMesh();if(!exportMode)updateHeadingVisibility();gl.bindFramebuffer(gl.FRAMEBUFFER,null);gl.viewport(0,0,canvas.width,canvas.height);gl.clearColor(...[1,3,5].map(i=>parseInt(background.slice(i,i+2),16)/255),1);gl.clear(gl.COLOR_BUFFER_BIT);gl.useProgram(program);gl.uniform1f(uniforms.gridRotation,state.gridRotation*Math.PI/180);gl.uniform2f(uniforms.size,w,h);gl.uniform3f(uniforms.view,scale*state.zoom,state.panX,state.panY);gl.uniform3f(uniforms.angles,state.lon*Math.PI/180,state.lat*Math.PI/180,state.roll*Math.PI/180);gl.uniform1f(uniforms.bias,state.bias);gl.uniform1f(uniforms.blend,+$('interpolation').value);gl.uniform1f(uniforms.grid,$('graticule').checked?state.grid*Math.PI/180:0);gl.uniform1f(uniforms.gridWidth,.6*state.graticuleWidth/(scale*state.zoom));gl.uniform3fv(uniforms.gridColor,[1,3,5].map(i=>parseInt($('graticule-color').value.slice(i,i+2),16)/255));gl.uniform1i(uniforms.palette,displayedSource==='continents'?['atlas','original','night'].indexOf($('palette').value):1);gl.uniform1i(uniforms.distortion,derivativeSupport?($('distortion').checked?3:0):0);gl.uniform1f(uniforms.distortionOpacity,state.distortionOpacity);gl.uniform1f(uniforms.pixelScale,scale*state.zoom*dpr);gl.uniform1i(uniforms.map,0);gl.uniform1i(uniforms.felvClip,arrangement.clip?1:0);
  const drawColor=(width=w,height=h,baseOnly=false,overlayOnly=false)=>{gl.useProgram(program);gl.uniform1i(uniforms.overlayOnly,overlayOnly?1:0);gl.uniform1f(uniforms.grid,!baseOnly&&$('graticule').checked?state.grid*Math.PI/180:0);gl.uniform1i(uniforms.distortion,!baseOnly&&derivativeSupport?($('distortion').checked?3:0):0);gl.uniform2f(uniforms.size,width,height);if(!renderDefault){bindMaterialUniforms();bindRiverUniforms();}gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,texture);if(!overlayOnly&&drawPrecomputedSurface())return;gl.uniform1i(uniforms.bakedOn,0);if(!overlayOnly&&liveSourceKey!==sourceKey(displayedSource)){if(!$('map-loading').textContent)updateMapSource();return;}drawGeometry(program);};
  if(renderMerged){
   if(!mergedMaps)mergedMaps=new MergedMaps(gl,draw);
   defaultLayers.base.setRequired(new Set());defaultLayers.detail.setRequired(new Set());
-  const turned=danceActive()&&net.some(t=>pacificLighting.regions.includes(t.id)&&t.r===pacificLighting.net.find(n=>n.id===t.id).r);
-  const relit=turned&&danceSettled()&&pacificLightingEnabled(renderDefault)&&mergedMaps.hasOverview(pacificLighting)?pacificLighting:null;
-  const dancing=danceActive()&&danceStep(performance.now());if(dancing)requestAnimationFrame(draw);
-  const plan=mergedMaps.draw(renderMerged,{width:w,height:h,unit:scale*state.zoom,dpr,panX:state.panX,panY:state.panY},danceActive()?tourImagePieces(danceBase,net,state.gridRotation,relit):null,danceActive()&&pacificLightingEnabled(renderDefault)?[pacificLighting]:[]);
-  canvas.dataset.tourLighting=relit?'pacific':turned?pacificLightingEnabled(renderDefault)?'loading':'rotated':'default';
+  const plan=mergedMaps.draw(renderMerged,{width:w,height:h,unit:scale*state.zoom,dpr,panX:state.panX,panY:state.panY},null,[]);
   surfaceCache=mergedMaps.cache;canvas.dataset.surface='precomputed';canvas.dataset.surfacePreview=String(!plan.ready);canvas.dataset.surfaceLevel=String(plan.level);canvas.dataset.surfacePending=String(surfaceCache.pending.size);canvas.dataset.surfaceTiles=String(surfaceCache.cache.size);canvas.dataset.surfaceFailures=String(surfaceCache.failures.size);
  }else drawColor(w,h,!!lighting);
- canvas.dataset.merged=String(!!renderMerged);canvas.dataset.tourLayout=danceActive()?'dancing':'default';canvas.dataset.danceCentre=danceActive()?danceCentreState:'';canvas.dataset.danceMoving=String(danceTweens.size>0);canvas.dataset.dancePositions=net.map(t=>`${t.id}:${t.x.toFixed(2)},${t.y.toFixed(2)},${t.r.toFixed(2)}`).join(' ');
+ canvas.dataset.merged=String(!!renderMerged);canvas.dataset.tourLayout=danceActive()?'dancing':'default';canvas.dataset.danceVertex=danceActive()?danceCentreState:'';canvas.dataset.danceValid=String(danceActive()?danceConnected():true);canvas.dataset.tourLighting=spaceshipUnlit()?'unlit':'default';canvas.dataset.danceMoving=String(danceTweens.size>0);canvas.dataset.dancePositions=net.map(t=>`${t.id}:${t.x.toFixed(2)},${t.y.toFixed(2)},${t.r.toFixed(2)}`).join(' ');
  if(lighting){(renderDefault?defaultLayers:projectedLighting).composite(lighting,w,h,scale*state.zoom,state.panX,state.panY,state.shadowOpacity,state.lightOpacity);
   if(!renderDefault&&($('graticule').checked||$('distortion').checked)){gl.enable(gl.BLEND);gl.blendFuncSeparate(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA,gl.ONE,gl.ONE_MINUS_SRC_ALPHA);drawColor(w,h,false,true);gl.disable(gl.BLEND);}
  }
