@@ -29,7 +29,7 @@ import {circularMode} from './circular-projections.mjs';
 import {polygonOverlapsRect} from './interface-layout.mjs';
 import {ecologyGridGLSL,ecologyBridgeGLSL} from './ecology-grid.mjs?v=performance-1';
 import {gosperScale,rotateLocal,subgridLevels,subgridArea,dotGridArea} from './subgrid.mjs?v=dot-area-1';
-import {decodeMapState,encodeMapState,distortionEnabled,restorePanelStates} from './map-state.mjs?v=puzzle-1';
+import {decodeMapState,encodeMapState,distortionEnabled,restorePanelStates} from './map-state.mjs?v=focus-2';
 import {sphereAt,followPoint,geographicPoint} from './globe-drag.mjs?v=tetra-area-2';
 import {makeArrangement,arrangementNames} from './arrangements.mjs?v=gosper-1';
 import {experimentPaletteRevision,mapSource,landLegends,oceanLegend,missing,riverMask,riverTextureData,releaseRiverMask,releaseLiveMapData} from './map-layers.mjs?v=cloud-assets-1';
@@ -44,7 +44,7 @@ const tourMarkers=createTourMarkers($('stage'),canvas);
 const tourRoutes=createTourRoutes($('stage'));
 const tourAreas=createTourAreas($('stage'));
 let tourAreaProjection=null,tourAreaProjectionKey='';
-const tourStory=createTourStory($('controls'),()=>closeTour(),paused=>tourRoutes.setPaused(paused),id=>selectTourPeriod(id));
+const tourStory=createTourStory($('controls'),()=>closeTour(),paused=>{if(historyFocus){historyPaused=paused;syncHistoryTools();}tourRoutes.setPaused(paused);},id=>selectTourPeriod(id));
 const initialTour=readTourPath(location.pathname);
 let pendingTour=initialTour?.id||null;
 let activeTourData=null,activeTourRoutes=[],activeTourAreas=[],tourLoadToken=0;
@@ -59,8 +59,8 @@ let coordinatePointer=null,coordinateHideTimer=null;
 const classOptions=[3,6,10,15];
 const classCount=id=>classOptions[Math.max(0,Math.min(3,Math.round(+$(id).value)))];
 function syncClassControl(id,count){const el=$(id);if(!el)return;const index=classOptions.indexOf(+count);if(index>=0)el.value=index;$(id+'-value').value=classOptions[+el.value];}
-const rangeSuffixes={puzzleWidth:'×',riverWidth:'×',subgridWidth:'×',graticuleWidth:'×',backdropWidth:'px'};
-const state={method:'tetra',lon:0,lat:0,roll:0,bias:1,height:1.5,grid:30,line:0.8,subgridWidth:1,puzzleWidth:1,graticuleWidth:1,backdropWidth:2,shadowOpacity:1,lightOpacity:1,distortionOpacity:.7,clearance:0,riverWidth:1,riverLevels:6,layout:0,gridRotation:0,zoom:1,panX:0,panY:0,mode:'pan',arrangement:'infinite',sidebarExpanded:false,interpolation:0,...reliefDefaults};
+const rangeSuffixes={puzzleWidth:'×',riverWidth:'×',subgridWidth:'×',graticuleWidth:'×',backdropWidth:'px',backdropOpacity:'%'};
+const state={method:'tetra',lon:0,lat:0,roll:0,bias:1,height:1.5,grid:30,line:0.8,subgridWidth:1,puzzleWidth:1,graticuleWidth:1,backdropWidth:2,backdropOpacity:25,shadowOpacity:1,lightOpacity:1,distortionOpacity:.7,clearance:0,riverWidth:1,riverLevels:6,layout:0,gridRotation:0,zoom:1,panX:0,panY:0,mode:'pan',arrangement:'infinite',sidebarExpanded:false,interpolation:0,...reliefDefaults};
 let mobileRepositioning=false;
 let exporting=false;
 let shareSelection=initialTour?sharePair('lifezones','dymaxion'):readSharePath(location.pathname)||inferSharePair(readMapStateFromUrl());
@@ -81,7 +81,7 @@ function range(parent,id,label,min,max,step,value,suffix=''){
 range('distortion-controls','distortionOpacity','Opacity',0,1,.05,.7);
 range('clearance-control','clearance','Minimum distance from land',0,9,1,0,'°');$('clearance').setAttribute('aria-label','Minimum distance from land');$('clearance-control').querySelector('.range-head').hidden=true;
 range('orientation','lon','Longitude',-180,180,1,0,'°');range('orientation','lat','Latitude',-90,90,1,0,'°');range('orientation','roll','Roll',-180,180,1,0,'°');range('shape-controls','bias','Shape bias',.4,2.5,.01,1);range('shape-controls','height','Pyramid tip distance',1.01,2,.01,1.5);range('display-controls','gridRotation','Grid rotation',-180,180,1,0,'°');range('graticule-controls','grid','Grid interval',10,60,5,30,'°');range('border-controls','line','Border weight',0,2,.1,.8);
-range('hex-grid-controls','subgridWidth','Hex grid thickness',0,5,.1,1,'×');range('backdrop-controls','backdropWidth','Back grid thickness',0,4,.5,2,'px');range('graticule-controls','graticuleWidth','Latitude / longitude thickness',0,5,.1,1,'×');
+range('hex-grid-controls','subgridWidth','Hex grid thickness',0,5,.1,1,'×');range('backdrop-controls','backdropWidth','Back grid thickness',0,4,.5,2,'px');range('backdrop-controls','backdropOpacity','Back grid opacity',0,100,5,25,'%');range('graticule-controls','graticuleWidth','Latitude / longitude thickness',0,5,.1,1,'×');
 range('puzzle-controls','puzzleWidth','Puzzle line width',0,5,.1,1,'×');
 const syncSourceChoice=initSourcePicker({source:$('map-source'),palette:$('palette'),choice:$('map-source-choice')});
 range('river-controls','riverWidth','River width',.5,3,.25,1,'×');range('river-controls','riverLevels','Tributary levels',1,12,1,6);
@@ -329,8 +329,8 @@ function animateTourView(target){
  };
  tourAnimation=requestAnimationFrame(step);
 }
-function focusTour(){
- const points=[...projectedRoutes(),...projectedAreas()].flatMap(route=>route.anchors.map(({local,tile})=>rotateScreen(canvasWorld(local,tile))));
+function focusTour(){focusPoints([...projectedRoutes(),...projectedAreas()].flatMap(route=>route.anchors.map(({local,tile})=>rotateScreen(canvasWorld(local,tile)))));}
+function focusPoints(points){
  if(!points.length)return;
  const xs=points.map(p=>p[0]),ys=points.map(p=>p[1]);
  const bounds=[Math.min(...xs),Math.min(...ys),Math.max(...xs),Math.max(...ys)];
@@ -343,6 +343,7 @@ function focusTour(){
  animateTourView({zoom,panX:(left+right-w)/2-(bounds[0]+bounds[2])/2*scale*zoom,panY:(top+bottom-h)/2-(bounds[1]+bounds[3])/2*scale*zoom});
 }
 function closeTour(restore=true,navigate=true){
+ if(historyFocus)return closeHistoryFocus(restore);
  if(!activeTour)return;
  ++tourLoadToken;activeTourData=null;activeTourRoutes=[];activeTourAreas=[];tourProjection=null;tourAreaProjection=null;
  cancelAnimationFrame(tourAnimation);tourAnimation=0;const selectedId=activeTour;activeTour=null;tourStory.close();
@@ -390,7 +391,35 @@ const tourNavigation=initTourNavigation({mapPath:()=>shareSelection.path,show:id
  }
  draw();
 }});
-$('stage').addEventListener('tourselect',event=>{if(historyOn)historyPeriodHint=timelinePeriod(historyStop(),event.detail.id);openTour(event.detail);});
+$('stage').addEventListener('tourselect',event=>{if(historyOn)focusHistoryStory(event.detail);else openTour(event.detail);});
+// History focus: one slider only. All stories stay drawn for the stop; a dot or
+// chip frames that story's chapter and shows its text in the card, without the
+// card's own period slider. Closing restores the camera; changing the stop
+// re-reads the same story's chapter or closes when it has none there.
+let historyFocus=null,historyFocusView=null;
+function historyChapter(id){const period=timelinePeriod(historyStop(),id),data=historyData?.[id];return period&&data?.periodFor?data.periodFor(period):null;}
+function focusHistoryStory(location){
+ if(!historyOn||!historyData||activeTour)return;
+ const period=historyChapter(location.id);if(!period)return;
+ if(!historyFocus)historyFocusView={scale,view:{zoom:state.zoom,panX:state.panX,panY:state.panY},expanded:state.sidebarExpanded};
+ historyFocus=location.id;setSidebarExpanded(false,false);
+ tourStory.ready.catch(()=>{});tourStory.open(location);tourStory.update({...location,animated:true,waves:period.waves,storyId:period.storyId,periodId:period.id});
+ tourRoutes.setPaused(historyPaused);hideCoordinateReadout();
+ focusPoints(projectTourRoutes(tiles,tourNetTo||net,state,period.routes).flatMap(route=>route.anchors.map(({local,tile})=>rotateScreen(canvasWorld(local,tile)))));
+ syncHistoryTools();draw();
+}
+function closeHistoryFocus(restore=true){
+ if(!historyFocus)return;const selectedId=historyFocus;historyFocus=null;tourStory.close();
+ cancelAnimationFrame(tourAnimation);tourAnimation=0;
+ if(restore&&historyFocusView){scale=historyFocusView.scale;Object.assign(state,historyFocusView.view);setSidebarExpanded(historyFocusView.expanded,false);}
+ historyFocusView=null;tourRoutes.setPaused(historyPaused);syncHistoryTools();draw();
+ requestAnimationFrame(()=>{document.querySelector(`[data-tour-id="${selectedId}"]`)?.focus({preventScroll:true});});
+}
+function syncHistoryFocus(){
+ if(!historyFocus)return;const location=tourLocations.find(t=>t.id===historyFocus),period=historyChapter(historyFocus);
+ if(!period){closeHistoryFocus(true);return;}
+ tourStory.update({...location,animated:true,waves:period.waves,storyId:period.storyId,periodId:period.id});
+}
 // History mode: the unified timeline draws one stop across every story. Data for
 // all five stories loads only when the checkbox is switched on; the positioning
 // toolbox gives way to the scrubber; story dots filter to the stop's stories and
@@ -410,7 +439,7 @@ function syncHistoryTools(){
  historyToggle.checked=historyOn;historyTools.hidden=!shown;document.body.classList.toggle('history',shown);
  historySlider.value=String(timelineStops.indexOf(stop));historySlider.setAttribute('aria-valuetext',`${stop.label}, ${stop.date}`);historyDate.textContent=`${stop.label} · ${stop.date}`;
  for(const b of historyLabels.children)b.setAttribute('aria-pressed',String(b.dataset.stop===stop.id));
- historyStories.replaceChildren(...stop.tours.map(id=>{const location=tourLocations.find(t=>t.id===id),b=document.createElement('button');b.type='button';b.textContent=location.title;b.dataset.tourId=id;b.onclick=()=>{historyPeriodHint=timelinePeriod(stop,id);openTour(location);};return b;}));
+ historyStories.replaceChildren(...stop.tours.map(id=>{const location=tourLocations.find(t=>t.id===id),b=document.createElement('button');b.type='button';b.textContent=location.title;b.dataset.tourId=id;b.setAttribute('aria-pressed',String(historyFocus===id));b.onclick=()=>focusHistoryStory(location);return b;}));
  const note=historyData?stop.note||(stop.chapters.length?'':'Nothing written for this period yet.'):'Loading stories…';
  historyNote.textContent=note;historyNote.hidden=!note;
  historyPause.textContent=historyPaused?'Resume flow':'Pause flow';historyPause.setAttribute('aria-pressed',String(historyPaused));
@@ -418,12 +447,12 @@ function syncHistoryTools(){
 // Pacific stops (any Polynesian chapter) use the Pacific-facing arrangement on Spaceship Earth.
 const historyWantsPacific=()=>historyOn&&historyStop().tours.includes('french-polynesia');
 function syncHistoryNet(){if(activeTour)return;if(moveTourNet(historyWantsPacific()?'pacific':'base'))animateTourView({zoom:state.zoom,panX:state.panX,panY:state.panY});}
-function selectHistoryStop(id,writeURL=true){historyStopId=timelineStop(id).id;historyProjection=null;syncHistoryTools();if(writeURL)updateMapUrl();syncHistoryNet();draw();}
+function selectHistoryStop(id,writeURL=true){historyStopId=timelineStop(id).id;historyProjection=null;syncHistoryFocus();syncHistoryTools();if(writeURL)updateMapUrl();syncHistoryNet();draw();}
 async function enableHistory(on){
  if(historyOn===on&&(historyData||!on)){syncHistoryTools();return;}
  historyOn=on;
  if(on&&!tourEnabled(renderDefault)){const pair=sharePair('lifezones','dymaxion');applyMapOption(pair.layout,'layout');applyMapOption(pair.style,'style');}
- if(!on){++historyLoad;tourRoutes.setPaused(false);syncHistoryTools();updateMapUrl();syncHistoryNet();draw();return;}
+ if(!on){++historyLoad;closeHistoryFocus(false);tourRoutes.setPaused(false);syncHistoryTools();updateMapUrl();syncHistoryNet();draw();return;}
  tourRoutes.setPaused(historyPaused);syncHistoryTools();updateMapUrl();syncHistoryNet();draw();
  if(historyData)return;
  const token=++historyLoad;
@@ -481,14 +510,14 @@ function drawFractalGrid(){
 // it). Cells under a piece, including one mid-slide, cells inside a map outline
 // and edges shared with a piece are left out; the map's own borders come later.
 function drawBackdropGrid(){
- if(!$('backdrop-grid').checked||state.backdropWidth<=0||tiling)return;
+ if(!$('backdrop-grid').checked||state.backdropWidth<=0||state.backdropOpacity<=0||tiling)return;
  const unit=scale*state.zoom,angle=state.gridRotation*Math.PI/180,H=Math.sqrt(3)/2;
  const corners=[[0,0],[w,0],[w,h],[0,h]].map(([x,y])=>{const v=rotateScreen([(x-w/2-state.panX)/unit,(y-h/2-state.panY)/unit],-angle);return [v[0],-v[1]];});
  const xs=corners.map(c=>c[0]),ys=corners.map(c=>c[1]);
  const i0=Math.floor((Math.min(...xs)-2)/1.5),i1=Math.ceil((Math.max(...xs)+2)/1.5),j0=Math.floor((Math.min(...ys)-2)/H),j1=Math.ceil((Math.max(...ys)+2)/H);
  if((i1-i0)*(j1-j0)>4000)return;
  const occupied=(x,y)=>net.some(t=>Math.hypot(t.x-x,t.y-y)<1)||(arrangement.outline&&pointInLoops([x,y],arrangement.outline))||(arrangement.clip&&pointInLoops([x,y],[arrangement.clip]));
- ctx.save();ctx.strokeStyle=$('backdrop-color').value;ctx.globalAlpha=1;ctx.lineWidth=state.backdropWidth;ctx.lineCap='round';ctx.beginPath();
+ ctx.save();ctx.strokeStyle=$('backdrop-color').value;ctx.globalAlpha=state.backdropOpacity/100;ctx.lineWidth=state.backdropWidth;ctx.lineCap='round';ctx.beginPath();
  const seen=new Set();
  for(let i=i0;i<=i1;i++)for(let j=j0;j<=j1;j++){
   if(Math.abs((i+j)%2)===1)continue;const x=1.5*i,y=H*j;if(occupied(x,y))continue;

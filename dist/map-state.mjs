@@ -2,7 +2,7 @@ import {reliefRanges} from './relief.mjs?v=cloud-assets-1';
 
 // The URL payload is positional and URL-safe so a complete map can be shared
 // without exposing implementation names in a long query string.
-const stateKeys=['method','arrangement','lon','lat','roll','bias','height','gridRotation','grid','line','clearance','distortionOpacity','mode',...reliefRanges.map(s=>s[0]),'riverWidth','riverLevels','sidebarExpanded','subgridWidth','graticuleWidth','shadowOpacity','lightOpacity','puzzleWidth','backdropWidth'];
+const stateKeys=['method','arrangement','lon','lat','roll','bias','height','gridRotation','grid','line','clearance','distortionOpacity','mode',...reliefRanges.map(s=>s[0]),'riverWidth','riverLevels','sidebarExpanded','subgridWidth','graticuleWidth','shadowOpacity','lightOpacity','puzzleWidth','backdropWidth','backdropOpacity'];
 const controlKeys=['map-source','land-classes','ocean-classes','interpolation','graticule','subgrid','dotgrid','construction','labels','distortion','palette','indicatrix','terrain','quality','optimize','ecology-rivers','relief-enabled','relief-material','relief-treatment','relief-tone','rivers-visible','background-color','border-color','hex-grid-color','graticule-color','fractalgrid','lighting-preset','river-color','puzzlegrid','puzzle-count','puzzle-color','backdrop-grid','backdrop-color'];
 
 export const distortionEnabled=value=>value===true||['area','angle','both'].includes(value);

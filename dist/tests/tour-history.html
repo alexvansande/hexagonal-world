@@ -37,13 +37,22 @@ try{
  check(new Set(counts).size>=6,'Stops draw different networks: '+counts.join(','));
  check(routes.querySelectorAll('path').length<1200,'Route DOM stays bounded while scrubbing');
  // Open a story from a chip, land on that stop's chapter, and return to history mode on close.
- slider.value=timelineStops.findIndex(s=>s.id==='high-middle-ages');slider.dispatchEvent(new w.Event('input',{bubbles:true}));await pause(250);
- d.querySelector('.history-stories button[data-tour-id="silk-road"]').click();await until(()=>!d.querySelector('.tour-timeline').hidden,'story');await pause(1500);
- check(d.querySelector('#tour-story-title').textContent.includes('Mongol')&&tools.hidden,'Chip opens the Silk Road at the High Middle Ages chapter and hides the scrubber');
- d.querySelector('#tour-story-close').click();await until(()=>!tools.hidden,'back');await pause(300);
- check(w.location.search.includes('history=high-middle-ages')&&visible().length>0,'Closing the story returns to the same stop');
+ const prevDrawn=drawn();slider.value=timelineStops.findIndex(s=>s.id==='high-middle-ages');slider.dispatchEvent(new w.Event('input',{bubbles:true}));await until(()=>drawn()!==prevDrawn&&map.dataset.tourProgress==='1.00','high middle ages');await pause(400);
+ const drawnBefore=visible().length,zoomBefore=d.querySelector('#zoom-value').textContent;
+ d.querySelector('.history-stories button[data-tour-id="silk-road"]').click();await until(()=>!d.querySelector('#tour-story').hidden,'story');await pause(1500);
+ check(d.querySelector('#tour-story-title').textContent.includes('Mongol')&&d.querySelector('.tour-timeline').hidden,'Chip shows the Silk Road High Middle Ages text with no second slider');
+ check(!tools.hidden&&visible().length===drawnBefore&&d.querySelectorAll('.history-stories button').length>1&&d.querySelector('.history-stories button[data-tour-id="silk-road"]').getAttribute('aria-pressed')==='true','The scrubber and every story stay while a story is focused');
+ check(d.querySelector('#zoom-value').textContent!==zoomBefore&&w.location.pathname==='/lifezones/spaceship-earth/','Focusing zooms to the chapter and keeps the map URL');
+ slider.value=timelineStops.findIndex(s=>s.id==='middle-ages');slider.dispatchEvent(new w.Event('input',{bubbles:true}));await pause(400);
+ check(!d.querySelector('#tour-story').hidden&&d.querySelector('#tour-story-title').textContent.includes('caravans'),'Scrubbing re-reads the focused story at the new stop');
+ slider.value=timelineStops.findIndex(s=>s.id==='early-hominins');slider.dispatchEvent(new w.Event('input',{bubbles:true}));await pause(400);
+ check(d.querySelector('#tour-story').hidden,'A stop without that story closes the card');
+ slider.value=timelineStops.findIndex(s=>s.id==='high-middle-ages');slider.dispatchEvent(new w.Event('input',{bubbles:true}));await pause(400);
+ d.querySelector('.history-stories button[data-tour-id="silk-road"]').click();await until(()=>!d.querySelector('#tour-story').hidden,'story again');await pause(1500);
+ d.querySelector('#tour-story-close').click();await until(()=>d.querySelector('#tour-story').hidden,'back');await pause(300);
+ check(w.location.search.includes('history=high-middle-ages')&&visible().length>0&&d.querySelector('#zoom-value').textContent===zoomBefore,'Closing the card restores the camera at the same stop');
  d.querySelector('#history-pause').click();check(routes.classList.contains('flow-paused'),'Pause freezes the unified flow');d.querySelector('#history-pause').click();
- toggle.click();await until(()=>tools.hidden,'off');await pause(200);
+ toggle.click();await until(()=>tools.hidden&&routes.style.display==='none'&&d.querySelectorAll('.tour-marker:not([hidden])').length===7,'off');await pause(200);
  check(getComputedStyle(viewTools).display!=='none'&&routes.style.display==='none'&&d.querySelectorAll('.tour-marker:not([hidden])').length===7&&!w.location.search.includes('history='),'Unchecking restores the toolbox, dots and URL');
  // Direct URL entry restores the stop.
  frame.src='/lifezones/spaceship-earth/?history=bronze-age';await until(()=>frame.contentDocument?.querySelector('.history-tools')&&!frame.contentDocument.querySelector('.history-tools').hidden,'reload');

@@ -162,14 +162,19 @@ not evenly spaced years; every chapter belongs to exactly one stop, and a stop
 entry may restrict a chapter to some waves (the Norse composite chapter shows
 only its trade lanes at 1300). Story dots and chips filter to the stop’s stories
 and open the story at that stop’s chapter; closing returns to the same stop. The
-stop persists as `?history=<stop>` on the map URL.
+stop persists as `?history=<stop>` on the map URL. The scrubber is the only
+slider: every story stays drawn for the stop, and clicking a dot or chip frames
+that story's chapter and shows its text in the card without a second period
+slider. Scrubbing while a story is focused re-reads its chapter at the new stop
+or closes the card when the story has none there; closing restores the camera.
 
 Back grid (Overlays → “Back grid”): a faint hexagonal lattice, one main hexagon
 per cell, on the empty background of any finite map; on by default for Spaceship
-Earth (2 px, #9fb4b8) through the layout preset's controls, off elsewhere. Cells
+Earth (2 px, white at 25% opacity) through the layout preset's controls, off
+elsewhere; the native colour input has no alpha, so an opacity slider sits beside it. Cells
 under a piece (including one mid-slide), cells inside a map outline and edges
 shared with a piece are left out. Saved in links as `backdrop-grid`,
-`backdrop-color` and `backdropWidth`, appended to the compact map-state key
+`backdrop-color`, `backdropWidth` and `backdropOpacity`, appended to the compact map-state key
 lists so older links stay valid.
 
 Pan bound: a drag can never leave the map fully off screen. When a drag ends

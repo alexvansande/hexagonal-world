@@ -628,6 +628,12 @@ Bronze Age and Antiquity lanes on the Silk Road. Per the user, these draw
 overall trends, never individual journeys: Mansa Musa and Zheng He are evidence
 for corridors, not lines of their own. Performance budgets were re-run at the end.
 
+**One slider in history (September 22).** The user disliked the story card's
+period slider appearing inside history mode ("a slider inside a slider"). In
+history mode the scrubber alone drives the moving dots; all stories stay visible
+at a glance, and a dot or chip only frames that story's chapter and shows its
+text. The card's own slider remains for stories opened outside history mode.
+
 **Backdrop grid and pan bound (September 22).** The user asked for a very
 subtle large hexagonal grid in the empty space around Spaceship Earth, with its
 own options at the end of Overlays, and for the map never to be draggable fully
