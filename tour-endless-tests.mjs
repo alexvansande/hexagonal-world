@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import {endlessLattice,endlessCopies,latticeOffset,unwrapStrand,bandOffsets} from './dist/tour-layout.mjs';
+import {endlessLattice,endlessCopies,latticeOffset,unwrapStrand,bandOffsets,pacificTourNet} from './dist/tour-layout.mjs';
 import {makeGeometry,layouts,matching,canvasWorld} from './dist/geometry.mjs';
 import {makeArrangement} from './dist/arrangements.mjs';
 import {layoutOptions} from './dist/map-options.mjs';
@@ -61,6 +61,15 @@ const step=bandOffsets(lattice,base,[P[0]*.55,P[1]*.55]);
 assert(Object.values(step).some(k=>k===1)&&Object.values(step).some(k=>k===0),'just past a midpoint only the pieces behind the centre have moved');
 const held=bandOffsets(lattice,base,[P[0]*.58,P[1]*.58],step);assert.deepEqual(held,step,'hysteresis holds the previous choice near a midpoint');
 const across=bandOffsets(lattice,base,[Q[0]*3,Q[1]*3]);assert.deepEqual(across,{0:0,1:0,2:0,3:0},'panning across the band never moves a piece');
+// Vertical band: with North and South America at their Polynesian-view rotations the
+// four pieces admit a second translation band that runs straight up and down.
+const pacific=pacificTourNet(tiles,net),vertical=endlessLattice(tiles,pacific);
+assert(vertical,'the Pacific rotations admit a band');
+assert(Math.abs(vertical.period[0])<1e-9&&Math.abs(vertical.period[1]-2*Math.sqrt(3)*Math.sqrt(3)/2*1)<1e-9||Math.abs(vertical.period[0])<1e-9,'the second band is vertical');
+assert(Math.abs(Math.hypot(...vertical.period)-3*Math.sqrt(3))<1e-9,'vertical period is three hexagon steps');
+const turned=pacific.filter(t=>t.r!==net.find(b=>b.id===t.id).r).map(t=>t.id).sort();assert.deepEqual(turned,[0,2],'only the two American pieces rotate between the bands');
+const up=bandOffsets(vertical,vertical.exact,[0,vertical.period[1]*1.6]);assert(Object.values(up).every(k=>k===1||k===2)&&Math.max(...Object.values(up))-Math.min(...Object.values(up))<=1,'panning up slides pieces along the vertical band');
+assert.deepEqual(bandOffsets(vertical,vertical.exact,[6,0]),{0:0,1:0,2:0,3:0},'panning sideways never moves a piece on the vertical band');
 // Felv has no band: the helper reports it rather than inventing one.
 const felv=layoutOptions.find(o=>o.arrangement==='felv').state,felvTiles=makeGeometry(felv.method,felv.height),felvNet=makeArrangement(felvTiles,felv.arrangement,layouts(felvTiles)).net;
 const felvLattice=endlessLattice(felvTiles,felvNet);

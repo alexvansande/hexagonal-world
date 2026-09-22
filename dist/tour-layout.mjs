@@ -31,7 +31,8 @@ export function interpolateTourNet(from,to,progress){
 // Source and destination frames in the merged image's screen-space coordinates.
 export function tourImagePieces(from,to,gridRotation,relit=null){
  const angle=gridRotation*Math.PI/180;
- return to.map(t=>{const meta=relit?.regions.includes(t.id)?relit:null,source=(meta?.net||from).find(a=>a.id===t.id);
+ // Relit artwork only applies at the rotation it was baked for; otherwise the original piece turns.
+ return to.map(t=>{const baked=relit?.net?.find(a=>a.id===t.id),meta=relit?.regions.includes(t.id)&&baked&&Math.abs(((baked.r-t.r)%6+6)%6)<1e-9?relit:null,source=(meta?.net||from).find(a=>a.id===t.id);
   return {id:t.id,meta,source:rotate(canvasWorld([0,0],source),angle),target:rotate(canvasWorld([0,0],t),angle),angle:-(t.r-source.r)*Math.PI/3,sourceAngle:angle-source.r*Math.PI/3};
  });
 }

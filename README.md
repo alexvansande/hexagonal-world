@@ -170,11 +170,16 @@ whole band periods so the group stays contiguous around the viewport centre.
 pieces at their fixed rotations: they repeat exactly along one period (Asia →
 North America → Africa and South America, every three rows), which joins Bering,
 the South Pacific, Central America, the North Atlantic and Eurasia. `bandOffsets`
-picks, per piece, the copy nearest the centre along that band with hysteresis;
-the app eases each piece to its slot in place on the live net, so cached routes,
-dots and the coordinate readout follow, and the merged artwork is drawn through
-translated pieces without new lighting. Panning across the band moves nothing,
-exports use the base positions, and the South Atlantic remains a cut. The lattice
+picks, per piece, the copy nearest the centre along that band with hysteresis.
+A second band exists once North and South America take their Polynesian-view
+rotations: it runs straight up and down and joins the Pacific, Central America
+and Eurasia. The pan direction chooses the band (`danceConsiderDrag`); entering
+the vertical one turns those two pieces, using the relit Pacific artwork on
+Lifezones and the turned original elsewhere, after which every move is a
+translation again. Pieces tween in place on the live net (380 ms, slight
+overshoot; instant under reduced motion), so cached routes, dots and the
+coordinate readout follow. Exports use the base positions; the North and South
+Atlantic are cuts on the vertical band, the South Atlantic on the diagonal one. The lattice
 stacking and copy helpers (`endlessCopies`, `unwrapStrand`) stay as tested
 geometry but are not used by the app. Checks: `tour-endless-tests.mjs`. Leaving an
 eligible map switches history off. Checks: `tour-timeline-tests.mjs` and `/tests/tour-history.html`

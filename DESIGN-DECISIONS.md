@@ -610,8 +610,12 @@ pattern cannot close. A first build tiled the whole plane with copies; the user
 rejected that on sight ("don't create a forever overlap, just move the
 hexagons": the Infinite Honeycomb already repeats). Decision: Spaceship Earth
 always shows exactly four pieces, and as the user pans each piece slides by
-whole periods to stay contiguous around the viewport centre, visibly, eased in
-place with hysteresis. Panning across the band moves nothing; exports use the
+whole periods to stay contiguous around the viewport centre, visibly, tweened in
+place with hysteresis and, at the user's request, faster with a little elastic
+overshoot. Up-and-down panning uses a second band: with the two American pieces
+rotated as in the Polynesian view the pieces translate vertically, so the pan
+direction switches between the diagonal and vertical bands and the rotation is
+the only non-translation move (relit artwork for Lifezones). Exports use the
 base positions; the Pacific and Africa piece moves are
 retired from the app (kept as tested geometry). Only the South Atlantic join is
 unavailable this way, so Atlantic slave-trade lanes still cross a cut. Content passes added two
