@@ -16,8 +16,8 @@ try{
  const original=positions(),zoom=d.querySelector('#zoom-value').textContent;
  polynesia.click();await pause(1450);
  check(!card.hidden&&card.textContent.includes('Polynesian voyagers'),'Polynesian story loads from Markdown');
- check(canvas.dataset.tourLayout==='pacific'&&canvas.dataset.merged==='true'&&canvas.dataset.renderPath==='images','Pacific layout retains the baked image renderer');
- await wait(()=>canvas.dataset.tourLighting==='pacific'&&canvas.dataset.surfacePending==='0');
+ check(canvas.dataset.tourLayout==='endless'&&canvas.dataset.merged==='true'&&canvas.dataset.renderPath==='images','Endless band keeps the baked image renderer');
+ await wait(()=>canvas.dataset.surfacePending==='0');
  check(canvas.dataset.surfaceFailures==='0','Rebuilt Pacific lighting loads without errors');
  check(!win.performance.getEntriesByType('resource').some(r=>/maps\/height\//.test(r.name)),'Default tour never loads live elevation or performs terrain lighting');
  const route=d.querySelector('[data-route-id="polynesia-far-hawaii"] .route-line');

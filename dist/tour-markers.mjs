@@ -93,8 +93,8 @@ export function createTourMarkers(stage,canvas){
    layer.hidden=!anchors.length;
    const present=new Set(anchors.map(anchor=>anchor.location.id));
    for(const [id,button] of buttons)if(!present.has(id))button.hidden=true;
-   for(const {location,local,tile} of anchors){
-    const [x,y]=point(local,tile),button=buttons.get(location.id);
+   for(const {location,local,tile,offset} of anchors){
+    const [x,y]=point(local,tile,offset),button=buttons.get(location.id);
     button.hidden=x<0||y<0||x>width||y>height;
     button.style.left=`${x}px`;button.style.top=`${y}px`;
    }

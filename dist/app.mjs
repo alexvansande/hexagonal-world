@@ -1,14 +1,14 @@
 import {assetURL} from './asset-url.mjs';
 import {readTourPath,initTourNavigation,readPeriod,withPeriod} from './tour-pages.mjs?v=stories-7';
-import {createTourMarkers,projectTourLocations,tourEnabled,tourLocations,pacificLayoutEnabled,pacificLightingEnabled} from './tour-markers.mjs?v=stories-7';
-import {createTourRoutes,projectTourRoutes} from './tour-route-renderer.mjs?v=stories-8';
+import {createTourMarkers,projectTourLocations,tourEnabled,tourLocations,pacificLayoutEnabled,pacificLightingEnabled} from './tour-markers.mjs?v=endless-1';
+import {createTourRoutes,projectTourRoutes} from './tour-route-renderer.mjs?v=endless-1';
 import {loadTourData} from './tour-data.mjs?v=stories-7';
 import {createTourAreas,projectTourAreas} from './tour-area-renderer.mjs?v=sporadic-1';
-import {pacificTourNet,interpolateTourNet,tourImagePieces} from './tour-layout.mjs?v=atlantic-1';
+import {pacificTourNet,interpolateTourNet,tourImagePieces,endlessLattice,endlessCopies,latticeOffset,unwrapStrand} from './tour-layout.mjs?v=endless-1';
 import pacificLighting from './maps/pacific-manifest.mjs?v=pacific-light-1';
 import {createTourStory} from './tour-story.mjs?v=chapters-1';
 import {timelineStops,timelineStop,timelineRoutes,timelinePeriod} from './tour-timeline.mjs?v=stories-7';
-import {MergedMaps,mergedEntry,mergedCompatible} from './merged-maps.mjs?v=pacific-light-1';
+import {MergedMaps,mergedEntry,mergedCompatible} from './merged-maps.mjs?v=endless-1';
 import {riverFieldGLSL} from './river-layers.mjs?v=cloud-assets-1';
 import {DefaultLayers,defaultLayerPreset,imageVertex,imageFragment,graticuleFragment} from './default-layers.mjs?v=cloud-assets-1';
 import {puzzleRegion,puzzleArtwork} from './puzzle-grid.mjs?v=unique-3';
@@ -233,7 +233,40 @@ function fitView(){
 }
 function resize(){if(exporting)return;cancelTourAnimation();headingBounds=null;const rect=$('stage').getBoundingClientRect(),rotated=compactDevice&&persistenceReady&&(w>h)!==(rect.width>rect.height);w=rect.width;h=rect.height;dpr=Math.min(displayPixelRatio(w,h,window.devicePixelRatio,+$('quality').value,compactDevice),gl?graphicsLimit/Math.max(w,h):Infinity);const pixelWidth=Math.round(w*dpr),pixelHeight=Math.round(h*dpr);if(canvas.width!==pixelWidth||canvas.height!==pixelHeight){canvas.width=pixelWidth;canvas.height=pixelHeight;overlay.width=pixelWidth;overlay.height=pixelHeight;}
  if(!persistenceReady){fitView();const offset=shareSelection.layout.viewOffset;if(offset&&!compactDevice){state.panX=offset[0]*scale;state.panY=offset[1]*scale;}defaultView={scale,zoom:state.zoom,panX:state.panX,panY:state.panY};if(restoredView&&(!compactDevice||initialTour)){scale=restoredView.scale;state.zoom=restoredView.zoom;state.panX=restoredView.panX;state.panY=restoredView.panY;}persistenceReady=true;}else if(rotated&&!state.sidebarExpanded)fitView();draw();}
-function point(p,t){const v=rotateScreen(canvasWorld(p,t));return [w/2+v[0]*scale*state.zoom+state.panX,h/2+v[1]*scale*state.zoom+state.panY];}
+function point(p,t,offset){const v=rotateScreen(canvasWorld(p,t));if(offset){v[0]+=offset[0];v[1]+=offset[1];}return [w/2+v[0]*scale*state.zoom+state.panX,h/2+v[1]*scale*state.zoom+state.panY];}
+// Endless band: while a story or the timeline is open on Spaceship Earth, the
+// four pieces repeat by pure translation (exact joins along the band, two
+// out-of-order fillers per cell), so the map pans forever in every direction.
+// Copies are drawn from the same merged artwork; routes and dots pick the copy
+// that keeps them continuous. Nothing is rotated, so no relit artwork is needed.
+let endlessCache=null,endlessCacheKey='';
+function endlessGrid(){const base=tourNetFrom||net,key=[state.method,state.height,state.arrangement,base.map(t=>`${t.id}${t.r}${t.x.toFixed(3)},${t.y.toFixed(3)}`).join('|')].join('/');if(key!==endlessCacheKey){endlessCache=state.arrangement==='dymaxion'?endlessLattice(tiles,base):null;endlessCacheKey=key;}return endlessCache;}
+function endlessActive(){return !!renderMerged&&state.arrangement==='dymaxion'&&tourEnabled(renderDefault)&&(historyOn||!!activeTour)&&!tourNetFrom&&!exporting&&!!endlessGrid();}
+const canvasVector=v=>[v[0],-v[1]];
+function endlessScreen(){const g=endlessGrid();return {P:rotateScreen(canvasVector(g.period)),Q:rotateScreen(canvasVector(g.stack))};}
+function endlessCentre(){const unit=scale*state.zoom;return [-state.panX/unit,-state.panY/unit];}
+function wrapEndlessPan(){
+ const {P,Q}=endlessScreen(),c=endlessCentre(),det=P[0]*Q[1]-P[1]*Q[0],k=Math.round((c[0]*Q[1]-c[1]*Q[0])/det),m=Math.round((P[0]*c[1]-P[1]*c[0])/det);
+ if(!k&&!m)return;const unit=scale*state.zoom;state.panX+=(k*P[0]+m*Q[0])*unit;state.panY+=(k*P[1]+m*Q[1])*unit;
+}
+function endlessPieces(){
+ const g=endlessGrid(),angle=state.gridRotation*Math.PI/180,unit=scale*state.zoom,pad=Math.max(w,h)*.1;
+ const corners=[[-w/2-pad,-h/2-pad],[w/2+pad,-h/2-pad],[w/2+pad,h/2+pad],[-w/2-pad,h/2+pad]].map(([x,y])=>{const v=rotateScreen([(x-state.panX)/unit,(y-state.panY)/unit],-angle);return [v[0],-v[1]];});
+ return endlessCopies(g,corners,0).map(copy=>{const source=net.find(t=>t.id===copy.id);
+  return {id:copy.id,meta:null,source:rotateScreen(canvasWorld([0,0],source)),target:rotateScreen(canvasWorld([0,0],{x:copy.x,y:copy.y,r:copy.r})),angle:0,sourceAngle:angle-source.r*Math.PI/3,exact:copy.exact};});
+}
+function unwrapEndless(routes){
+ if(!endlessActive()){for(const route of routes)for(const anchors of route.strandAnchors||[route.anchors])for(const anchor of anchors)anchor.offset=undefined;return routes;}
+ const {P,Q}=endlessScreen(),centre=endlessCentre(),basis=anchor=>rotateScreen(canvasWorld(anchor.local,anchor.tile));
+ for(const route of routes)for(const anchors of route.strandAnchors||[route.anchors])if(anchors.length)unwrapStrand(anchors,basis,P,Q,centre);
+ return routes;
+}
+function markerOffsets(anchors){
+ if(!endlessActive()){for(const anchor of anchors)anchor.offset=undefined;return anchors;}
+ const {P,Q}=endlessScreen(),centre=endlessCentre();
+ for(const anchor of anchors)unwrapStrand([anchor],a=>rotateScreen(canvasWorld(a.local,a.tile)),P,Q,centre);
+ return anchors;
+}
 // Tours reuse geographic anchors and the normal camera; no map settings change.
 function projectedRoutes(){
  const key=[activeTour,state.method,state.height,state.arrangement,state.lon,state.lat,state.roll].join('/');
@@ -251,6 +284,7 @@ function projectedAreas(){
 // to the plain renderer.
 function settleTourNet(){if(tourNetFrom&&tourNetTo===tourNetFrom){net=tourNetFrom;tourNetFrom=tourNetStart=tourNetTo=tourNetCurrent=null;}}
 function moveTourNet(target){
+ if(endlessActive())return false;
  const wantPacific=target==='pacific'&&pacificLayoutEnabled(renderDefault)&&state.arrangement==='dymaxion';
  if(!wantPacific&&!tourNetFrom)return false;
  // The story alone gets the full Pacific view (Africa joins the Atlantic edge); timeline stops keep Eurasia and Africa joined.
@@ -276,7 +310,7 @@ function animateTourView(target){
  tourAnimation=requestAnimationFrame(step);
 }
 function focusTour(){
- const points=[...projectedRoutes(),...projectedAreas()].flatMap(route=>route.anchors.map(({local,tile})=>rotateScreen(canvasWorld(local,tile))));
+ const points=[...unwrapEndless(projectedRoutes()),...projectedAreas()].flatMap(route=>route.anchors.map(({local,tile,offset})=>{const v=rotateScreen(canvasWorld(local,tile));return offset?[v[0]+offset[0],v[1]+offset[1]]:v;}));
  if(!points.length)return;
  const xs=points.map(p=>p[0]),ys=points.map(p=>p[1]);
  const bounds=[Math.min(...xs),Math.min(...ys),Math.max(...xs),Math.max(...ys)];
@@ -557,11 +591,12 @@ function render(refined=false,exportMode=false){if(exporting&&!exportMode)return
   if(!mergedMaps)mergedMaps=new MergedMaps(gl,draw);
   defaultLayers.base.setRequired(new Set());defaultLayers.detail.setRequired(new Set());
   const relit=tourNetFrom&&tourLayoutProgress===1&&pacificLightingEnabled(renderDefault)&&mergedMaps.hasOverview(pacificLighting)?pacificLighting:null;
-  const plan=mergedMaps.draw(renderMerged,{width:w,height:h,unit:scale*state.zoom,dpr,panX:state.panX,panY:state.panY},tourNetFrom?tourImagePieces(tourNetFrom,net,state.gridRotation,relit):null,tourNetFrom&&pacificLightingEnabled(renderDefault)?[pacificLighting]:[]);
+  const endless=endlessActive();if(endless)wrapEndlessPan();
+  const plan=mergedMaps.draw(renderMerged,{width:w,height:h,unit:scale*state.zoom,dpr,panX:state.panX,panY:state.panY},endless?endlessPieces():tourNetFrom?tourImagePieces(tourNetFrom,net,state.gridRotation,relit):null,tourNetFrom&&pacificLightingEnabled(renderDefault)?[pacificLighting]:[]);
   canvas.dataset.tourLighting=relit?'pacific':tourNetFrom?pacificLightingEnabled(renderDefault)?'loading':'rotated':'default';
   surfaceCache=mergedMaps.cache;canvas.dataset.surface='precomputed';canvas.dataset.surfacePreview=String(!plan.ready);canvas.dataset.surfaceLevel=String(plan.level);canvas.dataset.surfacePending=String(surfaceCache.pending.size);canvas.dataset.surfaceTiles=String(surfaceCache.cache.size);canvas.dataset.surfaceFailures=String(surfaceCache.failures.size);
  }else drawColor(w,h,!!lighting);
- canvas.dataset.merged=String(!!renderMerged);canvas.dataset.tourLayout=tourNetFrom?'pacific':'default';canvas.dataset.tourProgress=tourLayoutProgress.toFixed(2);
+ canvas.dataset.merged=String(!!renderMerged);canvas.dataset.tourLayout=tourNetFrom?'pacific':endlessActive()?'endless':'default';canvas.dataset.tourProgress=tourLayoutProgress.toFixed(2);
  if(lighting){(renderDefault?defaultLayers:projectedLighting).composite(lighting,w,h,scale*state.zoom,state.panX,state.panY,state.shadowOpacity,state.lightOpacity);
   if(!renderDefault&&($('graticule').checked||$('distortion').checked)){gl.enable(gl.BLEND);gl.blendFuncSeparate(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA,gl.ONE,gl.ONE_MINUS_SRC_ALPHA);drawColor(w,h,false,true);gl.disable(gl.BLEND);}
  }
@@ -578,9 +613,9 @@ function render(refined=false,exportMode=false){if(exporting&&!exportMode)return
   if(historyOn&&!enabled)enableHistory(false);
  // A direct ?history= load reaches a Pacific stop before the map was ready: catch up once it is.
  if(historyOn&&enabled&&!activeTour&&tourLayoutProgress===1&&!!tourNetFrom!==historyWantsPacific())syncHistoryNet();
- tourMarkers.update(enabled?projectTourLocations(tiles,net,state,activeTour?tourLocations.filter(location=>location.id===activeTour):historyOn?tourLocations.filter(location=>historyStop().tours.includes(location.id)):tourLocations):[],point,w,h);
+ tourMarkers.update(enabled?markerOffsets(projectTourLocations(tiles,net,state,activeTour?tourLocations.filter(location=>location.id===activeTour):historyOn?tourLocations.filter(location=>historyStop().tours.includes(location.id)):tourLocations)):[],point,w,h);
   tourAreas.update(activeTour&&tourLayoutProgress===1?projectedAreas():[],point,w,h);
-  tourRoutes.update(activeTour&&tourLayoutProgress===1?projectedRoutes():historyOn&&enabled&&!activeTour&&tourLayoutProgress===1?historyRoutes():[],point,w,h);updateCoordinateReadout();
+  tourRoutes.update(unwrapEndless(activeTour&&tourLayoutProgress===1?projectedRoutes():historyOn&&enabled&&!activeTour&&tourLayoutProgress===1?historyRoutes():[]),point,w,h);updateCoordinateReadout();
  }
 
  ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,w,h);ctx.lineJoin='round';

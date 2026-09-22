@@ -30,7 +30,7 @@ try{
   await until(()=>frame.contentDocument?.querySelector('#tour-story')?.hidden===false,'story');await pause(2200);
   const d=frame.contentDocument,map=d.querySelector('#map');
   await until(()=>map.dataset.surfacePreview==='false'&&map.dataset.surfacePending==='0','map images');
-  if(tour.id==='french-polynesia')await until(()=>map.dataset.tourLighting==='pacific','Pacific lighting');
+  await until(()=>map.dataset.tourLayout==='endless','endless band');
   await pause(200);
   const canvas=document.createElement('canvas');canvas.width=1200;canvas.height=630;const ctx=canvas.getContext('2d');
   ctx.fillStyle=d.querySelector('#background-color').value;ctx.fillRect(0,0,1200,630);

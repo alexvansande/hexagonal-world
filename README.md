@@ -162,11 +162,21 @@ not evenly spaced years; every chapter belongs to exactly one stop, and a stop
 entry may restrict a chapter to some waves (the Norse composite chapter shows
 only its trade lanes at 1300). Story dots and chips filter to the stop’s stories
 and open the story at that stop’s chapter; closing returns to the same stop. The
-stop persists as `?history=<stop>` on the map URL. On Spaceship Earth, stops
-with a Polynesian chapter move the American pieces to the Pacific-facing joins
-and other stops move them back. The Polynesian story itself also translates the
-Europe–Africa piece onto South America's Atlantic edge (`pacificTourNet` with
-`atlantic: true`), joining both oceans without new artwork. Leaving an
+stop persists as `?history=<stop>` on the map URL.
+
+Endless band: while a story or the timeline is open on Spaceship Earth, the map
+becomes an endless plane. `endlessLattice` in `dist/tour-layout.mjs` finds the
+translation closure of the four pieces at their fixed rotations: they repeat
+exactly along one period (Asia → North America → Africa and South America, every
+three rows), which joins Bering, the South Pacific, Central America, the North
+Atlantic and Eurasia. Parallel bands stack by a second vector, leaving two slots
+per six-hex cell that are filled with out-of-order copies; joins across bands and
+around fillers are wrong, as accepted. Nothing rotates, so the merged artwork and
+its lighting are reused through translated pieces (`endlessCopies`), the camera
+wraps by whole periods, and routes and dots choose the copy that keeps them
+continuous (`unwrapStrand`). The South Atlantic remains a cut. The earlier Pacific
+piece animation (`pacificTourNet`) is kept for tests and Felv-free fallbacks but no
+longer drives the story or the timeline. Checks: `tour-endless-tests.mjs`. Leaving an
 eligible map switches history off. Checks: `tour-timeline-tests.mjs` and `/tests/tour-history.html`
 (also `?mobile=1`).
 Chapter changes refit the camera without replaying the Pacific piece animation.

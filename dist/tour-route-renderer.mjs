@@ -1,4 +1,4 @@
-import {projectTourLocations} from './tour-markers.mjs?v=stories-7';
+import {projectTourLocations} from './tour-markers.mjs?v=endless-1';
 import {hex} from './geometry.mjs';
 
 export function sampleRoute(route,step=.18){
@@ -25,7 +25,7 @@ export function projectTourRoutes(tiles,net,angles,routes=[]){
 // Never bridge a cut between separate map pieces. Split at tile changes; samples
 // on either side approach the seam within a fraction of a geographic degree.
 function routePositions(anchors,point,lane=0){
- const positions=anchors.map(anchor=>point(anchor.local,anchor.tile));
+ const positions=anchors.map(anchor=>point(anchor.local,anchor.tile,anchor.offset));
  return anchors.map((anchor,i)=>{
   let [x,y]=positions[i];
   if(lane){
@@ -74,9 +74,9 @@ export function createTourRoutes(stage){
   svg.style.display=routes.length?'block':'none';svg.setAttribute('viewBox',`0 0 ${width} ${height}`);
   // Parallel lanes must still end at the map silhouette, including its cuts.
   clip.replaceChildren();
-  if(routes.some(route=>route.lane))for(const tile of new Set(routes.flatMap(route=>route.anchors.map(anchor=>anchor.tile)))){
-   const polygon=document.createElementNS(ns,'polygon');polygon.setAttribute('points',hex.map(p=>point(p,tile).join(',')).join(' '));clip.append(polygon);
-  }
+  if(routes.some(route=>route.lane)){const seen=new Set();for(const anchor of routes.flatMap(route=>route.anchors)){const key=anchor.tile.id+':'+(anchor.offset||[0,0]).map(v=>v.toFixed(2)).join();if(seen.has(key))continue;seen.add(key);
+   const polygon=document.createElementNS(ns,'polygon');polygon.setAttribute('points',hex.map(p=>point(p,anchor.tile,anchor.offset).join(',')).join(' '));clip.append(polygon);
+  }}
   // Scrubbing the timeline visits hundreds of routes; drop groups that are no
   // longer drawn once the cache grows well beyond the current set.
   const wanted=new Set(routes.map(route=>route.id));
@@ -95,7 +95,7 @@ export function createTourRoutes(stage){
    while(ends.length>termini.length)ends.pop().remove();
    termini.forEach((anchor,i)=>{
     if(!ends[i]){const circle=document.createElementNS(ns,'circle');circle.setAttribute('r',fadeRadius);circle.setAttribute('fill','url(#tour-route-fade)');mask.append(circle);ends.push(circle);}
-    const [x,y]=point(anchor.local,anchor.tile);ends[i].setAttribute('cx',x.toFixed(1));ends[i].setAttribute('cy',y.toFixed(1));
+    const [x,y]=point(anchor.local,anchor.tile,anchor.offset);ends[i].setAttribute('cx',x.toFixed(1));ends[i].setAttribute('cy',y.toFixed(1));
    });
    while(segments.length>fragments.length){const {halo,line}=segments.pop();halo.remove();line.remove();}
    fragments.forEach(({d,start,traffic},i)=>{

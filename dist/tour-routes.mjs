@@ -9,7 +9,7 @@ import {africaChapters} from './tour-africa.mjs?v=strands-2';
 import {oceanChapters} from './tour-oceans.mjs?v=strands-2';
 import {tradePeriods,tradePeriod,tradeHeading} from './tour-trade-periods.mjs?v=strands-2';
 export {silkRoadRoutes,polynesiaRoutes,silkRoadSources} from './tour-route-data.mjs?v=sporadic-1';
-export {sampleRoute,projectTourRoutes,routePath,createTourRoutes} from './tour-route-renderer.mjs?v=stories-8';
+export {sampleRoute,projectTourRoutes,routePath,createTourRoutes} from './tour-route-renderer.mjs?v=endless-1';
 export const silkRoadTradeRoutes=silkTradeRoutes(silkRoadRoutes);
 export const tourRouteSets={'silk-road':silkRoadTradeRoutes,'french-polynesia':polynesiaRoutes,'origin-of-mankind':migrationRoutes,'iceland-to-vinland':vinlandRoutes};
 // Every entry point's dated chapters, keyed by location ID (same shape as loadTourData).

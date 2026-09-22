@@ -601,12 +601,16 @@ snapshots are treated as ±150-year windows when assigned.
 the Spaceship Earth and Felv arrangements in any view except political and
 distortion analysis; custom maps have none. On Spaceship Earth, whenever a
 timeline stop concerns the Pacific (any Polynesian chapter) the pieces switch
-to the Pacific-facing arrangement and return afterwards. The Polynesian story
-alone uses the full Pacific view: the Europe–Africa piece also moves onto South
-America's Atlantic edge, a pure translation that keeps its baked lighting valid,
-so the Pacific and the Atlantic both read as continuous seas. Timeline stops keep
-Eurasia and Africa joined because they also show Silk Road, Viking and African
-stories. Zoom-driven switching remains a follow-up. Content passes added two
+to the Pacific-facing arrangement and return afterwards. **Superseded on
+September 22** by the endless band: the user observed that translation-only moves
+form a loop, and computation confirmed that the four pieces at fixed rotations
+repeat exactly along one period with no new artwork. Decision: no new plates,
+ever; translate what can be translated and accept out-of-order pieces where the
+pattern cannot close (two filler slots per six-hex cell, plus the seams between
+parallel bands). Stories and the timeline now render this endless plane on
+Spaceship Earth with camera wraparound; the Pacific and Africa piece moves are
+retired from the app (kept as tested geometry). Only the South Atlantic join is
+unavailable this way, so Atlantic slave-trade lanes still cross a cut. Content passes added two
 stories to fill the thin stops: African networks (trans-Saharan, Nile, Swahili
 and Atlantic trades, with enslaved people as a named wave) and Ocean crossings
 (Ming and monsoon trade, Iberian routes, galleons and companies), plus wider

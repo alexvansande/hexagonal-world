@@ -45,15 +45,24 @@ export class MergedMaps{
  hasOverview(meta){return meta.levels[0].tiles.every(key=>this.cache.cache.has(`${meta.path}/0/${key}`));}
  draw(meta,view,pieces=null,preload=[]){
   const {gl:g,cache,uniforms:u}=this;
+  // Translated copies of one piece (the endless band) share a source window, so
+  // their tile plans are computed once per source and drawn per target.
+  const shared=new Map();
   const plans=(pieces||[null]).map(piece=>{
    if(!piece)return {...mergedPlan(meta,view),piece};
    const c=Math.cos(piece.angle),s=Math.sin(piece.angle),unit=view.unit;
+   const key=`${piece.meta?.path||''}|${piece.source.join()}|${piece.angle}`;
+   if(piece.angle===0&&shared.has(key))return {...shared.get(key),piece};
    const center=[-view.panX/unit-piece.target[0],-view.panY/unit-piece.target[1]];
    const sourceCenter=[c*center[0]+s*center[1]+piece.source[0],-s*center[0]+c*center[1]+piece.source[1]];
-   const plan=mergedPlan(piece.meta||meta,{...view,width:Math.abs(c)*view.width+Math.abs(s)*view.height,height:Math.abs(s)*view.width+Math.abs(c)*view.height,panX:-sourceCenter[0]*unit,panY:-sourceCenter[1]*unit},40);
+   // Unrotated copies plan the whole source hexagon so the plan is target-independent.
+   const window=piece.angle===0?{width:4*unit,height:4*unit,panX:-piece.source[0]*unit,panY:-piece.source[1]*unit}:{width:Math.abs(c)*view.width+Math.abs(s)*view.height,height:Math.abs(s)*view.width+Math.abs(c)*view.height,panX:-sourceCenter[0]*unit,panY:-sourceCenter[1]*unit};
+   const plan=mergedPlan(piece.meta||meta,{...view,...window},piece.angle===0?60:40);
    // Cull image tiles outside this source hexagon's bounding circle.
    const touches=t=>{const [x,y,w,h]=t.rect;return x<=piece.source[0]+1&&x+w>=piece.source[0]-1&&y<=piece.source[1]+1&&y+h>=piece.source[1]-1;};
-   return {...plan,coarse:plan.coarse.filter(touches),tiles:plan.tiles.filter(touches),piece};
+   const result={...plan,coarse:plan.coarse.filter(touches),tiles:plan.tiles.filter(touches)};
+   if(piece.angle===0)shared.set(key,result);
+   return {...result,piece};
   });
   const preloadKeys=preload.flatMap(m=>m.levels[0].tiles.map(key=>`${m.path}/0/${key}`));
   cache.setRequired(new Set([...preloadKeys,...plans.flatMap(p=>[...p.coarse,...p.tiles].map(t=>t.key))]));
