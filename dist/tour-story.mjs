@@ -1,4 +1,4 @@
-import {appendMarkdown} from './tour-content.mjs?v=history-1';
+import {appendMarkdown} from './tour-content.mjs?v=history-3';
 
 // The story card in the sidebar. It renders whatever spot text the timeline hands
 // it (paragraphs, a wave legend, a caveat and a source link); it fetches nothing.

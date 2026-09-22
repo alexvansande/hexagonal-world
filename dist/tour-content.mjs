@@ -15,7 +15,8 @@ export function appendMarkdown(element,text){
 
 // Period Markdown (dist/history/<period>.md): an H1 "Title · date", intro
 // paragraphs, then one `## story-id` section per spot with `### Title`,
-// `spot: lat, lon`, `view: fit` (or `view: lat,lon → lat,lon`), paragraphs,
+// `spot: lat, lon`, `view: fit` (or `view: lat,lon → lat,lon`), `site:`/`area:`
+// label lines, paragraphs,
 // legend lines `- wave: text`, a `>` caveat and a final source link.
 export function parsePeriod(markdown){
  const clean=markdown.replace(/<!--[\s\S]*?-->/g,'');
@@ -27,9 +28,12 @@ export function parsePeriod(markdown){
   const [id,...lines]=section.split('\n');let body=lines.join('\n');
   const spotTitle=body.match(/^### (.+)$/m)?.[1]?.trim()||id.trim();body=body.replace(/^### .+$/m,'');
   const spot=body.match(/^spot:\s*(-?[\d.]+)\s*,\s*(-?[\d.]+)\s*$/m),view=body.match(/^view:\s*(.+)$/m);
-  body=body.replace(/^(spot|view):.*$/gm,'');
+  // Map labels: `site: Name · lat, lon` (a black circle and an all-caps name) and
+  // `area: Name · lat, lon` (an italic name for a region, range or sea).
+  const labels=[...body.matchAll(/^(site|area):\s*(.+?)\s*·\s*(-?[\d.]+)\s*,\s*(-?[\d.]+)\s*$/gm)].map(m=>({kind:m[1],text:m[2],latitude:+m[3],longitude:+m[4]}));
+  body=body.replace(/^(spot|view|site|area):.*$/gm,'');
   const parsed=blocks(body);
-  spots[id.trim()]={id:id.trim(),title:spotTitle,spot:spot?[+spot[1],+spot[2]]:null,view:view?.[1].trim()||'fit',...parsed};
+  spots[id.trim()]={id:id.trim(),title:spotTitle,spot:spot?[+spot[1],+spot[2]]:null,view:view?.[1].trim()||'fit',labels,...parsed};
  }
  return {title,intro,spots};
 }

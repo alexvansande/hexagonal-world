@@ -6,6 +6,10 @@ Around 10,000 years ago: the Ice Age Americas and later movements, and the first
 ### Later movements
 spot: 65, -165
 view: fit
+site: White Sands · 32.8, -106.3
+site: Monte Verde · -41.5, -73.2
+area: Beringia · 65, -172
+area: Anatolia · 39, 33
 
 During the last Ice Age, people crossed Beringia and spread through the Americas, with early presence in the south by about 23,000–21,000 years ago and several later dispersals into South America.
 
@@ -22,6 +26,11 @@ In the Holocene, farming spread from Anatolia into Europe, steppe herders follow
 ### The first towns
 spot: 37.67, 32.83
 view: fit
+site: Göbekli Tepe · 37.22, 38.92
+site: Çatalhöyük · 37.67, 32.83
+site: Jericho · 31.87, 35.44
+area: Fertile Crescent · 35.5, 40
+area: Zagros Mountains · 34, 47.5
 
 Long before cities, people in the Fertile Crescent settled down. At **Göbekli Tepe** hunter-gatherers raised carved stone enclosures around 9500 BCE; **Jericho** had a wall and tower by about 8000 BCE; and **Çatalhöyük** on the Konya plain housed thousands of people around 7000 BCE in packed mud-brick houses entered from the roof. Wheat, barley, sheep and goats were domesticated in the same region.
 

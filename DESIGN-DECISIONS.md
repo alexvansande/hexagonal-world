@@ -675,6 +675,14 @@ communities, and cities with writing and states are 4,000 years later.
 info box to cycle between spots. They wrap around, follow the Markdown order,
 show the position (2 / 5) and also answer the left/right keys.
 
+**Map labels (September 22).** The user asked for two label types on the
+history map, used sparingly: site markers (black circle with a white outline,
+larger than the dots, all-caps bold Gotham-like name with a white outline) for
+cities and sites, and area labels (Baskerville italic, title caps, white
+outline) for ranges, seas and regions relevant to the story card. Labels belong
+to a spot and show only while that story is focused. The traffic dots were
+doubled in size at the same time.
+
 **Dance anchored on the centre (September 22).** The user saw a small drag down,
 made only to see an arrangement better, re-form the group and move the pieces in
 front of them away. Decision: a band switch needs a deliberate pan (40% of the

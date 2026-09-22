@@ -84,8 +84,12 @@ source of story content:
   `## story-id` section per spot with `### Title`, `spot: lat, lon` (where the
   dot sits at that moment: the Vikings on Norway in 1000 CE, on Greenland in
   1400), `view: fit` (frame the story's routes) or `view: lat,lon → lat,lon`
-  (an explicit box), paragraphs, legend lines `- wave: **Label** · text`, a `>`
-  caveat and a source link to the evidence notes (`dist/*-sources.md`).
+  (an explicit box), map labels for the focused story as `site: Name · lat, lon`
+  (a black circle with a white outline and an all-caps bold name, for cities and
+  sites) or `area: Name · lat, lon` (an italic Baskerville name in title caps for
+  ranges, seas and regions), used sparingly, then paragraphs, legend lines
+  `- wave: **Label** · text`, a `>` caveat and a source link to the evidence
+  notes (`dist/*-sources.md`).
 - `<period>.routes.json` is the authored route list: `id`, `story`, `wave`,
   `title`, `coordinates` (lat/lon stops), optional `lane`, `uncertain`,
   `geodesic`, `frequency`, `twoWay` (the loader adds the reversed partner on the

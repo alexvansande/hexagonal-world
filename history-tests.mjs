@@ -18,7 +18,7 @@ assert(Object.isFrozen(periods)&&periods.every(p=>Object.isFrozen(p)&&p.stories.
 for(const [id,w] of Object.entries(waves))assert(/^#[0-9a-f]{6}$/.test(w.color)&&w.label,`wave ${id} has a colour and a label`);
 const files=(await readdir('dist/history')).filter(f=>f.endsWith('.md')).sort();
 assert.deepEqual(files,periods.map(p=>p.id+'.md').sort(),'exactly one Markdown per period');
-const used=new Set();let detail=0,total=0,spots=0;
+const used=new Set();let detail=0,total=0,spots=0,labelsTotal=0;
 for(const info of periods){
  const text=parsePeriod(await readFile(`dist/history/${info.id}.md`,'utf8'));
  assert.equal(text.title,`${info.label} · ${info.date}`,`${info.id}: heading names the age and its date`);
@@ -36,6 +36,8 @@ for(const info of periods){
   assert(spot.view==='fit'||/^-?[\d.]+\s*,\s*-?[\d.]+\s*(→|->)\s*-?[\d.]+\s*,\s*-?[\d.]+$/.test(spot.view),`${info.id}/${spot.id}: view is fit or a box`);
   assert(spot.title&&spot.paragraphs.length,`${info.id}/${spot.id}: title and text`);
   assert.equal(spot.legend.length,spot.waves.length,`${info.id}/${spot.id}: legend lines name their wave`);
+  assert(spot.labels.length<=6,`${info.id}/${spot.id}: labels are used sparingly`);labelsTotal+=spot.labels.length;
+  for(const l of spot.labels)assert(['site','area'].includes(l.kind)&&l.text&&Math.abs(l.latitude)<=90&&Math.abs(l.longitude)<=180&&(l.kind==='site'||l.text===l.text.replace(/\b[a-z]/g,c=>c.toUpperCase())||/\b(of|the|and|aux|de|la)\b/.test(l.text)),`${info.id}/${spot.id}: label ${l.text}`);
   for(const w of spot.waves)assert(waves[w],`${info.id}/${spot.id}: unknown wave ${w}`);
   for(const w of new Set(authored.filter(r=>r.story===spot.id).map(r=>r.wave)))assert(spot.waves.includes(w),`${info.id}/${spot.id}: legend misses drawn wave ${w}`);
   if(spot.source&&!spot.source.url.startsWith('https://'))await stat('dist/'+spot.source.url.slice(2));
@@ -63,10 +65,11 @@ for(const info of periods){
 }
 assert.deepEqual([...used].sort(),Object.keys(waves).sort(),'every wave colour is used and every used wave has a colour');
 assert(detail>0,'some routes are detail routes that appear only when zoomed in');
+assert(labelsTotal>60,'spots carry site and area labels');
 for(const story of storyIds)assert(relax.places[story]&&Object.keys(relax.places[story]).length>0,`relax.json names hard stops for ${story}`);
 assert.equal(reverseRoute({id:'a',coordinates:[[0,0],[1,1]]}).id,'a-return');
 // Startup never pays for history: the app imports the loader, not the data.
 const app=await readFile('dist/app.mjs','utf8');
 assert(app.includes("from './history-loader.mjs")&&!/\.routes\.json|\.strands\.json|tour-stories\.md/.test(app));
 for(const name of ['tour-data','tour-timeline','tour-routes','tour-periods','tour-migrations','tour-vinland'])assert(!app.includes(`./${name}.mjs`),`app no longer imports ${name}`);
-console.log(`History folder: ${periods.length} periods, ${spots} spots, ${total} authored routes (${detail} detail), fresh strands, ${Object.keys(waves).length} shared wave colours pass.`);
+console.log(`History folder: ${periods.length} periods, ${spots} spots, ${total} authored routes (${detail} detail), fresh strands, ${labelsTotal} labels, ${Object.keys(waves).length} shared wave colours pass.`);

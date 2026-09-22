@@ -252,9 +252,17 @@ body:not(.customizing) aside.tour-story-open>#tour-story{display:block}
 .tour-story-source{font-size:11px;color:#346e7c;text-underline-offset:3px}
 .tour-routes{position:absolute;inset:0;width:100%;height:100%;z-index:1;pointer-events:none;overflow:hidden}
 .tour-routes path{fill:none;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:.1 8;vector-effect:non-scaling-stroke}
-.tour-routes .route-halo{stroke:#213e46;stroke-width:5.8;stroke-opacity:.8}
-.tour-routes .route-line{stroke:var(--route-color,#fff3c9);stroke-width:3.5}
+.tour-routes .route-halo{stroke:#213e46;stroke-width:11.6;stroke-opacity:.8}
+.tour-routes .route-line{stroke:var(--route-color,#fff3c9);stroke-width:7}
 .tour-markers{z-index:2}
+/* Map labels for the focused story: sites as black circles with all-caps names, areas as italic names. */
+.tour-labels{position:absolute;inset:0;z-index:2;pointer-events:none;overflow:hidden}
+.tour-labels[hidden]{display:none}
+.tour-label{position:absolute;white-space:nowrap;color:#000;-webkit-text-stroke:3px #fff;paint-order:stroke fill;text-shadow:0 0 2px #fff}
+.tour-label[hidden]{display:none}
+.tour-label[data-kind="site"]{padding-left:19px;margin:-8px 0 0 -7px;font:700 11.5px/16px Gotham,"Gotham SSm",Montserrat,"Proxima Nova","Avenir Next",Avenir,"Helvetica Neue",Arial,sans-serif;text-transform:uppercase;letter-spacing:.09em}
+.tour-label[data-kind="site"]::before{content:"";position:absolute;left:0;top:2px;width:12px;height:12px;border-radius:50%;background:#000;border:2px solid #fff;box-shadow:0 0 0 1px #0006}
+.tour-label[data-kind="area"]{transform:translate(-50%,-50%);font:italic 500 15px/1.1 Baskerville,"Libre Baskerville","Baskerville Old Face",Georgia,"Times New Roman",serif;letter-spacing:.02em}
 /* Negative dash offset advances each dot from the first waypoint to the last.
    One repeat is exactly .1 + 8 CSS pixels; halo and light remain registered. */
 @keyframes migration-flow{from{stroke-dashoffset:0}to{stroke-dashoffset:-8.1}}

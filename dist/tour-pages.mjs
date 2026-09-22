@@ -1,4 +1,4 @@
-import {tourLocations} from './tour-markers.mjs?v=history-2';
+import {tourLocations} from './tour-markers.mjs?v=history-3';
 
 // Story landing pages: root-level links such as /silk-road/ that open the map
 // with the history timeline focused on that story. Each has a social preview.

@@ -6,6 +6,10 @@ Around 2 million years ago: early Homo in Africa and Homo erectus across Eurasia
 ### Early Homo in Africa
 spot: 3.5, 36
 view: fit
+site: Olduvai Gorge · -2.99, 35.35
+site: Sterkfontein · -26.02, 27.73
+area: East African Rift · -1, 36.5
+area: Sahara · 23, 10
 
 The oldest fossils placed in our genus come from **Ledi-Geraru** in Ethiopia, about 2.8 million years old, and flaked stone tools are at least 2.6 million years old. By 2 million years ago several kinds of early Homo lived around the **East African Rift**, in the caves of southern Africa and, on sparser evidence, farther north and west.
 
@@ -21,6 +25,11 @@ The oldest fossils placed in our genus come from **Ledi-Geraru** in Ethiopia, ab
 ### Homo erectus across Eurasia
 spot: 41.7, 44.3
 view: fit
+site: Dmanisi · 41.7, 44.3
+site: Sangiran · -7.4, 110.8
+site: Atapuerca · 42.35, -3.5
+site: Zhoukoudian · 39.7, 115.9
+area: Wallacea · -5.5, 123
 
 At **Dmanisi** in Georgia five skulls date to about 1.85–1.77 million years ago: small-brained people already far outside Africa. Stone tools at Shangchen in China may be 2.1 million years old; Homo erectus was on **Java** by about 1.3 million years ago, possibly earlier, and in Europe by about 1.4 million years ago, with Homo antecessor at Atapuerca and footprints at Happisburgh around 900,000 years ago.
 

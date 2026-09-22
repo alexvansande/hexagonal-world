@@ -117,3 +117,25 @@ export function createTourMarkers(stage,canvas){
   },
  };
 }
+
+// Map labels for the focused story: `site` (black circle, all-caps name) and
+// `area` (italic name). Positioned like the markers on every draw; never exported.
+export function createTourLabels(stage){
+ const layer=document.createElement('div');layer.className='tour-labels';layer.setAttribute('aria-hidden','true');layer.hidden=true;stage.append(layer);
+ const items=new Map();
+ return {
+  update(anchors,point,width,height){
+   layer.hidden=!anchors.length;
+   const wanted=new Set();
+   for(const {location,local,tile,offset} of anchors){
+    const key=`${location.kind}|${location.text}|${location.latitude},${location.longitude}`;wanted.add(key);
+    let item=items.get(key);
+    if(!item){item=document.createElement('span');item.className='tour-label';item.dataset.kind=location.kind;item.textContent=location.text;items.set(key,item);layer.append(item);}
+    const [x,y]=point(local,tile,offset);
+    item.hidden=x<-40||y<-20||x>width+40||y>height+20;
+    item.style.left=`${x}px`;item.style.top=`${y}px`;
+   }
+   for(const [key,item] of items)if(!wanted.has(key)){item.remove();items.delete(key);}
+  },
+ };
+}

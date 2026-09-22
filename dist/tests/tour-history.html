@@ -59,6 +59,10 @@ try{
  check(!tools.hidden&&visible().length>=drawnBefore&&!d.querySelector('.history-tools button[id]'),'The scrubber and every story stay while a story is focused; no chips');
  check(d.querySelector('#zoom-value').textContent!==zoomBefore&&w.location.pathname==='/lifezones/spaceship-earth/','Focusing zooms to the story and keeps the map URL');
  check(d.querySelectorAll('#tour-story .tour-route-key li[data-wave]').length>0,'The card lists the waves drawn for that story');
+ const labels=()=>[...d.querySelectorAll('.tour-labels .tour-label:not([hidden])')];
+ check(labels().some(l=>l.dataset.kind==='site'&&l.textContent==='Samarkand')&&labels().some(l=>l.dataset.kind==='area'&&l.textContent==='Steppe'),'Site and area labels of the focused story are drawn');
+ check(getComputedStyle(labels().find(l=>l.dataset.kind==='site')).textTransform==='uppercase'&&getComputedStyle(labels().find(l=>l.dataset.kind==='area')).fontStyle==='italic','Sites are all caps, areas italic');
+ check(parseFloat(getComputedStyle(d.querySelector('.tour-routes .route-line')).strokeWidth)>=7,'Traffic dots are twice their former size');
  // Arrows at the bottom of the card cycle through the period's spots.
  check(!d.querySelector('.tour-story-nav').hidden&&d.querySelector('.tour-story-nav output').textContent==='1 / 4','The card shows its place among the period\u2019s spots');
  d.querySelector('.tour-story-next').click();await pause(1600);
@@ -79,6 +83,7 @@ try{
  await scrub('1400-ce');await pause(1300);
  check(d.querySelector('#tour-story-title').textContent.includes('Mongol'),'Back at 1400 CE the headline spot is the Silk Road');
  d.querySelector('#tour-story-close').click();await until(()=>d.querySelector('#tour-story').hidden,'back');await pause(1500);
+ check(d.querySelector('.tour-labels').hidden,'Labels leave with the card');
  check(w.location.search.includes('history=1400-ce')&&visible().length>0&&d.querySelector('#zoom-value').textContent===zoomBefore,'Closing the card restores the camera at the same period');
  toggle.click();await until(()=>tools.hidden&&routes.style.display==='none'&&dots().length===7,'off');await pause(200);
  check(getComputedStyle(viewTools).display!=='none'&&!w.location.search.includes('history='),'Unchecking restores the toolbox, dots and URL');

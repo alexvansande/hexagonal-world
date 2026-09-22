@@ -1,11 +1,11 @@
 import {assetURL} from './asset-url.mjs';
 import {readTourPath} from './tour-pages.mjs?v=history-2';
-import {createTourMarkers,projectTourLocations,tourEnabled,tourLocations,pacificLightingEnabled} from './tour-markers.mjs?v=history-2';
-import {createTourRoutes,projectTourRoutes} from './tour-route-renderer.mjs?v=history-2';
-import {loadPeriod} from './history-loader.mjs?v=history-2';
+import {createTourMarkers,createTourLabels,projectTourLocations,tourEnabled,tourLocations,pacificLightingEnabled} from './tour-markers.mjs?v=history-3';
+import {createTourRoutes,projectTourRoutes} from './tour-route-renderer.mjs?v=history-3';
+import {loadPeriod} from './history-loader.mjs?v=history-3';
 import {pacificTourNet,tourImagePieces,endlessLattice,bandOffsets} from './tour-layout.mjs?v=dancing-2';
 import pacificLighting from './maps/pacific-manifest.mjs?v=pacific-light-1';
-import {createTourStory} from './tour-story.mjs?v=history-2';
+import {createTourStory} from './tour-story.mjs?v=history-3';
 import {periods,period as periodInfo} from './history/index.mjs?v=history-1';
 import {MergedMaps,mergedEntry,mergedCompatible} from './merged-maps.mjs?v=endless-1';
 import {riverFieldGLSL} from './river-layers.mjs?v=cloud-assets-1';
@@ -40,6 +40,7 @@ import {ReliefRenderer,reliefRanges,reliefDefaults,reliefLooks} from './relief.m
 import {layoutOptions,styleOptions,layoutIcon} from './map-options.mjs?v=backdrop-3';
 const $=id=>document.getElementById(id), canvas=$('map'),overlay=$('overlay'),ctx=overlay.getContext('2d');
 const tourMarkers=createTourMarkers($('stage'),canvas);
+const tourLabels=createTourLabels($('stage'));
 const tourRoutes=createTourRoutes($('stage'));
 const tourStory=createTourStory($('controls'),()=>closeHistoryFocus(true));
 // A story URL such as /silk-road/ opens the timeline focused on that story.
@@ -622,7 +623,9 @@ function render(refined=false,exportMode=false){if(exporting&&!exportMode)return
   if(historyOn&&!enabled)enableHistory(false);
   // Off the timeline the seven entry dots invite a click; on it each period places its own spots.
   tourMarkers.update(enabled?projectTourLocations(tiles,net,state,historyOn?historySpots():tourLocations):[],point,w,h);
-  tourRoutes.update(historyOn&&enabled?historyRoutes():[],point,w,h);updateCoordinateReadout();
+  tourRoutes.update(historyOn&&enabled?historyRoutes():[],point,w,h);
+  const labels=historyOn&&enabled&&historyFocus&&historyPeriod?.text.spots[historyFocus]?.labels||[];
+  tourLabels.update(labels.length?projectTourLocations(tiles,net,state,labels):[],point,w,h);updateCoordinateReadout();
  }
 
  ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,w,h);ctx.lineJoin='round';
