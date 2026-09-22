@@ -178,6 +178,10 @@ Atlantic are cuts on the vertical band, the South Atlantic on the diagonal one. 
 stacking and copy helpers (`endlessCopies`, `unwrapStrand`) stay as tested
 geometry but are not used by the app. Checks: `tour-endless-tests.mjs`. Band switches
 are anchored on the piece nearest the viewport centre, which keeps its place.
+Framing a story picks the band whose slots gather its points most tightly (the
+vertical band for Polynesia, the diagonal one for the Atlantic), anchored on
+the piece holding most of the story, and frames the points where the pieces
+will settle.
 
 Story content notes: the Silk Road spans Bronze Age tin and lapis lanes to
 Mongol-era and maritime networks; Origin of mankind keeps directed, connected

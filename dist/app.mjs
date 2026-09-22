@@ -291,6 +291,34 @@ function danceStep(now){
  }
  return moving;
 }
+// Framing a story on the dancing pieces: pick the band whose slots gather the
+// story's points most tightly (the vertical one for Polynesia, the diagonal one
+// for the Atlantic), anchor a switch on the piece holding most of the story so
+// it stays put while the others come to it, and frame the points where the
+// pieces will settle rather than where they are now.
+function danceFrame(anchors){
+ if(!danceActive()||!anchors.length)return null;
+ const mean=pts=>pts.reduce((sum,p)=>[sum[0]+p[0]/pts.length,sum[1]+p[1]/pts.length],[0,0]);
+ const evaluate=(mode,shift,previous)=>{
+  const {net:modeNet,lattice}=danceModes[mode],P=lattice.period;
+  const raw=anchors.map(a=>({id:a.tile.id,p:world(a.local,modeNet.find(t=>t.id===a.tile.id))}));
+  const place=offsets=>raw.map(r=>[r.p[0]+shift[0]+(offsets[r.id]||0)*P[0],r.p[1]+shift[1]+(offsets[r.id]||0)*P[1]]);
+  let offsets=previous,pts=place(offsets),centre=mean(pts);
+  for(let i=0;i<3;i++){offsets=bandOffsets(lattice,modeNet,[centre[0]-shift[0],centre[1]-shift[1]],offsets);pts=place(offsets);centre=mean(pts);}
+  const xs=pts.map(p=>p[0]),ys=pts.map(p=>p[1]);
+  return {mode,shift,offsets,pts,spread:Math.hypot(Math.max(...xs)-Math.min(...xs),Math.max(...ys)-Math.min(...ys))};
+ };
+ const current=evaluate(danceMode,danceShift,danceOffsets),other=danceMode==='base'?'pacific':'base';
+ const counts={};for(const a of anchors)counts[a.tile.id]=(counts[a.tile.id]||0)+1;
+ const anchorId=+Object.keys(counts).sort((a,b)=>counts[b]-counts[a])[0];
+ const live=net.find(t=>t.id===anchorId),tween=danceTweens.get(anchorId),placed=tween?[tween.tx,tween.ty]:[live.x,live.y],home=danceModes[other].net.find(t=>t.id===anchorId);
+ const trial=evaluate(other,[placed[0]-home.x,placed[1]-home.y],{});
+ const best=trial.spread<current.spread*.8?trial:current;
+ canvas.dataset.danceFrame=`${danceMode}:${current.spread.toFixed(2)} ${other}:${trial.spread.toFixed(2)} anchor:${anchorId} k:${JSON.stringify(best.offsets)}`;
+ if(best!==current){danceMode=other;danceShift=best.shift;danceDrag={x:0,y:0};}
+ danceOffsets=best.offsets;
+ return best.pts.map(p=>rotateScreen([p[0],-p[1]]));
+}
 // History routes for the current period, projected on the live net (the dancing
 // pieces move the net objects in place, so cached anchors follow). Detail routes
 // appear only once the camera passes their zoom level.
@@ -333,8 +361,9 @@ function focusHistoryStory(id){
  historyFocus=id;setSidebarExpanded(false,false);showHistoryCard(id);
  hideCoordinateReadout();
  const box=spot.view.match(/(-?[\d.]+)\s*,\s*(-?[\d.]+)\s*(?:→|->)\s*(-?[\d.]+)\s*,\s*(-?[\d.]+)/);
- const points=box?projectTourLocations(tiles,net,state,[[+box[1],+box[2]],[+box[3],+box[4]],[+box[1],+box[4]],[+box[3],+box[2]]].map(([latitude,longitude])=>({latitude,longitude}))).map(({local,tile})=>rotateScreen(canvasWorld(local,tile)))
-  :projectTourRoutes(tiles,net,state,historyPeriod.routes.filter(r=>r.story===id)).flatMap(route=>route.anchors.map(({local,tile})=>rotateScreen(canvasWorld(local,tile))));
+ const anchors=box?projectTourLocations(tiles,net,state,[[+box[1],+box[2]],[+box[3],+box[4]],[+box[1],+box[4]],[+box[3],+box[2]]].map(([latitude,longitude])=>({latitude,longitude})))
+  :projectTourRoutes(tiles,net,state,historyPeriod.routes.filter(r=>r.story===id)).flatMap(route=>route.anchors);
+ const points=danceFrame(anchors)||anchors.map(({local,tile})=>rotateScreen(canvasWorld(local,tile)));
  focusPoints(points);syncHistoryTools();draw();
 }
 function closeHistoryFocus(restore=true){

@@ -258,11 +258,11 @@ body:not(.customizing) aside.tour-story-open>#tour-story{display:block}
 /* Map labels for the focused story: sites as black circles with all-caps names, areas as italic names. */
 .tour-labels{position:absolute;inset:0;z-index:2;pointer-events:none;overflow:hidden}
 .tour-labels[hidden]{display:none}
-.tour-label{position:absolute;white-space:nowrap;color:#000;-webkit-text-stroke:3px #fff;paint-order:stroke fill;text-shadow:0 0 2px #fff}
+.tour-label{position:absolute;white-space:nowrap;color:#000;-webkit-text-stroke:3px rgba(255,255,255,.5);paint-order:stroke fill}
 .tour-label[hidden]{display:none}
-.tour-label[data-kind="site"]{padding-left:19px;margin:-8px 0 0 -7px;font:700 11.5px/16px Gotham,"Gotham SSm",Montserrat,"Proxima Nova","Avenir Next",Avenir,"Helvetica Neue",Arial,sans-serif;text-transform:uppercase;letter-spacing:.09em}
-.tour-label[data-kind="site"]::before{content:"";position:absolute;left:0;top:2px;width:12px;height:12px;border-radius:50%;background:#000;border:2px solid #fff;box-shadow:0 0 0 1px #0006}
-.tour-label[data-kind="area"]{transform:translate(-50%,-50%);font:italic 500 15px/1.1 Baskerville,"Libre Baskerville","Baskerville Old Face",Georgia,"Times New Roman",serif;letter-spacing:.02em}
+.tour-label[data-kind="site"]{padding-left:17px;margin:-7px 0 0 -6px;font:700 9.5px/14px Gotham,"Gotham SSm",Montserrat,"Proxima Nova","Avenir Next",Avenir,"Helvetica Neue",Arial,sans-serif;text-transform:uppercase;letter-spacing:.09em}
+.tour-label[data-kind="site"]::before{content:"";position:absolute;left:0;top:1px;width:12px;height:12px;border-radius:50%;background:#000;border:2px solid rgba(255,255,255,.5);background-clip:padding-box}
+.tour-label[data-kind="area"]{transform:translate(-50%,-50%);font:italic 500 22px/1.1 Baskerville,"Libre Baskerville","Baskerville Old Face",Georgia,"Times New Roman",serif;letter-spacing:.02em}
 /* Negative dash offset advances each dot from the first waypoint to the last.
    One repeat is exactly .1 + 8 CSS pixels; halo and light remain registered. */
 @keyframes migration-flow{from{stroke-dashoffset:0}to{stroke-dashoffset:-8.1}}

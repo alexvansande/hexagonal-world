@@ -681,7 +681,15 @@ larger than the dots, all-caps bold Gotham-like name with a white outline) for
 cities and sites, and area labels (Baskerville italic, title caps, white
 outline) for ranges, seas and regions relevant to the story card. Labels belong
 to a spot and show only while that story is focused. The traffic dots were
-doubled in size at the same time.
+doubled in size at the same time. On review the user asked for larger area
+labels, smaller site labels and outlines at 50% transparency.
+
+**Stories choose their band (September 22).** Zooming into the Polynesian
+contact story, the user asked why the other plates were not coming to it: the
+band only ever switched on drags. Decision: framing a story evaluates both
+bands and takes the one that gathers the story's points most tightly (with
+hysteresis), anchored on the piece holding most of the story, and frames the
+points where the pieces will settle.
 
 **Dance anchored on the centre (September 22).** The user saw a small drag down,
 made only to see an arrangement better, re-form the group and move the pieces in

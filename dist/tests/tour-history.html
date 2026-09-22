@@ -63,6 +63,14 @@ try{
  check(labels().some(l=>l.dataset.kind==='site'&&l.textContent==='Samarkand')&&labels().some(l=>l.dataset.kind==='area'&&l.textContent==='Steppe'),'Site and area labels of the focused story are drawn');
  check(getComputedStyle(labels().find(l=>l.dataset.kind==='site')).textTransform==='uppercase'&&getComputedStyle(labels().find(l=>l.dataset.kind==='area')).fontStyle==='italic','Sites are all caps, areas italic');
  check(parseFloat(getComputedStyle(d.querySelector('.tour-routes .route-line')).strokeWidth)>=7,'Traffic dots are twice their former size');
+ // Framing a story picks the band that gathers it: the Pacific for Polynesia, the diagonal for the Atlantic.
+ // (Stepping with the card's arrow: a dot framed out of view cannot be clicked.)
+ d.querySelector('.tour-story-next').click();await pause(2000);await until(()=>map.dataset.danceMoving==='false','pieces settle');
+ check(d.querySelector('#tour-story-title').textContent.includes('Contact')&&map.dataset.danceMode==='pacific','Focusing the Polynesian contact story brings the Americas to the Pacific');
+ d.querySelector('.tour-story-next').click();await pause(2000);await until(()=>map.dataset.danceMoving==='false','pieces settle again');
+ check(d.querySelector('#tour-story-title').textContent.includes('Vinland')&&map.dataset.danceMode==='base','Focusing the Vinland voyages returns to the Atlantic band');
+ d.querySelector('.tour-story-next').click();await pause(1200);d.querySelector('.tour-story-next').click();await pause(2000);
+ check(d.querySelector('#tour-story-title').textContent.includes('Mongol'),'Cycling on returns to the Silk Road');
  // Arrows at the bottom of the card cycle through the period's spots.
  check(!d.querySelector('.tour-story-nav').hidden&&d.querySelector('.tour-story-nav output').textContent==='1 / 4','The card shows its place among the period\u2019s spots');
  d.querySelector('.tour-story-next').click();await pause(1600);
@@ -85,7 +93,8 @@ try{
  d.querySelector('#tour-story-close').click();await until(()=>d.querySelector('#tour-story').hidden,'back');await pause(1500);
  check(d.querySelector('.tour-labels').hidden,'Labels leave with the card');
  check(w.location.search.includes('history=1400-ce')&&visible().length>0&&d.querySelector('#zoom-value').textContent===zoomBefore,'Closing the card restores the camera at the same period');
- toggle.click();await until(()=>tools.hidden&&routes.style.display==='none'&&dots().length===7,'off');await pause(200);
+ toggle.click();await until(()=>tools.hidden&&routes.style.display==='none'&&dots().length>0,'off');await pause(200);
+ check(dots().every(id=>['origin-of-mankind','silk-road','iceland-to-vinland','french-polynesia','americas-exchange','african-networks','ocean-crossings'].includes(id))&&!d.querySelector('.tour-marker[data-tour-id="neanderthals"]:not([hidden])'),'Off the timeline only the seven entry dots remain (some may sit off screen after the dance)');
  check(getComputedStyle(viewTools).display!=='none'&&!w.location.search.includes('history='),'Unchecking restores the toolbox, dots and URL');
  // Direct URL entry restores the period, including an older stop name.
  frame.src='/lifezones/spaceship-earth/?history=bronze-age';await until(()=>frame.contentDocument?.querySelector('.history-tools')&&!frame.contentDocument.querySelector('.history-tools').hidden,'reload');
