@@ -95,7 +95,10 @@ let mergedPreview=null;
 if(['127.0.0.1','localhost','[::1]'].includes(location.hostname)&&new URLSearchParams(location.search).has('merged-preview'))import('./merged-preview.mjs').then(async module=>{mergedPreview=await module.createMergedPreview(draw);draw();}).catch(console.error);
 let defaultLayers=null,renderDefault=null,mergedMaps=null,renderMerged=null;
 const separateComparison=['127.0.0.1','localhost','[::1]'].includes(location.hostname)&&['merged-preview','separate-layers'].some(key=>new URLSearchParams(location.search).has(key));
-function activeDefault(){if(offlineBake||new URLSearchParams(location.search).has('palette-lab')||new URLSearchParams(location.search).get('surface')==='live')return null;const entry=defaultLayerPreset(state,captureSettings().controls);if(!separateComparison&&mergedEntry(entry)&&!mergedCompatible(entry,state,$('background-color').value))return null;return entry;}
+function activeDefault(){if(offlineBake||new URLSearchParams(location.search).has('palette-lab')||new URLSearchParams(location.search).get('surface')==='live')return null;
+ // Spaceship Earth draws the unlit per-piece base, which does not depend on the map's turn: match its preset at any dial angle.
+ const probe=state.arrangement==='dymaxion'?{...state,gridRotation:layoutOptions.find(l=>l.arrangement==='dymaxion')?.state.gridRotation??state.gridRotation}:state;
+ const entry=defaultLayerPreset(probe,captureSettings().controls);if(!separateComparison&&mergedEntry(entry)&&!mergedCompatible(entry,state,$('background-color').value))return null;return entry;}
 function selectRenderPath(entry){
  const wasImages=!!renderDefault;renderDefault=entry;
  if(!!entry===wasImages)return;

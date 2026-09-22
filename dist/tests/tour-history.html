@@ -4,7 +4,8 @@
 <iframe title="Tour map"></iframe>
 <script type="module">
 import {periods} from '../history/index.mjs';
-const frame=document.querySelector('iframe'),result=document.querySelector('#result'),mobile=new URLSearchParams(location.search).has('mobile');
+const frame=document.querySelector('iframe'),result=document.querySelector('#result'),mobile=new URLSearchParams(location.search).has('mobile'),full=new URLSearchParams(location.search).has('full');
+// The default run is the quick one; add ?full=1 to scrub every period and drag in every direction.
 // Landing pages are generated copies of the app page: load them fresh so a cached copy never runs an older app.
 const fresh=path=>path+(path.includes('?')?'&':'?')+'fresh='+Date.now();frame.src=fresh('/lifezones/spaceship-earth/');
 if(mobile){frame.style.width='390px';frame.style.height='844px';}
@@ -35,17 +36,17 @@ try{
  for(let i=0;i<3;i++)d.querySelector('#zoom-out').click();await until(()=>visible().length===overview,'overview routes');await pause(300);
  check(visible().length===overview,'Detail routes hide again when zoomed out');
  const counts=[];
- for(const p of periods){
+ for(const p of full?periods:periods.filter(p=>['2m-ya','10k-ya','1000-ce','1800-ce'].includes(p.id))){
   await scrub(p.id);counts.push(visible().length);
   check(w.location.search.includes('history='+p.id),'URL preserves '+p.id);
   check(d.querySelector('#history-date').textContent===`${p.label} · ${p.date}`&&d.querySelector(`.history-stop-labels button[data-stop="${p.id}"]`).textContent===p.tick,'Date and tick for '+p.id);
   check(visible().length>0&&dots().length>0&&dots().every(id=>p.stories.includes(id)),'Routes and spots for '+p.id+' (the headline focus may frame some dots out of view)');
   check(map.dataset.tourLayout==='dancing','Dancing pieces stay on for '+p.id);
  }
- check(new Set(counts).size>=6,'Periods draw different networks: '+counts.join(','));
+ check(new Set(counts).size>=(full?6:3),'Periods draw different networks: '+counts.join(','));
  check(routes.querySelectorAll('path').length<1200,'Route DOM stays bounded while scrubbing');
  // Choosing a date activates the period's headline spot: the card opens on the first story of its Markdown.
- check(!d.querySelector('#tour-story').hidden&&d.querySelector('#tour-story-title').textContent.includes('Galleons'),'A story focused at 1600 CE continues at 1800 CE instead of switching');
+ check(!d.querySelector('#tour-story').hidden&&d.querySelector('#tour-story-title').textContent.includes(full?'Galleons':'slave trade'),full?'A story focused at 1600 CE continues at 1800 CE instead of switching':'Arriving at 1800 CE from a period without the focused story opens its headline');
  d.querySelector('#tour-story-close').click();await until(()=>d.querySelector('#tour-story').hidden,'close auto');await pause(1500);
  await scrub('1600-ce');await pause(1300);
  check(d.querySelector('#tour-story-title').textContent.includes('Iberian'),'Globalization opens on the ocean crossings');
@@ -116,7 +117,7 @@ try{
  const rect=canvas.getBoundingClientRect(),cx=rect.left+rect.width/2,cy=rect.top+rect.height/2;
  const drag=async(dx,dy)=>{const ev=(type,x,y)=>canvas.dispatchEvent(new w.PointerEvent(type,{bubbles:true,clientX:x,clientY:y,pointerId:1,pointerType:'mouse',isPrimary:true,button:0,buttons:type==='pointerup'?0:1}));ev('pointerdown',cx,cy);for(let i=1;i<=10;i++){ev('pointermove',cx+dx*i/10,cy+dy*i/10);await pause(30);}ev('pointerup',cx+dx,cy+dy);await pause(1200);for(let i=0;i<3;i++){await until(()=>canvas.dataset.danceMoving==='false','pieces settle after drag');await pause(500);if(canvas.dataset.danceMoving==='false')break;}};
  check(canvas.dataset.tourLighting==='unlit'&&canvas.dataset.merged==='false','Spaceship Earth draws the unlit per-piece base layer while the dance experiment runs');
- for(const [dx,dy] of [[0,500],[-500,0],[0,-500],[500,0],[350,350]]){
+ for(const [dx,dy] of full?[[0,500],[-500,0],[0,-500],[500,0],[350,350]]:[[0,500],[-500,0]]){
   await drag(dx,dy);const cells=Object.values(pos()).map(p=>p.slice(0,2).map(v=>v.toFixed(2)).join());
   const [aid,ck]=canvas.dataset.danceVertex.split(':'),three=(()=>{const p=pos();const a=p[aid];return Object.entries(p).filter(([id,q])=>id!==aid&&Math.abs(Math.hypot(q[0]-a[0],q[1]-a[1])-Math.sqrt(3))<.01).length;})();
   check(canvas.dataset.danceValid==='true'&&new Set(cells).size===4&&three>=2,`After a drag of ${dx},${dy} three plates meet at the vertex nearest the centre, every piece touches the group along a valid edge and no two share a cell`);
@@ -130,6 +131,9 @@ try{
  check(getComputedStyle(dial).display!=='none'&&dial.previousElementSibling.id==='fit'&&rotation()===Math.round((before+90)/30)*30&&dial.style.getPropertyValue('--dial')===rotation()+'deg','Dragging a quarter turn around the dial turns the map a quarter turn in 30° steps and moves the dot');
  dial.dispatchEvent(new w.KeyboardEvent('keydown',{key:'ArrowLeft',bubbles:true}));await pause(200);
  check(rotation()===Math.round((before+90)/30)*30-30,'Arrow keys step the dial by 30°');
- result.textContent='All checks passed.';result.dataset.status='passed';
+ // Turning the map with the dial must not stop the dance: a drag afterwards still completes a vertex.
+ await drag(0,-500);
+ check(canvas.dataset.tourLayout==='dancing'&&canvas.dataset.danceValid==='true','The dance keeps going after the map is turned');
+ result.textContent=(full?'All checks passed.':'Quick checks passed; add ?full=1 for every period and direction.');result.dataset.status='passed';
 }catch(error){result.textContent='FAIL: '+error.message;result.dataset.status='failed';console.error(error);}
 </script></html>

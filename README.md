@@ -155,7 +155,8 @@ lists so older links stay valid.
 
 Rotation dial: to the right of Fit sits a small grey circle with an off-centre
 dot. Dragging around it turns the whole map in 30° steps (twelve positions)
-about the viewport centre
+about the viewport centre (Spaceship Earth keeps its unlit preset and its
+dance at any turn)
 (the arrow keys step it too); the dot shows the current turn. It drives the
 same grid-rotation setting as the slider in the positioning panel, so the turn
 is saved in links.
@@ -184,7 +185,9 @@ under reduced motion), so cached routes, dots, labels and the coordinate
 readout follow. Exports use the base positions. The band lattice helpers and
 `tourImagePieces` in `dist/tour-layout.mjs` stay as tested geometry but are no
 longer used by the app. Checks: `tour-endless-tests.mjs`,
-`tour-polynesia-tests.mjs` and the drag checks in `/tests/tour-history.html`.
+`tour-polynesia-tests.mjs` and the drag checks in `/tests/tour-history.html`
+(the quick run by default; `?full=1` scrubs every period and drags in every
+direction). The browser pages are not part of `npm test`.
 
 Story content notes: the Silk Road spans Bronze Age tin and lapis lanes to
 Mongol-era and maritime networks; Origin of mankind keeps directed, connected

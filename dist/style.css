@@ -28,7 +28,8 @@ aside{position:fixed;z-index:8;left:20px;top:20px;bottom:20px;width:330px;max-he
 .canvas-top,.canvas-bottom{display:none!important}
 .view-tools{z-index:5;left:auto;right:24px;bottom:24px;transform:none}
 /* Rotation dial: a circle with an off-centre dot that shows the map's turn; dragging around it turns the map in 15° steps. */
-.rotate-dial{position:relative;width:34px;height:34px;min-width:34px;padding:0;margin-left:2px;border:2px solid #9aa8ac;border-radius:50%;background:#fff;cursor:grab;touch-action:none}
+#rotate-dial{position:relative;width:34px;height:34px;min-width:34px;padding:0;margin-left:2px;border:2px solid #c3ccce;border-radius:50%;background:#fff;box-shadow:none;cursor:grab;touch-action:none}
+#rotate-dial:hover{border-color:#9aa8ac}
 .rotate-dial:active{cursor:grabbing}
 .rotate-dial .dial-dot{position:absolute;left:50%;top:50%;width:8px;height:8px;margin:-4px 0 0 -4px;border-radius:50%;background:#000;transform:rotate(var(--dial,0deg)) translate(0,-10px);transition:transform .12s ease}
 .rotate-dial:focus-visible{outline:2px solid #407b8c;outline-offset:2px}
