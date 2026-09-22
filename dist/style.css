@@ -238,6 +238,11 @@ aside{overscroll-behavior:contain}
 body:not(.customizing) aside.tour-story-open{min-height:var(--tour-card-height);max-height:calc(100dvh - 36px);overflow-y:auto}
 body:not(.customizing) aside.tour-story-open>:not(#tour-story){display:none}
 body:not(.customizing) aside.tour-story-open>#tour-story{display:block}
+.tour-story-nav{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:10px;padding-top:6px;border-top:1px solid #c9d6d9;font-size:11px;color:#42636b;font-variant-numeric:tabular-nums}
+.tour-story-nav[hidden]{display:none}
+#tour-story .tour-story-nav button{min-width:44px;min-height:40px;padding:0 10px;border:0;border-radius:6px;font:inherit;font-size:22px;line-height:1;color:#234b59;background:#e0edef;cursor:pointer}
+#tour-story .tour-story-nav button:hover{background:#cfe3e7}
+#tour-story .tour-story-nav button:focus-visible{outline:2px solid #407b8c;outline-offset:2px}
 #tour-story{position:relative;padding:10px 12px 8px}
 #tour-story[hidden]{display:none}
 #tour-story h2{font:400 29px/1.15 Baskerville,Georgia,serif;letter-spacing:-.6px;margin:2px 35px 12px 0}

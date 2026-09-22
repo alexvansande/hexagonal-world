@@ -671,6 +671,10 @@ seen around 60,000–50,000 years ago), and 10k ya adds the first towns
 called towns, not proto-cities with migrant populations: they were settled
 communities, and cities with writing and states are 4,000 years later.
 
+**Card arrows (September 22).** The user asked for arrows at the bottom of the
+info box to cycle between spots. They wrap around, follow the Markdown order,
+show the position (2 / 5) and also answer the left/right keys.
+
 **Dance anchored on the centre (September 22).** The user saw a small drag down,
 made only to see an arrangement better, re-form the group and move the pieces in
 front of them away. Decision: a band switch needs a deliberate pan (40% of the

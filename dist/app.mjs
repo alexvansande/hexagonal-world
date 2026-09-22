@@ -5,7 +5,7 @@ import {createTourRoutes,projectTourRoutes} from './tour-route-renderer.mjs?v=hi
 import {loadPeriod} from './history-loader.mjs?v=history-2';
 import {pacificTourNet,tourImagePieces,endlessLattice,bandOffsets} from './tour-layout.mjs?v=dancing-2';
 import pacificLighting from './maps/pacific-manifest.mjs?v=pacific-light-1';
-import {createTourStory} from './tour-story.mjs?v=history-1';
+import {createTourStory} from './tour-story.mjs?v=history-2';
 import {periods,period as periodInfo} from './history/index.mjs?v=history-1';
 import {MergedMaps,mergedEntry,mergedCompatible} from './merged-maps.mjs?v=endless-1';
 import {riverFieldGLSL} from './river-layers.mjs?v=cloud-assets-1';
@@ -329,8 +329,7 @@ function focusPoints(points){
 function focusHistoryStory(id){
  if(!historyOn||!historyPeriod)return;const spot=historyPeriod.text.spots[id];if(!spot)return;
  if(!historyFocus)historyFocusView={scale,view:{zoom:state.zoom,panX:state.panX,panY:state.panY},expanded:state.sidebarExpanded};
- historyFocus=id;setSidebarExpanded(false,false);
- tourStory.show(historySpots().find(s=>s.id===id)||{id,title:spot.title},{...spot,storyId:id});
+ historyFocus=id;setSidebarExpanded(false,false);showHistoryCard(id);
  hideCoordinateReadout();
  const box=spot.view.match(/(-?[\d.]+)\s*,\s*(-?[\d.]+)\s*(?:→|->)\s*(-?[\d.]+)\s*,\s*(-?[\d.]+)/);
  const points=box?projectTourLocations(tiles,net,state,[[+box[1],+box[2]],[+box[3],+box[4]],[+box[1],+box[4]],[+box[3],+box[2]]].map(([latitude,longitude])=>({latitude,longitude}))).map(({local,tile})=>rotateScreen(canvasWorld(local,tile)))
@@ -347,7 +346,12 @@ function closeHistoryFocus(restore=true){
 function syncHistoryFocus(){
  if(!historyFocus||historyFocusPending)return;const spot=historyPeriod?.text.spots[historyFocus];
  if(!spot){closeHistoryFocus(true);return;}
- tourStory.show(historySpots().find(s=>s.id===historyFocus)||{id:historyFocus,title:spot.title},{...spot,storyId:historyFocus});
+ showHistoryCard(historyFocus);
+}
+// The card's bottom arrows cycle through the period's spots in Markdown order.
+function showHistoryCard(id){
+ const spot=historyPeriod.text.spots[id],ids=Object.keys(historyPeriod.text.spots),index=ids.indexOf(id);
+ tourStory.show(historySpots().find(s=>s.id===id)||{id,title:spot.title},{...spot,storyId:id},{index,count:ids.length,step:delta=>focusHistoryStory(ids[(index+delta+ids.length)%ids.length])});
 }
 const firstPeriodFor=id=>periods.find(p=>p.stories.includes(id))?.id||null;
 $('stage').addEventListener('tourselect',event=>{

@@ -59,6 +59,14 @@ try{
  check(!tools.hidden&&visible().length>=drawnBefore&&!d.querySelector('.history-tools button[id]'),'The scrubber and every story stay while a story is focused; no chips');
  check(d.querySelector('#zoom-value').textContent!==zoomBefore&&w.location.pathname==='/lifezones/spaceship-earth/','Focusing zooms to the story and keeps the map URL');
  check(d.querySelectorAll('#tour-story .tour-route-key li[data-wave]').length>0,'The card lists the waves drawn for that story');
+ // Arrows at the bottom of the card cycle through the period's spots.
+ check(!d.querySelector('.tour-story-nav').hidden&&d.querySelector('.tour-story-nav output').textContent==='1 / 4','The card shows its place among the period\u2019s spots');
+ d.querySelector('.tour-story-next').click();await pause(1600);
+ check(d.querySelector('#tour-story-title').textContent.includes('Contact')&&d.querySelector('.tour-story-nav output').textContent==='2 / 4','Next arrow moves to the following spot');
+ d.querySelector('.tour-story-prev').click();await pause(400);d.querySelector('.tour-story-prev').click();await pause(1600);
+ check(d.querySelector('#tour-story-title').textContent.includes('Kilwa')&&d.querySelector('.tour-story-nav output').textContent==='4 / 4','Previous arrow wraps around to the last spot');
+ d.querySelector('.tour-story-next').click();await pause(1600);
+ check(d.querySelector('#tour-story-title').textContent.includes('Mongol'),'Cycling returns to the first spot');
  await scrub('1000-ce');
  check(!d.querySelector('#tour-story').hidden&&d.querySelector('#tour-story-title').textContent.includes('caravans'),'Scrubbing re-reads the focused story at the new period');
  // A spot without routes frames its view box instead.
