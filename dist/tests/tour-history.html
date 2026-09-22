@@ -66,9 +66,11 @@ try{
  // Framing a story picks the band that gathers it: the Pacific for Polynesia, the diagonal for the Atlantic.
  // (Stepping with the card's arrow: a dot framed out of view cannot be clicked.)
  d.querySelector('.tour-story-next').click();await pause(2000);await until(()=>map.dataset.danceMoving==='false','pieces settle');
- check(d.querySelector('#tour-story-title').textContent.includes('Contact')&&map.dataset.danceMode==='pacific','Focusing the Polynesian contact story brings the Americas to the Pacific');
+ const pos=()=>Object.fromEntries(map.dataset.dancePositions.split(' ').map(s=>{const [id,rest]=s.split(':');return [id,rest.split(',').map(Number)];}));
+ const adjacent=(a,b)=>Math.abs(Math.hypot(pos()[a][0]-pos()[b][0],pos()[a][1]-pos()[b][1])-Math.sqrt(3))<.01;
+ check(d.querySelector('#tour-story-title').textContent.includes('Contact')&&adjacent('1','2'),'Focusing the Polynesian contact story brings South America to the Pacific piece');
  d.querySelector('.tour-story-next').click();await pause(2000);await until(()=>map.dataset.danceMoving==='false','pieces settle again');
- check(d.querySelector('#tour-story-title').textContent.includes('Vinland')&&map.dataset.danceMode==='base','Focusing the Vinland voyages returns to the Atlantic band');
+ check(d.querySelector('#tour-story-title').textContent.includes('Vinland')&&adjacent('0','3'),'Focusing the Vinland voyages joins North America to Europe again');
  d.querySelector('.tour-story-next').click();await pause(1200);d.querySelector('.tour-story-next').click();await pause(2000);
  check(d.querySelector('#tour-story-title').textContent.includes('Mongol'),'Cycling on returns to the Silk Road');
  // Arrows at the bottom of the card cycle through the period's spots.
@@ -105,6 +107,16 @@ try{
  d=frame.contentDocument;w=frame.contentWindow;const first=periods.find(p=>p.stories.includes('iceland-to-vinland'));
  await until(()=>w.location.search.includes('history='+first.id),'story period in URL');
  check(!d.querySelector('.history-tools').hidden&&d.querySelector('#tour-story-title').textContent.length>0&&[...d.querySelectorAll('.tour-marker:not([hidden])')].some(b=>b.dataset.tourId==='iceland-to-vinland'),'Story URL opens the timeline at the Vikings’ first period with the card open');
+ // The dance is the map's own response to pans: after any drag the cell under the centre holds a piece.
+ frame.src='/lifezones/spaceship-earth/';await until(()=>frame.contentDocument?.querySelector('#map')?.dataset.tourLayout==='dancing','dancing map');
+ d=frame.contentDocument;w=frame.contentWindow;const canvas=d.querySelector('#map');canvas.setPointerCapture=()=>{};canvas.releasePointerCapture=()=>{};
+ for(let i=0;i<3;i++)d.querySelector('#zoom-in').click();await pause(400);
+ const rect=canvas.getBoundingClientRect(),cx=rect.left+rect.width/2,cy=rect.top+rect.height/2;
+ const drag=async(dx,dy)=>{const ev=(type,x,y)=>canvas.dispatchEvent(new w.PointerEvent(type,{bubbles:true,clientX:x,clientY:y,pointerId:1,pointerType:'mouse',isPrimary:true,button:0,buttons:type==='pointerup'?0:1}));ev('pointerdown',cx,cy);for(let i=1;i<=10;i++){ev('pointermove',cx+dx*i/10,cy+dy*i/10);await pause(30);}ev('pointerup',cx+dx,cy+dy);await pause(900);await until(()=>canvas.dataset.danceMoving==='false','pieces settle after drag');};
+ for(const [dx,dy] of [[0,500],[-500,0],[0,-500],[500,0],[350,350]]){
+  await drag(dx,dy);const cells=Object.values(pos()).map(p=>p.slice(0,2).map(v=>v.toFixed(2)).join());
+  check(canvas.dataset.danceCentre==='filled'&&new Set(cells).size===4,`After a drag of ${dx},${dy} the cell under the centre holds a piece and no two pieces share a cell`);
+ }
  result.textContent='All checks passed.';result.dataset.status='passed';
 }catch(error){result.textContent='FAIL: '+error.message;result.dataset.status='failed';console.error(error);}
 </script></html>

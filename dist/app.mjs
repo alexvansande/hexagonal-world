@@ -3,7 +3,7 @@ import {readTourPath} from './tour-pages.mjs?v=history-2';
 import {createTourMarkers,createTourLabels,projectTourLocations,tourEnabled,tourLocations,pacificLightingEnabled} from './tour-markers.mjs?v=history-3';
 import {createTourRoutes,projectTourRoutes} from './tour-route-renderer.mjs?v=history-3';
 import {loadPeriod} from './history-loader.mjs?v=history-3';
-import {pacificTourNet,tourImagePieces,endlessLattice,bandOffsets} from './tour-layout.mjs?v=dancing-2';
+import {pacificTourNet,tourImagePieces} from './tour-layout.mjs?v=dancing-2';
 import pacificLighting from './maps/pacific-manifest.mjs?v=pacific-light-1';
 import {createTourStory} from './tour-story.mjs?v=history-3';
 import {periods,period as periodInfo} from './history/index.mjs?v=history-1';
@@ -231,55 +231,68 @@ function fitView(){
 function resize(){if(exporting)return;cancelTourAnimation();headingBounds=null;const rect=$('stage').getBoundingClientRect(),rotated=compactDevice&&persistenceReady&&(w>h)!==(rect.width>rect.height);w=rect.width;h=rect.height;dpr=Math.min(displayPixelRatio(w,h,window.devicePixelRatio,+$('quality').value,compactDevice),gl?graphicsLimit/Math.max(w,h):Infinity);const pixelWidth=Math.round(w*dpr),pixelHeight=Math.round(h*dpr);if(canvas.width!==pixelWidth||canvas.height!==pixelHeight){canvas.width=pixelWidth;canvas.height=pixelHeight;overlay.width=pixelWidth;overlay.height=pixelHeight;}
  if(!persistenceReady){fitView();const offset=shareSelection.layout.viewOffset;if(offset&&!compactDevice){state.panX=offset[0]*scale;state.panY=offset[1]*scale;}defaultView={scale,zoom:state.zoom,panX:state.panX,panY:state.panY};if(restoredView&&(!compactDevice||initialTour)){scale=restoredView.scale;state.zoom=restoredView.zoom;state.panX=restoredView.panX;state.panY=restoredView.panY;}persistenceReady=true;}else if(rotated&&!state.sidebarExpanded)fitView();draw();}
 function point(p,t,offset){const v=rotateScreen(canvasWorld(p,t));if(offset){v[0]+=offset[0];v[1]+=offset[1];}return [w/2+v[0]*scale*state.zoom+state.panX,h/2+v[1]*scale*state.zoom+state.panY];}
-// Dancing pieces: on Spaceship Earth the four pieces stay four, but each slides
-// by whole band periods (pure translation, exact joins along the band) to keep
-// the group contiguous around the viewport centre. Two bands exist: the base
-// rotations give a diagonal band (side-to-side panning); with North and South
-// America turned as in the Polynesian view the band runs straight up and down.
-// The pan direction picks the band; entering the vertical one rotates those two
-// pieces (relit artwork for Lifezones), after which every move is a translation.
-// Slides tween in place on the live net objects with a slight overshoot, so
+// Dancing pieces: on Spaceship Earth the four pieces stay four, and the rule is
+// the user's: fill the empty hexagon under the viewport centre with a plate,
+// moving as little as possible of what is already on screen. Every cell next to
+// a placed piece has exactly one piece that joins that edge (a translation plus
+// the rotation the join demands). When the centre lands in an empty cell the
+// cheapest such piece comes there: never the piece nearest the centre, and
+// off-screen pieces before visible ones. Nothing ever snaps back. Focusing a
+// story gathers its pieces around the one holding most of it the same way.
+// Pieces tween in place on the live net objects with a slight overshoot, so
 // cached route and dot projections follow. Exports keep the base positions.
-let danceBase=null,danceKey='',danceModes=null,danceMode='base',danceOffsets={},danceTweens=new Map(),danceDrag={x:0,y:0},danceShift=[0,0];
+let danceBase=null,danceKey='',danceTargets=new Map(),danceTweens=new Map(),danceCentreState='';
 function danceGrid(){
  const key=[state.method,state.height,state.arrangement,arrangement===arrangementCache.get(state.arrangement)?'a':'b'].join('/');
  if(key!==danceKey){
-  danceKey=key;danceBase=net.map(t=>({id:t.id,r:t.r,x:t.x,y:t.y}));danceMode='base';danceOffsets={};danceTweens.clear();danceModes=null;danceShift=[0,0];
-  if(state.arrangement==='dymaxion'){const pacific=pacificTourNet(tiles,danceBase).map(t=>({id:t.id,r:t.r,x:t.x,y:t.y})),base=endlessLattice(tiles,danceBase),vertical=endlessLattice(tiles,pacific);
-   if(base&&vertical)danceModes={base:{net:danceBase,lattice:base},pacific:{net:pacific,lattice:vertical}};}
+  danceKey=key;danceBase=state.arrangement==='dymaxion'?net.map(t=>({id:t.id,r:t.r,x:t.x,y:t.y})):null;
+  danceTargets=new Map((danceBase||[]).map(t=>[t.id,{x:t.x,y:t.y,r:t.r}]));danceTweens.clear();
  }
- return danceModes;
+ return danceBase;
 }
 function danceActive(){return !!renderMerged&&state.arrangement==='dymaxion'&&!exporting&&!!danceGrid();}
 function danceSettled(){return danceActive()&&danceTweens.size===0;}
-function resetDance(){if(!danceBase)return;for(const t of net){const b=danceBase.find(a=>a.id===t.id);if(b&&(t.x!==b.x||t.y!==b.y||t.r!==b.r)){t.x=b.x;t.y=b.y;t.r=b.r;meshSignature=null;}}danceMode='base';danceOffsets={};danceTweens.clear();danceShift=[0,0];}
-// A deliberate pan along the other band switches modes: the drag must run a
-// 40% of that band's period on screen (never less than 120 px), so a nudge
-// to look around never re-forms the group. The piece nearest the viewport centre
-// is the anchor: it keeps its place (turning on the spot if it must) and the
-// others re-form around it, so what the user is looking at does not move away.
-function danceConsiderDrag(dx,dy){
- if(!danceActive())return;danceDrag.x+=dx;danceDrag.y+=dy;
- const unit=scale*state.zoom,other=danceMode==='base'?'pacific':'base';
- const along=mode=>{const P=danceModes[mode].lattice.period,b=rotateScreen([P[0],-P[1]]);return Math.abs(danceDrag.x*b[0]+danceDrag.y*b[1])/Math.hypot(b[0],b[1]);};
- const towardOther=along(other),towardCurrent=along(danceMode),need=Math.max(120,.4*Math.hypot(...danceModes[other].lattice.period)*unit);
- if(towardOther<need)return;
- danceDrag={x:0,y:0};if(towardOther<towardCurrent*1.3)return;
- const c=rotateScreen([-state.panX/unit,-state.panY/unit],-state.gridRotation*Math.PI/180),centre=[c[0],-c[1]];
- const placed=t=>{const tween=danceTweens.get(t.id);return tween?[tween.tx,tween.ty]:[t.x,t.y];};
- const anchor=net.reduce((best,t)=>{const p=placed(t),d=Math.hypot(p[0]-centre[0],p[1]-centre[1]);return d<best.d?{t,p,d}:best;},{d:Infinity});
- const home=danceModes[other].net.find(a=>a.id===anchor.t.id);
- danceShift=[anchor.p[0]-home.x,anchor.p[1]-home.y];
- danceMode=other;danceOffsets={};draw();
+function resetDance(){if(!danceBase)return;for(const t of net){const b=danceBase.find(a=>a.id===t.id);if(b&&(t.x!==b.x||t.y!==b.y||t.r!==b.r)){t.x=b.x;t.y=b.y;t.r=b.r;meshSignature=null;}}danceTargets=new Map(danceBase.map(t=>[t.id,{x:t.x,y:t.y,r:t.r}]));danceTweens.clear();}
+// The piece that joins edge `e` of a placed piece: which one, turned how, where.
+function danceJoin(placed,e){
+ const pair=matching(tiles,placed.id,e),a=world(hex[e],placed),b=world(hex[(e+1)%6],placed);
+ for(let r=0;r<6;r++){const n={id:pair.id,r,x:0,y:0},p=world(hex[(pair.e+1)%6],n),q=world(hex[pair.e],n),x=a[0]-p[0],y=a[1]-p[1];
+  if(Math.abs(q[0]+x-b[0])<1e-9&&Math.abs(q[1]+y-b[1])<1e-9)return {id:pair.id,r,x,y};}
+ return null;
+}
+const sameCell=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y)<1e-6;
+const dancePlaced=()=>[...danceTargets.entries()].map(([id,t])=>({id,...t}));
+function danceCentre(){const unit=scale*state.zoom,c=rotateScreen([-state.panX/unit,-state.panY/unit],-state.gridRotation*Math.PI/180);return [c[0],-c[1]];}
+function danceVisible(target){const [sx,sy]=point([0,0],target),unit=scale*state.zoom;return sx>-unit&&sy>-unit&&sx<w+unit&&sy<h+unit;}
+// Fill the empty cell nearest the viewport centre, chaining a few cells when
+// the centre sits farther out, until the nearest cell holds a piece.
+function danceFill(){
+ for(let step=0;step<3;step++){
+  const centre=danceCentre(),placed=dancePlaced();
+  let anchor=null,nearest=Infinity;
+  for(const p of placed){const d=Math.hypot(p.x-centre[0],p.y-centre[1]);if(d<nearest){nearest=d;anchor=p;}}
+  const options=[];
+  for(const p of placed)for(let e=0;e<6;e++){
+   const j=danceJoin(p,e);if(!j||placed.some(q=>sameCell(q,j)))continue;
+   const d=Math.hypot(j.x-centre[0],j.y-centre[1]);if(d<nearest-1e-9)options.push({...j,d});
+  }
+  if(!options.length){danceCentreState='filled';return;}
+  options.sort((a,b)=>a.d-b.d);const into=options.filter(o=>o.d<options[0].d+1e-6);
+  const cost=o=>{if(o.id===anchor.id)return Infinity;const cur=danceTargets.get(o.id);return Math.hypot(cur.x-o.x,cur.y-o.y)+(danceVisible(cur)?8:0)+(cur.r!==o.r?1:0);};
+  into.sort((a,b)=>cost(a)-cost(b));const pick=into[0];
+  if(!isFinite(cost(pick))){danceCentreState='blocked';return;}
+  danceTargets.set(pick.id,{x:pick.x,y:pick.y,r:pick.r});
+ }
+ danceCentreState='chained';
 }
 const easeOutBack=p=>p>=1?1:1+2*Math.pow(p-1,3)+1*Math.pow(p-1,2);
 function danceStep(now){
  if(!danceActive())return false;
- const {net:modeBase,lattice}=danceModes[danceMode],unit=scale*state.zoom,c=rotateScreen([-state.panX/unit,-state.panY/unit],-state.gridRotation*Math.PI/180),centre=[c[0],-c[1]];
- danceOffsets=bandOffsets(lattice,modeBase,[centre[0]-danceShift[0],centre[1]-danceShift[1]],danceOffsets);
+ // While a story flight is in the air the centre is not where the user looks yet; the frame already placed the pieces.
+ if(!tourAnimation)danceFill();
  const instant=matchMedia('(prefers-reduced-motion: reduce)').matches,duration=380;let moving=false;
  for(const t of net){
-  const b=modeBase.find(a=>a.id===t.id),k=danceOffsets[t.id]||0,tx=b.x+danceShift[0]+k*lattice.period[0],ty=b.y+danceShift[1]+k*lattice.period[1],tr=b.r;
+  const {x:tx,y:ty,r:tr}=danceTargets.get(t.id);
   let tween=danceTweens.get(t.id);
   if(!tween||tween.tx!==tx||tween.ty!==ty||tween.tr!==tr){
    if(Math.hypot(tx-t.x,ty-t.y)<1e-6&&t.r===tr){danceTweens.delete(t.id);continue;}
@@ -291,33 +304,34 @@ function danceStep(now){
  }
  return moving;
 }
-// Framing a story on the dancing pieces: pick the band whose slots gather the
-// story's points most tightly (the vertical one for Polynesia, the diagonal one
-// for the Atlantic), anchor a switch on the piece holding most of the story so
-// it stays put while the others come to it, and frame the points where the
-// pieces will settle rather than where they are now.
+// Framing a story: the piece holding most of it stays put; each other piece with
+// points of the story joins the placed group at the edge that keeps those points
+// closest to the anchor's, and the framing uses those settled positions.
 function danceFrame(anchors){
  if(!danceActive()||!anchors.length)return null;
- const mean=pts=>pts.reduce((sum,p)=>[sum[0]+p[0]/pts.length,sum[1]+p[1]/pts.length],[0,0]);
- const evaluate=(mode,shift,previous)=>{
-  const {net:modeNet,lattice}=danceModes[mode],P=lattice.period;
-  const raw=anchors.map(a=>({id:a.tile.id,p:world(a.local,modeNet.find(t=>t.id===a.tile.id))}));
-  const place=offsets=>raw.map(r=>[r.p[0]+shift[0]+(offsets[r.id]||0)*P[0],r.p[1]+shift[1]+(offsets[r.id]||0)*P[1]]);
-  let offsets=previous,pts=place(offsets),centre=mean(pts);
-  for(let i=0;i<3;i++){offsets=bandOffsets(lattice,modeNet,[centre[0]-shift[0],centre[1]-shift[1]],offsets);pts=place(offsets);centre=mean(pts);}
-  const xs=pts.map(p=>p[0]),ys=pts.map(p=>p[1]);
-  return {mode,shift,offsets,pts,spread:Math.hypot(Math.max(...xs)-Math.min(...xs),Math.max(...ys)-Math.min(...ys))};
- };
- const current=evaluate(danceMode,danceShift,danceOffsets),other=danceMode==='base'?'pacific':'base';
- const counts={};for(const a of anchors)counts[a.tile.id]=(counts[a.tile.id]||0)+1;
- const anchorId=+Object.keys(counts).sort((a,b)=>counts[b]-counts[a])[0];
- const live=net.find(t=>t.id===anchorId),tween=danceTweens.get(anchorId),placed=tween?[tween.tx,tween.ty]:[live.x,live.y],home=danceModes[other].net.find(t=>t.id===anchorId);
- const trial=evaluate(other,[placed[0]-home.x,placed[1]-home.y],{});
- const best=trial.spread<current.spread*.8?trial:current;
- canvas.dataset.danceFrame=`${danceMode}:${current.spread.toFixed(2)} ${other}:${trial.spread.toFixed(2)} anchor:${anchorId} k:${JSON.stringify(best.offsets)}`;
- if(best!==current){danceMode=other;danceShift=best.shift;danceDrag={x:0,y:0};}
- danceOffsets=best.offsets;
- return best.pts.map(p=>rotateScreen([p[0],-p[1]]));
+ const byPiece=new Map();for(const a of anchors){if(!byPiece.has(a.tile.id))byPiece.set(a.tile.id,[]);byPiece.get(a.tile.id).push(a.local);}
+ const order=[...byPiece.keys()].sort((a,b)=>byPiece.get(b).length-byPiece.get(a).length);
+ const placed=new Map([[order[0],danceTargets.get(order[0])]]),taken=cell=>[...placed.values()].some(q=>sameCell(q,cell));
+ const at=(id,t)=>byPiece.get(id).map(l=>world(l,{id,...t}));
+ const c0=at(order[0],placed.get(order[0])).reduce((s,p,_,all)=>[s[0]+p[0]/all.length,s[1]+p[1]/all.length],[0,0]);
+ for(const id of order.slice(1)){
+  let best=null;
+  for(const [pid,pt] of placed)for(let e=0;e<6;e++){
+   const j=danceJoin({id:pid,...pt},e);if(!j||j.id!==id||taken(j))continue;
+   const spread=at(id,j).reduce((s,p)=>s+Math.hypot(p[0]-c0[0],p[1]-c0[1]),0);if(!best||spread<best.spread)best={...j,spread};
+  }
+  if(best)placed.set(id,{x:best.x,y:best.y,r:best.r});
+ }
+ // Pieces without points keep their place unless it is now taken; then they join a free edge.
+ for(const [id,t] of danceTargets){
+  if(placed.has(id))continue;
+  if(!taken(t)){placed.set(id,t);continue;}
+  let free=null;for(const [pid,pt] of placed)for(let e=0;e<6&&!free;e++){const j=danceJoin({id:pid,...pt},e);if(j&&j.id===id&&!taken(j))free=j;}
+  placed.set(id,free?{x:free.x,y:free.y,r:free.r}:t);
+ }
+ for(const [id,t] of placed)danceTargets.set(id,{x:t.x,y:t.y,r:t.r});
+ canvas.dataset.danceFrame=order.join('>');
+ return anchors.map(a=>{const p=world(a.local,{id:a.tile.id,...danceTargets.get(a.tile.id)});return rotateScreen([p[0],-p[1]]);});
 }
 // History routes for the current period, projected on the live net (the dancing
 // pieces move the net objects in place, so cached anchors follow). Detail routes
@@ -631,13 +645,14 @@ function render(refined=false,exportMode=false){if(exporting&&!exportMode)return
  if(renderMerged){
   if(!mergedMaps)mergedMaps=new MergedMaps(gl,draw);
   defaultLayers.base.setRequired(new Set());defaultLayers.detail.setRequired(new Set());
-  const relit=danceSettled()&&danceMode==='pacific'&&pacificLightingEnabled(renderDefault)&&mergedMaps.hasOverview(pacificLighting)?pacificLighting:null;
+  const turned=danceActive()&&net.some(t=>pacificLighting.regions.includes(t.id)&&t.r===pacificLighting.net.find(n=>n.id===t.id).r);
+  const relit=turned&&danceSettled()&&pacificLightingEnabled(renderDefault)&&mergedMaps.hasOverview(pacificLighting)?pacificLighting:null;
   const dancing=danceActive()&&danceStep(performance.now());if(dancing)requestAnimationFrame(draw);
   const plan=mergedMaps.draw(renderMerged,{width:w,height:h,unit:scale*state.zoom,dpr,panX:state.panX,panY:state.panY},danceActive()?tourImagePieces(danceBase,net,state.gridRotation,relit):null,danceActive()&&pacificLightingEnabled(renderDefault)?[pacificLighting]:[]);
-  canvas.dataset.tourLighting=relit?'pacific':danceMode==='pacific'?pacificLightingEnabled(renderDefault)?'loading':'rotated':'default';
+  canvas.dataset.tourLighting=relit?'pacific':turned?pacificLightingEnabled(renderDefault)?'loading':'rotated':'default';
   surfaceCache=mergedMaps.cache;canvas.dataset.surface='precomputed';canvas.dataset.surfacePreview=String(!plan.ready);canvas.dataset.surfaceLevel=String(plan.level);canvas.dataset.surfacePending=String(surfaceCache.pending.size);canvas.dataset.surfaceTiles=String(surfaceCache.cache.size);canvas.dataset.surfaceFailures=String(surfaceCache.failures.size);
  }else drawColor(w,h,!!lighting);
- canvas.dataset.merged=String(!!renderMerged);canvas.dataset.tourLayout=danceActive()?'dancing':'default';canvas.dataset.bandOffsets=danceActive()?net.map(t=>`${t.id}:${danceOffsets[t.id]||0}`).join(' '):'';canvas.dataset.danceMode=danceActive()?danceMode:'';canvas.dataset.danceMoving=String(danceTweens.size>0);canvas.dataset.danceShift=danceShift.map(v=>v.toFixed(2)).join(',');canvas.dataset.dancePositions=net.map(t=>`${t.id}:${t.x.toFixed(2)},${t.y.toFixed(2)},${t.r.toFixed(2)}`).join(' ');
+ canvas.dataset.merged=String(!!renderMerged);canvas.dataset.tourLayout=danceActive()?'dancing':'default';canvas.dataset.danceCentre=danceActive()?danceCentreState:'';canvas.dataset.danceMoving=String(danceTweens.size>0);canvas.dataset.dancePositions=net.map(t=>`${t.id}:${t.x.toFixed(2)},${t.y.toFixed(2)},${t.r.toFixed(2)}`).join(' ');
  if(lighting){(renderDefault?defaultLayers:projectedLighting).composite(lighting,w,h,scale*state.zoom,state.panX,state.panY,state.shadowOpacity,state.lightOpacity);
   if(!renderDefault&&($('graticule').checked||$('distortion').checked)){gl.enable(gl.BLEND);gl.blendFuncSeparate(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA,gl.ONE,gl.ONE_MINUS_SRC_ALPHA);drawColor(w,h,false,true);gl.disable(gl.BLEND);}
  }
@@ -814,7 +829,7 @@ canvas.onpointermove=e=>{
   const sample=cursorSphere(e);if(!sample)return;
   if(!grabbed){grabbed=geographicPoint(state,sample);return;}
   leaveSearch();setRotation(followPoint(state,sample,grabbed));
- }else{grabbed=null;state.panX+=dx;state.panY+=dy;danceConsiderDrag(dx,dy);draw();}
+ }else{grabbed=null;state.panX+=dx;state.panY+=dy;draw();}
 };
 function end(e){draw();pointers.delete(e.pointerId);pinchDistance=0;grabbed=null;dragging=pointers.size?{x:[...pointers.values()][0][0],y:[...pointers.values()][0][1]}:null;if(!pointers.size)keepMapInView();}
 canvas.onpointerup=end;canvas.onpointercancel=end;

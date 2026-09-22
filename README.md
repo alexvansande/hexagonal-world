@@ -157,31 +157,27 @@ Pan bound: a drag can never leave the map fully off screen. When a drag ends
 with less than a sliver visible, the camera springs back with a small overshoot
 (instant under reduced motion).
 
-Dancing pieces: on Spaceship Earth the four pieces stay four, but each slides by
-whole band periods so the group stays contiguous around the viewport centre.
-`endlessLattice` in `dist/tour-layout.mjs` finds the translation closure of the
-pieces at their fixed rotations: they repeat exactly along one period (Asia →
-North America → Africa and South America, every three rows), which joins Bering,
-the South Pacific, Central America, the North Atlantic and Eurasia. `bandOffsets`
-picks, per piece, the copy nearest the centre along that band with hysteresis.
-A second band exists once North and South America take their Polynesian-view
-rotations: it runs straight up and down and joins the Pacific, Central America
-and Eurasia. The pan direction chooses the band (`danceConsiderDrag`); entering
-the vertical one turns those two pieces, using the relit Pacific artwork on
-Lifezones and the turned original elsewhere, after which every move is a
-translation again. A switch is anchored on the Asia/Pacific piece's current
-slot (it never turns), so periods already slid along the other band are kept
-and only the American pieces re-form around it. Pieces tween in place on the live net (380 ms, slight
-overshoot; instant under reduced motion), so cached routes, dots and the
-coordinate readout follow. Exports use the base positions; the North and South
-Atlantic are cuts on the vertical band, the South Atlantic on the diagonal one. The lattice
-stacking and copy helpers (`endlessCopies`, `unwrapStrand`) stay as tested
-geometry but are not used by the app. Checks: `tour-endless-tests.mjs`. Band switches
-are anchored on the piece nearest the viewport centre, which keeps its place.
-Framing a story picks the band whose slots gather its points most tightly (the
-vertical band for Polynesia, the diagonal one for the Atlantic), anchored on
-the piece holding most of the story, and frames the points where the pieces
-will settle.
+Dancing pieces: on Spaceship Earth the four pieces stay four, and the rule is the
+user's: fill the empty hexagon under the viewport centre with a plate, moving as
+little as possible of what is already on screen. Every cell next to a placed
+piece has exactly one piece that joins that edge (`matching` gives the spherical
+join; the placement is a translation plus the rotation the join demands, so
+pieces may turn). When the centre lands in an empty cell, the cheapest joining
+piece comes there: never the piece nearest the centre, off-screen pieces before
+visible ones, unturned before turned. Nothing snaps back; when the centre sits
+farther out the fill chains up to three cells. Focusing a story gathers its
+pieces around the one holding most of it by the same joins (South America comes
+to the Pacific piece for the Polynesian contact story, North America to Europe
+for Vinland) and frames the points where the pieces will settle. Pieces tween in
+place on the live net (380 ms, slight overshoot; instant under reduced motion),
+so cached routes, dots, labels and the coordinate readout follow. Lifezones
+uses the relit Pacific artwork (`maps/tours/pacific-v1`) for an American piece
+at its baked rotation and rotates the original artwork otherwise; other styles
+always rotate the original. Exports use the base positions. The band lattice
+helpers in `dist/tour-layout.mjs` (`endlessLattice`, `bandOffsets`,
+`endlessCopies`, `unwrapStrand`) stay as tested geometry but are no longer used
+by the app. Checks: `tour-endless-tests.mjs` and the drag checks in
+`/tests/tour-history.html`.
 
 Story content notes: the Silk Road spans Bronze Age tin and lapis lanes to
 Mongol-era and maritime networks; Origin of mankind keeps directed, connected

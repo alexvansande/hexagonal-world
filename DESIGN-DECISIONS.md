@@ -691,6 +691,19 @@ bands and takes the one that gathers the story's points most tightly (with
 hysteresis), anchored on the piece holding most of the story, and frames the
 points where the pieces will settle.
 
+**Fill the centre cell (September 22).** Zoomed in beside Africa's Atlantic
+edge, the user expected South America to come there and restated the rule: the
+dance is the map's inherent response to zooms and pans, not a consequence of
+the story, and the way to think about it is "how can I fill the empty hexagon
+at the centre of the screen with a plate, moving very little those already on
+screen?" Decision: the two translation bands are replaced by exactly that rule.
+Every empty cell beside a placed piece has one piece that joins it, at the
+rotation the join demands; the cheapest joining piece fills the cell under the
+centre (never the nearest piece; off-screen before visible). Story framing
+uses the same joins. Rotations beyond the Pacific view mean the original
+artwork turns with its lighting on Lifezones for those placements; the relit
+artwork is used whenever an American piece lands at its baked rotation.
+
 **Dance anchored on the centre (September 22).** The user saw a small drag down,
 made only to see an arrangement better, re-form the group and move the pieces in
 front of them away. Decision: a band switch needs a deliberate pan (40% of the
