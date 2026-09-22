@@ -52,7 +52,7 @@ aside{position:fixed;z-index:8;left:20px;top:20px;bottom:20px;width:330px;max-he
 .aside-export{flex-shrink:0}
 .aside-export #research{margin-top:10px;width:100%;font-size:12px}
 .aside-export #status{display:block;margin-top:10px;font-size:12px;line-height:1.5}
-@media(max-width:600px){.view-tools .segmented{display:flex}.view-tools button{padding:8px 6px}.view-tools{max-width:calc(100% - 24px)}}
+@media(max-width:600px){.view-tools button{padding:8px 6px}.view-tools{max-width:calc(100% - 24px)}}
 
 aside > details{flex-shrink:0}
 .control-subheading{font-size:13px;font-weight:600;margin:20px 0 14px;color:#587179}
@@ -106,7 +106,6 @@ body:not(.customizing) #customize:hover{background:#dfeaed}
 #export-progress{width:320px;max-width:calc(100vw - 40px);padding:28px;border:1px solid #d7e1e3;border-radius:12px;text-align:center}#export-progress::backdrop{background:rgba(233,240,242,.94)}#export-progress-text{margin:0 0 20px;font-weight:600}#export-cancel{min-width:100px}
 
 /* Touch targets and safe areas for browser and home-screen use. */
-.view-tools .segmented{display:flex}
 .view-tools button span{font:inherit;min-width:0}
 .short-label{display:none}
 aside{overscroll-behavior:contain}
@@ -116,7 +115,6 @@ aside{overscroll-behavior:contain}
  .map-heading p{font-size:clamp(11px,3vw,14px)}
  .view-tools{left:calc(12px + env(safe-area-inset-left));right:calc(12px + env(safe-area-inset-right));bottom:calc(12px + env(safe-area-inset-bottom));max-width:none;justify-content:space-between}
  .view-tools button{min-height:44px;min-width:44px;padding:8px}
- .view-tools .segmented{padding-right:4px;margin-right:0}
  .view-tools .full-label{display:none}
  .view-tools .short-label{display:inline}
  .view-tools #zoom-value{min-width:32px}
@@ -149,7 +147,8 @@ aside{overscroll-behavior:contain}
 
 /* Phones use a compact legend and inexpensive composited panel shadows. */
 #legend-toggle{display:none}
-#reposition-globe,#reposition-done,.zoom-label{display:none}
+#reposition-done,.zoom-label{display:none}
+#rotate[aria-pressed="true"]{background:#e1eef0;border-color:#417886;box-shadow:0 0 0 1px #417886}
 #mobile-customization-warning{width:390px;max-width:calc(100vw - 32px);padding:24px}
 #mobile-customization-warning p{margin:0 0 24px;font-size:16px;line-height:1.5}
 .warning-actions{display:grid;gap:10px}
@@ -162,11 +161,8 @@ aside{overscroll-behavior:contain}
 #mobile-legend-content .floating-legend-clusters polygon{pointer-events:none}
 #mobile-legend-content .floating-legend-clusters svg{width:198px}
 @media(max-width:700px),(max-width:1000px) and (max-height:500px){
- #reposition-globe{display:block;width:100%;min-height:48px;margin-bottom:12px;font-size:14px}
  .repositioning #controls,.repositioning #legend-toggle{display:none!important}
  .repositioning .view-tools{display:flex;flex-wrap:wrap;left:calc(12px + env(safe-area-inset-left));right:calc(12px + env(safe-area-inset-right));bottom:calc(12px + env(safe-area-inset-bottom));max-width:none;gap:4px;justify-content:center;padding:8px}
- .repositioning .view-tools .segmented{flex:1 0 100%;border:0;padding:0;margin:0;gap:4px}
- .repositioning .view-tools .segmented button{flex:1}
  .repositioning .view-tools button{min-height:44px;min-width:40px;padding:8px;font-size:14px}
  .repositioning .view-tools .full-label{display:inline}
  .repositioning .view-tools .short-label{display:none}

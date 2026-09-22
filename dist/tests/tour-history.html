@@ -7,7 +7,10 @@ import {periods} from '../history/index.mjs';
 const frame=document.querySelector('iframe'),result=document.querySelector('#result'),mobile=new URLSearchParams(location.search).has('mobile'),full=new URLSearchParams(location.search).has('full');
 // The default run is the quick one; add ?full=1 to scrub every period and drag in every direction.
 // Landing pages are generated copies of the app page: load them fresh so a cached copy never runs an older app.
-const fresh=path=>path+(path.includes('?')?'&':'?')+'fresh='+Date.now();frame.src=fresh('/lifezones/spaceship-earth/');
+const fresh=path=>path+(path.includes('?')?'&':'?')+'fresh='+Date.now();
+// Wait for the new document: the old one would still satisfy most conditions.
+const load=async url=>{const loaded=new Promise(r=>frame.onload=r);frame.src=url;await loaded;};
+await load(fresh('/lifezones/spaceship-earth/'));
 if(mobile){frame.style.width='390px';frame.style.height='844px';}
 const pause=ms=>new Promise(r=>setTimeout(r,ms));
 const until=async(test,label)=>{for(let i=0;i<400;i++){if(test())return;await pause(50);}throw Error('Timed out: '+label);};
@@ -25,7 +28,7 @@ try{
  toggle.click();await until(()=>!tools.hidden&&visible().length>0,'history routes');await pause(600);
  check(getComputedStyle(viewTools).display==='none'&&!tools.hidden,'Scrubber replaces the positioning toolbox');
  const slider=d.querySelector('#history-stop');check(slider.max===String(periods.length-1)&&d.querySelectorAll('.history-stop-labels button').length===periods.length,'One tick per period');
- await until(()=>w.location.search.includes('history=1000-ce'),'default period in URL');check(true,'URL carries the default period');
+ await until(()=>w.location.pathname==='/history/1000-ce/','default period in URL');check(w.location.hash.includes('&s=lifezones/spaceship-earth'),'The address is /history/<age>/ with style and layout in the hash');
  const middle=periods.find(p=>p.id==='1000-ce');
  check(new Set(visible().map(g=>g.dataset.routeId.split('-')[0])).size>=3,'Middle Ages draws several stories at once');
  check(dots().length===middle.stories.length&&middle.stories.every(id=>dots().includes(id)),'Story dots are the period spots');
@@ -38,7 +41,7 @@ try{
  const counts=[];
  for(const p of full?periods:periods.filter(p=>['2m-ya','10k-ya','1000-ce','1800-ce'].includes(p.id))){
   await scrub(p.id);counts.push(visible().length);
-  check(w.location.search.includes('history='+p.id),'URL preserves '+p.id);
+  await until(()=>w.location.pathname.startsWith('/history/'+p.id+'/'),'address for '+p.id);check(true,'Address follows '+p.id);
   check(d.querySelector('#history-date').textContent===`${p.label} · ${p.date}`&&d.querySelector(`.history-stop-labels button[data-stop="${p.id}"]`).textContent===p.tick,'Date and tick for '+p.id);
   check(visible().length>0&&dots().length>0&&dots().every(id=>p.stories.includes(id)),'Routes and spots for '+p.id+' (the headline focus may frame some dots out of view)');
   check(map.dataset.tourLayout==='dancing','Dancing pieces stay on for '+p.id);
@@ -60,7 +63,7 @@ try{
  d.querySelector('.tour-marker[data-tour-id="silk-road"]').click();await until(()=>!d.querySelector('#tour-story').hidden,'story');await pause(1500);
  check(d.querySelector('#tour-story-title').textContent.includes('Mongol')&&!d.querySelector('.tour-timeline')&&!d.querySelector('.tour-flow-toggle'),'Dot shows the Silk Road 1400 CE text with no second slider or pause button');
  check(!tools.hidden&&visible().length>=drawnBefore&&!d.querySelector('.history-tools button[id]'),'The scrubber and every story stay while a story is focused; no chips');
- check(d.querySelector('#zoom-value').textContent!==zoomBefore&&w.location.pathname==='/lifezones/spaceship-earth/','Focusing zooms to the story and keeps the map URL');
+ await until(()=>w.location.pathname==='/history/1400-ce/silk-road/','pane address');check(d.querySelector('#zoom-value').textContent!==zoomBefore,'Focusing zooms to the story and the address names the pane');
  check(d.querySelectorAll('#tour-story .tour-route-key li[data-wave]').length>0,'The card lists the waves drawn for that story');
  const labels=()=>[...d.querySelectorAll('.tour-labels .tour-label:not([hidden])')];
  check(labels().some(l=>l.dataset.kind==='site'&&l.textContent==='Samarkand')&&labels().some(l=>l.dataset.kind==='area'&&l.textContent==='Steppe'),'Site and area labels of the focused story are drawn');
@@ -97,26 +100,30 @@ try{
  check(d.querySelector('#tour-story-title').textContent.includes('Mongol'),'Back at 1400 CE the headline spot is the Silk Road');
  d.querySelector('#tour-story-close').click();await until(()=>d.querySelector('#tour-story').hidden,'back');await pause(1500);
  check(d.querySelector('.tour-labels').hidden,'Labels leave with the card');
- check(w.location.search.includes('history=1400-ce')&&visible().length>0&&d.querySelector('#zoom-value').textContent===zoomBefore,'Closing the card restores the camera at the same period');
+ await until(()=>w.location.pathname==='/history/1400-ce/','age address after close');check(visible().length>0&&d.querySelector('#zoom-value').textContent===zoomBefore,'Closing the card restores the camera at the same period and the address');
  toggle.click();await until(()=>tools.hidden&&routes.style.display==='none'&&dots().length>0,'off');await pause(200);
  check(dots().every(id=>['origin-of-mankind','silk-road','iceland-to-vinland','french-polynesia','americas-exchange','african-networks','ocean-crossings'].includes(id))&&!d.querySelector('.tour-marker[data-tour-id="neanderthals"]:not([hidden])'),'Off the timeline only the seven entry dots remain (some may sit off screen after the dance)');
- check(getComputedStyle(viewTools).display!=='none'&&!w.location.search.includes('history='),'Unchecking restores the toolbox, dots and URL');
+ await until(()=>w.location.pathname==='/lifezones/spaceship-earth/','map address');check(getComputedStyle(viewTools).display!=='none','Unchecking restores the toolbox, dots and the map address');
  // Direct URL entry restores the period, including an older stop name.
- frame.src=fresh('/lifezones/spaceship-earth/?history=bronze-age');await until(()=>frame.contentDocument?.querySelector('.history-tools')&&!frame.contentDocument.querySelector('.history-tools').hidden,'reload');
- d=frame.contentDocument;w=frame.contentWindow;await until(()=>[...d.querySelectorAll('.tour-routes g[data-route-id]')].some(g=>g.style.display!=='none'),'reload routes');await until(()=>w.location.search.includes('history=3k-ya'),'rewritten stop name');
+ await load(fresh('/lifezones/spaceship-earth/?history=bronze-age'));await until(()=>frame.contentDocument?.querySelector('.history-tools')&&!frame.contentDocument.querySelector('.history-tools').hidden,'reload');
+ d=frame.contentDocument;w=frame.contentWindow;await until(()=>[...d.querySelectorAll('.tour-routes g[data-route-id]')].some(g=>g.style.display!=='none'),'reload routes');await until(()=>w.location.pathname==='/history/3k-ya/','rewritten stop name');
  check(d.querySelector('#history-date').textContent.endsWith('c. 1000 BCE'),'Reload restores the Bronze Age period from its old stop name');
  // A story URL opens the timeline focused on that story.
- frame.src=fresh('/iceland-to-vinland/');await until(()=>frame.contentDocument?.querySelector('#tour-story')?.hidden===false,'story URL');await pause(1800);
+ await load(fresh('/iceland-to-vinland/'));await until(()=>frame.contentDocument?.querySelector('#tour-story')?.hidden===false,'story URL');await pause(1800);
+ // A pane address opens that age and pane directly, with the style from the hash.
+ await load(fresh('/history/1600-ce/ocean-crossings/')+'#m=&s=satellite/spaceship-earth');await until(()=>frame.contentDocument?.querySelector('#tour-story')?.hidden===false&&frame.contentDocument.querySelector('#tour-story-title').textContent.includes('Iberian'),'pane address');
+ check(frame.contentDocument.querySelector('#map-source').value==='marble'||frame.contentDocument.querySelector('[data-style="satellite"]'),'A pane address with &s= opens on that style');
+ await load(fresh('/iceland-to-vinland/'));await until(()=>frame.contentDocument?.querySelector('#tour-story')?.hidden===false,'story URL again');await pause(1800);
  d=frame.contentDocument;w=frame.contentWindow;const first=periods.find(p=>p.stories.includes('iceland-to-vinland'));
- await until(()=>w.location.search.includes('history='+first.id),'story period in URL');
+ await until(()=>w.location.pathname===`/history/${first.id}/iceland-to-vinland/`,'story pane address');
  check(!d.querySelector('.history-tools').hidden&&d.querySelector('#tour-story-title').textContent.length>0&&[...d.querySelectorAll('.tour-marker:not([hidden])')].some(b=>b.dataset.tourId==='iceland-to-vinland'),'Story URL opens the timeline at the Vikings’ first period with the card open');
  // The dance is the map's own response to pans: after any drag the cell under the centre holds a piece.
- frame.src=fresh('/lifezones/spaceship-earth/');await until(()=>frame.contentDocument?.querySelector('#map')?.dataset.tourLayout==='dancing'&&frame.contentDocument.querySelector('#map').dataset.surfacePreview==='false','dancing map');
+ await load(fresh('/lifezones/spaceship-earth/'));await until(()=>frame.contentDocument?.querySelector('#map')?.dataset.tourLayout==='dancing'&&frame.contentDocument.querySelector('#map').dataset.surfacePreview==='false','dancing map');
  d=frame.contentDocument;w=frame.contentWindow;const canvas=d.querySelector('#map');canvas.setPointerCapture=()=>{};canvas.releasePointerCapture=()=>{};
  for(let i=0;i<3;i++){d.querySelector('#zoom-in').click();await pause(300);}await pause(600);
  const rect=canvas.getBoundingClientRect(),cx=rect.left+rect.width/2,cy=rect.top+rect.height/2;
  const drag=async(dx,dy)=>{const ev=(type,x,y)=>canvas.dispatchEvent(new w.PointerEvent(type,{bubbles:true,clientX:x,clientY:y,pointerId:1,pointerType:'mouse',isPrimary:true,button:0,buttons:type==='pointerup'?0:1}));ev('pointerdown',cx,cy);for(let i=1;i<=10;i++){ev('pointermove',cx+dx*i/10,cy+dy*i/10);await pause(30);}ev('pointerup',cx+dx,cy+dy);await pause(1200);for(let i=0;i<3;i++){await until(()=>canvas.dataset.danceMoving==='false','pieces settle after drag');await pause(500);if(canvas.dataset.danceMoving==='false')break;}};
- check(canvas.dataset.tourLighting==='unlit'&&canvas.dataset.merged==='false','Spaceship Earth draws the unlit per-piece base layer while the dance experiment runs');
+ check(canvas.dataset.tourLighting==='lit'&&canvas.dataset.merged==='false','Spaceship Earth draws its lit per-piece sets through the layered renderer');
  for(const [dx,dy] of full?[[0,500],[-500,0],[0,-500],[500,0],[350,350]]:[[0,500],[-500,0]]){
   await drag(dx,dy);const cells=Object.values(pos()).map(p=>p.slice(0,2).map(v=>v.toFixed(2)).join());
   const [aid,ck]=canvas.dataset.danceVertex.split(':'),three=(()=>{const p=pos();const a=p[aid];return Object.entries(p).filter(([id,q])=>id!==aid&&Math.abs(Math.hypot(q[0]-a[0],q[1]-a[1])-Math.sqrt(3))<.01).length;})();
@@ -128,7 +135,7 @@ try{
  const dr=dial.getBoundingClientRect(),dcx=dr.left+dr.width/2,dcy=dr.top+dr.height/2,before=rotation();
  const dev=(type,x,y)=>dial.dispatchEvent(new w.PointerEvent(type,{bubbles:true,clientX:x,clientY:y,pointerId:7,pointerType:'mouse',isPrimary:true,button:0,buttons:type==='pointerup'?0:1}));
  dev('pointerdown',dcx+14,dcy);for(let i=1;i<=6;i++){dev('pointermove',dcx+14*Math.cos(i*Math.PI/12),dcy+14*Math.sin(i*Math.PI/12));await pause(40);}dev('pointerup',dcx,dcy+14);await pause(300);
- check(getComputedStyle(dial).display!=='none'&&dial.previousElementSibling.id==='fit'&&rotation()===Math.round((before+90)/30)*30&&dial.style.getPropertyValue('--dial')===rotation()+'deg','Dragging a quarter turn around the dial turns the map a quarter turn in 30° steps and moves the dot');
+ check(getComputedStyle(dial).display!=='none'&&dial.previousElementSibling.id==='fit'&&rotation()===Math.round((before+90)/30)*30&&dial.style.getPropertyValue('--dial')===rotation()+'deg',`Dragging a quarter turn around the dial turns the map a quarter turn in 30° steps and moves the dot (before ${before}, after ${rotation()}, dot ${dial.style.getPropertyValue('--dial')}, display ${getComputedStyle(dial).display}, prev ${dial.previousElementSibling.id})`);
  dial.dispatchEvent(new w.KeyboardEvent('keydown',{key:'ArrowLeft',bubbles:true}));await pause(200);
  check(rotation()===Math.round((before+90)/30)*30-30,'Arrow keys step the dial by 30°');
  // Turning the map with the dial must not stop the dance: a drag afterwards still completes a vertex.

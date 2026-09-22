@@ -107,6 +107,16 @@ Markdown with `parsePeriod` from `dist/tour-content.mjs`, assembles the routes
 with sparse traffic timing per strand, and caches the result.
 `dist/tour-story.mjs` renders the card from the spot text it is given.
 
+History addresses: every age and every pane has its own URL, `/history/<period>/`
+and `/history/<period>/<spot>/` (old stop names still resolve), with the map's
+style and layout in the hash as `&s=<style>/<layout-slug>` beside the compact
+state, so the path stays about history. Story URLs such as `/silk-road/` open
+the timeline at that story's first period and then take the pane address. Each
+address has a static landing page with its own 1200×630 preview
+(`dist/social/history-<period>[-<spot>].jpg`, rendered by
+`/tests/history-social.html?save=1` through `scripts/render-history-social.mjs`
+with the local save server running) and a sitemap entry.
+
 History timeline: a “Show history” checkbox sits in the collapsed sidebar between
 the style strip and More options. Switching it on replaces the pan/reposition
 toolbox with one scrubber over the nine periods (Early hominins, Out of Africa,
@@ -153,6 +163,10 @@ shared with a piece are left out. Saved in links as `backdrop-grid`,
 `backdrop-color`, `backdropWidth` and `backdropOpacity`, appended to the compact map-state key
 lists so older links stay valid.
 
+Reposition globe: the pan/reposition switch left the toolbar; “Reposition globe
+by dragging” is a toggle under More options → Position (on phones it opens the
+full-screen repositioning flow with its Done button).
+
 Rotation dial: to the right of Fit sits a small grey circle with an off-centre
 dot. Dragging around it turns the whole map in 30° steps (twelve positions)
 about the viewport centre (Spaceship Earth keeps its unlit preset and its
@@ -177,10 +191,17 @@ group, otherwise it takes the free join nearest to where it was. So the fewest
 pieces move and every piece always touches the group along a valid edge
 (exposed as `data-dance-valid`). Focusing a story gathers its pieces around the
 one holding most of it by the same joins and frames the points where the
-pieces will settle. While this experiment runs Spaceship Earth draws the unlit
-per-piece base layer of the layered renderer (no merged composite, no lighting
-layer), so turned pieces show no inconsistent shadows; shadows may come back
-later. Pieces tween in place on the live net (380 ms, slight overshoot; instant
+pieces will settle. Spaceship Earth draws through the layered per-piece renderer (no merged
+composite, no screen-space lighting layer). Lifezones has lit per-piece sets
+baked by `scripts/build-lit-regions.mjs`: for each hexagon and each of the
+three rotation classes a piece can take, the unlit base fused with terrain
+lighting turned so the piece looks lit like the default map when it stands
+turned by 120° × class at the default map turn (`lit/<class>/<region>/…` under
+`maps/default-layers/v1/dymaxion/lifezones`, `lit: 3` in the manifest entry).
+Each piece draws the set of its target rotation, so shadows stay consistent
+across the dance; the light turns with the map under the dial. Show lighting
+switches Spaceship Earth between its lit and unlit sets; other styles fall back
+to the unlit base until their sets are baked. Pieces tween in place on the live net (380 ms, slight overshoot; instant
 under reduced motion), so cached routes, dots, labels and the coordinate
 readout follow. Exports use the base positions. The band lattice helpers and
 `tourImagePieces` in `dist/tour-layout.mjs` stay as tested geometry but are no

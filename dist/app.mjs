@@ -1,5 +1,6 @@
 import {assetURL} from './asset-url.mjs';
 import {readTourPath} from './tour-pages.mjs?v=history-2';
+import {historyPath,readHistoryPath,readHashShare} from './history-routes.mjs?v=history-1';
 import {createTourMarkers,createTourLabels,projectTourLocations,tourEnabled,tourLocations} from './tour-markers.mjs?v=history-3';
 import {createTourRoutes,projectTourRoutes} from './tour-route-renderer.mjs?v=history-3';
 import {loadPeriod} from './history-loader.mjs?v=history-3';
@@ -7,15 +8,15 @@ import {pacificTourNet} from './tour-layout.mjs?v=dancing-2';
 import pacificLighting from './maps/pacific-manifest.mjs?v=pacific-light-1';
 import {createTourStory} from './tour-story.mjs?v=history-3';
 import {periods,period as periodInfo} from './history/index.mjs?v=history-1';
-import {MergedMaps,mergedEntry,mergedCompatible} from './merged-maps.mjs?v=endless-1';
+import {MergedMaps,mergedEntry,mergedCompatible} from './merged-maps.mjs?v=lit-1';
 import {riverFieldGLSL} from './river-layers.mjs?v=cloud-assets-1';
-import {DefaultLayers,defaultLayerPreset,imageVertex,imageFragment,graticuleFragment} from './default-layers.mjs?v=cloud-assets-1';
+import {DefaultLayers,defaultLayerPreset,imageVertex,imageFragment,graticuleFragment} from './default-layers.mjs?v=lit-1';
 import {puzzleRegion,puzzleArtwork} from './puzzle-grid.mjs?v=unique-3';
 import {initSourcePicker} from './source-picker.mjs';
 import {isAboutPath} from './about-route.mjs?v=about-shapes-1';
 import {initAboutWidget} from './about-widget.mjs?v=cloud-assets-1';
 import {referenceSources,sourceAttribution,mapLicense} from './reference-sources.mjs?v=licenses-1';
-import {PrecomputedSurfaces,surfacePreset,surfaceLevel,surfacePlan,surfaceTileRect,clipSurfaceTriangle} from './precomputed-surfaces.mjs?v=cloud-assets-1';
+import {PrecomputedSurfaces,surfacePreset,surfaceLevel,surfacePlan,surfaceTileRect,clipSurfaceTriangle} from './precomputed-surfaces.mjs?v=lit-1';
 import {renderLifezonesLegend} from './lifezones-legend.mjs?v=lifezones-shadows-3';
 import {fadedLegendColor} from './legend-colors.mjs';
 import {ProjectedLighting,lightingSettings,lightingKey,lightingPlan,lightingCovers} from './projected-lighting.mjs?v=performance-1';
@@ -44,11 +45,11 @@ const tourLabels=createTourLabels($('stage'));
 const tourRoutes=createTourRoutes($('stage'));
 const tourStory=createTourStory($('controls'),()=>closeHistoryFocus(true));
 // A story URL such as /silk-road/ opens the timeline focused on that story.
-const initialTour=readTourPath(location.pathname);
+const initialTour=readTourPath(location.pathname),initialHistory=readHistoryPath(location.pathname);
 let tourAnimation=0;
 // History timeline: one period at a time from dist/history (see history-loader.mjs).
 let historyOn=false,historyPeriodId=null,historyPeriod=null,historyLoad=0,historyProjection=null,historyProjectionKey='';
-let historyFocus=initialTour?.id||null,historyFocusView=null,historyFocusPending=!!initialTour;
+let historyFocus=initialTour?.id||initialHistory?.spot||null,historyFocusView=null,historyFocusPending=!!(initialTour||initialHistory?.spot);
 const coordinateReadout=document.createElement('div');
 coordinateReadout.id='map-coordinates';coordinateReadout.hidden=true;
 coordinateReadout.setAttribute('aria-label','Coordinates under pointer');document.querySelector('.view-tools').prepend(coordinateReadout);
@@ -60,7 +61,7 @@ const rangeSuffixes={puzzleWidth:'×',riverWidth:'×',subgridWidth:'×',graticul
 const state={method:'tetra',lon:0,lat:0,roll:0,bias:1,height:1.5,grid:30,line:0.8,subgridWidth:1,puzzleWidth:1,graticuleWidth:1,backdropWidth:2,backdropOpacity:25,shadowOpacity:1,lightOpacity:1,distortionOpacity:.7,clearance:0,riverWidth:1,riverLevels:6,layout:0,gridRotation:0,zoom:1,panX:0,panY:0,mode:'pan',arrangement:'infinite',sidebarExpanded:false,interpolation:0,...reliefDefaults};
 let mobileRepositioning=false;
 let exporting=false;
-let shareSelection=initialTour?sharePair('lifezones','dymaxion'):readSharePath(location.pathname)||inferSharePair(readMapStateFromUrl());
+let shareSelection=initialTour||initialHistory?readSharePath(readHashShare(location.hash)||'')||sharePair('lifezones','dymaxion'):readSharePath(location.pathname)||inferSharePair(readMapStateFromUrl());
 let urlDefaults=null,defaultView=null;
 let persistenceReady=false,saveTimer=null,restoredView=null,headingBounds=null;
 let displayedSource='continents',mapRequest=0;
@@ -97,8 +98,10 @@ let defaultLayers=null,renderDefault=null,mergedMaps=null,renderMerged=null;
 const separateComparison=['127.0.0.1','localhost','[::1]'].includes(location.hostname)&&['merged-preview','separate-layers'].some(key=>new URLSearchParams(location.search).has(key));
 function activeDefault(){if(offlineBake||new URLSearchParams(location.search).has('palette-lab')||new URLSearchParams(location.search).get('surface')==='live')return null;
  // Spaceship Earth draws the unlit per-piece base, which does not depend on the map's turn: match its preset at any dial angle.
- const probe=state.arrangement==='dymaxion'?{...state,gridRotation:layoutOptions.find(l=>l.arrangement==='dymaxion')?.state.gridRotation??state.gridRotation}:state;
- const entry=defaultLayerPreset(probe,captureSettings().controls);if(!separateComparison&&mergedEntry(entry)&&!mergedCompatible(entry,state,$('background-color').value))return null;return entry;}
+ const probe=state.arrangement==='dymaxion'?{...state,gridRotation:layoutOptions.find(l=>l.arrangement==='dymaxion')?.state.gridRotation??state.gridRotation}:state,controls=captureSettings().controls;
+ let entry=defaultLayerPreset(probe,controls);
+ // Show lighting only switches Spaceship Earth between its lit and unlit per-piece sets: keep the preset.
+ if(!entry&&state.arrangement==='dymaxion')for(const style of styleOptions){entry=defaultLayerPreset(probe,{...controls,'relief-enabled':style.controls['relief-enabled'],'lighting-preset':style.controls['lighting-preset']});if(entry)break;}if(!separateComparison&&mergedEntry(entry)&&!mergedCompatible(entry,state,$('background-color').value))return null;return entry;}
 function selectRenderPath(entry){
  const wasImages=!!renderDefault;renderDefault=entry;
  if(!!entry===wasImages)return;
@@ -247,7 +250,11 @@ function point(p,t,offset){const v=rotateScreen(canvasWorld(p,t));if(offset){v[0
 // inconsistent shadows. Pieces tween in place on the live net objects with a
 // slight overshoot; cached route, dot and label projections follow. Exports
 // keep the base positions.
+// Spaceship Earth always draws through the layered per-piece base. With lighting on and lit sets baked
+// (one per rotation class a piece can take), each piece draws its own lit tiles; otherwise the unlit base.
 const spaceshipUnlit=()=>!!renderDefault&&state.arrangement==='dymaxion';
+const spaceshipLit=()=>spaceshipUnlit()&&!!renderDefault.lit&&$('relief-enabled').checked;
+function litPathFor(t){if(!spaceshipLit()||!danceBase)return null;const b=danceBase.find(a=>a.id===t.id),r=danceTargets.get(t.id)?.r??t.r,k=(((Math.round(r)-b.r)%6)+6)%6;return k%2?null:`${renderDefault.path}/lit/${k/2}`;}
 let danceBase=null,danceKey='',danceTargets=new Map(),danceTweens=new Map(),danceCentreState='',danceVertex=null;
 function danceGrid(){
  const key=[state.method,state.height,state.arrangement,arrangement===arrangementCache.get(state.arrangement)?'a':'b'].join('/');
@@ -408,13 +415,13 @@ function focusHistoryStory(id){
    if(JSON.stringify([...danceTargets])===before)break;
   }
  }else points=anchors.map(({local,tile})=>rotateScreen(canvasWorld(local,tile)));
- focusPoints(points);syncHistoryTools();draw();
+ focusPoints(points);syncHistoryTools();scheduleSave();draw();
 }
 function closeHistoryFocus(restore=true){
  if(!historyFocus)return;const selectedId=historyFocus;historyFocus=null;historyFocusPending=false;tourStory.close();
  cancelTourAnimation();
  if(restore&&historyFocusView){scale=historyFocusView.scale;Object.assign(state,historyFocusView.view);setSidebarExpanded(historyFocusView.expanded,false);}
- historyFocusView=null;syncHistoryTools();draw();
+ historyFocusView=null;syncHistoryTools();scheduleSave();draw();
  requestAnimationFrame(()=>{document.querySelector(`[data-tour-id="${selectedId}"]`)?.focus({preventScroll:true});});
 }
 function syncHistoryFocus(){
@@ -435,7 +442,7 @@ $('stage').addEventListener('tourselect',event=>{
 // Scrubber: nine approximate dates; the age name sits in the panel heading.
 const historyToggle=$('show-history'),historyTools=document.querySelector('.history-tools'),historySlider=$('history-stop'),historyDate=$('history-date'),historyLabels=document.querySelector('.history-stop-labels'),historyNote=$('history-note');
 function readHistoryParam(value){if(!value)return null;return periods.find(p=>p.id===value||p.stop===value)?.id||null;}
-historyPeriodId=readHistoryParam(new URLSearchParams(location.search).get('history'))||(initialTour?firstPeriodFor(initialTour.id):null);
+historyPeriodId=readHistoryParam(new URLSearchParams(location.search).get('history'))||initialHistory?.period||(initialTour?firstPeriodFor(initialTour.id):null);
 function currentPeriod(){return periodInfo(historyPeriodId);}
 historySlider.max=String(periods.length-1);historyLabels.style.setProperty('--stop-count',String(periods.length));
 for(const p of periods){const b=document.createElement('button');b.type='button';b.dataset.stop=p.id;b.setAttribute('aria-label',`${p.label}, ${p.date}`);b.textContent=p.tick;b.onclick=()=>selectHistoryPeriod(p.id);historyLabels.append(b);}
@@ -628,13 +635,14 @@ function drawPrecomputedSurface(){
  const entry=renderDefault?{...renderDefault,path:renderDefault.basePath||renderDefault.path+'/base'}:selectedSurface();if(!entry||(new URLSearchParams(location.search).has('bake-surfaces')||new URLSearchParams(location.search).get('surface')==='live')){canvas.dataset.surface='live';return false;}
  if(renderDefault)surfaceCache=defaultLayers.base;else if(!surfaceCache||surfaceCache===defaultLayers?.base)surfaceCache=new PrecomputedSurfaces(gl,draw);
  const plan=surfacePlan(surfaceLevel(scale*state.zoom*dpr,entry.maxLevel),entry.regions,visibleSurfaceTiles);
+ for(const tile of plan.tiles)tile.path=litPathFor(tile.t);
  const previewsReady=surfaceCache.prepare(entry,plan.tiles,plan.level);
- const level=previewsReady?plan.level:0,drawTiles=previewsReady?plan.tiles:visibleSurfaceTiles(0);
+ const level=previewsReady?plan.level:0,drawTiles=previewsReady?plan.tiles:visibleSurfaceTiles(0).map(tile=>({...tile,path:litPathFor(tile.t)}));
  canvas.dataset.surfacePreview=String(!previewsReady);
  canvas.dataset.surface='precomputed';canvas.dataset.surfaceLevel=level;
  const savedBuffer=buffer,savedCount=count;
  gl.uniform1i(uniforms.bakedOn,1);
- for(const {t,x,y,rect} of drawTiles){
+ for(const {t,x,y,rect,path} of drawTiles){
    const key=[geometryKey,state.arrangement,t.id,t.x,t.y,t.r,t.opacity,level,x,y].join('/');
    let mesh=surfaceMeshes.get(key);
    if(!mesh){
@@ -648,7 +656,7 @@ function drawPrecomputedSurface(){
    surfaceMeshes.set(key,mesh);
    while(surfaceMeshes.size>192){const oldest=surfaceMeshes.keys().next().value;gl.deleteBuffer(surfaceMeshes.get(oldest).buffer);surfaceMeshes.delete(oldest);}
    if(!mesh.count)continue;
-   const tile=surfaceCache.get(entry,t.id,level,x,y);if(!tile)continue;
+   const tile=surfaceCache.get(path?{...entry,path}:entry,t.id,level,x,y);if(!tile)continue;
    gl.uniform4fv(uniforms.bakedRect,tile.rect);gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,tile.texture);
    buffer=mesh.buffer;count=mesh.count;drawGeometry(program);
  }
@@ -678,7 +686,7 @@ function render(refined=false,exportMode=false){if(exporting&&!exportMode)return
   const plan=mergedMaps.draw(renderMerged,{width:w,height:h,unit:scale*state.zoom,dpr,panX:state.panX,panY:state.panY},null,[]);
   surfaceCache=mergedMaps.cache;canvas.dataset.surface='precomputed';canvas.dataset.surfacePreview=String(!plan.ready);canvas.dataset.surfaceLevel=String(plan.level);canvas.dataset.surfacePending=String(surfaceCache.pending.size);canvas.dataset.surfaceTiles=String(surfaceCache.cache.size);canvas.dataset.surfaceFailures=String(surfaceCache.failures.size);
  }else drawColor(w,h,!!lighting);
- canvas.dataset.merged=String(!!renderMerged);canvas.dataset.tourLayout=danceActive()?'dancing':'default';canvas.dataset.danceVertex=danceActive()?danceCentreState:'';canvas.dataset.danceValid=String(danceActive()?danceConnected():true);canvas.dataset.tourLighting=spaceshipUnlit()?'unlit':'default';canvas.dataset.danceMoving=String(danceTweens.size>0);canvas.dataset.dancePositions=net.map(t=>`${t.id}:${t.x.toFixed(2)},${t.y.toFixed(2)},${t.r.toFixed(2)}`).join(' ');
+ canvas.dataset.merged=String(!!renderMerged);canvas.dataset.tourLayout=danceActive()?'dancing':'default';canvas.dataset.danceVertex=danceActive()?danceCentreState:'';canvas.dataset.danceValid=String(danceActive()?danceConnected():true);canvas.dataset.tourLighting=spaceshipLit()?'lit':spaceshipUnlit()?'unlit':'default';canvas.dataset.danceMoving=String(danceTweens.size>0);canvas.dataset.dancePositions=net.map(t=>`${t.id}:${t.x.toFixed(2)},${t.y.toFixed(2)},${t.r.toFixed(2)}`).join(' ');
  if(lighting){(renderDefault?defaultLayers:projectedLighting).composite(lighting,w,h,scale*state.zoom,state.panX,state.panY,state.shadowOpacity,state.lightOpacity);
   if(!renderDefault&&($('graticule').checked||$('distortion').checked)){gl.enable(gl.BLEND);gl.blendFuncSeparate(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA,gl.ONE,gl.ONE_MINUS_SRC_ALPHA);drawColor(w,h,false,true);gl.disable(gl.BLEND);}
  }
@@ -803,7 +811,9 @@ $('relief-enabled').onchange=updateRelief;
 $('lighting-resolution-test').onchange=()=>draw();
 for(const id of ['relief-treatment','relief-tone'])$(id).onchange=()=>{if($('lighting-preset').value==='custom')$('relief-status').textContent='Apply lighting to update the layers.';else updateRelief();};
 
-function mode(value){state.mode=value;$('pan').classList.toggle('selected',value==='pan');$('rotate').classList.toggle('selected',value==='rotate');scheduleSave();} $('pan').onclick=()=>mode('pan');$('rotate').onclick=()=>mode('rotate');$('fit').onclick=fitView;
+// Repositioning the globe is a toggle in More options > Position; on phones it opens the full-screen repositioning flow.
+function mode(value){state.mode=value;$('rotate').setAttribute('aria-pressed',String(value==='rotate'));$('rotate').textContent=value==='rotate'?'Stop repositioning':'Reposition globe by dragging';scheduleSave();}
+$('rotate').onclick=()=>{if(state.mode==='rotate'){if(mobileRepositioning)finishRepositioning();else mode('pan');return;}if(compactDevice)confirmCustomization(startRepositioning);else mode('rotate');};$('fit').onclick=fitView;
 function zoom(factor,x=w/2,y=h/2){const old=state.zoom;state.zoom=Math.min(maximumZoom(scale),Math.max(.25,old*factor));const r=state.zoom/old;state.panX=(state.panX-(x-w/2))*r+(x-w/2);state.panY=(state.panY-(y-h/2))*r+(y-h/2);draw();}
 $('zoom-in').onclick=()=>zoom(1.25);$('zoom-out').onclick=()=>zoom(.8);canvas.addEventListener('wheel',e=>{e.preventDefault();const r=canvas.getBoundingClientRect();zoom(Math.exp(-e.deltaY*.0015),e.clientX-r.left,e.clientY-r.top);},{passive:false});
 let dragging=null;const pointers=new Map();let pinchDistance=0,grabbed=null;
@@ -1007,8 +1017,8 @@ function captureSettings(){
  const applied=$('lighting-preset').value==='custom'?customApplied:null;if(applied){controls['relief-treatment']=applied.treatment;controls['relief-tone']=applied.tone;}
  return {version:1,state:{...state,...applied},controls,view:{scale,zoom:state.zoom,panX:state.panX,panY:state.panY},details:Object.fromEntries([...document.querySelectorAll('aside > details')].map(el=>[el.id,el.open]))};
 }
-function readMapStateFromUrl(){const hash=location.hash;if(!hash.startsWith('#m=')&&!hash.startsWith('#p='))return null;try{return decodeMapState(hash.slice(3));}catch{return null;}}
-function updateMapUrl(){if(!persistenceReady||exporting||isAboutPath(location.pathname))return;clearTimeout(saveTimer);try{const url=new URL(location.href);if(!location.pathname.startsWith('/tests/'))url.pathname=shareSelection.path;const preset=presetSettings(shareSelection),defaults={state:{...urlDefaults.state,...preset.state},controls:{...urlDefaults.controls,...preset.controls},details:urlDefaults.details,view:defaultView};const encoded=encodeMapState(captureSettings(),defaults);url.hash=encoded?'m='+encoded:'';if(historyOn)url.searchParams.set('history',currentPeriod().id);else url.searchParams.delete('history');history.replaceState(null,'',url);}catch{}}
+function readMapStateFromUrl(){const m=location.hash.match(/^#([mp])=([^&]*)/);if(!m)return null;try{return decodeMapState(m[2]);}catch{return null;}}
+function updateMapUrl(){if(!persistenceReady||exporting||isAboutPath(location.pathname))return;clearTimeout(saveTimer);try{const url=new URL(location.href);if(!location.pathname.startsWith('/tests/'))url.pathname=historyOn?historyPath(currentPeriod().id,historyFocus):shareSelection.path;const preset=presetSettings(shareSelection),defaults={state:{...urlDefaults.state,...preset.state},controls:{...urlDefaults.controls,...preset.controls},details:urlDefaults.details,view:defaultView};const encoded=encodeMapState(captureSettings(),defaults);url.hash=historyOn?`m=${encoded}&s=${shareSelection.path.slice(1,-1)}`:encoded?'m='+encoded:'';url.searchParams.delete('history');history.replaceState(null,'',url);}catch{}}
 function scheduleSave(){if(!persistenceReady)return;clearTimeout(saveTimer);saveTimer=setTimeout(updateMapUrl,180);}
 document.addEventListener('input',scheduleSave);document.addEventListener('change',scheduleSave);
 
@@ -1203,9 +1213,8 @@ function startRepositioning(){
 }
 function finishRepositioning(){
  mobileRepositioning=false;document.body.classList.remove('repositioning');mode('pan');
- setSidebarExpanded(true,false);$('reposition-globe').focus();draw();
+ setSidebarExpanded(true,false);$('rotate').focus();draw();
 }
-$('reposition-globe').onclick=()=>confirmCustomization(startRepositioning);
 $('reposition-done').onclick=finishRepositioning;
 document.querySelectorAll('aside details > summary').forEach(summary=>summary.addEventListener('click',event=>{
  if(summary.parentElement.open||!compactDevice||skipCustomizationWarning)return;
@@ -1306,6 +1315,22 @@ if(['127.0.0.1','localhost','[::1]'].includes(location.hostname)&&new URLSearchP
   const density=2048,left=Math.floor(Math.min(...points.map(p=>p[0]))*density)/density,top=Math.floor(Math.min(...points.map(p=>p[1]))*density)/density;
   const width=Math.ceil((Math.max(...points.map(p=>p[0]))-left)*density),height=Math.ceil((Math.max(...points.map(p=>p[1]))-top)*density);
   return {net,rect:[left,top,width/density,height/density],width,height,density,angle:state.gridRotation*Math.PI/180,background:$('background-color').value,lighting:appliedLighting(),regions:[0,2]};
+ };
+ // Lit region for the dancing pieces: the piece stands at rotation 0 in its own frame and the light
+ // is turned instead, so the result matches the default map when the piece stands turned by
+ // 120° × rk at the default map turn. Windows of `window` pixels tile the 4096-pixel region.
+ window.bakeLitRegion=(region,rk,x,y,size=1024,resolution=4096)=>{
+  const saved={net,gridRotation:state.gridRotation,preset:$('lighting-preset').value,custom:customApplied,w,h,scale,zoom:state.zoom,panX:state.panX,panY:state.panY,dpr};
+  const baseR=saved.net.find(t=>t.id===region).r,look=appliedLighting();
+  const controls=lightingControls();
+  net=[{...saved.net.find(t=>t.id===region),r:0,x:0,y:0}];meshSignature=null;state.gridRotation=0;
+  customApplied={...look,treatment:controls.treatment,tone:controls.tone,reliefAzimuth:look.reliefAzimuth+saved.gridRotation-60*(baseR+2*rk)};$('lighting-preset').value='custom';
+  lightingReadyKey=lightingRefineKey=null;
+  const density=resolution/2,plan={level:4,density,rect:[-1+x/density,-1+y/density,Math.min(size,resolution-x)/density,Math.min(size,resolution-y)/density],repeat:false};
+  const light=window.bakeDefaultLighting(plan);
+  net=saved.net;meshSignature=null;state.gridRotation=saved.gridRotation;customApplied=saved.custom;$('lighting-preset').value=saved.preset;
+  w=saved.w;h=saved.h;scale=saved.scale;state.zoom=saved.zoom;state.panX=saved.panX;state.panY=saved.panY;dpr=saved.dpr;offlineLightingPlan=null;lightingReadyKey=lightingRefineKey=null;
+  return light.images;
  };
  window.bakeDefaultLighting=(plan=null)=>{
   offlineLightingPlan=plan;

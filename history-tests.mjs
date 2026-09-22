@@ -4,6 +4,7 @@ import {periods,period,defaultPeriod} from './dist/history/index.mjs';
 import {parsePeriod} from './dist/tour-content.mjs';
 import {assembleRoutes,reverseRoute} from './dist/history-loader.mjs';
 import {tourLocations} from './dist/tour-markers.mjs';
+import {historyPath,readHistoryPath,historyPages,readHashShare} from './dist/history-routes.mjs';
 // The history folder is the source of truth: one Markdown per period (texts,
 // spots, views), authored routes as JSON, generated strands as a sidecar, and
 // one colour per wave shared by every period.
@@ -68,6 +69,15 @@ assert(detail>0,'some routes are detail routes that appear only when zoomed in')
 assert(labelsTotal>60,'spots carry site and area labels');
 for(const story of storyIds)assert(relax.places[story]&&Object.keys(relax.places[story]).length>0,`relax.json names hard stops for ${story}`);
 assert.equal(reverseRoute({id:'a',coordinates:[[0,0],[1,1]]}).id,'a-return');
+// Every age and pane has its own address; style and layout ride in the hash.
+assert.equal(historyPath('1000-ce'),'/history/1000-ce/');assert.equal(historyPath('1000-ce','silk-road'),'/history/1000-ce/silk-road/');
+assert.deepEqual(readHistoryPath('/history/1000-ce/silk-road/'),{period:'1000-ce',spot:'silk-road'});
+assert.deepEqual(readHistoryPath('/history/middle-ages'),{period:'1000-ce',spot:null},'old stop names resolve');
+assert.deepEqual(readHistoryPath('/history/1000-ce/nonsense/'),{period:'1000-ce',spot:null},'an unknown pane falls back to the age');
+assert.equal(readHistoryPath('/history/never/'),null);assert.equal(readHistoryPath('/silk-road/'),null);
+assert.equal(historyPages.length,periods.length+spots,'one page per age plus one per pane');
+assert.equal(new Set(historyPages.map(p=>p.path)).size,historyPages.length);
+assert.equal(readHashShare('#m=abc&s=lifezones/spaceship-earth'),'/lifezones/spaceship-earth/');assert.equal(readHashShare('#m=abc'),null);
 // Startup never pays for history: the app imports the loader, not the data.
 const app=await readFile('dist/app.mjs','utf8');
 assert(app.includes("from './history-loader.mjs")&&!/\.routes\.json|\.strands\.json|tour-stories\.md/.test(app));

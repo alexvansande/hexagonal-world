@@ -5,6 +5,7 @@ import {join} from 'node:path';
 import {createHash} from 'node:crypto';
 import {tourPages,readTourPath} from './dist/tour-pages.mjs';
 import {periods} from './dist/history/index.mjs';
+import {historyPages} from './dist/history-routes.mjs';
 import {parsePeriod} from './dist/tour-content.mjs';
 import {buildSharePages} from './scripts/build-share-pages.mjs';
 import {assetURL} from './dist/asset-url.mjs';
@@ -36,6 +37,13 @@ try{
   assert.deepEqual(size,[1200,630]);hashes.add(createHash('sha256').update(bytes).digest('hex'));
  }
  assert.equal(hashes.size,7,'each tour has distinct rendered artwork');
+ // Every age and pane has a landing page with its own preview.
+ for(const page of historyPages){
+  const html=await readFile(join(directory,page.path,'index.html'),'utf8');
+  assert(html.includes(`rel="canonical" href="https://hexagonal.earth${page.path}"`)&&html.includes(`property="og:image" content="https://hexagonal.earth${page.image}"`),page.path+' metadata');
+  assert(sitemap.includes('https://hexagonal.earth'+page.path));
+  const bytes=await readFile('dist'+page.image);assert.equal(bytes.readUInt16BE(0),0xffd8,page.image+' is a JPEG');
+ }
 }finally{await rm(directory,{recursive:true,force:true});}
 
 // A story page describes the story's earliest period, the text the timeline shows when the link opens.
@@ -43,4 +51,4 @@ for(const tour of tourPages){
  const first=periods.find(p=>p.stories.includes(tour.id));assert(first,tour.id+' appears in some period');
  const spot=parsePeriod(await readFile(`dist/history/${first.id}.md`,'utf8')).spots[tour.id];assert(spot.paragraphs[0].length>40);
 }
-console.log('Tour pages: seven root URLs, unique 1200×630 JPEGs, static OG/Twitter metadata from the period Markdown and sitemap pass.');
+console.log(`Tour pages: seven root URLs, ${historyPages.length} history pages, unique 1200×630 JPEGs, static OG/Twitter metadata from the period Markdown and sitemap pass.`);

@@ -5,6 +5,7 @@ import {styleOptions} from '../dist/map-options.mjs';
 import {shareCombinations} from '../dist/share-routes.mjs';
 import {aboutShapes} from '../dist/about-route.mjs';
 import {tourPages} from '../dist/tour-pages.mjs';
+import {historyPages} from '../dist/history-routes.mjs';
 const tourRelease=JSON.parse(await readFile('tour-asset-release.json','utf8').catch(()=>{throw Error('Tour image upload is awaiting approval; activate the verified tour release before publishing.');}));
 const release=JSON.parse(await readFile('asset-release.json','utf8'));
 const response=await fetch(release.baseURL+'/manifest.json');if(!response.ok)throw Error('Remote asset inventory unavailable');
@@ -30,10 +31,10 @@ const tourBytes=Buffer.from(await tourResponse.arrayBuffer());
 if(createHash('sha256').update(tourBytes).digest('hex')!==tourRelease.manifestSHA256)throw Error('Tour inventory checksum mismatch');
 const tourManifest=JSON.parse(tourBytes);if(tourManifest.release!==tourRelease.release)throw Error('Unexpected tour release');
 await mkdir('_asset-release/tours',{recursive:true});await writeFile('_asset-release/tours/manifest.json',tourBytes);
-for(const tour of tourPages){
+for(const tour of [...tourPages,...historyPages]){
  const path=tour.image.slice(1),entry=tourManifest.files.find(f=>f.path===path),r=await fetch(tourRelease.baseURL+'/'+path);
  if(!entry||!r.ok)throw Error('Required tour preview absent: '+path);
  const bytes=Buffer.from(await r.arrayBuffer());if(bytes.length!==entry.bytes||createHash('sha256').update(bytes).digest('hex')!==entry.sha256)throw Error('Tour preview checksum mismatch: '+path);
  await mkdir(dirname('dist/'+path),{recursive:true});await writeFile('dist/'+path,bytes);
 }
-console.log('Verified tour image inventory and nine preview JPEGs.');
+console.log(`Verified tour image inventory and ${tourPages.length+historyPages.length} preview JPEGs.`);

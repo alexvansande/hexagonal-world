@@ -28,12 +28,14 @@ export class PrecomputedSurfaces{
  constructor(gl,redraw,{root='maps/surfaces',extension='webp',budget=surfaceTileBudget,bitmapOptions}={}){this.bitmapOptions=bitmapOptions;this.root=root;this.extension=extension;this.budget=budget;this.controllers=new Map();this.attempts=new Map();this.retryTimers=new Map();this.disposed=false;this.gl=gl;this.redraw=redraw;this.cache=new Map();this.pending=new Set();this.queue=[];this.active=0;this.clock=0;this.requests=0;this.failures=new Set();}
  prepare(entry,tiles=[],level=0){
   // Give every region a low-resolution image before spending bandwidth on detail.
-  this.required=new Set(Array.from({length:entry.regions},(_,region)=>`${entry.path}/${region}/0/0-0`));
-  for(const tile of tiles)this.required.add(`${entry.path}/${tile.region}/${level}/${tile.x}-${tile.y}`);
+  // A tile may name its own pyramid path (a lit variant of the same region).
+  const paths=new Set([entry.path,...tiles.map(tile=>tile.path).filter(Boolean)]);
+  this.required=new Set([...paths].flatMap(path=>Array.from({length:entry.regions},(_,region)=>`${path}/${region}/0/0-0`)));
+  for(const tile of tiles)this.required.add(`${tile.path||entry.path}/${tile.region}/${level}/${tile.x}-${tile.y}`);
   this.setRequired(this.required);
   let ready=true;
-  for(let region=0;region<entry.regions;region++){
-   if(!this.tile(entry,region,0,0,0)&&!this.failures.has(`${entry.path}/${region}/0/0-0`))ready=false;
+  for(const path of paths)for(let region=0;region<entry.regions;region++){
+   if(!this.tile({...entry,path},region,0,0,0)&&!this.failures.has(`${path}/${region}/0/0-0`))ready=false;
   }
   return ready;
  }

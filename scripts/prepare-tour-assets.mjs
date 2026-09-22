@@ -4,10 +4,12 @@ import {readFile,readdir,mkdir,writeFile} from 'node:fs/promises';
 import {createHash} from 'node:crypto';
 import {resolve} from 'node:path';
 import {tourPages} from '../dist/tour-pages.mjs';
-import pacific from '../dist/maps/pacific-manifest.mjs';
-const output=resolve('_asset-release/tours'),paths=tourPages.map(t=>t.image.slice(1));
+import {historyPages} from '../dist/history-routes.mjs';
+import layers from '../dist/maps/default-layers/manifest.mjs';
+const output=resolve('_asset-release/tours'),paths=[...tourPages.map(t=>t.image.slice(1)),...historyPages.map(p=>p.image.slice(1))];
 async function visit(dir){for(const entry of await readdir('dist/'+dir,{withFileTypes:true})){const path=dir+'/'+entry.name;if(entry.isDirectory())await visit(path);else if(path.endsWith('.png'))paths.push(path);}}
-await visit(pacific.path);
+// Lit per-piece sets for the Spaceship Earth dance (one per rotation class).
+for(const [key,entry] of Object.entries(layers.entries))if(entry.lit)await visit('maps/default-layers/'+entry.path+'/lit');
 const files=[];
 for(const path of paths.sort()){
  const bytes=await readFile('dist/'+path);files.push({path,bytes:bytes.length,sha256:createHash('sha256').update(bytes).digest('hex')});

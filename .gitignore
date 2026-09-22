@@ -39,3 +39,6 @@ __pycache__/
 /dist/americas-exchange/
 /dist/african-networks/
 /dist/ocean-crossings/
+
+# Generated history landing pages (one per age and pane).
+/dist/history/*/

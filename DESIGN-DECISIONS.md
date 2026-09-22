@@ -735,6 +735,17 @@ rotations a piece can take means roughly twice today's lighting detail (about
 the light must be fixed to the map frame, turning with the dial, because
 screen-fixed light would multiply the bill by the 24 dial positions.
 
+**Lit sets, history addresses, toolbar (September 22).** The user asked for the
+reposition control to move under More options → Position so the pan and
+reposition buttons could go, for new Lifezones shadows for the dance and the
+default lighting back, for every age and pane to have its own URL with style
+and layout in the hash, and for previews of every history pane. Decisions: the
+lit per-piece sets are baked per rotation class with the light turned in the
+piece's frame (twelve sets for Lifezones), drawn by the layered renderer per
+piece; `/history/<period>/<spot>/` is the canonical history address with
+`&s=<style>/<layout>` in the hash; landing pages and previews exist for all 38
+addresses and ship in the additive image release.
+
 **Dance anchored on the centre (September 22).** The user saw a small drag down,
 made only to see an arrangement better, re-form the group and move the pieces in
 front of them away. Decision: a band switch needs a deliberate pan (40% of the
