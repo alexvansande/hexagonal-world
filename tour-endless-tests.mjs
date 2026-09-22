@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import {endlessLattice,endlessCopies,latticeOffset,unwrapStrand} from './dist/tour-layout.mjs';
+import {endlessLattice,endlessCopies,latticeOffset,unwrapStrand,bandOffsets} from './dist/tour-layout.mjs';
 import {makeGeometry,layouts,matching,canvasWorld} from './dist/geometry.mjs';
 import {makeArrangement} from './dist/arrangements.mjs';
 import {layoutOptions} from './dist/map-options.mjs';
@@ -52,6 +52,15 @@ assert(crossings>50&&routesChecked>500,`unwrapping exercised ${crossings} exact 
 const sample=projectTourRoutes(tiles,net,state,[tourChapters['silk-road'].periods[1].routes[0]])[0].strandAnchors[0];
 unwrapStrand(sample,basis,Pc,Qc,[0,0]);const before=sample[0].offset.slice();unwrapStrand(sample,basis,Pc,Qc,Pc);
 assert(Math.abs(sample[0].offset[0]-before[0]-Pc[0])<1e-9&&Math.abs(sample[0].offset[1]-before[1]-Pc[1])<1e-9,'offsets follow the centre by whole periods');
+// Dancing pieces: each piece picks the copy nearest the viewport centre along the band, with hysteresis.
+const base=lattice.exact;
+assert.deepEqual(bandOffsets(lattice,base,[0,0]),{0:0,1:0,2:0,3:0},'the base view keeps every piece home');
+const far=bandOffsets(lattice,base,[P[0]*2.4,P[1]*2.4]);
+assert(Object.values(far).every(k=>k===2||k===3)&&Math.max(...Object.values(far))-Math.min(...Object.values(far))<=1,'panning far along the band slides every piece by whole periods and keeps the group contiguous');
+const step=bandOffsets(lattice,base,[P[0]*.55,P[1]*.55]);
+assert(Object.values(step).some(k=>k===1)&&Object.values(step).some(k=>k===0),'just past a midpoint only the pieces behind the centre have moved');
+const held=bandOffsets(lattice,base,[P[0]*.58,P[1]*.58],step);assert.deepEqual(held,step,'hysteresis holds the previous choice near a midpoint');
+const across=bandOffsets(lattice,base,[Q[0]*3,Q[1]*3]);assert.deepEqual(across,{0:0,1:0,2:0,3:0},'panning across the band never moves a piece');
 // Felv has no band: the helper reports it rather than inventing one.
 const felv=layoutOptions.find(o=>o.arrangement==='felv').state,felvTiles=makeGeometry(felv.method,felv.height),felvNet=makeArrangement(felvTiles,felv.arrangement,layouts(felvTiles)).net;
 const felvLattice=endlessLattice(felvTiles,felvNet);

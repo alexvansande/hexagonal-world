@@ -606,9 +606,13 @@ September 22** by the endless band: the user observed that translation-only move
 form a loop, and computation confirmed that the four pieces at fixed rotations
 repeat exactly along one period with no new artwork. Decision: no new plates,
 ever; translate what can be translated and accept out-of-order pieces where the
-pattern cannot close (two filler slots per six-hex cell, plus the seams between
-parallel bands). Stories and the timeline now render this endless plane on
-Spaceship Earth with camera wraparound; the Pacific and Africa piece moves are
+pattern cannot close. A first build tiled the whole plane with copies; the user
+rejected that on sight ("don't create a forever overlap, just move the
+hexagons": the Infinite Honeycomb already repeats). Decision: Spaceship Earth
+always shows exactly four pieces, and as the user pans each piece slides by
+whole periods to stay contiguous around the viewport centre, visibly, eased in
+place with hysteresis. Panning across the band moves nothing; exports use the
+base positions; the Pacific and Africa piece moves are
 retired from the app (kept as tested geometry). Only the South Atlantic join is
 unavailable this way, so Atlantic slave-trade lanes still cross a cut. Content passes added two
 stories to fill the thin stops: African networks (trans-Saharan, Nile, Swahili

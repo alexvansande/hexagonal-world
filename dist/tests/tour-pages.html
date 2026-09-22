@@ -20,7 +20,7 @@ try{
   check(visible('.tour-routes .route-line').length+visible('.tour-areas .area-fill').length>0,tour.path+' opens the overlay without clicking');
   if(tour.id==='french-polynesia')await wait(()=>doc().querySelector('#map').dataset.tourLighting==='pacific','Pacific relighting');
   doc().querySelector('#tour-story-close').click();await wait(()=>win().location.pathname==='/lifezones/spaceship-earth/'&&doc().querySelector('#tour-story').hidden&&doc().querySelector('#map').dataset.tourLayout==='default','direct close');
-  check(doc().querySelector('#map').dataset.tourLayout==='default',tour.path+' closes to the normal globe');
+  check(doc().querySelector('#map').dataset.tourLayout==='dancing',tour.path+' closes to the endless Spaceship Earth');
  }
  await load('/lifezones/spaceship-earth/');await wait(()=>doc().querySelectorAll('.tour-marker:not([hidden])').length===7,'base map');
  doc().querySelector('#zoom-in').click();await pause(500);
@@ -30,7 +30,7 @@ try{
  win().history.back();await wait(()=>doc().querySelector('#tour-story').hidden,'Back');
  await wait(()=>origin.style.left===camera[0]&&origin.style.top===camera[1],'restored camera');
  check(win().location.href===base,'Back restores the exact URL and camera');
- win().history.forward();await opened('french-polynesia');check(doc().querySelector('#map').dataset.tourLayout==='pacific','Forward restores the Pacific arrangement');
+ win().history.forward();await opened('french-polynesia');check(doc().querySelector('#map').dataset.tourLayout==='dancing','Forward reopens the story on the endless band');
  const reloaded=new Promise(r=>frame.onload=r);win().location.reload();await reloaded;await opened('french-polynesia');
  check(win().location.hash==='','Reload preserves the clean tour URL');
  doc().querySelector('#tour-story-close').click();await wait(()=>win().location.href===base&&doc().querySelector('#tour-story').hidden,'close after reload');

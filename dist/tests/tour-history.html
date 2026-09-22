@@ -32,7 +32,7 @@ try{
   check(d.querySelector('#history-date').textContent===`${stop.label} · ${stop.date}`,'Date for '+stop.id);
   if(!stop.chapters.length)check(!d.querySelector('#history-note').hidden&&visible().length===0,'Empty stop explains itself');
   else check(visible().length>0,'Stop draws routes: '+stop.id);
-  check(map.dataset.tourLayout==='endless','Endless band stays on for '+stop.id);
+  check(map.dataset.tourLayout==='dancing','Endless band stays on for '+stop.id);
  }
  check(new Set(counts).size>=6,'Stops draw different networks: '+counts.join(','));
  check(routes.querySelectorAll('path').length<1200,'Route DOM stays bounded while scrubbing');

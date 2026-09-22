@@ -16,7 +16,7 @@ try{
  const original=positions(),zoom=d.querySelector('#zoom-value').textContent;
  polynesia.click();await pause(1450);
  check(!card.hidden&&card.textContent.includes('Polynesian voyagers'),'Polynesian story loads from Markdown');
- check(canvas.dataset.tourLayout==='endless'&&canvas.dataset.merged==='true'&&canvas.dataset.renderPath==='images','Endless band keeps the baked image renderer');
+ check(canvas.dataset.tourLayout==='dancing'&&canvas.dataset.merged==='true'&&canvas.dataset.renderPath==='images','Endless band keeps the baked image renderer');
  await wait(()=>canvas.dataset.surfacePending==='0');
  check(canvas.dataset.surfaceFailures==='0','Rebuilt Pacific lighting loads without errors');
  check(!win.performance.getEntriesByType('resource').some(r=>/maps\/height\//.test(r.name)),'Default tour never loads live elevation or performs terrain lighting');
@@ -32,16 +32,16 @@ try{
  check(Math.abs(numbers[0]+17.65)<.002&&Math.abs(numbers[1]+149.43)<.002,'Tahiti remains at its true coordinate in the moved net');
  d.querySelector('#zoom-in').click();await pause(80);check(route.getAttribute('d').length>100,'Routes follow manual zoom');
  close.click();await pause(100);
- check(canvas.dataset.tourLayout==='default'&&card.hidden&&getComputedStyle(d.querySelector('.tour-routes')).display==='none','Close removes outline and restores original layout');
+ check(canvas.dataset.tourLayout==='dancing'&&card.hidden&&getComputedStyle(d.querySelector('.tour-routes')).display==='none','Close removes the routes and keeps the endless band');
  check(canvas.dataset.tourLighting==='default','Close restores original lighting');
  check(JSON.stringify(positions())===JSON.stringify(original)&&d.querySelector('#zoom-value').textContent===zoom,'Every discovery anchor returns to its exact original screen position');
  polynesia.click();await pause(200);close.click();await pause(1450);
- check(canvas.dataset.tourLayout==='default'&&JSON.stringify(positions())===JSON.stringify(original),'Closing during movement cancels it and restores everything');
+ check(canvas.dataset.tourLayout==='dancing'&&JSON.stringify(positions())===JSON.stringify(original),'Closing during movement cancels it and restores everything');
  polynesia.click();await pause(1450);d.dispatchEvent(new win.KeyboardEvent('keydown',{key:'Escape',bubbles:true}));await pause(100);
  check(card.hidden&&d.activeElement===polynesia,'Escape restores focus to French Polynesia');
  // Keyboard activation of a hidden settings control exercises preset invalidation.
  polynesia.click();await pause(1450);d.querySelector('[data-style="satellite"]').click();await pause(100);
- check(card.hidden&&canvas.dataset.tourLayout==='default','Changing style clears the temporary layout');
+ check(card.hidden,'Changing style closes the story');
  d.querySelector('[data-style="lifezones"]').click();await pause(100);polynesia.click();await pause(1450);
  result.textContent='All checks passed. Pacific tour left open for visual review.';
 }catch(error){result.textContent='FAIL: '+error.message;}

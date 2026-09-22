@@ -99,3 +99,16 @@ export function unwrapStrand(anchors,basis,P,Q,centre){
  });
  return anchors;
 }
+
+// Dancing pieces: keep exactly the four pieces, but let each slide by whole
+// band periods so the group stays contiguous around the viewport centre. For
+// every piece the offset k is the copy nearest the centre along the band, with
+// hysteresis so a slow pan across a midpoint does not make a piece flap.
+export function bandOffsets(lattice,base,centre,previous={},hysteresis=.12){
+ const P=lattice.period,pp=P[0]*P[0]+P[1]*P[1],next={};
+ for(const t of base){
+  const k=previous[t.id]||0,s=((centre[0]-t.x)*P[0]+(centre[1]-t.y)*P[1])/pp-k;
+  next[t.id]=Math.abs(s)>.5+hysteresis?k+Math.round(s):k;
+ }
+ return next;
+}

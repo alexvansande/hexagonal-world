@@ -164,19 +164,19 @@ only its trade lanes at 1300). Story dots and chips filter to the stop’s stori
 and open the story at that stop’s chapter; closing returns to the same stop. The
 stop persists as `?history=<stop>` on the map URL.
 
-Endless band: while a story or the timeline is open on Spaceship Earth, the map
-becomes an endless plane. `endlessLattice` in `dist/tour-layout.mjs` finds the
-translation closure of the four pieces at their fixed rotations: they repeat
-exactly along one period (Asia → North America → Africa and South America, every
-three rows), which joins Bering, the South Pacific, Central America, the North
-Atlantic and Eurasia. Parallel bands stack by a second vector, leaving two slots
-per six-hex cell that are filled with out-of-order copies; joins across bands and
-around fillers are wrong, as accepted. Nothing rotates, so the merged artwork and
-its lighting are reused through translated pieces (`endlessCopies`), the camera
-wraps by whole periods, and routes and dots choose the copy that keeps them
-continuous (`unwrapStrand`). The South Atlantic remains a cut. The earlier Pacific
-piece animation (`pacificTourNet`) is kept for tests and Felv-free fallbacks but no
-longer drives the story or the timeline. Checks: `tour-endless-tests.mjs`. Leaving an
+Dancing pieces: on Spaceship Earth the four pieces stay four, but each slides by
+whole band periods so the group stays contiguous around the viewport centre.
+`endlessLattice` in `dist/tour-layout.mjs` finds the translation closure of the
+pieces at their fixed rotations: they repeat exactly along one period (Asia →
+North America → Africa and South America, every three rows), which joins Bering,
+the South Pacific, Central America, the North Atlantic and Eurasia. `bandOffsets`
+picks, per piece, the copy nearest the centre along that band with hysteresis;
+the app eases each piece to its slot in place on the live net, so cached routes,
+dots and the coordinate readout follow, and the merged artwork is drawn through
+translated pieces without new lighting. Panning across the band moves nothing,
+exports use the base positions, and the South Atlantic remains a cut. The lattice
+stacking and copy helpers (`endlessCopies`, `unwrapStrand`) stay as tested
+geometry but are not used by the app. Checks: `tour-endless-tests.mjs`. Leaving an
 eligible map switches history off. Checks: `tour-timeline-tests.mjs` and `/tests/tour-history.html`
 (also `?mobile=1`).
 Chapter changes refit the camera without replaying the Pacific piece animation.
