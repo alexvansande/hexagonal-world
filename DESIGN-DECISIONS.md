@@ -654,6 +654,13 @@ modules, chapter registry, inner story slider, pause button, area overlays in
 the app and the `?period=` chapter URLs were removed; area geometry stays as
 tested code. Wave colours moved from the stylesheet to `waves.json`.
 
+**Headline spot per date (September 22).** The user asked that clicking a date
+activate the most important spot of that period. Decision: the first `##`
+section of the period Markdown is the headline (Globalization now leads with
+the ocean crossings); scrubbing keeps a focused story that continues at the new
+period and otherwise activates the headline, so the card never simply closes
+on a date change.
+
 **Dance anchored on the centre (September 22).** The user saw a small drag down,
 made only to see an arrangement better, re-form the group and move the pieces in
 front of them away. Decision: a band switch needs a deliberate pan (40% of the

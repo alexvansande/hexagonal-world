@@ -369,11 +369,17 @@ function syncHistoryTools(){
  const note=!historyPeriod?'Loading stories…':historyPeriod.period.id!==info.id?'Loading stories…':historyPeriod.text.intro.note||(historyPeriod.routes.length?'':'Nothing written for this period yet.');
  historyNote.textContent=note;historyNote.hidden=!note;
 }
-function selectHistoryPeriod(id,writeURL=true){historyPeriodId=periodInfo(id).id;historyProjection=null;syncHistoryTools();if(writeURL)updateMapUrl();loadHistoryPeriod();draw();}
+// Choosing a date activates the period's headline spot (the first section of its
+// Markdown) unless the focused story continues there, in which case it re-reads.
+let historyAutoFocus=false;
+function selectHistoryPeriod(id,writeURL=true){historyPeriodId=periodInfo(id).id;historyProjection=null;historyAutoFocus=true;syncHistoryTools();if(writeURL)updateMapUrl();loadHistoryPeriod();draw();}
 async function loadHistoryPeriod(){
  const token=++historyLoad,id=currentPeriod().id;
  try{const data=await loadPeriod(id);if(token!==historyLoad||!historyOn)return;historyPeriod=data;historyProjection=null;
-  if(historyFocusPending){historyFocusPending=false;if(historyFocus)focusHistoryStory(historyFocus);}else syncHistoryFocus();
+  const auto=historyAutoFocus;historyAutoFocus=false;
+  if(historyFocusPending){historyFocusPending=false;if(historyFocus)focusHistoryStory(historyFocus);}
+  else if(auto&&!(historyFocus&&data.text.spots[historyFocus])){const first=Object.keys(data.text.spots)[0];if(first)focusHistoryStory(first);else closeHistoryFocus(true);}
+  else syncHistoryFocus();
   syncHistoryTools();draw();}
  catch{if(token===historyLoad){historyNote.textContent='Could not load this period. Try again.';historyNote.hidden=false;}}
 }

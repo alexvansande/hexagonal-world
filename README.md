@@ -106,8 +106,10 @@ Ice Age to farming, Bronze Age, Antiquity, Middle Ages, High Middle Ages,
 Globalization, Plantations & empires), ticked with approximate dates (2M ya,
 50k ya, 10k ya, 3k ya, 200 CE, 1000 CE, 1400 CE, 1600 CE, 1800 CE) while the
 panel heading names the age. Every story of the period is drawn at once; the
-scrubber is the only slider. Clicking a spot frames that story (its `view`) and
-shows its text in the card, with no pause button, chips or inner slider; scrubbing
+scrubber is the only slider. Choosing a date activates the period's headline
+spot, the first `##` section of its Markdown (so order the sections by
+importance), unless the focused story continues there. Clicking a spot frames
+that story (its `view`) and shows its text in the card, with no pause button, chips or inner slider; scrubbing
 while focused re-reads the story at the new period or closes the card when the
 story has no spot there; closing restores the camera. The period persists as
 `?history=<period>` on the map URL (old stop names still resolve). Story URLs

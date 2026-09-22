@@ -37,13 +37,22 @@ try{
   await scrub(p.id);counts.push(visible().length);
   check(w.location.search.includes('history='+p.id),'URL preserves '+p.id);
   check(d.querySelector('#history-date').textContent===`${p.label} · ${p.date}`&&d.querySelector(`.history-stop-labels button[data-stop="${p.id}"]`).textContent===p.tick,'Date and tick for '+p.id);
-  check(visible().length>0&&dots().length===p.stories.length,'Routes and spots for '+p.id);
+  check(visible().length>0&&dots().length>0&&dots().every(id=>p.stories.includes(id)),'Routes and spots for '+p.id+' (the headline focus may frame some dots out of view)');
   check(map.dataset.tourLayout==='dancing','Dancing pieces stay on for '+p.id);
  }
  check(new Set(counts).size>=6,'Periods draw different networks: '+counts.join(','));
  check(routes.querySelectorAll('path').length<1200,'Route DOM stays bounded while scrubbing');
+ // Choosing a date activates the period's headline spot: the card opens on the first story of its Markdown.
+ check(!d.querySelector('#tour-story').hidden&&d.querySelector('#tour-story-title').textContent.includes('Galleons'),'A story focused at 1600 CE continues at 1800 CE instead of switching');
+ d.querySelector('#tour-story-close').click();await until(()=>d.querySelector('#tour-story').hidden,'close auto');await pause(1500);
+ await scrub('1600-ce');await pause(1300);
+ check(d.querySelector('#tour-story-title').textContent.includes('Iberian'),'Globalization opens on the ocean crossings');
+ d.querySelector('#tour-story-close').click();await until(()=>d.querySelector('#tour-story').hidden,'close 1600');await pause(1500);
+ await scrub('1800-ce');await pause(1300);
+ check(d.querySelector('#tour-story-title').textContent.includes('slave trade'),'Plantations & empires opens on the Atlantic slave trade');
+ d.querySelector('#tour-story-close').click();await until(()=>d.querySelector('#tour-story').hidden,'close 1800');await pause(1500);
  // A dot frames its story for the period and shows the spot text; nothing else changes.
- await scrub('1400-ce');
+ await scrub('1400-ce');await pause(1300);d.querySelector('#tour-story-close').click();await until(()=>d.querySelector('#tour-story').hidden,'close 1400');await pause(1500);
  const drawnBefore=visible().length,zoomBefore=d.querySelector('#zoom-value').textContent;
  d.querySelector('.tour-marker[data-tour-id="silk-road"]').click();await until(()=>!d.querySelector('#tour-story').hidden,'story');await pause(1500);
  check(d.querySelector('#tour-story-title').textContent.includes('Mongol')&&!d.querySelector('.tour-timeline')&&!d.querySelector('.tour-flow-toggle'),'Dot shows the Silk Road 1400 CE text with no second slider or pause button');
@@ -52,11 +61,11 @@ try{
  check(d.querySelectorAll('#tour-story .tour-route-key li[data-wave]').length>0,'The card lists the waves drawn for that story');
  await scrub('1000-ce');
  check(!d.querySelector('#tour-story').hidden&&d.querySelector('#tour-story-title').textContent.includes('caravans'),'Scrubbing re-reads the focused story at the new period');
- await scrub('2m-ya');
- check(d.querySelector('#tour-story').hidden,'A period without that story closes the card');
- await scrub('1400-ce');
- d.querySelector('.tour-marker[data-tour-id="silk-road"]').click();await until(()=>!d.querySelector('#tour-story').hidden,'story again');await pause(1500);
- d.querySelector('#tour-story-close').click();await until(()=>d.querySelector('#tour-story').hidden,'back');await pause(300);
+ await scrub('2m-ya');await pause(600);
+ check(!d.querySelector('#tour-story').hidden&&d.querySelector('#tour-story-title').textContent.includes('hominins'),'A period without that story activates its first spot instead');
+ await scrub('1400-ce');await pause(1300);
+ check(d.querySelector('#tour-story-title').textContent.includes('Mongol'),'Back at 1400 CE the headline spot is the Silk Road');
+ d.querySelector('#tour-story-close').click();await until(()=>d.querySelector('#tour-story').hidden,'back');await pause(1500);
  check(w.location.search.includes('history=1400-ce')&&visible().length>0&&d.querySelector('#zoom-value').textContent===zoomBefore,'Closing the card restores the camera at the same period');
  toggle.click();await until(()=>tools.hidden&&routes.style.display==='none'&&dots().length===7,'off');await pause(200);
  check(getComputedStyle(viewTools).display!=='none'&&!w.location.search.includes('history='),'Unchecking restores the toolbox, dots and URL');
