@@ -200,8 +200,9 @@ turned by 120° × class at the default map turn (`lit/<class>/<region>/…` und
 `maps/default-layers/v1/dymaxion/lifezones`, `lit: 3` in the manifest entry).
 Each piece draws the set of its target rotation, so shadows stay consistent
 across the dance; the light turns with the map under the dial. Show lighting
-switches Spaceship Earth between its lit and unlit sets; other styles fall back
-to the unlit base until their sets are baked. Pieces tween in place on the live net (380 ms, slight overshoot; instant
+switches Spaceship Earth between its lit and unlit sets. Every lit style
+(Lifezones, Satellite, Elevation, Topographic, Gray neutral, Ivory) has its
+twelve sets; `scripts/build-lit-regions.mjs` takes `LIT_STYLE=<id>`. Pieces tween in place on the live net (380 ms, slight overshoot; instant
 under reduced motion), so cached routes, dots, labels and the coordinate
 readout follow. Exports use the base positions. The band lattice helpers and
 `tourImagePieces` in `dist/tour-layout.mjs` stay as tested geometry but are no

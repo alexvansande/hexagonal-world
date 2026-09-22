@@ -6,7 +6,9 @@ const base=process.env.MAP_ASSET_BASE_URL;
 if(!base||!/^https:\/\/[^/]+\/maps-[a-f0-9]{16}$/.test(base))throw Error('Set MAP_ASSET_BASE_URL to the verified HTTPS asset domain and release prefix.');
 const tourRelease=JSON.parse(await readFile('tour-asset-release.json','utf8').catch(()=>{throw Error('Tour images await upload approval. After the approved upload, run scripts/activate-tour-assets.mjs before staging the website.');}));
 if(!/^https:\/\/assets\.hexagonal\.earth\/maps-[a-f0-9]{16}$/.test(tourRelease.baseURL)||!/^[a-f0-9]{64}$/.test(tourRelease.manifestSHA256))throw Error('Invalid tour image release.');
-const overrides=['social/tour-','social/history-','maps/default-layers/v1/dymaxion/lifezones/lit/'].map(prefix=>({prefix,baseURL:tourRelease.baseURL}));
+import layers from '../dist/maps/default-layers/manifest.mjs';
+// Story and history previews plus every lit per-piece set come from the additive release.
+const overrides=['social/tour-','social/history-',...Object.values(layers.entries).filter(e=>e.lit).map(e=>`maps/default-layers/${e.path}/lit/`)].map(prefix=>({prefix,baseURL:tourRelease.baseURL}));
 const output=resolve(process.argv[2]||'_site');
 // Refuse to overlay an older staging tree that might still contain images.
 try{await mkdir(output);}catch(e){if(e.code==='EEXIST')throw Error('Use a new empty output directory.');throw e;}
