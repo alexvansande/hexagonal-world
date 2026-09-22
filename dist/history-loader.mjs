@@ -37,7 +37,7 @@ export function loadPeriod(id){
  ]).then(([markdown,authored,sidecar,waves])=>{
   const text=parsePeriod(markdown),routes=assembleRoutes(authored,sidecar.strands||{});
   const spots=Object.values(text.spots).filter(s=>s.spot).map(s=>({id:s.id,title:s.title,latitude:s.spot[0],longitude:s.spot[1],view:s.view}));
-  return Object.freeze({period:info,text,routes,spots,waves,stories:Object.freeze([...new Set(authored.map(r=>r.story))])});
+  return Object.freeze({period:info,text,routes,spots,waves,stories:Object.freeze([...new Set([...Object.keys(text.spots),...authored.map(r=>r.story)])])});
  }).catch(error=>{cache.delete(info.id);throw error;});
  cache.set(info.id,promise);return promise;
 }

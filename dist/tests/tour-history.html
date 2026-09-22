@@ -22,7 +22,7 @@ try{
  toggle.click();await until(()=>!tools.hidden&&visible().length>0,'history routes');await pause(600);
  check(getComputedStyle(viewTools).display==='none'&&!tools.hidden,'Scrubber replaces the positioning toolbox');
  const slider=d.querySelector('#history-stop');check(slider.max===String(periods.length-1)&&d.querySelectorAll('.history-stop-labels button').length===periods.length,'One tick per period');
- check(w.location.search.includes('history=1000-ce'),'URL carries the default period');
+ await until(()=>w.location.search.includes('history=1000-ce'),'default period in URL');check(true,'URL carries the default period');
  const middle=periods.find(p=>p.id==='1000-ce');
  check(new Set(visible().map(g=>g.dataset.routeId.split('-')[0])).size>=3,'Middle Ages draws several stories at once');
  check(dots().length===middle.stories.length&&middle.stories.every(id=>dots().includes(id)),'Story dots are the period spots');
@@ -61,8 +61,13 @@ try{
  check(d.querySelectorAll('#tour-story .tour-route-key li[data-wave]').length>0,'The card lists the waves drawn for that story');
  await scrub('1000-ce');
  check(!d.querySelector('#tour-story').hidden&&d.querySelector('#tour-story-title').textContent.includes('caravans'),'Scrubbing re-reads the focused story at the new period');
+ // A spot without routes frames its view box instead.
+ await scrub('50k-ya');await pause(600);d.querySelector('#tour-story-close').click();await until(()=>d.querySelector('#tour-story').hidden,'close 50k');await pause(1500);
+ const zoomWide=d.querySelector('#zoom-value').textContent;d.querySelector('.tour-marker[data-tour-id="island-hominins"]').click();await until(()=>!d.querySelector('#tour-story').hidden,'island spot');await pause(1600);
+ const flores=d.querySelector('.tour-marker[data-tour-id="island-hominins"]').getBoundingClientRect();
+ check(d.querySelector('#tour-story-title').textContent.includes('floresiensis')&&d.querySelector('#zoom-value').textContent!==zoomWide&&!flores.width===false&&flores.left>0&&flores.top>0&&flores.right<frame.clientWidth&&flores.bottom<frame.clientHeight,'A highlight spot without routes frames its view box (Flores stays on screen)');
  await scrub('2m-ya');await pause(600);
- check(!d.querySelector('#tour-story').hidden&&d.querySelector('#tour-story-title').textContent.includes('hominins'),'A period without that story activates its first spot instead');
+ check(!d.querySelector('#tour-story').hidden&&d.querySelector('#tour-story-title').textContent.includes('Early Homo'),'A period without that story activates its first spot instead');
  await scrub('1400-ce');await pause(1300);
  check(d.querySelector('#tour-story-title').textContent.includes('Mongol'),'Back at 1400 CE the headline spot is the Silk Road');
  d.querySelector('#tour-story-close').click();await until(()=>d.querySelector('#tour-story').hidden,'back');await pause(1500);

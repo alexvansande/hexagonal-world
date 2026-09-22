@@ -182,7 +182,9 @@ for period_id in ids:
         settings = {**relax_settings['default'], **relax_settings['stories'].get(route['story'], {})}
         STRANDS, NOISE, SEA = settings['strands'], settings['noise'], settings['sea']
         cost = costs[SEA]
-        places = {tuple(p) for p in relax_settings.get('places', {}).get(route['story'], {}).values()} | junctions
+        named = relax_settings.get('places', {}).get(route['story'], {})
+        if isinstance(named, str): named = relax_settings['places'][named]   # alias of another story's list
+        places = {tuple(p) for p in named.values()} | junctions
         land_bridge = route['id'] in relax_settings.get('landBridge', [])
         coords = [tuple(c) for c in route['coordinates']]
         hard = [0] + [i for i, c in enumerate(coords) if c in places and 0 < i < len(coords) - 1] + [len(coords) - 1]

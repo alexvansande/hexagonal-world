@@ -1,5 +1,5 @@
 {
- "comment": "Settings for scripts/relax-tour-routes.py. Per story: strands per route, sea handling (coastal prefers shorelines; open treats open water like coast and islands as stops), noise amplitude. landBridge routes treat modern sea inside their corridor as land. places: named hard stops per story (lat, lon); route endpoints and coordinates shared by two routes are hard stops too.",
+ "comment": "Settings for scripts/relax-tour-routes.py. Per story: strands per route, sea handling (coastal prefers shorelines; open treats open water like coast and islands as stops), noise amplitude. landBridge routes treat modern sea inside their corridor as land. places: named hard stops per story (lat, lon); route endpoints and coordinates shared by two routes are hard stops too. A story's places entry may name another story to share its list.",
  "default": {
   "strands": 2,
   "sea": "coastal",
@@ -25,6 +25,21 @@
    "strands": 2,
    "sea": "open",
    "noise": 0.2
+  },
+  "homo-erectus": {
+   "strands": 3,
+   "sea": "coastal",
+   "noise": 0.35
+  },
+  "neanderthals": {
+   "strands": 3,
+   "sea": "coastal",
+   "noise": 0.35
+  },
+  "denisovans": {
+   "strands": 3,
+   "sea": "coastal",
+   "noise": 0.35
   }
  },
  "landBridge": [
@@ -467,6 +482,21 @@
    "quebec": [46.8, -71.2],
    "laRochelle": [46.16, -1.15],
    "charleston": [32.8, -79.9]
+  },
+  "homo-erectus": "origin-of-mankind",
+  "neanderthals": "origin-of-mankind",
+  "denisovans": "origin-of-mankind",
+  "first-towns": {
+   "gollu-dag": [38.25, 34.5],
+   "catalhoyuk": [37.67, 32.83],
+   "jericho": [31.87, 35.44],
+   "ain-ghazal": [32.0, 35.95],
+   "cayonu": [38.2, 39.7],
+   "jarmo": [35.55, 44.95],
+   "gobekli-tepe": [37.22, 38.92],
+   "ras-shamra": [35.6, 35.78],
+   "shillourokambos": [34.77, 33.02],
+   "bingol": [38.6, 42.2]
   }
  }
 }

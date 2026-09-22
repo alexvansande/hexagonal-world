@@ -61,7 +61,11 @@ export function createTourMarkers(stage,canvas){
   // A single integration point for the future story/route/area controller.
   layer.dispatchEvent(new CustomEvent('tourselect',{bubbles:true,detail:location}));
  };
- for(const [index,location] of tourLocations.entries()){
+ const locations=new Map();
+ // The seven entry dots exist from the start; a history period may add its own
+ // highlight spots (hominin groups, the first towns), whose buttons are made on demand.
+ const make=(location,index)=>{
+  locations.set(location.id,location);
   const button=document.createElement('button');button.type='button';button.className='tour-marker';
   button.dataset.tourId=location.id;button.setAttribute('aria-label',location.title);
   for(let ring=0;ring<3;ring++){
@@ -69,25 +73,26 @@ export function createTourMarkers(stage,canvas){
    pulse.style.animationDelay=`${-ring*1.2-index*.37}s`;button.append(pulse);
   }
   const center=document.createElement('span');center.className='tour-center';center.setAttribute('aria-hidden','true');button.append(center);
-  button.addEventListener('click',event=>{if(event.detail===0)select(location);});
+  button.addEventListener('click',event=>{if(event.detail===0)select(locations.get(location.id));});
   button.addEventListener('pointerdown',event=>{
    if(event.button!==0)return;
    // Nearby anchors can share a touch target at a small fitted zoom. Resolve
    // to the nearest center, not whichever button happens to be last in the DOM.
-   let nearest=location,distance=Infinity;
-   for(const candidate of tourLocations){
-    const element=buttons.get(candidate.id);if(element.hidden)continue;
+   let nearest=locations.get(location.id),distance=Infinity;
+   for(const [id,element] of buttons){
+    if(element.hidden)continue;
     const rect=element.getBoundingClientRect();
     const d=Math.hypot(event.clientX-rect.left-rect.width/2,event.clientY-rect.top-rect.height/2);
-    if(d<distance){distance=d;nearest=candidate;}
+    if(d<distance){distance=d;nearest=locations.get(id);}
    }
    if(event.isPrimary)pending={location:nearest,id:event.pointerId,x:event.clientX,y:event.clientY};
    // Keep the existing pan/pinch behavior even when a gesture starts on a dot.
    canvas.dispatchEvent(new PointerEvent('pointerdown',event));
   });
   button.addEventListener('wheel',event=>{event.preventDefault();canvas.dispatchEvent(new WheelEvent('wheel',event));},{passive:false});
-  buttons.set(location.id,button);layer.append(button);
- }
+  buttons.set(location.id,button);layer.append(button);return button;
+ };
+ for(const [index,location] of tourLocations.entries())make(location,index);
  stage.addEventListener('pointerdown',event=>{if(!event.isPrimary)pending=null;},true);
  stage.addEventListener('pointermove',event=>{
   if(pending&&event.pointerId===pending.id&&Math.hypot(event.clientX-pending.x,event.clientY-pending.y)>6)pending=null;
@@ -103,7 +108,8 @@ export function createTourMarkers(stage,canvas){
    const present=new Set(anchors.map(anchor=>anchor.location.id));
    for(const [id,button] of buttons)if(!present.has(id))button.hidden=true;
    for(const {location,local,tile,offset} of anchors){
-    const [x,y]=point(local,tile,offset),button=buttons.get(location.id);
+    const [x,y]=point(local,tile,offset),button=buttons.get(location.id)||make(location,buttons.size);
+    locations.set(location.id,location);if(button.getAttribute('aria-label')!==location.title)button.setAttribute('aria-label',location.title);
     button.hidden=x<0||y<0||x>width||y>height;
     button.style.left=`${x}px`;button.style.top=`${y}px`;
    }

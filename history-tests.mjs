@@ -27,10 +27,11 @@ for(const info of periods){
  const sidecar=JSON.parse(await readFile(`dist/history/${info.id}.strands.json`,'utf8'));
  assert(sidecar.generated===true);
  assert.equal(sidecar.routesHash,fnv(routesFile),`${info.id}: strands sidecar is stale; run scripts/relax-tour-routes.py ${info.id}`);
- assert.deepEqual([...new Set(authored.map(r=>r.story))].sort(),[...info.stories].sort(),`${info.id}: the index lists the stories that have routes`);
- assert.deepEqual(Object.keys(text.spots).sort(),[...info.stories].sort(),`${info.id}: one spot per story with routes`);
+ assert.deepEqual(Object.keys(text.spots).sort(),[...info.stories].sort(),`${info.id}: the index lists every spot of the period`);
+ for(const story of new Set(authored.map(r=>r.story)))assert(text.spots[story],`${info.id}: routes of ${story} need a spot`);
  for(const spot of Object.values(text.spots)){
-  spots++;assert(storyIds.has(spot.id),`${info.id}: spot ${spot.id} is a story`);
+  spots++;assert(/^[a-z][a-z0-9-]*$/.test(spot.id),`${info.id}: spot id ${spot.id}`);
+  if(!authored.some(r=>r.story===spot.id))assert(spot.view!=='fit',`${info.id}/${spot.id}: a spot without routes needs a view box`);
   assert(spot.spot&&Math.abs(spot.spot[0])<=90&&Math.abs(spot.spot[1])<=180,`${info.id}/${spot.id}: spot position`);
   assert(spot.view==='fit'||/^-?[\d.]+\s*,\s*-?[\d.]+\s*(→|->)\s*-?[\d.]+\s*,\s*-?[\d.]+$/.test(spot.view),`${info.id}/${spot.id}: view is fit or a box`);
   assert(spot.title&&spot.paragraphs.length,`${info.id}/${spot.id}: title and text`);
@@ -42,13 +43,14 @@ for(const info of periods){
  const ids=new Set();
  for(const r of authored){
   assert(!ids.has(r.id),`${info.id}: duplicate route ${r.id}`);ids.add(r.id);total++;
-  assert(storyIds.has(r.story)&&waves[r.wave]&&typeof r.title==='string',`${info.id}/${r.id}: story, wave and title`);used.add(r.wave);
+  assert(text.spots[r.story]&&waves[r.wave]&&typeof r.title==='string',`${info.id}/${r.id}: story, wave and title`);used.add(r.wave);
   assert(Array.isArray(r.coordinates)&&r.coordinates.length>=2&&r.coordinates.every(c=>c.length===2&&Math.abs(c[0])<=90&&Math.abs(c[1])<=180),`${info.id}/${r.id}: coordinates`);
   assert(r.zoom===undefined||(r.zoom>=0&&r.zoom<=8),`${info.id}/${r.id}: detail zoom`);if(r.zoom)detail++;
   assert(r.frequency===undefined||r.frequency>0);assert(r.lane===undefined||Number.isInteger(r.lane));
   const strands=sidecar.strands[r.id];assert(strands&&strands.length>=1,`${info.id}: no strands for ${r.id}`);
   for(const s of strands){assert(s.length>=2);assert.deepEqual(s[0],r.coordinates[0],`${r.id}: strand starts at the first stop`);assert.deepEqual(s.at(-1),r.coordinates.at(-1),`${r.id}: strand ends at the last stop`);}
   if(relax.landBridge.includes(r.id))assert(r.story==='origin-of-mankind');
+  if(typeof relax.places[r.story]==='string')assert(relax.places[relax.places[r.story]],`${r.story} places alias resolves`);
  }
  const routes=assembleRoutes(authored,sidecar.strands);
  assert.equal(routes.length,authored.length+authored.filter(r=>r.twoWay).length,`${info.id}: two-way routes gain a reversed partner`);

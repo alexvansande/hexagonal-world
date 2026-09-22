@@ -75,7 +75,11 @@ History data lives in **`dist/history/`**, one period at a time, and is the only
 source of story content:
 
 - `index.mjs` lists the nine periods in order (`id`, old `stop` name, scrubber
-  `tick`, `label`, `date`, `year`, and the `stories` present).
+  `tick`, `label`, `date`, `year`, and the `stories` present: its spots, in
+  order of importance). A spot is usually one of the seven entry stories, but a
+  period may add highlight spots of its own (`homo-erectus`, `neanderthals`,
+  `denisovans`, `island-hominins`, `first-towns`); their dots exist only on the
+  timeline, and a spot without routes needs a `view` box.
 - `<period>.md` holds the texts: an H1 `Label · date`, an intro paragraph, then one
   `## story-id` section per spot with `### Title`, `spot: lat, lon` (where the
   dot sits at that moment: the Vikings on Norway in 1000 CE, on Greenland in

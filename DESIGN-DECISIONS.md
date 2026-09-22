@@ -661,6 +661,16 @@ the ocean crossings); scrubbing keeps a focused story that continues at the new
 period and otherwise activates the headline, so the card never simply closes
 on a date change.
 
+**Highlight spots (September 22).** The user found the early dates thin and
+asked for the first towns at 10,000 years ago and highlights for the many
+hominins. Decision: a period may define spots beyond the seven entry stories,
+so 2M ya adds Homo erectus across Eurasia, 50k ya adds Neanderthals, Denisovans
+and the island hominins of Flores and Luzon (Homo floresiensis is indeed last
+seen around 60,000–50,000 years ago), and 10k ya adds the first towns
+(Göbekli Tepe, Jericho, Çatalhöyük) with obsidian and farming routes. They are
+called towns, not proto-cities with migrant populations: they were settled
+communities, and cities with writing and states are 4,000 years later.
+
 **Dance anchored on the centre (September 22).** The user saw a small drag down,
 made only to see an arrangement better, re-form the group and move the pieces in
 front of them away. Decision: a band switch needs a deliberate pan (40% of the

@@ -10,7 +10,8 @@ export const periods=Object.freeze([
   "date": "c. 2 million years ago",
   "year": -2000000,
   "stories": [
-   "origin-of-mankind"
+   "origin-of-mankind",
+   "homo-erectus"
   ]
  },
  {
@@ -22,6 +23,9 @@ export const periods=Object.freeze([
   "year": -50000,
   "stories": [
    "origin-of-mankind",
+   "neanderthals",
+   "denisovans",
+   "island-hominins",
    "french-polynesia"
   ]
  },
@@ -33,7 +37,8 @@ export const periods=Object.freeze([
   "date": "c. 10,000 years ago",
   "year": -8000,
   "stories": [
-   "origin-of-mankind"
+   "origin-of-mankind",
+   "first-towns"
   ]
  },
  {
