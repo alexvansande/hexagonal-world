@@ -10,7 +10,7 @@ const pause=ms=>new Promise(r=>setTimeout(r,ms));
 const until=async(test,label)=>{for(let i=0;i<400;i++){if(test())return;await pause(50);}throw Error('Timed out: '+label);};
 const check=(ok,label)=>{if(!ok)throw Error(label);const li=document.createElement('li');li.textContent='PASS: '+label;document.querySelector('#checks').append(li);};
 try{
- await until(()=>frame.contentDocument?.querySelectorAll('.tour-marker:not([hidden])').length===5,'map');
+ await until(()=>frame.contentDocument?.querySelectorAll('.tour-marker:not([hidden])').length===7,'map');
  let d=frame.contentDocument,w=frame.contentWindow;await pause(400);
  const toggle=d.querySelector('#show-history'),tools=d.querySelector('.history-tools'),routes=d.querySelector('.tour-routes'),viewTools=d.querySelector('.view-tools');
  check(getComputedStyle(d.querySelector('#history-toggle')).display!=='none'&&tools.hidden,'Show history checkbox sits in the collapsed sidebar; scrubber hidden');
@@ -24,12 +24,17 @@ try{
  check(new Set(visible().map(g=>g.dataset.routeId.split('-')[0])).size>=3,'Middle Ages draws several stories at once');
  check(d.querySelectorAll('.tour-marker:not([hidden])').length===middle.tours.length&&d.querySelectorAll('.history-stories button').length===middle.tours.length,'Story dots and chips filter to the stop');
  const counts=[];
- for(const [i,stop] of timelineStops.entries()){slider.value=i;slider.dispatchEvent(new w.Event('input',{bubbles:true}));await pause(250);counts.push(visible().length);
+ const map=d.querySelector('#map');
+ for(const [i,stop] of timelineStops.entries()){slider.value=i;slider.dispatchEvent(new w.Event('input',{bubbles:true}));const wantsPacific=stop.tours.includes('french-polynesia');
+  await until(()=>map.dataset.tourProgress==='1.00'&&(map.dataset.tourLayout==='pacific')===wantsPacific&&(!stop.chapters.length||visible().length>0),'settled '+stop.id);await pause(150);counts.push(visible().length);
   check(w.location.search.includes('history='+stop.id),'URL preserves '+stop.id);
   check(d.querySelector('#history-date').textContent===`${stop.label} · ${stop.date}`,'Date for '+stop.id);
   if(!stop.chapters.length)check(!d.querySelector('#history-note').hidden&&visible().length===0,'Empty stop explains itself');
+  else check(visible().length>0,'Stop draws routes: '+stop.id);
+  check((map.dataset.tourLayout==='pacific')===stop.tours.includes('french-polynesia'),'Pacific layout follows the stop: '+stop.id);
  }
- check(new Set(counts).size>=5,'Stops draw different networks');
+ check(new Set(counts).size>=6,'Stops draw different networks');
+ check(routes.querySelectorAll('path').length<1200,'Route DOM stays bounded while scrubbing');
  // Open a story from a chip, land on that stop's chapter, and return to history mode on close.
  slider.value=timelineStops.findIndex(s=>s.id==='high-middle-ages');slider.dispatchEvent(new w.Event('input',{bubbles:true}));await pause(250);
  d.querySelector('.history-stories button[data-tour-id="silk-road"]').click();await until(()=>!d.querySelector('.tour-timeline').hidden,'story');await pause(1500);
@@ -38,7 +43,7 @@ try{
  check(w.location.search.includes('history=high-middle-ages')&&visible().length>0,'Closing the story returns to the same stop');
  d.querySelector('#history-pause').click();check(routes.classList.contains('flow-paused'),'Pause freezes the unified flow');d.querySelector('#history-pause').click();
  toggle.click();await until(()=>tools.hidden,'off');await pause(200);
- check(getComputedStyle(viewTools).display!=='none'&&routes.style.display==='none'&&d.querySelectorAll('.tour-marker:not([hidden])').length===5&&!w.location.search.includes('history='),'Unchecking restores the toolbox, dots and URL');
+ check(getComputedStyle(viewTools).display!=='none'&&routes.style.display==='none'&&d.querySelectorAll('.tour-marker:not([hidden])').length===7&&!w.location.search.includes('history='),'Unchecking restores the toolbox, dots and URL');
  // Direct URL entry restores the stop.
  frame.src='/lifezones/spaceship-earth/?history=bronze-age';await until(()=>frame.contentDocument?.querySelector('.history-tools')&&!frame.contentDocument.querySelector('.history-tools').hidden,'reload');
  d=frame.contentDocument;await until(()=>[...d.querySelectorAll('.tour-routes g[data-route-id]')].some(g=>g.style.display!=='none'),'reload routes');

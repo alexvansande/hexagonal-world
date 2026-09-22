@@ -1,7 +1,7 @@
 {
-  "release": "maps-1f5d3dec8df26464",
-  "baseURL": "https://assets.hexagonal.earth/maps-1f5d3dec8df26464",
-  "manifestSHA256": "61133c32ce9418606855229c7fead4eaeefc5c0bdaf7faa829f2462b096bbedf",
-  "imageCount": 533,
-  "imageBytes": 57644195
+  "release": "maps-93969f8b8e70cd45",
+  "baseURL": "https://assets.hexagonal.earth/maps-93969f8b8e70cd45",
+  "manifestSHA256": "b0fac34f657e52d87d33400b11a93bf35e8d3a84b7fc549a07c099e1ff740776",
+  "imageCount": 535,
+  "imageBytes": 57971763
 }

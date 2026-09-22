@@ -18,6 +18,7 @@ export const tradePlaces={
  venice:[45.44,12.34],genoa:[44.41,8.93],tabriz:[38.08,46.29],
  cyprus:[35.13,33.94],ugarit:[35.6,35.78],byblos:[34.12,35.65],mycenae:[37.73,22.76],crete:[35.3,25.2],
  hattusa:[40.02,34.62],babylon:[32.54,44.42],nileDelta:[30.8,31.8],thebes:[25.72,32.65],nubia:[19.6,33.4],
+ lothal:[22.5,72.2],magan:[23.6,58.5],dilmun:[26.2,50.6],ur:[30.96,46.1],badakhshan:[36.7,70.8],balkh:[36.75,66.9],merv:[37.66,62.19],sambia:[54.8,20.5],carnuntum:[48.2,16.4],aquileia:[45.8,13.4],gawasis:[26.6,34],adulis:[15.26,39.66],berenike:[23.9,35.5],
 };
 const p=tradePlaces;
 const coords=stops=>stops.map(stop=>typeof stop==='string'?p[stop]:stop);
@@ -46,13 +47,22 @@ const bronze=[
  flow('bronze-textiles','textiles-pottery',['babylon',[33.4,43.3],[35.3,40.1],[36.5,38.1],[36.2,37.2],'ugarit'],4),
  flow('bronze-pottery-cyprus','textiles-pottery',['mycenae',[37,23.2],[36,24.5],'crete',[35.9,28],[36.2,30],[36.1,32.3],'cyprus'],4),
  flow('bronze-pottery-levant','textiles-pottery',['cyprus','ugarit'],0),
+ // Wider Bronze Age world: Indus–Gulf shipping, Afghan lapis lazuli, Baltic amber and Punt.
+ flow('bronze-indus-gulf','lapis-amber',['lothal',[22,68],[24,62],'magan',[25.5,55],'dilmun',[28.5,49],'ur'],0),
+ flow('bronze-lapis','lapis-amber',['badakhshan','balkh','merv',[36.2,58.8],[35.6,53.4],'ray',[34.8,48.5],[33.5,44.4],'babylon'],-4),
+ flow('bronze-amber','lapis-amber',['sambia',[53,17],[50.5,15.5],[48,16],[47,15],'aquileia',[44,13.5],[41,17.5],[39,19.5],[38,21.5],'mycenae'],0,{uncertain:true}),
+ flow('bronze-punt','gold-silver',['adulis',[18,40],[22,37.5],'gawasis',[26,33],'thebes'],0,{uncertain:true}),
 ];
 
 // Remove explicitly later institutions and hubs from the Roman/Han snapshot.
 // Ctesiphon replaces Baghdad (founded in 762); no Sui canal or Constantinople hub.
-const ancient=mixed.filter(r=>r.region!=='byzantium'&&!r.id.endsWith('china-canal')).map(r=>({
+const ancient=[...mixed.filter(r=>r.region!=='byzantium'&&!r.id.endsWith('china-canal')).map(r=>({
  ...r,coordinates:r.coordinates.map(([lat,lon])=>lat===33.31&&lon===44.37?p.ctesiphon:[lat,lon]),
-}));
+})),
+ // Beyond the Silk Road proper: the Amber Road to Rome and Aksum's Red Sea port.
+ flow('ancient-amber','lapis-amber',['sambia',[53,17],[50.5,15.5],'carnuntum',[47,15],'aquileia',[44.5,11.3],[43.5,11.2],'rome'],0),
+ flow('ancient-adulis','spices-cotton',['adulis',[18,40],[22,37.5],'berenike'],0),
+];
 
 // Medieval overland backbone: inland Asian corridors persist, while the western
 // distribution network and maritime ports change. Palmyra/Roman ocean legs drop out.
@@ -111,8 +121,8 @@ early.push(reverse(early.find(r=>r.id==='early-china-sea'),'early-spices-east','
 high.push(reverse(high.find(r=>r.id==='high-china-sea'),'high-spices-east','spices-cotton'));
 
 const trade=definePeriods('silk-road',[
- {id:'bronze-age',label:'Bronze Age',date:'c. 1300 BCE',year:-1300,routes:bronze,waves:['tin','copper','gold-silver','glass-metals','timber','textiles-pottery']},
- {id:'antiquity',label:'Antiquity',date:'c. 150 CE',year:150,routes:ancient,waves:['silk','gold-silver','glass-metals','horses','spices-cotton']},
+ {id:'bronze-age',label:'Bronze Age',date:'c. 1300 BCE',year:-1300,routes:bronze,waves:['tin','copper','gold-silver','glass-metals','timber','textiles-pottery','lapis-amber']},
+ {id:'antiquity',label:'Antiquity',date:'c. 150 CE',year:150,routes:ancient,waves:['silk','gold-silver','glass-metals','horses','spices-cotton','lapis-amber']},
  {id:'early-middle-ages',label:'Early Middle Ages',date:'c. 900 CE',year:900,routes:early,waves:['silk','gold-silver','horses','spices-cotton','furs']},
  {id:'high-middle-ages',label:'High Middle Ages',date:'c. 1300 CE',year:1300,routes:high,waves:['silk','gold-silver','horses','spices-cotton','furs','ceramics']},
 ],'antiquity',{heading:'Trade through time',strands:relaxedStrands});

@@ -21,7 +21,7 @@ Move through four periods to explore how goods connected distant societies, from
 ## silk-road-bronze-age
 ### The world that made bronze
 
-Bronze joined **copper and tin** from distant sources. Cypriot copper, imported tin, Egyptian gold, glass, timber and crafted goods connected the Aegean, Egypt and western Asia.
+Bronze joined **copper and tin** from distant sources. Cypriot copper, imported tin, Egyptian gold, glass, timber and crafted goods connected the Aegean, Egypt and western Asia. Further afield, Indus ships reached the Gulf, Afghan lapis lazuli travelled to Babylon, Baltic amber reached Mycenae, and Egyptian expeditions sailed to Punt.
 
 Around **1200 BCE**, warfare, drought, shortages and political upheaval disrupted this interconnected world. Trade breakdown was part of the crisis; its causes and local outcomes remain debated.
 
@@ -31,6 +31,7 @@ Around **1200 BCE**, warfare, drought, shortages and political upheaval disrupte
 - **Glass** · Egypt → Mediterranean
 - **Timber** · Levant → Egypt
 - **Textiles & pottery** · Mesopotamia & Aegean → ports
+- **Lapis, carnelian & amber** · Afghanistan, the Indus & the Baltic → cities
 
 > Fainter tin lines show proposed supply chains. British tin has new scientific support; the eastern corridor from Central Asia and Afghanistan through Iran and Mesopotamia remains a debated reconstruction. Exact sources, itineraries and volumes are uncertain. Dot frequency is illustrative.
 
@@ -41,13 +42,14 @@ Around **1200 BCE**, warfare, drought, shortages and political upheaval disrupte
 
 Silk passed west through Central Asian intermediaries; Roman gold, silver and manufactured goods travelled east. The **Parthian and Kushan worlds** linked these exchanges with India and Han China.
 
-Roads and rivers fed regional markets. Ships joined Roman Egypt to Indian ports through the Red Sea and Indian Ocean. **Ctesiphon**, rather than the later city of Baghdad, anchors Mesopotamia here.
+Roads and rivers fed regional markets. Ships joined Roman Egypt to Indian ports through the Red Sea and Indian Ocean, with **Aksum**’s port of Adulis on the way. Baltic amber came south along the **Amber Road** to Aquileia and Rome. **Ctesiphon**, rather than the later city of Baghdad, anchors Mesopotamia here.
 
 - **Silk** · China → west and south
 - **Gold & silver** · Roman world → east
 - **Glass, copper & tin** · Mediterranean → India
 - **Horses** · Fergana → China
-- **Spices & cotton** · India → Roman world
+- **Spices & cotton** · India & Aksum → Roman world
+- **Amber** · Baltic → Rome
 
 > Selected corridors around 150 CE, not imperial borders or single journeys. Random dots show direction; their frequency does not represent volume. Constantinople and the Sui–Tang canal network belong to later periods.
 
@@ -399,3 +401,150 @@ By 1450 CE, **pochteca** merchants carried obsidian, cloth and tribute between T
 > Roads and sea lanes are simplified; state control of trade varied. Guanín and Amazon links are drawn fainter.
 
 [Sources and exchange notes ↗](./americas-exchange-sources.md)
+
+## african-networks
+### Networks across Africa
+
+Gold, salt, ivory, cloth and enslaved people moved across the Sahara, along the Nile and the Red Sea, and around the Indian Ocean long before the Atlantic trade began. Move through five periods, from the Garamantes and Aksum to the Atlantic slave trade.
+
+> Corridors between known towns, mines and ports, not itineraries. Enslaved people are drawn as their own line so the trade is named; dots show direction, not numbers.
+
+[Sources and route notes ↗](./african-networks-sources.md)
+
+## african-networks-garamantes-and-aksum
+### Garamantes and Aksum
+
+Around 200 CE the **Garamantes** of the Fezzan linked the Roman coast with the Sahara, and probably with the Niger bend, trading salt, carnelian and captives. On the Nile, **Meroë** sent gold, ivory and iron north to Roman Egypt, and Egyptian and Roman goods came upriver.
+
+In the Horn, **Aksum** exported ivory through its port at Adulis and traded across the Red Sea with South Arabia.
+
+- **Gold, ivory & ebony** · Meroë and Aksum → Egypt and the Red Sea
+- **Salt & copper** · Sahara → coast and Sahel
+- **Cloth, beads & wine** · Roman world → Africa
+- **Enslaved people** · Sahara and Nile → the Mediterranean
+
+> Garamantian routes south of the Fezzan are inferred from graves, wells and imports, so they are drawn fainter. Bantu-speaking expansions in the same centuries are on the human migrations story.
+
+[Sources and route notes ↗](./african-networks-sources.md)
+
+## african-networks-ghana-and-swahili
+### Ghana and the Swahili coast
+
+By 950 CE camel caravans crossed the western Sahara from **Sijilmasa** through the salt mines of **Taghaza** to Walata and the empire of **Ghana**, exchanging Saharan salt and Maghribi cloth and copper for gold from Bambuk. Eastern routes carried captives from Kanem and Nubia to Tripoli and Cairo.
+
+On the Indian Ocean, **Swahili** towns from Mogadishu to Kilwa traded ivory, gold and enslaved people to the Persian Gulf for cloth, beads and ceramics, riding the monsoon.
+
+- **Gold & ivory** · Sahel and East Africa → the Maghreb and the Gulf
+- **Salt & copper** · Sahara → Sahel
+- **Cloth, beads & ceramics** · Maghreb and Gulf → Africa
+- **Enslaved people** · Sahara, Nile and Swahili coast → outside markets
+
+> The Limpopo gold link to the coast is drawn fainter; Mapungubwe’s trade is known from beads and gold, not recorded routes.
+
+[Sources and route notes ↗](./african-networks-sources.md)
+
+## african-networks-mali-and-kilwa
+### Mali and Kilwa
+
+Around 1300 the empire of **Mali** controlled the gold of Bambuk and Bure and the salt of Taghaza, with **Timbuktu, Djenné and Gao** as its trading cities. Caravans ran to Fez and Sijilmasa in the west and, by way of Tuat and Ghadames, to Tripoli and **Cairo**. Books, horses and cloth came south.
+
+**Kilwa** now dominated the Sofala gold trade from Great Zimbabwe, and Swahili ships sailed to Aden, Hormuz and Gujarat. Ethiopia reached the Red Sea through Zeila.
+
+- **Gold & ivory** · Mali and Zimbabwe → Mediterranean and Indian Ocean
+- **Salt & copper** · Taghaza → Timbuktu
+- **Cloth, books & horses** · north and east → Africa
+- **Enslaved people** · Sahara, Nile and Red Sea → outside markets
+
+> This is the world of Mansa Musa’s pilgrimage, drawn as its trade corridors rather than one journey. Volumes are unknown; dots show direction only.
+
+[Sources and route notes ↗](./african-networks-sources.md)
+
+## african-networks-songhai-and-portuguese
+### Songhai and the Portuguese
+
+By 1480 **Songhai**, from Gao, ruled the Niger bend and the caravan trade to Morocco, Tripoli and Cairo. At the same time **Portuguese** ships reached the Atlantic coast: gold from the Akan forest at **Elmina**, pepper and cloth from Benin, and enslaved people from Senegambia and the kingdom of **Kongo**, shipped through Arguin and São Tomé.
+
+On the Indian Ocean the Swahili and Gujarati trade continued, soon to meet the Portuguese as well.
+
+- **Gold & ivory** · Sahel and Gold Coast → Maghreb and Lisbon
+- **Salt & copper** · Sahara → Niger bend
+- **Cloth, brass & beads** · Europe and the Maghreb → Africa
+- **Enslaved people** · Sahara, Kongo and Senegambia → Mediterranean and Atlantic
+
+> Atlantic lines mark the start of a trade that grew enormously later; the Benin and Senegambia links are drawn fainter.
+
+[Sources and route notes ↗](./african-networks-sources.md)
+
+## african-networks-atlantic-slave-trade
+### The Atlantic slave trade
+
+By 1750 the **Atlantic slave trade** was at its height. Ships from Europe brought textiles, guns, iron and rum to the coasts of Senegambia, the Gold Coast, the Bights of Benin and Biafra and Angola, and carried enslaved Africans to the Caribbean, Brazil and North America: about twelve and a half million people over the whole trade.
+
+Older networks continued: caravans still crossed the Sahara, and the Indian Ocean trade from Zanzibar and Mozambique sent captives to Oman, the Gulf and even Brazil.
+
+- **Enslaved people** · African coasts → the Americas, the Sahara and the Indian Ocean
+- **Textiles, guns & rum** · Europe → African coasts
+- **Gold & ivory** · Asante and the Sahel → coasts and the Maghreb
+
+> Lanes are schematic, not the courses of named ships. The plantation goods that paid for the trade are on the Ocean crossings story. Interior routes are drawn fainter.
+
+[Sources and route notes ↗](./african-networks-sources.md)
+
+## ocean-crossings
+### Crossing the oceans
+
+Between 1400 and 1750 the world’s seas were joined: Ming fleets and monsoon traders on the Indian Ocean, Iberian ships across the Atlantic and around the Cape, then the galleons and chartered companies that carried silver, silk, spices, sugar and furs between every continent. Move through three periods.
+
+> Trade lanes between ports, not the voyages of named captains. Dots show direction, not tonnage.
+
+[Sources and route notes ↗](./ocean-crossings-sources.md)
+
+## ocean-crossings-ming-and-monsoon
+### Ming fleets and the monsoon
+
+Between 1405 and 1433 the **Ming treasure fleets** sailed from Nanjing through Southeast Asia and Ceylon to Calicut, Hormuz, Aden and the Swahili coast, carrying porcelain and silk and returning with spices, gems and giraffes.
+
+They sailed a sea already busy: **Gujarati, Arab, Malay and Chinese** traders rode the monsoon between Cambay, Malacca and Quanzhou, and spices reached Europe through the Red Sea, Cairo and **Venice**.
+
+- **Porcelain & silk** · China → Indian Ocean ports
+- **Cotton cloth** · Gujarat → Africa and Southeast Asia
+- **Spices & pepper** · Malacca and Malabar → Egypt and Venice
+- **Silver & gold** · Europe and the Middle East → India
+
+> The treasure fleets are drawn as one lane for seven state expeditions. Ryukyu’s role is drawn fainter.
+
+[Sources and route notes ↗](./ocean-crossings-sources.md)
+
+## ocean-crossings-iberian-routes
+### Iberian routes
+
+From the 1490s **Portuguese** ships rounded the Cape of Good Hope to Malindi and Calicut, opening a sea route for pepper that competed with the Red Sea. **Castilian** ships crossed the Atlantic from the Canaries to the Caribbean and returned on the westerlies past the Azores, while Portugal reached Brazil.
+
+Gold from **Elmina** and captives from West Africa flowed to Lisbon, and the older Asian networks carried on trading.
+
+- **Spices & pepper** · India → Lisbon and Venice
+- **Silver, gold & copper** · Europe → Asia; Gold Coast → Lisbon
+- **Cloth & goods** · Iberia → Atlantic settlements and Asia
+- **Porcelain & silk** · China → Malacca
+
+> Lanes follow the winds and currents that made these crossings possible, not the track of any single fleet.
+
+[Sources and route notes ↗](./ocean-crossings-sources.md)
+
+## ocean-crossings-galleons-and-companies
+### Galleons and companies
+
+By 1750 the **Manila galleon** carried American silver to Asia and Chinese silk and porcelain back to Acapulco. Silver from **Potosí** and New Spain went to Havana and Cádiz in treasure fleets. The **Dutch and English East India companies** sailed around the Cape to Batavia, Bombay, Madras and Calcutta, and Canton tea reached London.
+
+Across the Atlantic, Caribbean sugar, Brazilian gold, Chesapeake tobacco and Canadian furs paid for the goods that Europe shipped to Africa and the Americas.
+
+- **Silver & gold** · Americas → Europe and Asia
+- **Tea, silk & porcelain** · China → Europe and Mexico
+- **Spices & pepper** · East Indies → Amsterdam
+- **Cotton cloth** · India → Europe
+- **Sugar, tobacco & rum** · plantations → Europe
+- **Furs** · Hudson Bay and Canada → Europe
+
+> The Atlantic slave trade that fed the plantations is on the African networks story. Lanes are schematic; company monopolies varied.
+
+[Sources and route notes ↗](./ocean-crossings-sources.md)

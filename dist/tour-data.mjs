@@ -8,5 +8,7 @@ export async function loadTourData(id){
  if(id==='iceland-to-vinland')return chapters((await import('./tour-vinland.mjs?v=strands-2')).vinlandChapters);
  if(id==='french-polynesia')return chapters((await import('./tour-polynesia.mjs?v=strands-2')).polynesiaChapters);
  if(id==='americas-exchange')return chapters((await import('./tour-americas.mjs?v=strands-2')).americasChapters);
+ if(id==='african-networks')return chapters((await import('./tour-africa.mjs?v=strands-2')).africaChapters);
+ if(id==='ocean-crossings')return chapters((await import('./tour-oceans.mjs?v=strands-2')).oceanChapters);
  return {routes:[],areas:[]};
 }

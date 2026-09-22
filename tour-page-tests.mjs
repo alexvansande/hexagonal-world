@@ -15,8 +15,8 @@ assert.equal(assetURL('/social/lifezones-spaceship-earth.jpg',atlas,overrides),a
 assert.equal(assetURL('/social/tour-india.jpg','',overrides),'/social/tour-india.jpg');
 assert.equal(assetURL('https://example.com/a.jpg',atlas,overrides),'https://example.com/a.jpg');
 
-assert.equal(tourPages.length,5);
-assert.equal(new Set(tourPages.map(t=>t.path)).size,5);
+assert.equal(tourPages.length,7);
+assert.equal(new Set(tourPages.map(t=>t.path)).size,7);
 assert.equal(readTourPath('/india/'),null,'Retired overlays no longer resolve as tour pages');
 assert.equal(readTourPath('/unknown/'),null);assert.equal(readTourPath('/india/extra/'),null);
 const directory=await mkdtemp(join(tmpdir(),'hex-tour-pages-')),hashes=new Set();
@@ -33,7 +33,7 @@ try{
   let size=null;for(let pos=2;pos<bytes.length;){const marker=bytes[pos+1],length=bytes.readUInt16BE(pos+2);if([0xc0,0xc1,0xc2].includes(marker)){size=[bytes.readUInt16BE(pos+7),bytes.readUInt16BE(pos+5)];break;}pos+=length+2;}
   assert.deepEqual(size,[1200,630]);hashes.add(createHash('sha256').update(bytes).digest('hex'));
  }
- assert.equal(hashes.size,5,'each tour has distinct rendered artwork');
+ assert.equal(hashes.size,7,'each tour has distinct rendered artwork');
 }finally{await rm(directory,{recursive:true,force:true});}
 
 // Browser history must preserve the exact map URL, avoid a duplicate entry on
@@ -53,4 +53,4 @@ win.history.replaceState(null,'','/french-polynesia/');nav.open('french-polynesi
 assert.equal(readPeriod('?period=lapita'),'lapita');assert.equal(readPeriod(''),null);
 assert.equal(withPeriod('https://hexagonal.earth/french-polynesia/','lapita'),'https://hexagonal.earth/french-polynesia/?period=lapita');
 assert.equal(withPeriod('https://hexagonal.earth/silk-road/?period=antiquity#m=abc','bronze-age'),'https://hexagonal.earth/silk-road/?period=bronze-age#m=abc');
-console.log('Tour pages: five root URLs, unique 1200×630 JPEGs, static OG/Twitter metadata, sitemap, period query state and Back/Forward history pass.');
+console.log('Tour pages: seven root URLs, unique 1200×630 JPEGs, static OG/Twitter metadata, sitemap, period query state and Back/Forward history pass.');

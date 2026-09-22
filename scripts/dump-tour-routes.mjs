@@ -11,12 +11,16 @@ import {migrationPlaces} from '../dist/tour-migrations.mjs';
 import {vikingPlaces} from '../dist/tour-vinland.mjs';
 import {polynesiaPlaces} from '../dist/tour-polynesia.mjs';
 import {americasPlaces} from '../dist/tour-americas.mjs';
+import {africaPlaces} from '../dist/tour-africa.mjs';
+import {oceanPlaces} from '../dist/tour-oceans.mjs';
 const settings={
  'silk-road':{strands:2,sea:'coastal',noise:.3,places:{...silkRoadPlaces,...tradePlaces}},
  'origin-of-mankind':{strands:3,sea:'coastal',noise:.35,places:migrationPlaces,landBridge:['migration-beringia']},
  'iceland-to-vinland':{strands:3,sea:'coastal',noise:.3,places:vikingPlaces},
  'french-polynesia':{strands:3,sea:'open',noise:.25,places:polynesiaPlaces},
  'americas-exchange':{strands:2,sea:'coastal',noise:.3,places:americasPlaces},
+ 'african-networks':{strands:2,sea:'coastal',noise:.3,places:africaPlaces},
+ 'ocean-crossings':{strands:2,sea:'open',noise:.2,places:oceanPlaces},
 };
 const output=resolve(process.argv[2]||'_relax');await mkdir(output,{recursive:true});
 for(const [tour,chapters] of Object.entries(tourChapters)){

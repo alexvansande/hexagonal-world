@@ -597,6 +597,23 @@ to exactly one stop (tested); reading points are the existing story dots for
 now, opening at the stop’s chapter. Stop dates are editorial; Silk Road
 snapshots are treated as ±150-year windows when assigned.
 
+**Overnight rules (September 21).** Stories and the timeline are available on
+the Spaceship Earth and Felv arrangements in any view except political and
+distortion analysis; custom maps have none. On Spaceship Earth, whenever a
+timeline stop concerns the Pacific (any Polynesian chapter) the pieces switch
+to the Pacific-facing arrangement and return afterwards. The Polynesian story
+alone uses the full Pacific view: the Europe–Africa piece also moves onto South
+America's Atlantic edge, a pure translation that keeps its baked lighting valid,
+so the Pacific and the Atlantic both read as continuous seas. Timeline stops keep
+Eurasia and Africa joined because they also show Silk Road, Viking and African
+stories. Zoom-driven switching remains a follow-up. Content passes added two
+stories to fill the thin stops: African networks (trans-Saharan, Nile, Swahili
+and Atlantic trades, with enslaved people as a named wave) and Ocean crossings
+(Ming and monsoon trade, Iberian routes, galleons and companies), plus wider
+Bronze Age and Antiquity lanes on the Silk Road. Per the user, these draw
+overall trends, never individual journeys: Mansa Musa and Zheng He are evidence
+for corridors, not lines of their own. Performance budgets were re-run at the end.
+
 Evidence: September 21 feature request and confirmation. Checks:
 `tour-chapter-tests.mjs`, `tour-marker-tests.mjs`, `tour-page-tests.mjs`,
 `/tests/tour-areas.html` (Norse), `/tests/tour-migrations.html`, `/tests/tour-polynesia.html`.

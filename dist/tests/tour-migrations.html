@@ -9,7 +9,7 @@ const pause=ms=>new Promise(r=>setTimeout(r,ms));
 const wait=async test=>{for(let i=0;i<300;i++){if(test())return;await pause(50);}throw Error('Timed out');};
 const check=(ok,text)=>{if(!ok)throw Error(text);const li=document.createElement('li');li.textContent='PASS: '+text;document.querySelector('#checks').append(li);};
 try{
- await wait(()=>frame.contentDocument?.querySelectorAll('.tour-marker:not([hidden])').length===5);
+ await wait(()=>frame.contentDocument?.querySelectorAll('.tour-marker:not([hidden])').length===7);
  const d=frame.contentDocument,win=frame.contentWindow,origin=d.querySelector('[data-tour-id="origin-of-mankind"]'),card=d.querySelector('#tour-story'),canvas=d.querySelector('#map'),close=d.querySelector('#tour-story-close');
  const positions=()=>[...d.querySelectorAll('.tour-marker')].map(b=>[b.style.left,b.style.top]);
  const before=JSON.stringify(positions());origin.click();await pause(1600);

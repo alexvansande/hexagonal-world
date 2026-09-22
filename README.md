@@ -60,9 +60,13 @@ See [AUDIT.md](AUDIT.md) for the September 2026 diagnosis, repairs, performance 
 
 ## Implemented
 
-The default Spaceship Earth + Lifezones map includes five discovery dots from
+The Spaceship Earth and Felv arrangements, in every pre-rendered style except
+political borders and the distortion analysis, include seven discovery dots from
 `dist/tour-markers.mjs`: Origin of mankind, Silk Road, Viking expansion (at the
-`/iceland-to-vinland/` URL), French Polynesia and Americas exchange. Each record has a stable `id`, `title`,
+`/iceland-to-vinland/` URL), French Polynesia, Americas exchange, African networks
+and Ocean crossings. The Pacific-facing piece move and its relit artwork remain a
+Spaceship Earth feature (relit for Lifezones only; other styles rotate the
+original artwork). Each record has a stable `id`, `title`,
 `latitude`, `longitude`, and an `overlay` field (a stable overlay ID). The earlier
 imperial-extent and Amazon-basin dots were retired as entry points on September 21;
 their area geometry, clipping renderer and tests remain for future use. The reusable DOM layer emits a bubbling `tourselect` event with the
@@ -118,7 +122,13 @@ then the Iceland–Greenland–Vinland story as its final chapter), Polynesia fi
 (`tour-polynesia.mjs`: Pleistocene Near Oceania, Austronesians and Lapita, East
 Polynesia, the far corners, and an uncertain South American contact chapter) and
 the Americas four (`tour-americas.mjs`, including Amazonian river pottery and
-greenstone networks drawn as uncertain links). Evidence notes: `human-migrations-sources.md`,
+greenstone networks drawn as uncertain links), African networks five
+(`tour-africa.mjs`: Garamantes and Aksum, Ghana and the Swahili coast, Mali and
+Kilwa, Songhai and the Portuguese, the Atlantic slave trade, with enslaved people
+as their own red wave) and Ocean crossings three (`tour-oceans.mjs`: Ming fleets
+and the monsoon, Iberian routes, galleons and companies). The Silk Road Bronze
+Age and Antiquity chapters gained the Indus–Gulf, lapis lazuli, amber and Punt
+lanes. Evidence notes: `african-networks-sources.md` and `ocean-crossings-sources.md`. Evidence notes: `human-migrations-sources.md`,
 `territory-tours-sources.md`, `polynesia-sources.md` and `americas-exchange-sources.md`.
 Corridor relaxation (every chapter of every story): `scripts/dump-tour-routes.mjs`
 writes one JSON per tour with its unique routes, hard stops (endpoints, named
@@ -152,9 +162,12 @@ not evenly spaced years; every chapter belongs to exactly one stop, and a stop
 entry may restrict a chapter to some waves (the Norse composite chapter shows
 only its trade lanes at 1300). Story dots and chips filter to the stop’s stories
 and open the story at that stop’s chapter; closing returns to the same stop. The
-stop persists as `?history=<stop>` on the map URL. The last two stops are
-placeholders with a note until their stories are written. Leaving Lifezones
-switches history off. Checks: `tour-timeline-tests.mjs` and `/tests/tour-history.html`
+stop persists as `?history=<stop>` on the map URL. On Spaceship Earth, stops
+with a Polynesian chapter move the American pieces to the Pacific-facing joins
+and other stops move them back. The Polynesian story itself also translates the
+Europe–Africa piece onto South America's Atlantic edge (`pacificTourNet` with
+`atlantic: true`), joining both oceans without new artwork. Leaving an
+eligible map switches history off. Checks: `tour-timeline-tests.mjs` and `/tests/tour-history.html`
 (also `?mobile=1`).
 Chapter changes refit the camera without replaying the Pacific piece animation.
 Checks: `tour-chapter-tests.mjs`, `tour-performance-tests.mjs` (route, sample,

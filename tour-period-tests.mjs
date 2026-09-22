@@ -48,6 +48,6 @@ async function walk(file){
  }
 }
 await walk('dist/app.mjs');
-for(const name of ['tour-trade-periods.mjs','tour-trade.mjs','tour-trade-regions.mjs','tour-route-data.mjs','tour-area-data.mjs','tour-migrations.mjs','tour-vinland.mjs','tour-polynesia.mjs','tour-americas.mjs','tour-periods.mjs','tour-trade-traffic.mjs','tour-silk-road-relaxed.mjs','tour-origin-of-mankind-relaxed.mjs','tour-iceland-to-vinland-relaxed.mjs','tour-french-polynesia-relaxed.mjs','tour-americas-exchange-relaxed.mjs'])assert(!seen.has(resolve('dist',name)),name+' must not be eagerly imported');
+for(const name of ['tour-trade-periods.mjs','tour-trade.mjs','tour-trade-regions.mjs','tour-route-data.mjs','tour-area-data.mjs','tour-migrations.mjs','tour-vinland.mjs','tour-polynesia.mjs','tour-americas.mjs','tour-africa.mjs','tour-oceans.mjs','tour-periods.mjs','tour-trade-traffic.mjs','tour-silk-road-relaxed.mjs','tour-origin-of-mankind-relaxed.mjs','tour-iceland-to-vinland-relaxed.mjs','tour-french-polynesia-relaxed.mjs','tour-americas-exchange-relaxed.mjs'])assert(!seen.has(resolve('dist',name)),name+' must not be eagerly imported');
 const app=await readFile('dist/app.mjs','utf8');assert(!app.includes('tourStory.ready.then'), 'Story text must not be prefetched at startup');
 console.log('Trade periods: dated hubs, legends, route seams and no eager story datasets pass.');

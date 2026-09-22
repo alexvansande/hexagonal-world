@@ -214,3 +214,11 @@ animation cycle. These are presentation parameters only. Any future weighting
 needs a cited, comparable measure with its period, units and uncertainty before
 it can be encoded as frequency; price, cargo weight and caravan count are not
 interchangeable.
+
+## Wider Bronze Age and Roman-era additions (September 21)
+
+- Indus–Gulf shipping: Harappan seals, carnelian beads and ivory at Ur and in the Gulf, and Mesopotamian texts naming Dilmun (Bahrain), Magan (Oman) and Meluhha (the Indus region), are summarized by [Britannica: Indus civilization](https://www.britannica.com/topic/Indus-civilization). The drawn lane from Lothal through Magan and Dilmun to Ur is schematic.
+- Lapis lazuli: the Badakhshan mines of northeastern Afghanistan supplied Mesopotamia and Egypt throughout the Bronze Age ([Britannica: lapis lazuli](https://www.britannica.com/topic/lapis-lazuli)). The corridor through Balkh, Merv and the Iranian plateau is a reconstruction.
+- Amber: Baltic amber reached Mycenaean shaft graves and, later, Rome by the Amber Road through Carnuntum and Aquileia ([Britannica: amber](https://www.britannica.com/science/amber)). The Bronze Age line is drawn fainter; the Roman-era road is well attested.
+- Punt: Egyptian expeditions from the Red Sea port at Mersa Gawasis to Punt, probably on the southern Red Sea coast, brought incense, gold and ebony; the location of Punt is debated, so the line is uncertain ([Britannica: Punt](https://www.britannica.com/place/Punt)).
+- Aksum and Adulis: the Periplus of the Erythraean Sea (already cited) describes Adulis as the port of the Aksumite kingdom trading ivory and other goods toward Roman Egypt.

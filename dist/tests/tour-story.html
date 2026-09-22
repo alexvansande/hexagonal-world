@@ -11,7 +11,7 @@ const wait=async test=>{for(let i=0;i<300;i++){if(test())return;await new Promis
 const pause=ms=>new Promise(r=>setTimeout(r,ms));
 const check=(ok,text)=>{if(!ok)throw Error(text);document.querySelector('#checks').insertAdjacentHTML('beforeend',`<li>PASS: ${text}</li>`);};
 try{
- await wait(()=>frame.contentDocument?.querySelectorAll('.tour-marker:not([hidden])').length===5);
+ await wait(()=>frame.contentDocument?.querySelectorAll('.tour-marker:not([hidden])').length===7);
  const d=frame.contentDocument,win=frame.contentWindow,silk=d.querySelector('[data-tour-id="silk-road"]'),card=d.querySelector('#tour-story'),controls=d.querySelector('#controls'),routes=d.querySelector('.tour-routes'),close=d.querySelector('#tour-story-close');
  const camera=()=>d.querySelector('#zoom-value').textContent,anchor=()=>[silk.style.left,silk.style.top];
  const before={camera:camera(),anchor:anchor(),rect:controls.getBoundingClientRect()};
@@ -21,8 +21,8 @@ try{
  check(d.activeElement===close,'Close button receives keyboard focus');
  check(d.querySelectorAll('.tour-marker:not([hidden])').length===1,'Only the selected dot remains visible');
  const flowPaths=[...routes.querySelectorAll('.route-flow .route-line')];
- check(new Set(flowPaths.map(p=>win.getComputedStyle(p).stroke)).size===5,'Five goods categories have distinct colors');
- check(card.querySelectorAll('.tour-route-key li').length===5,'Editable legend explains the five categories');
+ check(new Set(flowPaths.map(p=>win.getComputedStyle(p).stroke)).size===7,'Five goods categories have distinct colors');
+ check(card.querySelectorAll('.tour-route-key li').length===7,'Editable legend explains the five categories');
  check([...routes.querySelectorAll('g[data-route-id]')].every(g=>g.classList.contains('route-sporadic')),'Trade uses sparse packets on every branch');
  check(new Set(flowPaths.map(p=>p.style.strokeDasharray)).size>10,'Routes have independent irregular spacing');
  const moving=flowPaths[0],offset=()=>win.getComputedStyle(moving).strokeDashoffset,toggle=card.querySelector('.tour-flow-toggle');
@@ -45,7 +45,7 @@ try{
  check(path.getAttribute('d')!==oldPath,'Routes stay attached during zoom');
  close.click();await pause(100);
  check(card.hidden&&routes.style.display==='none','X closes the card and removes all route lines');
- check(d.querySelectorAll('.tour-marker:not([hidden])').length===5,'Closing restores the other discovery dots');
+ check(d.querySelectorAll('.tour-marker:not([hidden])').length===7,'Closing restores the other discovery dots');
  check(camera()===before.camera&&anchor().every((p,i)=>p===before.anchor[i]),'Close restores the exact previous camera');
  check(getComputedStyle(d.querySelector('.layout-presets')).display==='flex','Map options return');
  silk.click();await wait(()=>d.querySelectorAll('.route-flow .route-line').length>0);await pause(1450);d.dispatchEvent(new win.KeyboardEvent('keydown',{key:'Escape',bubbles:true}));await pause(100);

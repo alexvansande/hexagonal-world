@@ -2,7 +2,7 @@ import {rotation} from './optimizer.mjs?v=tetra-area-2';
 import {patchProjector} from './indicatrix.mjs?v=tetra-area-2';
 
 // Representative discovery anchors, not boundaries or claims of geographic extent.
-// Five entry points (September 21 decision); each opens a dated, animated story.
+// Seven entry points (September 21 decisions); each opens a dated, animated story.
 // Overlays are resolved by the story controller through tour-data.mjs.
 export const tourLocations=Object.freeze([
  {id:'origin-of-mankind',title:'Origin of mankind',latitude:3.5,longitude:36,overlay:'human-migrations'},
@@ -10,9 +10,19 @@ export const tourLocations=Object.freeze([
  {id:'iceland-to-vinland',title:'Viking expansion',latitude:64.8,longitude:-18.5,overlay:'norse-voyages'},
  {id:'french-polynesia',title:'French Polynesia',latitude:-17.65,longitude:-149.43,overlay:'polynesia'},
  {id:'americas-exchange',title:'Americas exchange',latitude:-13.5,longitude:-72,overlay:'americas-exchange'},
+ {id:'african-networks',title:'African networks',latitude:16.77,longitude:-3,overlay:'african-networks'},
+ {id:'ocean-crossings',title:'Ocean crossings',latitude:2.2,longitude:102.25,overlay:'ocean-crossings'},
 ].map(Object.freeze));
 
-export const tourEnabled=entry=>!!entry?.path?.endsWith('/dymaxion/lifezones');
+// Stories and the history timeline exist on the Spaceship Earth and Felv
+// arrangements, in any pre-rendered style except political borders and the
+// distortion analysis (September 21 rule). Custom maps have no story layer.
+export const tourArrangements=Object.freeze(['dymaxion','felv']);
+export const tourStyleExclusions=Object.freeze(['political','distortion-analysis']);
+export const tourEnabled=entry=>{const parts=(entry?.path||'').split('/'),style=parts.at(-1),arrangement=parts.at(-2);return tourArrangements.includes(arrangement)&&!!style&&!tourStyleExclusions.includes(style);};
+// The Pacific-facing arrangement and its relit artwork are baked for one map.
+export const pacificLayoutEnabled=entry=>!!entry?.path?.endsWith('/dymaxion/lifezones')||!!entry?.path?.includes('/dymaxion/');
+export const pacificLightingEnabled=entry=>!!entry?.path?.endsWith('/dymaxion/lifezones');
 
 // Reuse the inverse of the renderer's patch interpolation, then let the app's
 // point() apply the same tile placement, grid rotation, zoom and pan as the map.

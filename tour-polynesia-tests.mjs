@@ -31,6 +31,16 @@ for(const progress of [0,.25,.5,.75,1]){
  }
 }
 assert.equal(JSON.stringify(source),saved,'Original arrangement remains untouched');
+// Full Pacific view: Africa translates (never rotates) onto South America's Atlantic edge.
+const atlantic=pacificTourNet(tiles,source,{atlantic:true});
+assert.deepEqual(atlantic.filter(t=>t.id!==3),target.filter(t=>t.id!==3),'Asia/Pacific and the Americas are placed exactly as before');
+const africa=atlantic.find(t=>t.id===3),africaBefore=source.find(t=>t.id===3);
+assert.equal(africa.r,africaBefore.r,'Africa keeps its rotation, so its baked lighting stays valid');
+assert(Math.hypot(africa.x-africaBefore.x,africa.y-africaBefore.y)>1,'Africa actually moves');
+assert(markEdges(tiles,atlantic).every(t=>t.bad.every(b=>!b)),'Every touching edge in the full Pacific view is a true join');
+const touching=(a,b)=>Math.abs(Math.hypot(a.x-b.x,a.y-b.y)-Math.sqrt(3))<1e-9;
+assert(touching(africa,atlantic.find(t=>t.id===2))&&!touching(africa,atlantic.find(t=>t.id===1)),'Africa now touches South America instead of Asia');
+assert(interpolateTourNet(source,atlantic,.5).every(t=>Number.isFinite(t.x)&&Number.isFinite(t.y)));
 assert.deepEqual(pacificLighting.regions,[0,2],'Only the moved Americas have replacement images');
 assert.equal(pacificLighting.density,2048,'Keep full map resolution');
 assert.equal(pacificLighting.lighting.reliefAzimuth,315,'Retain screen-space illumination instead of rotating the old light');

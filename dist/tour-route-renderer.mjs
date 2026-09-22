@@ -1,4 +1,4 @@
-import {projectTourLocations} from './tour-markers.mjs?v=chapters-1';
+import {projectTourLocations} from './tour-markers.mjs?v=stories-7';
 import {hex} from './geometry.mjs';
 
 export function sampleRoute(route,step=.18){
@@ -77,6 +77,10 @@ export function createTourRoutes(stage){
   if(routes.some(route=>route.lane))for(const tile of new Set(routes.flatMap(route=>route.anchors.map(anchor=>anchor.tile)))){
    const polygon=document.createElementNS(ns,'polygon');polygon.setAttribute('points',hex.map(p=>point(p,tile).join(',')).join(' '));clip.append(polygon);
   }
+  // Scrubbing the timeline visits hundreds of routes; drop groups that are no
+  // longer drawn once the cache grows well beyond the current set.
+  const wanted=new Set(routes.map(route=>route.id));
+  if(paths.size>wanted.size+120)for(const [id,{group,mask}] of paths)if(!wanted.has(id)){group.remove();mask.remove();paths.delete(id);}
   for(const {group} of paths.values())group.style.display='none';
   routes.forEach(route=>{
    const value=pathFor(route),{group,segments}=value,traffic=route.traffic;

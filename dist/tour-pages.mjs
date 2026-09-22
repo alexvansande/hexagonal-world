@@ -1,4 +1,4 @@
-import {tourLocations} from './tour-markers.mjs?v=chapters-1';
+import {tourLocations} from './tour-markers.mjs?v=stories-7';
 
 // Only implemented stories have landing pages. Stable location IDs also make
 // durable, root-level links; future chapters can extend this registry.

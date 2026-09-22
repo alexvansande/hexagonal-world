@@ -18,7 +18,7 @@ assert.deepEqual(Object.keys(tourChapters).sort(),tourLocations.map(p=>p.id).sor
 for(const [id,chapters] of Object.entries(tourChapters)){
  const data=await loadTourData(id);
  assert.equal(data.heading,chapters.heading);assert.equal(data.periods.length,chapters.periods.length,id+' lazy data matches the chapter index');
- assert(chapters.periods.length>=4&&chapters.periods.length<=5,id+' has four or five chapters');
+ assert(chapters.periods.length>=3&&chapters.periods.length<=5,id+' has three to five chapters');
  assert.equal(data.periodFor('unknown').id,chapters.periodFor('unknown').id,'Unknown periods fall back to the story default');
  assert.notEqual(chapters.heading,'Through time',id+' names its slider');
  assert(stories[id]?.paragraphs.length,id+' keeps an overview section for previews');

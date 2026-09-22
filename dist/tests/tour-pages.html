@@ -22,7 +22,7 @@ try{
   doc().querySelector('#tour-story-close').click();await wait(()=>win().location.pathname==='/lifezones/spaceship-earth/'&&doc().querySelector('#tour-story').hidden&&doc().querySelector('#map').dataset.tourLayout==='default','direct close');
   check(doc().querySelector('#map').dataset.tourLayout==='default',tour.path+' closes to the normal globe');
  }
- await load('/lifezones/spaceship-earth/');await wait(()=>doc().querySelectorAll('.tour-marker:not([hidden])').length===5,'base map');
+ await load('/lifezones/spaceship-earth/');await wait(()=>doc().querySelectorAll('.tour-marker:not([hidden])').length===7,'base map');
  doc().querySelector('#zoom-in').click();await pause(500);
  const base=win().location.href,origin=doc().querySelector('[data-tour-id="origin-of-mankind"]'),camera=[origin.style.left,origin.style.top];
  doc().querySelector('[data-tour-id="french-polynesia"]').click();await opened('french-polynesia');

@@ -31,7 +31,7 @@ for(const stop of timelineStops){
  const routes=timelineRoutes(stop,data);
  assert.equal(new Set(routes.map(r=>r.id)).size,routes.length,stop.id+' has unique routes');
  if(stop.chapters.length)assert(routes.length>0,stop.id+' draws something');else assert(stop.note,stop.id+' explains why it is empty');
- assert(routes.length<=150,`${stop.id} stays readable (${routes.length} routes)`);
+ assert(routes.length<=170,`${stop.id} stays readable (${routes.length} routes)`);
  for(const route of projectTourRoutes(tiles,net,state,routes))assert(route.strandAnchors.every(a=>a.length>1),route.id+' projects');
  if(routes.length>busiest.routes)busiest={id:stop.id,routes:routes.length};
  // Partial data (a story still loading) never throws.

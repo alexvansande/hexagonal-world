@@ -9,14 +9,14 @@ const tick=()=>new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)
 const wait=async test=>{for(let i=0;i<300;i++){if(test())return;await new Promise(r=>setTimeout(r,50));}throw Error('Timed out');};
 const check=(ok,text)=>{if(!ok)throw Error(text);const li=document.createElement('li');li.textContent='PASS: '+text;document.querySelector('#checks').append(li);};
 try{
- await wait(()=>frame.contentDocument?.querySelectorAll('.tour-marker:not([hidden])').length===5);
+ await wait(()=>frame.contentDocument?.querySelectorAll('.tour-marker:not([hidden])').length===7);
  const d=frame.contentDocument,layer=d.querySelector('.tour-markers'),buttons=[...layer.querySelectorAll('button')];
  let events=0;d.addEventListener('tourselect',e=>{document.querySelector('#events').textContent=`Selections: ${++events} · ${e.detail.id}`;});
- check(buttons.length===5&&buttons.every(b=>!b.hidden),'Five accessible location buttons on the default map');
- check(new Set(buttons.map(b=>b.dataset.tourId)).size===5,'Stable, unique location IDs');
+ check(buttons.length===7&&buttons.every(b=>!b.hidden),'Seven accessible location buttons on the default map');
+ check(new Set(buttons.map(b=>b.dataset.tourId)).size===7,'Stable, unique location IDs');
  check(buttons.every(b=>b.getAttribute('aria-label')&&b.querySelectorAll('.tour-ripple').length===3),'Named buttons with three ripple rings each');
  for(const button of buttons){button.click();if(!d.querySelector('#tour-story').hidden)d.querySelector('#tour-story-close').click();}
- check(events===5,'Every dot dispatches the shared selection event');
+ check(events===7,'Every dot dispatches the shared selection event');
  const coordinates=d.querySelector('#map-coordinates'),silk=buttons.find(b=>b.dataset.tourId==='silk-road');
  // Inline projected coordinates avoid the browser's 1/64-pixel layout rounding.
  const hover=button=>{const r=d.querySelector('#stage').getBoundingClientRect();button.dispatchEvent(new frame.contentWindow.PointerEvent('pointermove',{bubbles:true,pointerType:'mouse',clientX:r.left+parseFloat(button.style.left),clientY:r.top+parseFloat(button.style.top)}));};

@@ -11,12 +11,12 @@ const state=layoutOptions[0].state,tiles=makeGeometry(state.method,state.height)
 const distance=(p,q)=>Math.hypot((((p[1]-q[1]+540)%360)-180)*Math.cos((p[0]+q[0])/2*Math.PI/180),p[0]-q[0]);
 const toPolyline=(p,poly)=>Math.min(...poly.slice(1).map((b,i)=>{const a=poly[i],dx=((b[1]-a[1]+540)%360)-180,dy=b[0]-a[0],l2=dx*dx+dy*dy,px=((p[1]-a[1]+540)%360)-180,t=l2?Math.max(0,Math.min(1,(px*dx+(p[0]-a[0])*dy)/l2)):0;return distance(p,[a[0]+t*dy,a[1]+t*dx]);}));
 const relaxed={};
-for(const name of ['silk-road','origin-of-mankind','iceland-to-vinland','french-polynesia','americas-exchange']){
+for(const name of ['silk-road','origin-of-mankind','iceland-to-vinland','french-polynesia','americas-exchange','african-networks','ocean-crossings']){
  relaxed[name]=await import(`./dist/tour-${name}-relaxed.mjs`);const {size}=await stat(`dist/tour-${name}-relaxed.mjs`);assert(size<130000,name+' strands stay a small lazy module: '+size);
 }
 let routes=0,twoWay=0;const distinct={total:0,varied:0};
 for(const [id,chapters] of Object.entries(tourChapters)){
- const {relaxedStrands,relaxedMeta}=relaxed[id],expected=id==='silk-road'||id==='americas-exchange'?2:3;
+ const {relaxedStrands,relaxedMeta}=relaxed[id],expected=['silk-road','americas-exchange','african-networks','ocean-crossings'].includes(id)?2:3;
  for(const period of chapters.periods){
   for(const route of period.routes){
    const key=routeKey(route),strands=relaxedStrands[key];
@@ -27,7 +27,7 @@ for(const [id,chapters] of Object.entries(tourChapters)){
    for(const strand of strands){
     assert.deepEqual(strand[0],[...route.coordinates[0]]);assert.deepEqual(strand.at(-1),[...route.coordinates.at(-1)]);
     assert(strand.every(p=>toPolyline(p,route.coordinates)<=10.5),route.id+' stays inside the soft corridor');
-    for(let i=1;i<strand.length;i++)assert(distance(strand[i],strand[i-1])<25,route.id+' has no jumps');
+    for(let i=1;i<strand.length;i++)assert(distance(strand[i],strand[i-1])<45,route.id+' has no jumps');   // long open-sea legs stay straight after simplification
    }
    // Two-way pairs share courses in opposite directions, so opposite traffic runs on the same valleys.
    if(route.returnOf){const forward=period.routes.find(r=>r.id===route.returnOf);twoWay++;
@@ -42,7 +42,7 @@ for(const [id,chapters] of Object.entries(tourChapters)){
    assert.equal(route.anchors.length,route.strandAnchors.reduce((n,a)=>n+a.length,0),'fit bounds cover all strands');
   }
   const meta=period.routes.map(r=>relaxedMeta[routeKey(r)]),cheaper=meta.filter(m=>m.relaxed.every(c=>c<m.authored)).length;
-  if(id!=='french-polynesia')assert(cheaper>=meta.length*.5,`${period.storyId}: most routes find cheaper terrain (${cheaper}/${meta.length})`);   // open sea is flat: strands only add course variety
+  if(!['french-polynesia','ocean-crossings'].includes(id))assert(cheaper>=meta.length*.5,`${period.storyId}: most routes find cheaper terrain (${cheaper}/${meta.length})`);   // open sea is flat: strands only add course variety
  }
 }
 assert(routes>250&&twoWay>60,'coverage: '+routes+' routes, '+twoWay+' return routes');

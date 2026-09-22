@@ -292,6 +292,16 @@ body:not(.customizing) aside.tour-story-open>#tour-story{display:block}
 .tour-routes [data-wave="textiles-pottery"],.tour-route-key [data-wave="textiles-pottery"]{--route-color:#f0a4cb}
 .tour-routes [data-wave="furs"],.tour-route-key [data-wave="furs"]{--route-color:#d5b7f5}
 .tour-routes [data-wave="ceramics"],.tour-route-key [data-wave="ceramics"]{--route-color:#82dedf}
+.tour-routes [data-wave="lapis-amber"],.tour-route-key [data-wave="lapis-amber"]{--route-color:#8fa8ff}
+.tour-routes [data-wave="gold-ivory"],.tour-route-key [data-wave="gold-ivory"]{--route-color:#f5c542}
+.tour-routes [data-wave="salt-copper"],.tour-route-key [data-wave="salt-copper"]{--route-color:#f4f0e6}
+.tour-routes [data-wave="cloth-beads"],.tour-route-key [data-wave="cloth-beads"]{--route-color:#9ad3ff}
+.tour-routes [data-wave="captives"],.tour-route-key [data-wave="captives"]{--route-color:#ff6b6b}
+.tour-routes [data-wave="porcelain-silk"],.tour-route-key [data-wave="porcelain-silk"]{--route-color:#fff3d6}
+.tour-routes [data-wave="cotton-cloth"],.tour-route-key [data-wave="cotton-cloth"]{--route-color:#9ad3ff}
+.tour-routes [data-wave="spices-pepper"],.tour-route-key [data-wave="spices-pepper"]{--route-color:#f0a4cb}
+.tour-routes [data-wave="bullion"],.tour-route-key [data-wave="bullion"]{--route-color:#ffd15c}
+.tour-routes [data-wave="sugar-tobacco"],.tour-route-key [data-wave="sugar-tobacco"]{--route-color:#c9f28a}
 /* Chapter waves: hominins/archaic humans, North Atlantic sailing, Pacific voyaging and American goods. */
 .tour-routes [data-wave="early-homo"],.tour-route-key [data-wave="early-homo"]{--route-color:#d9a36b}
 .tour-routes [data-wave="erectus"],.tour-route-key [data-wave="erectus"]{--route-color:#ffb37a}
