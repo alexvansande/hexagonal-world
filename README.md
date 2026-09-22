@@ -164,6 +164,17 @@ only its trade lanes at 1300). Story dots and chips filter to the stop’s stori
 and open the story at that stop’s chapter; closing returns to the same stop. The
 stop persists as `?history=<stop>` on the map URL.
 
+Backdrop grid (Overlays → “Backdrop grid”, on by default): on Spaceship Earth a
+faint hexagonal lattice, one main hexagon per cell, fills the empty space the
+pieces can slide into. Cells under a piece, including one mid-slide, and edges
+shared with a piece are left out. Color and thickness are saved in links as
+`backdrop-grid`, `backdrop-color` and `backdropWidth`, appended to the compact
+map-state key lists so older links stay valid.
+
+Pan bound: a drag can never leave the map fully off screen. When a drag ends
+with less than a sliver visible, the camera springs back with a small overshoot
+(instant under reduced motion).
+
 Dancing pieces: on Spaceship Earth the four pieces stay four, but each slides by
 whole band periods so the group stays contiguous around the viewport centre.
 `endlessLattice` in `dist/tour-layout.mjs` finds the translation closure of the

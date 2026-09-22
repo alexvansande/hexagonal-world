@@ -628,6 +628,12 @@ Bronze Age and Antiquity lanes on the Silk Road. Per the user, these draw
 overall trends, never individual journeys: Mansa Musa and Zheng He are evidence
 for corridors, not lines of their own. Performance budgets were re-run at the end.
 
+**Backdrop grid and pan bound (September 22).** The user asked for a very
+subtle large hexagonal grid in the empty space around Spaceship Earth, with its
+own options at the end of Overlays, and for the map never to be draggable fully
+out of view, returning elastically so a sliver stays visible. Both are default
+behaviour; the grid keys are appended to the positional map-state lists.
+
 Evidence: September 21 feature request and confirmation. Checks:
 `tour-chapter-tests.mjs`, `tour-marker-tests.mjs`, `tour-page-tests.mjs`,
 `/tests/tour-areas.html` (Norse), `/tests/tour-migrations.html`, `/tests/tour-polynesia.html`.

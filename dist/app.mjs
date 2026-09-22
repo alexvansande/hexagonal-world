@@ -59,8 +59,8 @@ let coordinatePointer=null,coordinateHideTimer=null;
 const classOptions=[3,6,10,15];
 const classCount=id=>classOptions[Math.max(0,Math.min(3,Math.round(+$(id).value)))];
 function syncClassControl(id,count){const el=$(id);if(!el)return;const index=classOptions.indexOf(+count);if(index>=0)el.value=index;$(id+'-value').value=classOptions[+el.value];}
-const rangeSuffixes={puzzleWidth:'×',riverWidth:'×',subgridWidth:'×',graticuleWidth:'×'};
-const state={method:'tetra',lon:0,lat:0,roll:0,bias:1,height:1.5,grid:30,line:0.8,subgridWidth:1,puzzleWidth:1,graticuleWidth:1,shadowOpacity:1,lightOpacity:1,distortionOpacity:.7,clearance:0,riverWidth:1,riverLevels:6,layout:0,gridRotation:0,zoom:1,panX:0,panY:0,mode:'pan',arrangement:'infinite',sidebarExpanded:false,interpolation:0,...reliefDefaults};
+const rangeSuffixes={puzzleWidth:'×',riverWidth:'×',subgridWidth:'×',graticuleWidth:'×',backdropWidth:'×'};
+const state={method:'tetra',lon:0,lat:0,roll:0,bias:1,height:1.5,grid:30,line:0.8,subgridWidth:1,puzzleWidth:1,graticuleWidth:1,backdropWidth:.8,shadowOpacity:1,lightOpacity:1,distortionOpacity:.7,clearance:0,riverWidth:1,riverLevels:6,layout:0,gridRotation:0,zoom:1,panX:0,panY:0,mode:'pan',arrangement:'infinite',sidebarExpanded:false,interpolation:0,...reliefDefaults};
 let mobileRepositioning=false;
 let exporting=false;
 let shareSelection=initialTour?sharePair('lifezones','dymaxion'):readSharePath(location.pathname)||inferSharePair(readMapStateFromUrl());
@@ -81,7 +81,7 @@ function range(parent,id,label,min,max,step,value,suffix=''){
 range('distortion-controls','distortionOpacity','Opacity',0,1,.05,.7);
 range('clearance-control','clearance','Minimum distance from land',0,9,1,0,'°');$('clearance').setAttribute('aria-label','Minimum distance from land');$('clearance-control').querySelector('.range-head').hidden=true;
 range('orientation','lon','Longitude',-180,180,1,0,'°');range('orientation','lat','Latitude',-90,90,1,0,'°');range('orientation','roll','Roll',-180,180,1,0,'°');range('shape-controls','bias','Shape bias',.4,2.5,.01,1);range('shape-controls','height','Pyramid tip distance',1.01,2,.01,1.5);range('display-controls','gridRotation','Grid rotation',-180,180,1,0,'°');range('graticule-controls','grid','Grid interval',10,60,5,30,'°');range('border-controls','line','Border weight',0,2,.1,.8);
-range('hex-grid-controls','subgridWidth','Hex grid thickness',0,5,.1,1,'×');range('graticule-controls','graticuleWidth','Latitude / longitude thickness',0,5,.1,1,'×');
+range('hex-grid-controls','subgridWidth','Hex grid thickness',0,5,.1,1,'×');range('backdrop-controls','backdropWidth','Backdrop grid thickness',0,3,.1,.8,'×');range('graticule-controls','graticuleWidth','Latitude / longitude thickness',0,5,.1,1,'×');
 range('puzzle-controls','puzzleWidth','Puzzle line width',0,5,.1,1,'×');
 const syncSourceChoice=initSourcePicker({source:$('map-source'),palette:$('palette'),choice:$('map-source-choice')});
 range('river-controls','riverWidth','River width',.5,3,.25,1,'×');range('river-controls','riverLevels','Tributary levels',1,12,1,6);
@@ -476,6 +476,32 @@ function drawFractalGrid(){
  if(large>0)fractalPaths.forEach((path,level)=>{if(detail.large[level]===0)return;ctx.globalAlpha=detail.large[level];ctx.stroke(path);});
  if(fine>0)fineFractalPaths.forEach((path,level)=>{if(detail.fine[level]===0)return;ctx.globalAlpha=detail.fine[level];ctx.stroke(path);});ctx.restore();
 }
+// Backdrop grid: the empty cells of the main hexagon lattice around Spaceship
+// Earth, so the space the pieces slide into reads as part of the same grid.
+// Cells under a piece (including one mid-slide) and edges shared with a piece
+// are left out; the pieces' own borders are drawn later.
+function drawBackdropGrid(){
+ if(!$('backdrop-grid').checked||state.backdropWidth<=0||state.arrangement!=='dymaxion'||tiling||arrangement.outline||arrangement.clip)return;
+ const unit=scale*state.zoom,angle=state.gridRotation*Math.PI/180,H=Math.sqrt(3)/2;
+ const corners=[[0,0],[w,0],[w,h],[0,h]].map(([x,y])=>{const v=rotateScreen([(x-w/2-state.panX)/unit,(y-h/2-state.panY)/unit],-angle);return [v[0],-v[1]];});
+ const xs=corners.map(c=>c[0]),ys=corners.map(c=>c[1]);
+ const i0=Math.floor((Math.min(...xs)-2)/1.5),i1=Math.ceil((Math.max(...xs)+2)/1.5),j0=Math.floor((Math.min(...ys)-2)/H),j1=Math.ceil((Math.max(...ys)+2)/H);
+ if((i1-i0)*(j1-j0)>4000)return;
+ const occupied=(x,y)=>net.some(t=>Math.hypot(t.x-x,t.y-y)<1);
+ ctx.save();ctx.strokeStyle=$('backdrop-color').value;ctx.globalAlpha=.45;ctx.lineWidth=Math.max(.5,state.backdropWidth);ctx.lineCap='round';ctx.beginPath();
+ const seen=new Set();
+ for(let i=i0;i<=i1;i++)for(let j=j0;j<=j1;j++){
+  if(Math.abs((i+j)%2)===1)continue;const x=1.5*i,y=H*j;if(occupied(x,y))continue;
+  const cell={x,y,r:0};
+  for(let e=0;e<6;e++){
+   const a=hex[e],b=hex[(e+1)%6],mx=x+(a[0]+b[0]),my=y+(a[1]+b[1]);
+   if(occupied(mx,my))continue;
+   const key=`${(mx/2).toFixed(3)},${(my/2).toFixed(3)}`;if(seen.has(key))continue;seen.add(key);
+   ctx.moveTo(...point(a,cell));ctx.lineTo(...point(b,cell));
+  }
+ }
+ ctx.stroke();ctx.restore();
+}
 function drawPuzzle(){
  if(!$('puzzlegrid').checked||state.puzzleWidth<=0)return;
  ctx.save();ctx.globalAlpha=1;ctx.strokeStyle=$('puzzle-color').value;ctx.lineWidth=state.puzzleWidth;ctx.lineCap='round';
@@ -639,6 +665,7 @@ function render(refined=false,exportMode=false){if(exporting&&!exportMode)return
  }
 
  ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,w,h);ctx.lineJoin='round';
+ drawBackdropGrid();
  ctx.save();
  if(arrangement.outline){traceOutline();ctx.clip();}
  else if(!tiling){ctx.beginPath();for(const t of visible){($('puzzlegrid').checked?puzzleFor(t.id).outline:t.polygon||hex).forEach((p,i)=>i?ctx.lineTo(...point(p,t)):ctx.moveTo(...point(p,t)));ctx.closePath();}ctx.clip();}
@@ -778,7 +805,7 @@ $('stage').addEventListener('pointermove',event=>{
 $('stage').addEventListener('pointerleave',hideCoordinateReadout);
 $('stage').addEventListener('pointercancel',hideCoordinateReadout);
 window.addEventListener('blur',hideCoordinateReadout);
-canvas.onpointerdown=e=>{
+canvas.onpointerdown=e=>{cancelPanSpring();
  canvas.setPointerCapture(e.pointerId);pointers.set(e.pointerId,[e.clientX,e.clientY]);dragging={x:e.clientX,y:e.clientY};danceDrag={x:0,y:0};
  const sample=state.mode==='rotate'?cursorSphere(e):null;
  if(pointers.size===1&&state.mode==='rotate'&&!sample)mode('pan');
@@ -796,8 +823,27 @@ canvas.onpointermove=e=>{
   leaveSearch();setRotation(followPoint(state,sample,grabbed));
  }else{grabbed=null;state.panX+=dx;state.panY+=dy;danceConsiderDrag(dx,dy);draw();}
 };
-function end(e){draw();pointers.delete(e.pointerId);pinchDistance=0;grabbed=null;dragging=pointers.size?{x:[...pointers.values()][0][0],y:[...pointers.values()][0][1]}:null;}
+function end(e){draw();pointers.delete(e.pointerId);pinchDistance=0;grabbed=null;dragging=pointers.size?{x:[...pointers.values()][0][0],y:[...pointers.values()][0][1]}:null;if(!pointers.size)keepMapInView();}
 canvas.onpointerup=end;canvas.onpointercancel=end;
+// The map can never be dragged fully out of view: when a drag ends with less
+// than a sliver of it on screen, the camera springs back with a small overshoot.
+let panSpring=0;
+function cancelPanSpring(){cancelAnimationFrame(panSpring);panSpring=0;}
+function keepMapInView(){
+ if(exporting||!ready||tiling||mobileRepositioning)return;
+ const b=bounds(),unit=scale*state.zoom;
+ const left=w/2+b[0]*unit+state.panX,right=w/2+b[2]*unit+state.panX,top=h/2-b[3]*unit+state.panY,bottom=h/2-b[1]*unit+state.panY;
+ const sliverX=Math.min(120,(right-left)*.3),sliverY=Math.min(120,(bottom-top)*.3);
+ let dx=0,dy=0;
+ if(right<sliverX)dx=sliverX-right;else if(left>w-sliverX)dx=w-sliverX-left;
+ if(bottom<sliverY)dy=sliverY-bottom;else if(top>h-sliverY)dy=h-sliverY-top;
+ if(!dx&&!dy)return;
+ cancelPanSpring();
+ const from={x:state.panX,y:state.panY},start=performance.now(),duration=matchMedia('(prefers-reduced-motion: reduce)').matches?0:520;
+ const step=now=>{const t=duration?Math.min(1,(now-start)/duration):1,e=1+2.7*Math.pow(t-1,3)+1.7*Math.pow(t-1,2);
+  state.panX=from.x+dx*e;state.panY=from.y+dy*e;draw();panSpring=t<1?requestAnimationFrame(step):0;};
+ panSpring=requestAnimationFrame(step);
+}
 
 $('reset').onclick=()=>{for(const [id,value] of Object.entries({lon:0,lat:0,roll:0,bias:1,height:1.5})){state[id]=value;$(id).value=value;$(id+'-value').value=value+(['lon','lat','roll'].includes(id)?'°':'');}$('interpolation').value='0';rebuild();};
 $('research').onclick=()=>$('research-dialog').showModal();$('close-dialog').onclick=()=>$('research-dialog').close();$('research-dialog').onclick=e=>{if(e.target===$('research-dialog')){const r=e.target.getBoundingClientRect();if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)e.target.close();}};
