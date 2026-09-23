@@ -171,8 +171,11 @@ Vikings and Polynesia, each with its own smooth noise, so parallel courses jiggl
 through valleys and along coasts while the stops stay exact. Sea handling per
 story: `coastal` prefers shorelines, `open` treats open water as free as coast and
 islands as stops (Polynesia, Ocean crossings); the Beringia leg is a `landBridge`.
-Dots fade in at a route's first stop and out at its last through a per-route
-luminance mask. Nothing runs at runtime beyond the usual projection. Regenerate
+Dots are small and trail a comet behind them, a faint long trail and a brighter
+short one built from the same dash pattern (each trail dash ends where its dot
+ends, as long as the gap before it allows), so the trails ride the dot
+animation and say which way a corridor runs. Dots fade in at a route's first
+stop and out at its last through a per-route luminance mask. Nothing runs at runtime beyond the usual projection. Regenerate
 with a local virtualenv holding numpy and Pillow. Checks: `history-tests.mjs`
 (every period parses, spots for every story, routes valid, strands fresh and
 covering every route, one colour per wave), `tour-performance-tests.mjs`
@@ -192,6 +195,9 @@ lists so older links stay valid.
 Reposition globe: the pan/reposition switch left the toolbar; “Reposition globe
 by dragging” is a toggle under More options → Position (on phones it opens the
 full-screen repositioning flow with its Done button).
+
+On screens at least 1240 px wide the floating legend sits level with the title's
+top instead of below it.
 
 Rotation dial: to the right of Fit sits a small grey circle with an off-centre
 dot. Dragging around it turns the whole map in 30° steps (twelve positions) about the viewport centre (Spaceship Earth keeps its unlit preset and its

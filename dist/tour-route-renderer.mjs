@@ -64,12 +64,27 @@ export function createTourRoutes(stage){
  const pathFor=route=>{
   if(paths.has(route.id))return paths.get(route.id);
   const group=document.createElementNS(ns,'g');group.dataset.routeId=route.id;
-  const halo=document.createElementNS(ns,'path'),line=document.createElementNS(ns,'path');halo.classList.add('route-halo');line.classList.add('route-line');
+  const {halo,far,near,line}=makeSegment();
   const mask=document.createElementNS(ns,'mask');mask.id=`tour-route-fade-${paths.size}`;mask.setAttribute('maskUnits','userSpaceOnUse');
   const cover=document.createElementNS(ns,'rect');cover.setAttribute('fill','#fff');mask.append(cover);defs.append(mask);
   group.setAttribute('mask',`url(#${mask.id})`);
-  group.append(halo,line);svg.append(group);const value={group,halo,line,mask,cover,ends:[],segments:[{halo,line}]};paths.set(route.id,value);return value;
+  group.append(halo,far,near,line);svg.append(group);const value={group,halo,line,mask,cover,ends:[],segments:[{halo,far,near,line}]};paths.set(route.id,value);return value;
  };
+ // Each fragment is four strokes: a dark halo, two comet trails behind every dot (a faint
+ // long one and a brighter short one) and the dot itself on top.
+ function makeSegment(){const make=cls=>{const p=document.createElementNS(ns,'path');p.classList.add(cls);return p;};return {halo:make('route-halo'),far:make('route-trail-far'),near:make('route-trail-near'),line:make('route-line')};}
+ // A trail pattern from a dot pattern: every dot gets a dash ending where the dot ends, as long
+ // as `length` allows or as the gap before it allows, so the loop length is unchanged and the
+ // trails ride the same animation with the pattern start shifted by the first trail.
+ const trailPatterns=new WeakMap();
+ function trailPattern(traffic,length){
+  let byLength=trailPatterns.get(traffic);if(!byLength){byLength=new Map();trailPatterns.set(traffic,byLength);}
+  if(byLength.has(length))return byLength.get(length);
+  const v=traffic.dasharray.split(' ').map(Number),n=v.length/2,t=[];
+  for(let i=0;i<n;i++){const gapBefore=v[(2*i-1+v.length)%v.length];t.push(Math.max(.1,Math.min(length,gapBefore-.3)));}
+  const out=[];for(let i=0;i<n;i++){out.push(t[i],v[2*i+1]+v[2*i]-t[(i+1)%n]);}
+  const result={dasharray:out.map(x=>Math.round(x*100)/100).join(' '),shift:t[0]-v[0]};byLength.set(length,result);return result;
+ }
  return {setPaused(paused){svg.classList.toggle('flow-paused',paused);},update(routes,point,width,height){
   svg.style.display=routes.length?'block':'none';svg.setAttribute('viewBox',`0 0 ${width} ${height}`);
   // Parallel lanes must still end at the map silhouette, including its cuts.
@@ -97,13 +112,14 @@ export function createTourRoutes(stage){
     if(!ends[i]){const circle=document.createElementNS(ns,'circle');circle.setAttribute('r',fadeRadius);circle.setAttribute('fill','url(#tour-route-fade)');mask.append(circle);ends.push(circle);}
     const [x,y]=point(anchor.local,anchor.tile,anchor.offset);ends[i].setAttribute('cx',x.toFixed(1));ends[i].setAttribute('cy',y.toFixed(1));
    });
-   while(segments.length>fragments.length){const {halo,line}=segments.pop();halo.remove();line.remove();}
+   while(segments.length>fragments.length){for(const p of Object.values(segments.pop()))p.remove();}
    fragments.forEach(({d,start,traffic},i)=>{
-    if(!segments[i]){const halo=document.createElementNS(ns,'path'),line=document.createElementNS(ns,'path');halo.classList.add('route-halo');line.classList.add('route-line');group.append(halo,line);segments.push({halo,line});}
-    for(const path of Object.values(segments[i])){
+    if(!segments[i]){const s=makeSegment();group.append(s.halo,s.far,s.near,s.line);segments.push(s);}
+    for(const [kind,path] of Object.entries(segments[i])){
      path.setAttribute('d',d);
-     if(traffic){path.style.strokeDasharray=traffic.dasharray;path.style.setProperty('--traffic-from',String(traffic.phase+start));path.style.setProperty('--traffic-to',String(traffic.phase+start-traffic.length));path.style.setProperty('--traffic-duration',`${traffic.length/traffic.speed}s`);}
-     else {path.style.strokeDasharray='';path.style.removeProperty('--traffic-from');path.style.removeProperty('--traffic-to');path.style.removeProperty('--traffic-duration');}
+     if(traffic){const trail=kind==='near'?trailPattern(traffic,7):kind==='far'?trailPattern(traffic,14):null,shift=trail?trail.shift:0;
+      path.style.strokeDasharray=trail?trail.dasharray:traffic.dasharray;path.style.setProperty('--traffic-from',String(traffic.phase+start+shift));path.style.setProperty('--traffic-to',String(traffic.phase+start+shift-traffic.length));path.style.setProperty('--traffic-duration',`${traffic.length/traffic.speed}s`);}
+     else {path.style.strokeDasharray='';path.style.removeProperty('--traffic-from');path.style.removeProperty('--traffic-to');path.style.removeProperty('--traffic-duration');path.style.display=kind==='near'||kind==='far'?'none':'';}
     }
    });
   });

@@ -810,6 +810,13 @@ arrival routes; a `hunting` wave for the Russian fur route. The Wrangel date the
 user proposed (1000 CE, from Alaska) was corrected to about 2000 BCE from the
 Chukotka coast, and the causes are stated as contested where they are.
 
+**Comet dots, wider scrubber (September 23).** Torn between smaller dots with a
+trail and larger icon-like pieces, the user chose the comet. Decision: dots at
+half their size with two trail strokes per fragment derived from the same dash
+loop, so no per-frame work is added; icons, if wanted, belong to spots. The
+desktop scrubber also grew (up to 600 px) and stays right of the sidebar on
+narrow windows, where its ticks shrink instead of colliding.
+
 **Dance anchored on the centre (September 22).** The user saw a small drag down,
 made only to see an arrangement better, re-form the group and move the pieces in
 front of them away. Decision: a band switch needs a deliberate pan (40% of the
