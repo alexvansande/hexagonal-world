@@ -8,20 +8,20 @@ import {pacificTourNet} from './tour-layout.mjs?v=dancing-2';
 import pacificLighting from './maps/pacific-manifest.mjs?v=pacific-light-1';
 import {createTourStory} from './tour-story.mjs?v=history-3';
 import {periods,period as periodInfo} from './history/index.mjs?v=history-1';
-import {MergedMaps,mergedEntry,mergedCompatible} from './merged-maps.mjs?v=lit-1';
+import {MergedMaps,mergedEntry,mergedCompatible} from './merged-maps.mjs?v=turn-30';
 import {riverFieldGLSL} from './river-layers.mjs?v=cloud-assets-1';
-import {DefaultLayers,defaultLayerPreset,imageVertex,imageFragment,graticuleFragment} from './default-layers.mjs?v=lit-1';
+import {DefaultLayers,defaultLayerPreset,imageVertex,imageFragment,graticuleFragment} from './default-layers.mjs?v=turn-30';
 import {puzzleRegion,puzzleArtwork} from './puzzle-grid.mjs?v=unique-3';
 import {initSourcePicker} from './source-picker.mjs';
 import {isAboutPath} from './about-route.mjs?v=about-shapes-1';
 import {initAboutWidget} from './about-widget.mjs?v=cloud-assets-1';
 import {referenceSources,sourceAttribution,mapLicense} from './reference-sources.mjs?v=licenses-1';
-import {PrecomputedSurfaces,surfacePreset,surfaceLevel,surfacePlan,surfaceTileRect,clipSurfaceTriangle} from './precomputed-surfaces.mjs?v=lit-1';
+import {PrecomputedSurfaces,surfacePreset,surfaceLevel,surfacePlan,surfaceTileRect,clipSurfaceTriangle} from './precomputed-surfaces.mjs?v=turn-30';
 import {renderLifezonesLegend} from './lifezones-legend.mjs?v=lifezones-shadows-3';
 import {fadedLegendColor} from './legend-colors.mjs';
 import {ProjectedLighting,lightingSettings,lightingKey,lightingPlan,lightingCovers} from './projected-lighting.mjs?v=performance-1';
 import {compactDevice,mobileFitRect,maximumZoom,displayPixelRatio} from './device-profile.mjs?v=performance-1';
-import {readSharePath,sharePair,inferSharePair,presetSettings} from './share-routes.mjs?v=backdrop-4';
+import {readSharePath,sharePair,inferSharePair,presetSettings} from './share-routes.mjs?v=turn-30';
 import {initAnalytics,trackEvent} from './analytics.mjs';
 import {fractalRegion,fractalEdgeOwners,visibleFractalLines,fractalDetailPlan,fineFractalTiles,fractalFineScale,fractalOpacities,edgeKey} from './fractal-grid.mjs?v=fractal-zoom-10';
 import {pointInLoops} from './gosper-fractal.mjs';
@@ -38,7 +38,7 @@ import {visibleTiles} from './tiling.mjs';
 import {makeGeometry,layouts,matching,canvasWorld,hex,world} from './geometry.mjs?v=tetra-area-2';
 import {projectionGLSL} from './projection-shader.mjs?v=tetra-area-2';
 import {ReliefRenderer,reliefRanges,reliefDefaults,reliefLooks} from './relief.mjs?v=cloud-assets-1';
-import {layoutOptions,styleOptions,layoutIcon} from './map-options.mjs?v=backdrop-3';
+import {layoutOptions,styleOptions,layoutIcon} from './map-options.mjs?v=turn-30';
 const $=id=>document.getElementById(id), canvas=$('map'),overlay=$('overlay'),ctx=overlay.getContext('2d');
 const tourMarkers=createTourMarkers($('stage'),canvas);
 const tourLabels=createTourLabels($('stage'));
@@ -255,8 +255,9 @@ function point(p,t,offset){const v=rotateScreen(canvasWorld(p,t));if(offset){v[0
 const spaceshipUnlit=()=>!!renderDefault&&state.arrangement==='dymaxion';
 const spaceshipLit=()=>spaceshipUnlit()&&!!renderDefault.lit&&$('relief-enabled').checked;
 // A piece's lit set is chosen by how it stands on screen: the map turn minus 60° per piece rotation,
-// in 30° steps from the default 31° turn, so the light always comes from the same side of the browser.
-function litPathFor(t){if(!spaceshipLit()||!danceBase)return null;const r=danceTargets.get(t.id)?.r??t.r,k=((Math.round((state.gridRotation-60*Math.round(r)-31)/30)%renderDefault.lit)+renderDefault.lit)%renderDefault.lit;return `${renderDefault.path}/lit/${k}`;}
+// in 30° steps, so the light always comes from the same side of the browser.
+const forcedLitSet=['localhost','127.0.0.1','[::1]'].includes(location.hostname)?new URLSearchParams(location.search).get('lit-set'):null;
+function litPathFor(t){if(!spaceshipLit()||!danceBase)return null;const r=danceTargets.get(t.id)?.r??t.r,k=forcedLitSet!==null?+forcedLitSet:((Math.round((state.gridRotation-60*Math.round(r))/30)%renderDefault.lit)+renderDefault.lit)%renderDefault.lit;return `${renderDefault.path}/lit/${k}`;}
 let danceBase=null,danceKey='',danceTargets=new Map(),danceTweens=new Map(),danceCentreState='',danceVertex=null;
 function danceGrid(){
  const key=[state.method,state.height,state.arrangement,arrangement===arrangementCache.get(state.arrangement)?'a':'b'].join('/');
@@ -1163,8 +1164,7 @@ if(historyPeriodId)enableHistory(true);
 if($('rotate-dial')){
  const dial=$('rotate-dial'),input=$('gridRotation');
  const show=()=>dial.style.setProperty('--dial',`${state.gridRotation}deg`);
- // Steps of 30° counted from the default 31° turn, so the original alignment is always one of the twelve stops.
- const set=degrees=>{let v=31+Math.round((degrees-31)/30)*30;v=((v+180)%360+360)%360-180;if(v===state.gridRotation)return;input.value=v;input.dispatchEvent(new Event('input',{bubbles:true}));show();};
+ const set=degrees=>{let v=Math.round(degrees/30)*30;v=((v+180)%360+360)%360-180;if(v===state.gridRotation)return;input.value=v;input.dispatchEvent(new Event('input',{bubbles:true}));show();};
  const angleAt=e=>{const r=dial.getBoundingClientRect();return Math.atan2(e.clientY-r.top-r.height/2,e.clientX-r.left-r.width/2)*180/Math.PI;};
  let grab=null;
  dial.addEventListener('pointerdown',e=>{if(e.button!==0)return;e.preventDefault();dial.setPointerCapture(e.pointerId);grab={id:e.pointerId,start:angleAt(e),base:state.gridRotation};});
@@ -1320,18 +1320,21 @@ if(['127.0.0.1','localhost','[::1]'].includes(location.hostname)&&new URLSearchP
   return {net,rect:[left,top,width/density,height/density],width,height,density,angle:state.gridRotation*Math.PI/180,background:$('background-color').value,lighting:appliedLighting(),regions:[0,2]};
  };
  // Lit region for the dancing pieces: the piece stands at rotation 0 in its own frame and the light
- // is turned instead, so set k matches a piece standing on screen turned by 31° + 30° × k (the
+ // is turned instead, so set k matches a piece standing on screen turned by 30° × k (the
  // map turn minus 60° per piece rotation). Windows of `size` pixels tile the 4096-pixel region.
  window.bakeLitRegion=(region,k,x,y,size=1024,resolution=4096)=>{
   const saved={net,gridRotation:state.gridRotation,preset:$('lighting-preset').value,custom:customApplied,w,h,scale,zoom:state.zoom,panX:state.panX,panY:state.panY,dpr};
   const look=appliedLighting();
-  const controls=lightingControls();
-  net=[{...saved.net.find(t=>t.id===region),r:0,x:0,y:0}];meshSignature=null;state.gridRotation=0;
-  customApplied={...look,treatment:controls.treatment,tone:controls.tone,reliefAzimuth:look.reliefAzimuth+31+30*k};$('lighting-preset').value='custom';
+  const controls=lightingControls(),savedArrangement=arrangement;
+  // One piece at the origin, unturned, with no net seams (they belong to the full net's positions).
+  net=[{...saved.net.find(t=>t.id===region),r:0,x:0,y:0}];arrangement={...arrangement,seams:[]};meshSignature=null;state.gridRotation=0;
+  // The piece will be shown turned clockwise by 30° × k, which carries a fixed light with it;
+  // turning the light the other way in the piece's frame keeps it fixed to the browser.
+  customApplied={...look,gridRotation:0,treatment:controls.treatment,tone:controls.tone,reliefAzimuth:look.reliefAzimuth-30*k};$('lighting-preset').value='custom';
   lightingReadyKey=lightingRefineKey=null;
   const density=resolution/2,plan={level:4,density,rect:[-1+x/density,-1+y/density,Math.min(size,resolution-x)/density,Math.min(size,resolution-y)/density],repeat:false};
   const light=window.bakeDefaultLighting(plan);
-  net=saved.net;meshSignature=null;state.gridRotation=saved.gridRotation;customApplied=saved.custom;$('lighting-preset').value=saved.preset;
+  net=saved.net;arrangement=savedArrangement;meshSignature=null;state.gridRotation=saved.gridRotation;customApplied=saved.custom;$('lighting-preset').value=saved.preset;
   w=saved.w;h=saved.h;scale=saved.scale;state.zoom=saved.zoom;state.panX=saved.panX;state.panY=saved.panY;dpr=saved.dpr;offlineLightingPlan=null;lightingReadyKey=lightingRefineKey=null;
   return light.images;
  };

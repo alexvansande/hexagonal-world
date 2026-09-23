@@ -1,5 +1,5 @@
 import entries from './maps/merged-manifest.mjs';
-import {PrecomputedSurfaces} from './precomputed-surfaces.mjs?v=lit-1';
+import {PrecomputedSurfaces} from './precomputed-surfaces.mjs?v=turn-30';
 
 export function mergedEntry(entry){return entries[entry?.path?.replace(/^v1\//,'')]||null;}
 export function mergedCompatible(entry,state,background){

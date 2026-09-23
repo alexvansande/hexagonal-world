@@ -2,7 +2,7 @@ import {tetraSphere} from './tetra-projection.mjs?v=tetra-area-2';
 import {makeGeometry,layouts,world,add,mul,dot,norm} from './geometry.mjs?v=tetra-area-2';
 import {makeArrangement} from './arrangements.mjs?v=gosper-1';
 import {hexSphere} from './circular-projections.mjs';
-import {construction,rearrangementFrame,sub,cross,mix,rotate} from './about-geometry.mjs?v=felv-paths-2';
+import {construction,rearrangementFrame,sub,cross,mix,rotate} from './about-geometry.mjs?v=turn-30';
 export const projectionChoices=[['lambert-one','One hex'],['lambert-two','Two hexes'],['tetra','Tetrahedron'],['octa','Octahedron'],['rhombic','Rhombic dodecahedron'],['tetrakis','Tetrakis hexahedron']];
 const smooth=x=>{x=Math.max(0,Math.min(1,x));return x*x*(3-2*x);};
 const near=(a,b)=>Math.hypot(...sub(a,b))<1e-7;

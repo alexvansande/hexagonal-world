@@ -1,7 +1,7 @@
 import {assetURL} from './asset-url.mjs';
-import manifest from './maps/default-layers/manifest.mjs?v=lighting-comparison-3';
-import {layoutOptions,styleOptions} from './map-options.mjs?v=backdrop-3';
-import {PrecomputedSurfaces} from './precomputed-surfaces.mjs?v=lit-1';
+import manifest from './maps/default-layers/manifest.mjs?v=turn-30';
+import {layoutOptions,styleOptions} from './map-options.mjs?v=turn-30';
+import {PrecomputedSurfaces} from './precomputed-surfaces.mjs?v=turn-30';
 import {ProjectedLighting,lightingPlan} from './projected-lighting.mjs?v=performance-1';
 const shapeKeys=['method','arrangement','lon','lat','roll','bias','height','gridRotation'];
 const paintKeys=['riverWidth','riverLevels','reliefColorFade','distortionOpacity'];

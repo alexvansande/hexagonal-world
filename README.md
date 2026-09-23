@@ -168,8 +168,7 @@ by dragging” is a toggle under More options → Position (on phones it opens t
 full-screen repositioning flow with its Done button).
 
 Rotation dial: to the right of Fit sits a small grey circle with an off-centre
-dot. Dragging around it turns the whole map in 30° steps counted from the default
-31° turn (twelve positions, the default among them) about the viewport centre (Spaceship Earth keeps its unlit preset and its
+dot. Dragging around it turns the whole map in 30° steps (twelve positions) about the viewport centre (Spaceship Earth keeps its unlit preset and its
 dance at any turn)
 (the arrow keys step it too); the dot shows the current turn. It drives the
 same grid-rotation setting as the slider in the positioning panel, so the turn
@@ -194,7 +193,7 @@ one holding most of it by the same joins and frames the points where the
 pieces will settle. Spaceship Earth draws through the layered per-piece renderer (no merged
 composite, no screen-space lighting layer). Every lit style has lit per-piece sets
 baked by `scripts/build-lit-regions.mjs`: for each hexagon and each of the
-twelve ways a piece can stand on screen (30° steps from the default 31° turn),
+twelve ways a piece can stand on screen (30° steps; Spaceship Earth's default turn is now 30°),
 the unlit base fused with terrain lighting turned so the light always comes
 from the same side of the browser (`lit/<orientation>/<region>/…` under
 `maps/default-layers/v1/dymaxion/<style>`, `lit: 12` in the manifest entry).

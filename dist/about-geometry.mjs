@@ -1,6 +1,6 @@
 import {makeGeometry,layouts,world,add,mul,dot,norm} from './geometry.mjs?v=circular-2';
 import {makeFelv} from './felv.mjs';
-import {layoutOptions} from './map-options.mjs?v=backdrop-3';
+import {layoutOptions} from './map-options.mjs?v=turn-30';
 import {followPoint,geographicPoint} from './globe-drag.mjs?v=circular-2';
 import {makeArrangement} from './arrangements.mjs?v=gosper-1';
 export const sub=(a,b)=>a.map((v,i)=>v-b[i]);

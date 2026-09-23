@@ -1,7 +1,7 @@
 import {assetURL} from './asset-url.mjs';
 import {projectionChoices,otherConstruction} from './about-projections.mjs?v=about-shapes-1';
 import {initAboutRoute} from './about-route.mjs?v=about-shapes-1';
-import {construction,constructionMesh,rearrangementFrame,mix,sub,rotate} from './about-geometry.mjs?v=felv-paths-2';
+import {construction,constructionMesh,rearrangementFrame,mix,sub,rotate} from './about-geometry.mjs?v=turn-30';
 import {norm} from './geometry.mjs?v=tetra-area-2';
 const rhombicNames=['Sphere','Project','Unfold','Adjust','Rearrange'];
 const rhombicCaptions=['Earth, divided by twelve spherical rhombi.','The same continents, projected onto twelve flat rhombi.','The faces hinge open into the Spaceship Earth net.','A gentle stretch brings the rhombi into four regular hexagons.','Cut and turn the pieces to form the Felv map.'];

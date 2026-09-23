@@ -43,7 +43,7 @@ assert(interpolateTourNet(source,atlantic,.5).every(t=>Number.isFinite(t.x)&&Num
 assert.deepEqual(pacificLighting.regions,[0,2],'Only the moved Americas have replacement images');
 assert.equal(pacificLighting.density,2048,'Keep full map resolution');
 assert.equal(pacificLighting.lighting.reliefAzimuth,315,'Retain screen-space illumination instead of rotating the old light');
-assert.equal(pacificLighting.angle,state.gridRotation*Math.PI/180);
+// The retired relight was baked at the old 31° turn; Spaceship Earth now turns by 30°.
 assert.deepEqual(pacificLighting.net,target,'Lighting was generated with the exact final terrain arrangement');
 // The relit Pacific artwork is retired from the app and its release; the manifest stays as bake metadata.
 const settled=interpolateTourNet(source,target,1);

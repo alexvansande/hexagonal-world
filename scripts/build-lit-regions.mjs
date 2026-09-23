@@ -1,6 +1,6 @@
 // Offline only. Bakes the lit per-piece sets for the Spaceship Earth dance: for
 // every hexagon region and each of the twelve ways a piece can stand on screen
-// (30° steps from the default 31° turn), the unlit base is fused with terrain
+// (30° steps), the unlit base is fused with terrain
 // lighting turned so the light always comes from the same side of the browser. Needs playwright-core and a local Chrome; PIL/numpy via SURFACE_PYTHON.
 import {createRequire} from 'node:module';
 import {mkdir,readFile,writeFile} from 'node:fs/promises';

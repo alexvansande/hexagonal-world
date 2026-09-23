@@ -755,6 +755,19 @@ the map turn minus 60° per piece rotation; the dial steps from 31° so the
 default is one of its stops. About four times the tiles of the rotation-class
 sets.
 
+**Shadows debugged, turn rounded to 30° (September 23).** The first lit sets
+showed shadows pointing every way, relief drifting off the colours, and unlit
+triangles at the hex vertices. Two causes: the custom light handed to the relief
+renderer still carried the map's grid turn, so lighting was rendered turned
+against the unturned base; and the sets were keyed by rotation class, so the
+light turned with the dial. The user asked what the 31° turn even was and to
+round it to 30. Decisions: Spaceship Earth's preset turn is 30°; the bake zeroes
+the grid turn and turns only the light, by −30° per orientation step; the
+runtime picks the set from the map turn minus 60° per piece rotation. Verified by
+rendering the whole default map through the live relief and through the sets
+at the same camera: shading correlation 0.8 across all four pieces, which stand
+at four different orientations, and no vertex triangles.
+
 **Dance anchored on the centre (September 22).** The user saw a small drag down,
 made only to see an arrangement better, re-form the group and move the pieces in
 front of them away. Decision: a band switch needs a deliberate pan (40% of the
