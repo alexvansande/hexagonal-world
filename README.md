@@ -117,8 +117,8 @@ address has a static landing page with its own 1200×630 preview
 `/tests/history-social.html?save=1` through `scripts/render-history-social.mjs`
 with the local save server running) and a sitemap entry.
 
-History timeline: a “Show history” checkbox sits in the collapsed sidebar between
-the style strip and More options. Switching it on replaces the pan/reposition
+History timeline: a “History” button sits in the collapsed sidebar between
+the style strip and More options (it reads “Close history” while on). Switching it on replaces the pan/reposition
 toolbox with one scrubber over the nine periods (Early hominins, Out of Africa,
 Ice Age to farming, Bronze Age, Antiquity, Middle Ages, High Middle Ages,
 Globalization, Plantations & empires), ticked with approximate dates (2M ya,
@@ -134,6 +134,19 @@ story has no spot there; closing restores the camera. The period persists as
 `?history=<period>` on the map URL (old stop names still resolve). Story URLs
 such as `/silk-road/` open the timeline at that story's first period with its
 card open. Leaving an eligible map switches history off.
+
+On phones (`compactDevice`): a tall screen starts Spaceship Earth a quarter turn
+round (120°) so the net stands upright; the scrubber moves inside the sidebar in
+place of the More options button and the History button becomes “‹ Back”;
+choosing a period swaps the scrubber for a horizontal strip of cards, one per
+spot, with no arrows: the next card peeks in from the right and a thumb drag
+snaps natively (`scroll-snap-type: x mandatory`, momentum and rubber-banding
+come from the browser), and landing on a card focuses that spot. Cards take at
+most a third of the height and scroll inside. Back returns to the scrubber, and
+again to the map. Two fingers turn the map as well as zoom it, about the pinch
+midpoint; the lit sets keep the turn the gesture started from until the fingers
+lift, when the turn snaps to the nearest 30° stop. Checks:
+`/tests/history-mobile.html`.
 
 Corridor relaxation: `scripts/relax-tour-routes.py <period>|all` builds a 0.2°
 passability raster from the height overview (slope and elevation), Holdridge

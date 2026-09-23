@@ -1,0 +1,48 @@
+<!doctype html><html lang="en"><meta charset="utf-8"><title>History on a phone</title>
+<style>body{font:14px system-ui;color:#18343d}iframe{width:390px;height:844px;border:1px solid #ccc}li{margin:4px}</style>
+<h1>History on a phone</h1><p id="result">Running…</p><ol id="checks"></ol>
+<iframe title="Phone map"></iframe>
+<script type="module">
+import {periods} from '../history/index.mjs';
+const frame=document.querySelector('iframe'),result=document.querySelector('#result');
+const pause=ms=>new Promise(r=>setTimeout(r,ms));
+const until=async(test,label)=>{for(let i=0;i<400;i++){if(test())return;await pause(50);}throw Error('Timed out: '+label);};
+const check=(ok,label)=>{if(!ok)throw Error(label);const li=document.createElement('li');li.textContent='PASS: '+label;document.querySelector('#checks').append(li);};
+const load=async url=>{const loaded=new Promise(r=>frame.onload=r);frame.src=url;await loaded;};
+try{
+ await load('/lifezones/spaceship-earth/?fresh='+Date.now());
+ await until(()=>frame.contentDocument?.querySelectorAll('.tour-marker:not([hidden])').length>0&&frame.contentDocument.querySelector('#map')?.dataset.tourLayout==='dancing','map');
+ const d=frame.contentDocument,w=frame.contentWindow,map=d.querySelector('#map'),aside=d.querySelector('#controls');await pause(600);
+ check(+d.querySelector('#gridRotation').value===120,'A tall screen starts Spaceship Earth a quarter turn round (120°)');
+ const button=d.querySelector('#show-history'),scrub=async id=>{const s=d.querySelector('#history-stop');s.value=periods.findIndex(p=>p.id===id);s.dispatchEvent(new w.Event('input',{bubbles:true}));await pause(1800);};
+ check(button.tagName==='BUTTON'&&button.textContent.trim()==='History'&&getComputedStyle(d.querySelector('#customize')).display!=='none','The History button and the options button sit in the sidebar');
+ button.click();await until(()=>!d.querySelector('.history-tools').hidden&&!d.querySelector('#tour-story-strip'),'scrubber');await pause(600);
+ check(aside.contains(d.querySelector('.history-tools'))&&getComputedStyle(d.querySelector('#customize')).display==='none','The scrubber takes the place of the options button inside the sidebar');
+ check(button.textContent.trim()==='‹ Back'&&button.getAttribute('aria-pressed')==='true','The History button becomes Back');
+ await scrub('1400-ce');await until(()=>d.querySelector('#tour-story-strip'),'cards');await pause(800);
+ const strip=d.querySelector('#tour-story-strip'),cards=[...strip.querySelectorAll('.tour-story-card')];
+ check(cards.length===periods.find(p=>p.id==='1400-ce').stories.length&&getComputedStyle(d.querySelector('.history-tools')).display==='none','Choosing a period swaps the scrubber for a strip with one card per spot');
+ check(!d.querySelector('.tour-story-nav')||d.querySelector('#tour-story').hidden,'No arrows on the phone cards');
+ const active=strip.querySelector('.tour-story-card.active'),rect=active.getBoundingClientRect(),next=cards[cards.indexOf(active)+1].getBoundingClientRect();
+ check(rect.height<=w.innerHeight/3+2&&getComputedStyle(active).overflowY==='auto','Cards take at most a third of the height and scroll inside');
+ check(next.left<w.innerWidth&&next.right>w.innerWidth,'The next card peeks in from the right');
+ check(getComputedStyle(strip).scrollSnapType.includes('x')&&getComputedStyle(strip).overflowX==='auto','The strip snaps and scrolls natively');
+ const before=w.location.pathname;strip.scrollTo({left:cards[1].offsetLeft-12,behavior:'instant'});await pause(600);await until(()=>w.location.pathname!==before,'next spot');await pause(1500);
+ check(strip.querySelector('.tour-story-card.active')===cards[1]&&d.querySelector('#tour-story-strip'),'Thumbing the strip to the next card focuses that spot and keeps the strip');
+ button.click();await until(()=>!d.querySelector('#tour-story-strip')&&getComputedStyle(d.querySelector('.history-tools')).display!=='none','back to scrubber');
+ check(true,'Back returns from the cards to the scrubber');
+ button.click();await until(()=>d.querySelector('.history-tools').hidden&&getComputedStyle(d.querySelector('#customize')).display!=='none','back to map');
+ check(button.textContent.trim()==='History','Back again leaves history and restores the options button');
+ // Two fingers turn the map; the lit sets wait for the release and the turn snaps to a stop.
+ map.setPointerCapture=()=>{};map.releasePointerCapture=()=>{};const r=map.getBoundingClientRect(),cx=r.left+r.width/2,cy=r.top+r.height/2;
+ const ev=(type,id,x,y)=>map.dispatchEvent(new w.PointerEvent(type,{bubbles:true,clientX:x,clientY:y,pointerId:id,pointerType:'touch',isPrimary:id===1,button:0,buttons:type==='pointerup'?0:1}));
+ const start=+d.querySelector('#gridRotation').value;ev('pointerdown',1,cx-60,cy);ev('pointerdown',2,cx+60,cy);
+ for(let i=1;i<=8;i++){const a=i*Math.PI/36*2;ev('pointermove',1,cx-60*Math.cos(a),cy-60*Math.sin(a));ev('pointermove',2,cx+60*Math.cos(a),cy+60*Math.sin(a));await pause(30);}
+ const mid=+map.dataset.turn;
+ check(Math.abs(mid-start)>20&&map.dataset.litHold===String(start),`Two fingers turn the map (${start}° → ${mid}°) while the lit sets hold the starting turn`);
+ ev('pointerup',1,cx,cy);ev('pointerup',2,cx,cy);await pause(700);
+ const final=+d.querySelector('#gridRotation').value;
+ check(final%30===0&&map.dataset.litHold==='','Letting go snaps the turn to a 30° stop and releases the lit sets');
+ result.textContent='All checks passed.';result.dataset.status='passed';
+}catch(error){result.textContent='FAIL: '+error.message;result.dataset.status='failed';console.error(error);}
+</script></html>

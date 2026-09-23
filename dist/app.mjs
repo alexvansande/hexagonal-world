@@ -6,7 +6,7 @@ import {createTourRoutes,projectTourRoutes} from './tour-route-renderer.mjs?v=hi
 import {loadPeriod} from './history-loader.mjs?v=history-3';
 import {pacificTourNet} from './tour-layout.mjs?v=dancing-2';
 import pacificLighting from './maps/pacific-manifest.mjs?v=pacific-light-1';
-import {createTourStory} from './tour-story.mjs?v=history-3';
+import {createTourStory} from './tour-story.mjs?v=history-4';
 import {periods,period as periodInfo} from './history/index.mjs?v=history-1';
 import {MergedMaps,mergedEntry,mergedCompatible} from './merged-maps.mjs?v=turn-30';
 import {riverFieldGLSL} from './river-layers.mjs?v=cloud-assets-1';
@@ -257,7 +257,7 @@ const spaceshipLit=()=>spaceshipUnlit()&&!!renderDefault.lit&&$('relief-enabled'
 // A piece's lit set is chosen by how it stands on screen: the map turn minus 60° per piece rotation,
 // in 30° steps, so the light always comes from the same side of the browser.
 const forcedLitSet=['localhost','127.0.0.1','[::1]'].includes(location.hostname)?new URLSearchParams(location.search).get('lit-set'):null;
-function litPathFor(t){if(!spaceshipLit()||!danceBase)return null;const r=danceTargets.get(t.id)?.r??t.r,k=forcedLitSet!==null?+forcedLitSet:((Math.round((state.gridRotation-60*Math.round(r))/30)%renderDefault.lit)+renderDefault.lit)%renderDefault.lit;return `${renderDefault.path}/lit/${k}`;}
+function litPathFor(t){if(!spaceshipLit()||!danceBase)return null;const r=danceTargets.get(t.id)?.r??t.r,turn=litRotationHold??state.gridRotation,k=forcedLitSet!==null?+forcedLitSet:((Math.round((turn-60*Math.round(r))/30)%renderDefault.lit)+renderDefault.lit)%renderDefault.lit;return `${renderDefault.path}/lit/${k}`;}
 let danceBase=null,danceKey='',danceTargets=new Map(),danceTweens=new Map(),danceCentreState='',danceVertex=null;
 function danceGrid(){
  const key=[state.method,state.height,state.arrangement,arrangement===arrangementCache.get(state.arrangement)?'a':'b'].join('/');
@@ -435,6 +435,7 @@ function syncHistoryFocus(){
 // The card's bottom arrows cycle through the period's spots in Markdown order.
 function showHistoryCard(id){
  const spot=historyPeriod.text.spots[id],ids=Object.keys(historyPeriod.text.spots),index=ids.indexOf(id);
+ if(compactDevice){tourStory.strip(ids.map(sid=>({id:sid,title:historyPeriod.text.spots[sid].title,story:historyPeriod.text.spots[sid]})),id,sid=>{if(sid!==historyFocus)focusHistoryStory(sid);});return;}
  tourStory.show(historySpots().find(s=>s.id===id)||{id,title:spot.title},{...spot,storyId:id},{index,count:ids.length,step:delta=>focusHistoryStory(ids[(index+delta+ids.length)%ids.length])});
 }
 const firstPeriodFor=id=>periods.find(p=>p.stories.includes(id))?.id||null;
@@ -443,7 +444,7 @@ $('stage').addEventListener('tourselect',event=>{
  else{historyPeriodId=firstPeriodFor(event.detail.id)||historyPeriodId;historyFocus=event.detail.id;historyFocusPending=true;enableHistory(true);}
 });
 // Scrubber: nine approximate dates; the age name sits in the panel heading.
-const historyToggle=$('show-history'),historyTools=document.querySelector('.history-tools'),historySlider=$('history-stop'),historyDate=$('history-date'),historyLabels=document.querySelector('.history-stop-labels'),historyNote=$('history-note');
+const historyToggle=$('show-history'),historyTools=document.querySelector('.history-tools'),historyLabel=historyToggle.querySelector('.history-label'),historySlider=$('history-stop'),historyDate=$('history-date'),historyLabels=document.querySelector('.history-stop-labels'),historyNote=$('history-note');
 function readHistoryParam(value){if(!value)return null;return periods.find(p=>p.id===value||p.stop===value)?.id||null;}
 historyPeriodId=readHistoryParam(new URLSearchParams(location.search).get('history'))||initialHistory?.period||(initialTour?firstPeriodFor(initialTour.id):null);
 function currentPeriod(){return periodInfo(historyPeriodId);}
@@ -451,7 +452,9 @@ historySlider.max=String(periods.length-1);historyLabels.style.setProperty('--st
 for(const p of periods){const b=document.createElement('button');b.type='button';b.dataset.stop=p.id;b.setAttribute('aria-label',`${p.label}, ${p.date}`);b.textContent=p.tick;b.onclick=()=>selectHistoryPeriod(p.id);historyLabels.append(b);}
 function syncHistoryTools(){
  const info=currentPeriod();
- historyToggle.checked=historyOn;historyTools.hidden=!historyOn;document.body.classList.toggle('history',historyOn);
+ historyToggle.setAttribute('aria-pressed',String(historyOn));historyToggle.classList.toggle('back',compactDevice&&historyOn);
+ historyLabel.textContent=compactDevice&&historyOn?'‹ Back':historyOn?'Close history':'History';
+ historyTools.hidden=!historyOn;document.body.classList.toggle('history',historyOn);document.body.classList.toggle('history-focus',historyOn&&!!historyFocus);
  historySlider.value=String(periods.indexOf(info));historySlider.setAttribute('aria-valuetext',`${info.label}, ${info.date}`);historyDate.textContent=`${info.label} · ${info.date}`;
  for(const b of historyLabels.children)b.setAttribute('aria-pressed',String(b.dataset.stop===info.id));
  const note=!historyPeriod?'Loading stories…':historyPeriod.period.id!==info.id?'Loading stories…':historyPeriod.text.intro.note||(historyPeriod.routes.length?'':'Nothing written for this period yet.');
@@ -479,7 +482,10 @@ async function enableHistory(on){
  if(!on){++historyLoad;historyPeriod=null;historyProjection=null;closeHistoryFocus(false);syncHistoryTools();updateMapUrl();draw();return;}
  syncHistoryTools();updateMapUrl();loadHistoryPeriod();draw();
 }
-historyToggle.addEventListener('change',()=>enableHistory(historyToggle.checked));
+// One button: on phones it is also the way back, from the cards to the scrubber and from the scrubber to the map.
+historyToggle.addEventListener('click',()=>{if(historyOn&&compactDevice&&historyFocus)closeHistoryFocus(true);else enableHistory(!historyOn);});
+// On phones the scrubber takes the place of the options button inside the sidebar.
+if(compactDevice)$('customize').after(historyTools);
 historySlider.addEventListener('input',()=>selectHistoryPeriod(periods[+historySlider.value].id));
 
 // Manual map gestures interrupt the camera transition immediately.
@@ -689,7 +695,7 @@ function render(refined=false,exportMode=false){if(exporting&&!exportMode)return
   const plan=mergedMaps.draw(renderMerged,{width:w,height:h,unit:scale*state.zoom,dpr,panX:state.panX,panY:state.panY},null,[]);
   surfaceCache=mergedMaps.cache;canvas.dataset.surface='precomputed';canvas.dataset.surfacePreview=String(!plan.ready);canvas.dataset.surfaceLevel=String(plan.level);canvas.dataset.surfacePending=String(surfaceCache.pending.size);canvas.dataset.surfaceTiles=String(surfaceCache.cache.size);canvas.dataset.surfaceFailures=String(surfaceCache.failures.size);
  }else drawColor(w,h,!!lighting);
- canvas.dataset.merged=String(!!renderMerged);canvas.dataset.tourLayout=danceActive()?'dancing':'default';canvas.dataset.danceVertex=danceActive()?danceCentreState:'';canvas.dataset.danceValid=String(danceActive()?danceConnected():true);canvas.dataset.tourLighting=spaceshipLit()?'lit':spaceshipUnlit()?'unlit':'default';canvas.dataset.danceMoving=String(danceTweens.size>0);canvas.dataset.dancePositions=net.map(t=>`${t.id}:${t.x.toFixed(2)},${t.y.toFixed(2)},${t.r.toFixed(2)}`).join(' ');
+ canvas.dataset.merged=String(!!renderMerged);canvas.dataset.tourLayout=danceActive()?'dancing':'default';canvas.dataset.danceVertex=danceActive()?danceCentreState:'';canvas.dataset.danceValid=String(danceActive()?danceConnected():true);canvas.dataset.tourLighting=spaceshipLit()?'lit':spaceshipUnlit()?'unlit':'default';canvas.dataset.litHold=litRotationHold===null?'':String(litRotationHold);canvas.dataset.turn=state.gridRotation.toFixed(1);canvas.dataset.danceMoving=String(danceTweens.size>0);canvas.dataset.dancePositions=net.map(t=>`${t.id}:${t.x.toFixed(2)},${t.y.toFixed(2)},${t.r.toFixed(2)}`).join(' ');
  if(lighting){(renderDefault?defaultLayers:projectedLighting).composite(lighting,w,h,scale*state.zoom,state.panX,state.panY,state.shadowOpacity,state.lightOpacity);
   if(!renderDefault&&($('graticule').checked||$('distortion').checked)){gl.enable(gl.BLEND);gl.blendFuncSeparate(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA,gl.ONE,gl.ONE_MINUS_SRC_ALPHA);drawColor(w,h,false,true);gl.disable(gl.BLEND);}
  }
@@ -820,6 +826,20 @@ $('rotate').onclick=()=>{if(state.mode==='rotate'){if(mobileRepositioning)finish
 function zoom(factor,x=w/2,y=h/2){const old=state.zoom;state.zoom=Math.min(maximumZoom(scale),Math.max(.25,old*factor));const r=state.zoom/old;state.panX=(state.panX-(x-w/2))*r+(x-w/2);state.panY=(state.panY-(y-h/2))*r+(y-h/2);draw();}
 $('zoom-in').onclick=()=>zoom(1.25);$('zoom-out').onclick=()=>zoom(.8);canvas.addEventListener('wheel',e=>{e.preventDefault();const r=canvas.getBoundingClientRect();zoom(Math.exp(-e.deltaY*.0015),e.clientX-r.left,e.clientY-r.top);},{passive:false});
 let dragging=null;const pointers=new Map();let pinchDistance=0,grabbed=null;
+// Two fingers turn the map as well as zoom it. The lit sets keep the turn the gesture started
+// from until the fingers lift, when the turn snaps to one of the twelve stops.
+let pinch=null,litRotationHold=null,snapAnimation=0;
+function rotateAbout(delta,mx,my){const cx=mx-w/2,cy=my-h/2,a=delta*Math.PI/180,c=Math.cos(a),s=Math.sin(a),vx=cx-state.panX,vy=cy-state.panY;state.panX=cx-(c*vx-s*vy);state.panY=cy-(s*vx+c*vy);state.gridRotation=((state.gridRotation+delta+180)%360+360)%360-180;}
+function settleRotation(target){
+ state.gridRotation=((target+180)%360+360)%360-180;$('gridRotation').value=state.gridRotation;$('gridRotation').dispatchEvent(new Event('input',{bubbles:true}));litRotationHold=null;draw();
+}
+function snapRotation(){
+ cancelAnimationFrame(snapAnimation);const from=state.gridRotation,target=Math.round(from/30)*30,turn=((target-from+540)%360)-180;
+ if(Math.abs(turn)<1e-6){settleRotation(target);return;}
+ const start=performance.now(),duration=matchMedia('(prefers-reduced-motion: reduce)').matches?0:220;let done=0;
+ const step=now=>{const t=duration?Math.min(1,(now-start)/duration):1,e=1-(1-t)**3,d=turn*e-done;done+=d;rotateAbout(d,w/2,h/2);if(t<1){draw();snapAnimation=requestAnimationFrame(step);}else{snapAnimation=0;settleRotation(target);}};
+ snapAnimation=requestAnimationFrame(step);
+}
 function cursorSphere(e){
  const rect=canvas.getBoundingClientRect(),unit=scale*state.zoom;
  const p=rotateScreen([(e.clientX-rect.left-w/2-state.panX)/unit,(e.clientY-rect.top-h/2-state.panY)/unit],-state.gridRotation*Math.PI/180);
@@ -853,16 +873,18 @@ $('stage').addEventListener('pointerleave',hideCoordinateReadout);
 $('stage').addEventListener('pointercancel',hideCoordinateReadout);
 window.addEventListener('blur',hideCoordinateReadout);
 canvas.onpointerdown=e=>{cancelPanSpring();
- canvas.setPointerCapture(e.pointerId);pointers.set(e.pointerId,[e.clientX,e.clientY]);dragging={x:e.clientX,y:e.clientY};danceDrag={x:0,y:0};
+ canvas.setPointerCapture(e.pointerId);pointers.set(e.pointerId,[e.clientX,e.clientY]);dragging={x:e.clientX,y:e.clientY};
  const sample=state.mode==='rotate'?cursorSphere(e):null;
  if(pointers.size===1&&state.mode==='rotate'&&!sample)mode('pan');
  grabbed=sample?geographicPoint(state,sample):null;
- if(pointers.size===2){grabbed=null;const p=[...pointers.values()];pinchDistance=Math.hypot(p[0][0]-p[1][0],p[0][1]-p[1][1]);}
+ if(pointers.size===2){grabbed=null;const p=[...pointers.values()];pinchDistance=Math.hypot(p[0][0]-p[1][0],p[0][1]-p[1][1]);cancelAnimationFrame(snapAnimation);snapAnimation=0;pinch={angle:Math.atan2(p[1][1]-p[0][1],p[1][0]-p[0][0])};if(litRotationHold===null)litRotationHold=state.gridRotation;}
 };
 canvas.onpointermove=e=>{
  if(!pointers.has(e.pointerId)||!dragging)return;
  pointers.set(e.pointerId,[e.clientX,e.clientY]);
- if(pointers.size===2){const p=[...pointers.values()],d=Math.hypot(p[0][0]-p[1][0],p[0][1]-p[1][1]),r=canvas.getBoundingClientRect();if(pinchDistance)zoom(d/pinchDistance,(p[0][0]+p[1][0])/2-r.left,(p[0][1]+p[1][1])/2-r.top);pinchDistance=d;dragging={x:e.clientX,y:e.clientY};return;}
+ if(pointers.size===2){const p=[...pointers.values()],d=Math.hypot(p[0][0]-p[1][0],p[0][1]-p[1][1]),r=canvas.getBoundingClientRect(),mx=(p[0][0]+p[1][0])/2-r.left,my=(p[0][1]+p[1][1])/2-r.top;if(pinchDistance)zoom(d/pinchDistance,mx,my);pinchDistance=d;
+  if(pinch){const angle=Math.atan2(p[1][1]-p[0][1],p[1][0]-p[0][0]);let delta=(angle-pinch.angle)*180/Math.PI;delta=((delta+540)%360)-180;pinch.angle=angle;if(delta)rotateAbout(delta,mx,my);draw();}
+  dragging={x:e.clientX,y:e.clientY};return;}
  const dx=e.clientX-dragging.x,dy=e.clientY-dragging.y;dragging={x:e.clientX,y:e.clientY};
  if(state.mode==='rotate'){
   const sample=cursorSphere(e);if(!sample)return;
@@ -870,7 +892,7 @@ canvas.onpointermove=e=>{
   leaveSearch();setRotation(followPoint(state,sample,grabbed));
  }else{grabbed=null;state.panX+=dx;state.panY+=dy;draw();}
 };
-function end(e){draw();pointers.delete(e.pointerId);pinchDistance=0;grabbed=null;dragging=pointers.size?{x:[...pointers.values()][0][0],y:[...pointers.values()][0][1]}:null;if(!pointers.size)keepMapInView();}
+function end(e){draw();pointers.delete(e.pointerId);pinchDistance=0;grabbed=null;if(pinch&&pointers.size<2){pinch=null;snapRotation();}dragging=pointers.size?{x:[...pointers.values()][0][0],y:[...pointers.values()][0][1]}:null;if(!pointers.size)keepMapInView();}
 canvas.onpointerup=end;canvas.onpointercancel=end;
 // The map can never be dragged fully out of view: when a drag ends with less
 // than a sliver of it on screen, the camera springs back with a small overshoot.
@@ -1156,6 +1178,8 @@ urlDefaults=captureSettings();
 restoreSettings(presetSettings(shareSelection));
 // A story URL keeps the preset camera: the timeline frames the story once its period loads.
 if(!initialTour)restoreSettings(readMapStateFromUrl());
+// A tall screen starts Spaceship Earth a quarter turn round, so the net stands upright.
+if(!readMapStateFromUrl()&&state.arrangement==='dymaxion'&&matchMedia('(orientation: portrait)').matches){state.gridRotation=((state.gridRotation+90+180)%360+360)%360-180;$('gridRotation').value=state.gridRotation;$('gridRotation-value').value=state.gridRotation+'°';}
 initAnalytics(initialTour?.path||shareSelection.path);setSidebarExpanded(state.sidebarExpanded,false);rebuild(false);initializeMapTexture();
 if(historyPeriodId)enableHistory(true);
 // Rotation dial beside Fit: dragging around it turns the whole map in 30° steps

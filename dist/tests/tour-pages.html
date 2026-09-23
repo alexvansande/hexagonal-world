@@ -17,19 +17,19 @@ try{
  for(const tour of tourPages){
   await load(tour.path);await wait(()=>doc()?.querySelector('#tour-story')?.hidden===false,'story '+tour.id);await pause(2200);
   const first=periods.find(p=>p.stories.includes(tour.id));
-  await wait(()=>win().location.pathname==='/lifezones/spaceship-earth/','map URL');
+  await wait(()=>win().location.pathname.startsWith('/history/'),'history address');
   check(doc().querySelector('#map-source').value==='ecology',tour.path+' directly opens on Lifezones · Spaceship Earth');
-  check(doc().querySelector('#show-history').checked&&!doc().querySelector('.history-tools').hidden&&win().location.search.includes('history='+first.id),tour.path+' opens the timeline at '+first.id);
+  check(doc().querySelector('#show-history').getAttribute('aria-pressed')==='true'&&!doc().querySelector('.history-tools').hidden&&win().location.pathname==='/history/'+first.id+'/'+tour.id+'/',tour.path+' opens the timeline at '+first.id);
   check(visible('.tour-routes .route-line').length>0,tour.path+' draws the period without clicking');
   check(doc().querySelector('#tour-story-title').textContent.length>0&&doc().querySelectorAll('#tour-story .tour-story-body p').length>0,tour.path+' shows the spot text');
   await wait(()=>doc().querySelector('#map').dataset.tourLayout==='dancing','dancing pieces');
   doc().querySelector('#tour-story-close').click();await wait(()=>doc().querySelector('#tour-story').hidden,'close');await pause(300);
-  check(doc().querySelector('#show-history').checked&&visible('.tour-routes .route-line').length>0&&win().location.pathname==='/lifezones/spaceship-earth/',tour.path+' closes to the timeline, still drawn, on the map URL');
+  check(doc().querySelector('#show-history').getAttribute('aria-pressed')==='true'&&visible('.tour-routes .route-line').length>0&&win().location.pathname==='/history/'+first.id+'/',tour.path+' closes to the timeline, still drawn, on the age address');
  }
  await load('/lifezones/spaceship-earth/');await wait(()=>doc().querySelectorAll('.tour-marker:not([hidden])').length===7,'base map');
  doc().querySelector('[data-tour-id="french-polynesia"]').click();await wait(()=>doc().querySelector('#tour-story')?.hidden===false,'dot');await pause(1500);
  const first=periods.find(p=>p.stories.includes('french-polynesia'));
- check(doc().querySelector('#show-history').checked&&win().location.search.includes('history='+first.id)&&win().location.pathname==='/lifezones/spaceship-earth/','A dot off the timeline switches history on at that story’s first period');
+ check(doc().querySelector('#show-history').getAttribute('aria-pressed')==='true'&&win().location.pathname==='/history/'+first.id+'/french-polynesia/','A dot off the timeline switches history on at that story’s first period');
  result.textContent='All checks passed.';result.dataset.status='passed';
 }catch(error){result.textContent='FAIL: '+error.message;result.dataset.status='failed';console.error(error);}
 </script></html>

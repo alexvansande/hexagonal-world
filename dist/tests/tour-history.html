@@ -23,7 +23,7 @@ try{
  const dots=()=>[...d.querySelectorAll('.tour-marker:not([hidden])')].map(b=>b.dataset.tourId);
  const drawn=()=>visible().map(g=>g.dataset.routeId).sort().join();
  const scrub=async id=>{const previous=drawn();d.querySelector('#history-stop').value=periods.findIndex(p=>p.id===id);d.querySelector('#history-stop').dispatchEvent(new w.Event('input',{bubbles:true}));await until(()=>drawn()!==previous,'settled '+id);await pause(250);};
- check(getComputedStyle(d.querySelector('#history-toggle')).display!=='none'&&tools.hidden,'Show history checkbox sits in the collapsed sidebar; scrubber hidden');
+ check(getComputedStyle(d.querySelector('#show-history')).display!=='none'&&tools.hidden&&d.querySelector('#show-history').tagName==='BUTTON','The History button sits in the collapsed sidebar; scrubber hidden');
  check(!w.performance.getEntriesByType('resource').some(r=>/\/history\/.*\.(md|json)$/.test(r.name)),'No period data before enabling history');
  toggle.click();await until(()=>!tools.hidden&&visible().length>0,'history routes');await pause(600);
  check(getComputedStyle(viewTools).display==='none'&&!tools.hidden,'Scrubber replaces the positioning toolbox');

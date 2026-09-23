@@ -768,6 +768,20 @@ rendering the whole default map through the live relief and through the sets
 at the same camera: shading correlation 0.8 across all four pieces, which stand
 at four different orientations, and no vertex triangles.
 
+**Phones (September 23).** The user asked for a tall-screen default a quarter
+turn round, a plain History button instead of the checkbox, the scrubber in
+place of the options button with a back button, cards replacing the scrubber
+once a period is chosen, no arrows on phone cards but a narrower card with the
+next one peeking and a tactile thumb scroll, cards no taller than a third of
+the screen with internal scrolling, and two-finger rotation that snaps to the
+twelve stops without changing the shadow images until release. Decisions: the
+card strip is a native scroll-snap scroller, because the browser's own momentum
+and rubber-banding are the physical feel a scripted swipe animation lacks;
+landing on a card focuses its spot; the History button doubles as Back on
+phones; a pinch turns the map about the fingers' midpoint while the lit sets
+hold the starting turn, then the turn snaps with a short ease and the sets
+switch. A phone-sized check page covers all of it, including a synthetic pinch.
+
 **Dance anchored on the centre (September 22).** The user saw a small drag down,
 made only to see an arrangement better, re-form the group and move the pieces in
 front of them away. Decision: a band switch needs a deliberate pan (40% of the
