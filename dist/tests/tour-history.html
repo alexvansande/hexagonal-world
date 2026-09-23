@@ -43,11 +43,12 @@ try{
   await scrub(p.id);counts.push(visible().length);
   await until(()=>w.location.pathname.startsWith('/history/'+p.id+'/'),'address for '+p.id);check(true,'Address follows '+p.id);
   check(d.querySelector('#history-date').textContent===`${p.label} · ${p.date}`&&d.querySelector(`.history-stop-labels button[data-stop="${p.id}"]`).textContent===p.tick,'Date and tick for '+p.id);
-  check(visible().length>0&&dots().length>0&&dots().every(id=>p.stories.includes(id)),'Routes and spots for '+p.id+' (the headline focus may frame some dots out of view)');
+  await until(()=>visible().length>0&&dots().length>0,'routes and spots for '+p.id);
+  check(dots().every(id=>p.stories.includes(id)),'Routes and spots for '+p.id+' (the headline focus may frame some dots out of view)');
   check(map.dataset.tourLayout==='dancing','Dancing pieces stay on for '+p.id);
  }
  check(new Set(counts).size>=(full?6:3),'Periods draw different networks: '+counts.join(','));
- check(routes.querySelectorAll('path').length<2400,'Route DOM stays bounded while scrubbing (four strokes per fragment)');
+ check(routes.querySelectorAll('path').length<1200,'Route DOM stays bounded while scrubbing');
  // Choosing a date activates the period's headline spot: the card opens on the first story of its Markdown.
  check(!d.querySelector('#tour-story').hidden&&d.querySelector('#tour-story-title').textContent.includes(full?'Galleons':'slave trade'),full?'A story focused at 1600 CE continues at 1800 CE instead of switching':'Arriving at 1800 CE from a period without the focused story opens its headline');
  d.querySelector('#tour-story-close').click();await until(()=>d.querySelector('#tour-story').hidden,'close auto');await pause(1500);
@@ -68,7 +69,7 @@ try{
  const labels=()=>[...d.querySelectorAll('.tour-labels .tour-label:not([hidden])')];
  check(labels().some(l=>l.dataset.kind==='site'&&l.textContent==='Samarkand')&&labels().some(l=>l.dataset.kind==='area'&&l.textContent==='Steppe'),'Site and area labels of the focused story are drawn');
  check(getComputedStyle(labels().find(l=>l.dataset.kind==='site')).textTransform==='uppercase'&&getComputedStyle(labels().find(l=>l.dataset.kind==='area')).fontStyle==='italic','Sites are all caps, areas italic');
- check(parseFloat(getComputedStyle(d.querySelector('.tour-routes .route-line')).strokeWidth)<=4&&d.querySelector('.tour-routes .route-trail-near')&&d.querySelector('.tour-routes .route-trail-far')&&d.querySelector('.tour-routes .route-trail-near').style.strokeDasharray.split(' ').length===d.querySelector('.tour-routes .route-line').style.strokeDasharray.split(' ').length,'Small dots with a two-layer comet trail on the same loop');
+ check(parseFloat(getComputedStyle(d.querySelector('.tour-routes .route-line')).strokeWidth)<=4&&!d.querySelector('.tour-routes .route-trail-near')&&d.querySelector('.tour-routes .route-line').style.strokeDasharray.split(' ').some(v=>+v>1),'Dots are short streaks on two strokes per fragment');
  // Framing a story picks the band that gathers it: the Pacific for Polynesia, the diagonal for the Atlantic.
  // (Stepping with the card's arrow: a dot framed out of view cannot be clicked.)
  d.querySelector('.tour-story-next').click();await pause(2000);await until(()=>map.dataset.danceMoving==='false','pieces settle');
@@ -128,6 +129,7 @@ try{
   await drag(dx,dy);const cells=canvas.dataset.dancePositions.split(' ').map(s=>s.split(':')[1].split(',').slice(0,2).join());
   const posNow=()=>Object.fromEntries(canvas.dataset.dancePositions.split(' ').map(s=>{const [id,rest]=s.split(':');return [id,rest.split(',').map(Number)];}));
   const [aid,ck]=canvas.dataset.danceVertex.split(':'),three=(()=>{const p=posNow();const a=p[aid];return Object.entries(p).filter(([id,q])=>id!==aid&&Math.abs(Math.hypot(q[0]-a[0],q[1]-a[1])-Math.sqrt(3))<.01).length;})();
+  check(canvas.dataset.danceEyeEmpty==='false','After a drag of '+dx+','+dy+' the cell under the eye holds a piece');
   check(canvas.dataset.danceValid==='true'&&new Set(cells).size===4&&three>=2,`After a drag of ${dx},${dy} three plates meet at the vertex nearest the centre, every piece touches the group along a valid edge and no two share a cell (valid ${canvas.dataset.danceValid}, cells ${new Set(cells).size}, adjacent ${three}, vertex ${canvas.dataset.danceVertex}, positions ${canvas.dataset.dancePositions})`);
  }
  // The rotation dial beside Fit turns the map in 15° steps.

@@ -64,15 +64,16 @@ export function createTourRoutes(stage){
  const pathFor=route=>{
   if(paths.has(route.id))return paths.get(route.id);
   const group=document.createElementNS(ns,'g');group.dataset.routeId=route.id;
-  const {halo,far,near,line}=makeSegment();
+  const {halo,line}=makeSegment();
   const mask=document.createElementNS(ns,'mask');mask.id=`tour-route-fade-${paths.size}`;mask.setAttribute('maskUnits','userSpaceOnUse');
   const cover=document.createElementNS(ns,'rect');cover.setAttribute('fill','#fff');mask.append(cover);defs.append(mask);
   group.setAttribute('mask',`url(#${mask.id})`);
-  group.append(halo,far,near,line);svg.append(group);const value={group,halo,line,mask,cover,ends:[],segments:[{halo,far,near,line}]};paths.set(route.id,value);return value;
+  group.append(halo,line);svg.append(group);const value={group,halo,line,mask,cover,ends:[],segments:[{halo,line}]};paths.set(route.id,value);return value;
  };
- // Each fragment is four strokes: a dark halo, two comet trails behind every dot (a faint
- // long one and a brighter short one) and the dot itself on top.
- function makeSegment(){const make=cls=>{const p=document.createElementNS(ns,'path');p.classList.add(cls);return p;};return {halo:make('route-halo'),far:make('route-trail-far'),near:make('route-trail-near'),line:make('route-line')};}
+ // Each fragment is two strokes, a dark halo and the dot: the dot is drawn as a short streak
+ // with round ends, a comet whose length says which way the corridor runs, at the cost of no
+ // extra paths (animated dashes are what the browser pays for).
+ function makeSegment(){const make=cls=>{const p=document.createElementNS(ns,'path');p.classList.add(cls);return p;};return {halo:make('route-halo'),line:make('route-line')};}
  // A trail pattern from a dot pattern: every dot gets a dash ending where the dot ends, as long
  // as `length` allows or as the gap before it allows, so the loop length is unchanged and the
  // trails ride the same animation with the pattern start shifted by the first trail.
@@ -114,12 +115,12 @@ export function createTourRoutes(stage){
    });
    while(segments.length>fragments.length){for(const p of Object.values(segments.pop()))p.remove();}
    fragments.forEach(({d,start,traffic},i)=>{
-    if(!segments[i]){const s=makeSegment();group.append(s.halo,s.far,s.near,s.line);segments.push(s);}
-    for(const [kind,path] of Object.entries(segments[i])){
+    if(!segments[i]){const s=makeSegment();group.append(s.halo,s.line);segments.push(s);}
+    for(const path of Object.values(segments[i])){
      path.setAttribute('d',d);
-     if(traffic){const trail=kind==='near'?trailPattern(traffic,7):kind==='far'?trailPattern(traffic,14):null,shift=trail?trail.shift:0;
-      path.style.strokeDasharray=trail?trail.dasharray:traffic.dasharray;path.style.setProperty('--traffic-from',String(traffic.phase+start+shift));path.style.setProperty('--traffic-to',String(traffic.phase+start+shift-traffic.length));path.style.setProperty('--traffic-duration',`${traffic.length/traffic.speed}s`);}
-     else {path.style.strokeDasharray='';path.style.removeProperty('--traffic-from');path.style.removeProperty('--traffic-to');path.style.removeProperty('--traffic-duration');path.style.display=kind==='near'||kind==='far'?'none':'';}
+     if(traffic){const streak=trailPattern(traffic,6);
+      path.style.strokeDasharray=streak.dasharray;path.style.setProperty('--traffic-from',String(traffic.phase+start+streak.shift));path.style.setProperty('--traffic-to',String(traffic.phase+start+streak.shift-traffic.length));path.style.setProperty('--traffic-duration',`${traffic.length/traffic.speed}s`);}
+     else {path.style.strokeDasharray='';path.style.removeProperty('--traffic-from');path.style.removeProperty('--traffic-to');path.style.removeProperty('--traffic-duration');}
     }
    });
   });

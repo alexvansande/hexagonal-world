@@ -143,7 +143,9 @@ A fitted map therefore settles on that junction whatever the screen size, the
 bias turns with the map, and the current vertex is kept until another is half
 a cell nearer, so a nudge never re-forms the net. The rule waits for the first
 fit, so no piece moves before the camera exists and the title stays visible on
-the first view. In history on phones the
+the first view. When the eye sits in an empty cell the stickiness is dropped so
+that cell is filled first, and the leftover fourth piece takes the free join
+nearest the eye rather than lingering off screen. In history on phones the
 sidebar shows only the scrubber. Clickable things around the map share one look, the More options style:
 no border, a grey a step darker than the panel, the same ink, pressed a step
 darker; round marks (‹, ×) use the same grey.
@@ -171,10 +173,10 @@ Vikings and Polynesia, each with its own smooth noise, so parallel courses jiggl
 through valleys and along coasts while the stops stay exact. Sea handling per
 story: `coastal` prefers shorelines, `open` treats open water as free as coast and
 islands as stops (Polynesia, Ocean crossings); the Beringia leg is a `landBridge`.
-Dots are small and trail a comet behind them, a faint long trail and a brighter
-short one built from the same dash pattern (each trail dash ends where its dot
-ends, as long as the gap before it allows), so the trails ride the dot
-animation and say which way a corridor runs. Dots fade in at a route's first
+Dots are small comets: each is drawn as a short streak with round ends (a dash
+of up to 6 px, shorter where the gap before it is tight), so its length shows
+the way the corridor runs while the fragment stays two strokes, a halo and the
+streak, because animated dashes are what the browser pays for. Dots fade in at a route's first
 stop and out at its last through a per-route luminance mask. Nothing runs at runtime beyond the usual projection. Regenerate
 with a local virtualenv holding numpy and Pillow. Checks: `history-tests.mjs`
 (every period parses, spots for every story, routes valid, strands fresh and

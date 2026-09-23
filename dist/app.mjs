@@ -2,7 +2,7 @@ import {assetURL} from './asset-url.mjs';
 import {readTourPath} from './tour-pages.mjs?v=history-2';
 import {historyPath,readHistoryPath,readHashShare} from './history-routes.mjs?v=history-1';
 import {createTourMarkers,createTourLabels,projectTourLocations,tourEnabled,tourLocations} from './tour-markers.mjs?v=history-3';
-import {createTourRoutes,projectTourRoutes} from './tour-route-renderer.mjs?v=trail-1';
+import {createTourRoutes,projectTourRoutes} from './tour-route-renderer.mjs?v=trail-2';
 import {loadPeriod} from './history-loader.mjs?v=history-3';
 import {pacificTourNet} from './tour-layout.mjs?v=dancing-2';
 import pacificLighting from './maps/pacific-manifest.mjs?v=pacific-light-1';
@@ -263,7 +263,7 @@ const spaceshipLit=()=>spaceshipUnlit()&&!!renderDefault.lit&&$('relief-enabled'
 // in 30° steps, so the light always comes from the same side of the browser.
 const forcedLitSet=['localhost','127.0.0.1','[::1]'].includes(location.hostname)?new URLSearchParams(location.search).get('lit-set'):null;
 function litPathFor(t){if(!spaceshipLit()||!danceBase)return null;const r=danceTargets.get(t.id)?.r??t.r,turn=litRotationHold??state.gridRotation,k=forcedLitSet!==null?+forcedLitSet:((Math.round((turn-60*Math.round(r))/30)%renderDefault.lit)+renderDefault.lit)%renderDefault.lit;return `${renderDefault.path}/lit/${k}`;}
-let danceBase=null,danceKey='',danceTargets=new Map(),danceTweens=new Map(),danceCentreState='',danceVertex=null;
+let danceBase=null,danceKey='',danceTargets=new Map(),danceTweens=new Map(),danceCentreState='',danceVertex=null,danceEyeEmpty=false;
 function danceGrid(){
  const key=[state.method,state.height,state.arrangement,arrangement===arrangementCache.get(state.arrangement)?'a':'b'].join('/');
  if(key!==danceKey){
@@ -306,21 +306,24 @@ function danceFill(centre=danceCentre()){
  for(const p of placed)for(let k=0;k<6;k++){const a=danceJoin(p,(k+5)%6),b=danceJoin(p,k);if(!a||!b||a.id===b.id)continue;const q=world(hex[k],p);corners.push({anchor:p,k,d:Math.hypot(q[0]-centre[0],q[1]-centre[1]),own:Math.hypot(p.x-centre[0],p.y-centre[1])});}
  if(!corners.length)return;
  corners.sort((a,b)=>a.d-b.d||a.own-b.own);
+ // When the eye sits in an empty cell, filling it comes first: no stickiness then.
+ const eyeEmpty=Math.min(...placed.map(p=>Math.hypot(p.x-centre[0],p.y-centre[1])))>1;danceEyeEmpty=eyeEmpty;
  let choice=corners[0];
- if(danceVertex){const current=corners.find(c=>c.anchor.id===danceVertex.anchor&&c.k===danceVertex.corner);if(current&&current.d<=corners[0].d+.5)choice=current;}
+ if(danceVertex){const current=corners.find(c=>c.anchor.id===danceVertex.anchor&&c.k===danceVertex.corner);if(current&&current.d<=corners[0].d+(eyeEmpty?.05:.5))choice=current;}
  const anchor=choice.anchor,corner=choice.k;
  if(danceVertex&&danceVertex.anchor===anchor.id&&danceVertex.corner===corner)return;
  danceVertex={anchor:anchor.id,corner};danceCentreState=`${anchor.id}:${corner}`;
  const targets=new Map([[anchor.id,{x:anchor.x,y:anchor.y,r:anchor.r}]]),taken=cell=>[...targets.values()].some(q=>sameCell(q,cell));
  // The two pieces across the corner's edges: three plates always meet at the vertex.
  for(const j of [danceJoin(anchor,(corner+5)%6),danceJoin(anchor,corner)])targets.set(j.id,{x:j.x,y:j.y,r:j.r});
+ // The leftover piece takes the free join nearest the eye, so the fourth hex comes to where the
+ // user looks rather than lingering off screen; it keeps its cell only while that is about as near.
  for(const p of placed.sort((a,b)=>Math.hypot(a.x-centre[0],a.y-centre[1])-Math.hypot(b.x-centre[0],b.y-centre[1]))){
   if(targets.has(p.id))continue;
-  const cur={x:p.x,y:p.y,r:p.r};
-  if(!taken(cur)&&[...targets.entries()].some(([id,t])=>joined({id,...t},{id:p.id,...cur}))){targets.set(p.id,cur);continue;}
+  const cur={x:p.x,y:p.y,r:p.r},curValid=!taken(cur)&&[...targets.entries()].some(([id,t])=>joined({id,...t},{id:p.id,...cur})),curD=Math.hypot(cur.x-centre[0],cur.y-centre[1]);
   let best=null;
-  for(const [id,t] of targets)for(let e=0;e<6;e++){const j=danceJoin({id,...t},e);if(!j||j.id!==p.id||taken(j))continue;const d=Math.hypot(j.x-p.x,j.y-p.y)+(j.r!==p.r?.5:0);if(!best||d<best.d)best={...j,d};}
-  targets.set(p.id,best?{x:best.x,y:best.y,r:best.r}:cur);
+  for(const [id,t] of targets)for(let e=0;e<6;e++){const j=danceJoin({id,...t},e);if(!j||j.id!==p.id||taken(j))continue;const d=Math.hypot(j.x-centre[0],j.y-centre[1]);if(!best||d<best.d)best={...j,d};}
+  if(curValid&&(!best||curD<=best.d+1))targets.set(p.id,cur);else targets.set(p.id,best?{x:best.x,y:best.y,r:best.r}:cur);
  }
  for(const [id,t] of targets)danceTargets.set(id,t);
 }
@@ -707,7 +710,7 @@ function render(refined=false,exportMode=false){if(exporting&&!exportMode)return
   const plan=mergedMaps.draw(renderMerged,{width:w,height:h,unit:scale*state.zoom,dpr,panX:state.panX,panY:state.panY},null,[]);
   surfaceCache=mergedMaps.cache;canvas.dataset.surface='precomputed';canvas.dataset.surfacePreview=String(!plan.ready);canvas.dataset.surfaceLevel=String(plan.level);canvas.dataset.surfacePending=String(surfaceCache.pending.size);canvas.dataset.surfaceTiles=String(surfaceCache.cache.size);canvas.dataset.surfaceFailures=String(surfaceCache.failures.size);
  }else drawColor(w,h,!!lighting);
- canvas.dataset.merged=String(!!renderMerged);canvas.dataset.tourLayout=danceActive()?'dancing':'default';canvas.dataset.danceVertex=danceActive()?danceCentreState:'';canvas.dataset.danceValid=String(danceActive()?danceConnected():true);canvas.dataset.tourLighting=spaceshipLit()?'lit':spaceshipUnlit()?'unlit':'default';canvas.dataset.litHold=litRotationHold===null?'':String(litRotationHold);canvas.dataset.turn=state.gridRotation.toFixed(1);canvas.dataset.danceMoving=String(danceTweens.size>0);canvas.dataset.dancePositions=net.map(t=>`${t.id}:${t.x.toFixed(2)},${t.y.toFixed(2)},${t.r.toFixed(2)}`).join(' ');
+ canvas.dataset.merged=String(!!renderMerged);canvas.dataset.tourLayout=danceActive()?'dancing':'default';canvas.dataset.danceVertex=danceActive()?danceCentreState:'';canvas.dataset.danceEyeEmpty=String(danceActive()&&danceEyeEmpty);canvas.dataset.danceValid=String(danceActive()?danceConnected():true);canvas.dataset.tourLighting=spaceshipLit()?'lit':spaceshipUnlit()?'unlit':'default';canvas.dataset.litHold=litRotationHold===null?'':String(litRotationHold);canvas.dataset.turn=state.gridRotation.toFixed(1);canvas.dataset.danceMoving=String(danceTweens.size>0);canvas.dataset.dancePositions=net.map(t=>`${t.id}:${t.x.toFixed(2)},${t.y.toFixed(2)},${t.r.toFixed(2)}`).join(' ');
  if(lighting){(renderDefault?defaultLayers:projectedLighting).composite(lighting,w,h,scale*state.zoom,state.panX,state.panY,state.shadowOpacity,state.lightOpacity);
   if(!renderDefault&&($('graticule').checked||$('distortion').checked)){gl.enable(gl.BLEND);gl.blendFuncSeparate(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA,gl.ONE,gl.ONE_MINUS_SRC_ALPHA);drawColor(w,h,false,true);gl.disable(gl.BLEND);}
  }

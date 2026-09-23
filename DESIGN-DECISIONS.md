@@ -812,8 +812,13 @@ Chukotka coast, and the causes are stated as contested where they are.
 
 **Comet dots, wider scrubber (September 23).** Torn between smaller dots with a
 trail and larger icon-like pieces, the user chose the comet. Decision: dots at
-half their size with two trail strokes per fragment derived from the same dash
-loop, so no per-frame work is added; icons, if wanted, belong to spots. The
+half their size drawn as short streaks with round ends; a first version with
+two extra trail strokes per fragment made the app noticeably slow even on a
+fast machine, so the fragment went back to two strokes and the streak carries
+the comet. Icons, if wanted, belong to spots. The user also found the eye's
+cell empty with Africa able to fit and South America off screen: the vertex
+rule now drops its stickiness when the eye's cell is empty, and the leftover
+piece takes the free join nearest the eye. The
 desktop scrubber also grew (up to 600 px) and stays right of the sidebar on
 narrow windows, where its ticks shrink instead of colliding.
 
