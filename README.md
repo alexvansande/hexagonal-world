@@ -168,8 +168,8 @@ by dragging” is a toggle under More options → Position (on phones it opens t
 full-screen repositioning flow with its Done button).
 
 Rotation dial: to the right of Fit sits a small grey circle with an off-centre
-dot. Dragging around it turns the whole map in 30° steps (twelve positions)
-about the viewport centre (Spaceship Earth keeps its unlit preset and its
+dot. Dragging around it turns the whole map in 30° steps counted from the default
+31° turn (twelve positions, the default among them) about the viewport centre (Spaceship Earth keeps its unlit preset and its
 dance at any turn)
 (the arrow keys step it too); the dot shows the current turn. It drives the
 same grid-rotation setting as the slider in the positioning panel, so the turn
@@ -192,14 +192,15 @@ pieces move and every piece always touches the group along a valid edge
 (exposed as `data-dance-valid`). Focusing a story gathers its pieces around the
 one holding most of it by the same joins and frames the points where the
 pieces will settle. Spaceship Earth draws through the layered per-piece renderer (no merged
-composite, no screen-space lighting layer). Lifezones has lit per-piece sets
+composite, no screen-space lighting layer). Every lit style has lit per-piece sets
 baked by `scripts/build-lit-regions.mjs`: for each hexagon and each of the
-three rotation classes a piece can take, the unlit base fused with terrain
-lighting turned so the piece looks lit like the default map when it stands
-turned by 120° × class at the default map turn (`lit/<class>/<region>/…` under
-`maps/default-layers/v1/dymaxion/lifezones`, `lit: 3` in the manifest entry).
-Each piece draws the set of its target rotation, so shadows stay consistent
-across the dance; the light turns with the map under the dial. Show lighting
+twelve ways a piece can stand on screen (30° steps from the default 31° turn),
+the unlit base fused with terrain lighting turned so the light always comes
+from the same side of the browser (`lit/<orientation>/<region>/…` under
+`maps/default-layers/v1/dymaxion/<style>`, `lit: 12` in the manifest entry).
+Each piece draws the set for its target rotation and the current map turn, so
+shadows stay consistent across the dance and under the dial, which is what lets
+the original alignment be recognised again after a long walk. Show lighting
 switches Spaceship Earth between its lit and unlit sets. Every lit style
 (Lifezones, Satellite, Elevation, Topographic, Gray neutral, Ivory) has its
 twelve sets; `scripts/build-lit-regions.mjs` takes `LIT_STYLE=<id>`. Pieces tween in place on the live net (380 ms, slight overshoot; instant

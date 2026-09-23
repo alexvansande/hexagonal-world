@@ -746,6 +746,15 @@ piece; `/history/<period>/<spot>/` is the canonical history address with
 `&s=<style>/<layout>` in the hash; landing pages and previews exist for all 38
 addresses and ship in the additive image release.
 
+**Light fixed to the browser (September 22).** Reviewing the lit sets, the user
+asked that the light stay consistent relative to the browser, not the previous
+map, when the dial turns the map, since that is the only way to recover the
+original alignment after walking too far. Decision: twelve lit sets per hexagon,
+one per screen orientation in 30° steps from the default 31° turn, chosen from
+the map turn minus 60° per piece rotation; the dial steps from 31° so the
+default is one of its stops. About four times the tiles of the rotation-class
+sets.
+
 **Dance anchored on the centre (September 22).** The user saw a small drag down,
 made only to see an arrangement better, re-form the group and move the pieces in
 front of them away. Decision: a band switch needs a deliberate pan (40% of the

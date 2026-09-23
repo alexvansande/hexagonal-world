@@ -254,7 +254,9 @@ function point(p,t,offset){const v=rotateScreen(canvasWorld(p,t));if(offset){v[0
 // (one per rotation class a piece can take), each piece draws its own lit tiles; otherwise the unlit base.
 const spaceshipUnlit=()=>!!renderDefault&&state.arrangement==='dymaxion';
 const spaceshipLit=()=>spaceshipUnlit()&&!!renderDefault.lit&&$('relief-enabled').checked;
-function litPathFor(t){if(!spaceshipLit()||!danceBase)return null;const b=danceBase.find(a=>a.id===t.id),r=danceTargets.get(t.id)?.r??t.r,k=(((Math.round(r)-b.r)%6)+6)%6;return k%2?null:`${renderDefault.path}/lit/${k/2}`;}
+// A piece's lit set is chosen by how it stands on screen: the map turn minus 60° per piece rotation,
+// in 30° steps from the default 31° turn, so the light always comes from the same side of the browser.
+function litPathFor(t){if(!spaceshipLit()||!danceBase)return null;const r=danceTargets.get(t.id)?.r??t.r,k=((Math.round((state.gridRotation-60*Math.round(r)-31)/30)%renderDefault.lit)+renderDefault.lit)%renderDefault.lit;return `${renderDefault.path}/lit/${k}`;}
 let danceBase=null,danceKey='',danceTargets=new Map(),danceTweens=new Map(),danceCentreState='',danceVertex=null;
 function danceGrid(){
  const key=[state.method,state.height,state.arrangement,arrangement===arrangementCache.get(state.arrangement)?'a':'b'].join('/');
@@ -1161,7 +1163,8 @@ if(historyPeriodId)enableHistory(true);
 if($('rotate-dial')){
  const dial=$('rotate-dial'),input=$('gridRotation');
  const show=()=>dial.style.setProperty('--dial',`${state.gridRotation}deg`);
- const set=degrees=>{let v=Math.round(degrees/30)*30;v=((v+180)%360+360)%360-180;if(v===state.gridRotation)return;input.value=v;input.dispatchEvent(new Event('input',{bubbles:true}));show();};
+ // Steps of 30° counted from the default 31° turn, so the original alignment is always one of the twelve stops.
+ const set=degrees=>{let v=31+Math.round((degrees-31)/30)*30;v=((v+180)%360+360)%360-180;if(v===state.gridRotation)return;input.value=v;input.dispatchEvent(new Event('input',{bubbles:true}));show();};
  const angleAt=e=>{const r=dial.getBoundingClientRect();return Math.atan2(e.clientY-r.top-r.height/2,e.clientX-r.left-r.width/2)*180/Math.PI;};
  let grab=null;
  dial.addEventListener('pointerdown',e=>{if(e.button!==0)return;e.preventDefault();dial.setPointerCapture(e.pointerId);grab={id:e.pointerId,start:angleAt(e),base:state.gridRotation};});
@@ -1317,14 +1320,14 @@ if(['127.0.0.1','localhost','[::1]'].includes(location.hostname)&&new URLSearchP
   return {net,rect:[left,top,width/density,height/density],width,height,density,angle:state.gridRotation*Math.PI/180,background:$('background-color').value,lighting:appliedLighting(),regions:[0,2]};
  };
  // Lit region for the dancing pieces: the piece stands at rotation 0 in its own frame and the light
- // is turned instead, so the result matches the default map when the piece stands turned by
- // 120° × rk at the default map turn. Windows of `window` pixels tile the 4096-pixel region.
- window.bakeLitRegion=(region,rk,x,y,size=1024,resolution=4096)=>{
+ // is turned instead, so set k matches a piece standing on screen turned by 31° + 30° × k (the
+ // map turn minus 60° per piece rotation). Windows of `size` pixels tile the 4096-pixel region.
+ window.bakeLitRegion=(region,k,x,y,size=1024,resolution=4096)=>{
   const saved={net,gridRotation:state.gridRotation,preset:$('lighting-preset').value,custom:customApplied,w,h,scale,zoom:state.zoom,panX:state.panX,panY:state.panY,dpr};
-  const baseR=saved.net.find(t=>t.id===region).r,look=appliedLighting();
+  const look=appliedLighting();
   const controls=lightingControls();
   net=[{...saved.net.find(t=>t.id===region),r:0,x:0,y:0}];meshSignature=null;state.gridRotation=0;
-  customApplied={...look,treatment:controls.treatment,tone:controls.tone,reliefAzimuth:look.reliefAzimuth+saved.gridRotation-60*(baseR+2*rk)};$('lighting-preset').value='custom';
+  customApplied={...look,treatment:controls.treatment,tone:controls.tone,reliefAzimuth:look.reliefAzimuth+31+30*k};$('lighting-preset').value='custom';
   lightingReadyKey=lightingRefineKey=null;
   const density=resolution/2,plan={level:4,density,rect:[-1+x/density,-1+y/density,Math.min(size,resolution-x)/density,Math.min(size,resolution-y)/density],repeat:false};
   const light=window.bakeDefaultLighting(plan);

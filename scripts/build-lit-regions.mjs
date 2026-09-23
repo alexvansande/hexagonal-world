@@ -1,8 +1,7 @@
 // Offline only. Bakes the lit per-piece sets for the Spaceship Earth dance: for
-// every hexagon region and each of the three rotation classes a piece can take,
-// the unlit base is fused with terrain lighting turned so the piece looks lit
-// like the default map when it stands turned by 120° × class at the default
-// turn. Needs playwright-core and a local Chrome; PIL/numpy via SURFACE_PYTHON.
+// every hexagon region and each of the twelve ways a piece can stand on screen
+// (30° steps from the default 31° turn), the unlit base is fused with terrain
+// lighting turned so the light always comes from the same side of the browser. Needs playwright-core and a local Chrome; PIL/numpy via SURFACE_PYTHON.
 import {createRequire} from 'node:module';
 import {mkdir,readFile,writeFile} from 'node:fs/promises';
 import {execFileSync} from 'node:child_process';
@@ -11,7 +10,7 @@ import {layoutOptions,styleOptions} from '../dist/map-options.mjs';
 const require=createRequire(import.meta.url),{chromium}=require(process.env.PLAYWRIGHT_PATH||'playwright-core');
 const style=process.env.LIT_STYLE||'lifezones',layoutIndex=layoutOptions.findIndex(l=>l.arrangement==='dymaxion'),styleIndex=styleOptions.findIndex(s=>s.id===style);
 const key=`dymaxion/${style}`,root=fileURLToPath(new URL('../dist/maps/default-layers/v1/',import.meta.url)),out=root+key,scratch=process.env.LIT_SCRATCH||`/tmp/hex-lit-${style}`;
-const python=process.env.SURFACE_PYTHON||'python3',resolution=4096,window=1024,classes=3;
+const python=process.env.SURFACE_PYTHON||'python3',resolution=4096,window=1024,classes=12;
 await mkdir(scratch,{recursive:true});
 const browser=await chromium.launch({executablePath:process.env.CHROME_PATH||'/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',headless:true,args:['--use-gl=angle',process.platform==='darwin'?'--use-angle=metal':'--use-angle=swiftshader']});
 const page=await browser.newPage({viewport:{width:1100,height:800}});

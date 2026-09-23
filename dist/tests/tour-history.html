@@ -135,9 +135,9 @@ try{
  const dr=dial.getBoundingClientRect(),dcx=dr.left+dr.width/2,dcy=dr.top+dr.height/2,before=rotation();
  const dev=(type,x,y)=>dial.dispatchEvent(new w.PointerEvent(type,{bubbles:true,clientX:x,clientY:y,pointerId:7,pointerType:'mouse',isPrimary:true,button:0,buttons:type==='pointerup'?0:1}));
  dev('pointerdown',dcx+14,dcy);for(let i=1;i<=6;i++){dev('pointermove',dcx+14*Math.cos(i*Math.PI/12),dcy+14*Math.sin(i*Math.PI/12));await pause(40);}dev('pointerup',dcx,dcy+14);await pause(300);
- check(getComputedStyle(dial).display!=='none'&&dial.previousElementSibling.id==='fit'&&rotation()===Math.round((before+90)/30)*30&&dial.style.getPropertyValue('--dial')===rotation()+'deg',`Dragging a quarter turn around the dial turns the map a quarter turn in 30° steps and moves the dot (before ${before}, after ${rotation()}, dot ${dial.style.getPropertyValue('--dial')}, display ${getComputedStyle(dial).display}, prev ${dial.previousElementSibling.id})`);
+ check(getComputedStyle(dial).display!=='none'&&dial.previousElementSibling.id==='fit'&&rotation()===before+90&&dial.style.getPropertyValue('--dial')===rotation()+'deg',`Dragging a quarter turn around the dial turns the map a quarter turn in 30° steps and moves the dot (before ${before}, after ${rotation()}, dot ${dial.style.getPropertyValue('--dial')}, display ${getComputedStyle(dial).display}, prev ${dial.previousElementSibling.id})`);
  dial.dispatchEvent(new w.KeyboardEvent('keydown',{key:'ArrowLeft',bubbles:true}));await pause(200);
- check(rotation()===Math.round((before+90)/30)*30-30,'Arrow keys step the dial by 30°');
+ check(rotation()===before+60,'Arrow keys step the dial by 30°');
  // Turning the map with the dial must not stop the dance: a drag afterwards still completes a vertex.
  await drag(0,-500);
  check(canvas.dataset.tourLayout==='dancing'&&canvas.dataset.danceValid==='true','The dance keeps going after the map is turned');
