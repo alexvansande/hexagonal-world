@@ -137,9 +137,13 @@ card open. Leaving an eligible map switches history off.
 
 The vertex rule looks where the eye rests: the middle of the free part of the
 screen (beside the sidebar on wide screens, between the heading and the sidebar
-on phones), a little above centre. With the fitted net that is nearest the
-vertex where Europe/Africa meets America and Asia, so the map opens as one net
-and a small nudge keeps it so; nothing is hard-coded. In history on phones the
+on phones), carried in map space most of the way (0.8 of a cell) toward the
+junction of the three continental plates, one cell west of the net's middle.
+A fitted map therefore settles on that junction whatever the screen size, the
+bias turns with the map, and the current vertex is kept until another is half
+a cell nearer, so a nudge never re-forms the net. The rule waits for the first
+fit, so no piece moves before the camera exists and the title stays visible on
+the first view. In history on phones the
 sidebar shows only the scrubber. Clickable things around the map share one look, the More options style:
 no border, a grey a step darker than the panel, the same ink, pressed a step
 darker; round marks (‹, ×) use the same grey.

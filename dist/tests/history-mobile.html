@@ -5,6 +5,8 @@
 <script type="module">
 import {periods} from '../history/index.mjs';
 const frame=document.querySelector('iframe'),result=document.querySelector('#result');
+// ?short=1 gives Safari's height with its bars showing.
+if(new URLSearchParams(location.search).has('short'))frame.style.height='664px';
 const pause=ms=>new Promise(r=>setTimeout(r,ms));
 const until=async(test,label)=>{for(let i=0;i<400;i++){if(test())return;await pause(50);}throw Error('Timed out: '+label);};
 const check=(ok,label)=>{if(!ok)throw Error(label);const li=document.createElement('li');li.textContent='PASS: '+label;document.querySelector('#checks').append(li);};
@@ -14,6 +16,8 @@ try{
  await until(()=>frame.contentDocument?.querySelectorAll('.tour-marker:not([hidden])').length>0&&frame.contentDocument.querySelector('#map')?.dataset.tourLayout==='dancing','map');
  const d=frame.contentDocument,w=frame.contentWindow,map=d.querySelector('#map'),aside=d.querySelector('#controls');await pause(600);
  check(+d.querySelector('#gridRotation').value===120,'A tall screen starts Spaceship Earth a quarter turn round (120°)');
+ check(d.querySelector('#map-heading').dataset.obscured!=='true'&&getComputedStyle(d.querySelector('#map-heading')).opacity==='1','The title is visible on the first view');
+ {const b=[...d.querySelectorAll('.tour-marker:not([hidden])')].map(m=>m.getBoundingClientRect());const top=Math.min(...b.map(r=>r.top)),bottom=Math.max(...b.map(r=>r.bottom)),heading=d.querySelector('#map-heading').getBoundingClientRect().bottom,panel=d.querySelector('#controls').getBoundingClientRect().top;check(top>heading&&bottom<panel,'The net sits between the title and the sidebar');}
  const pos=Object.fromEntries(map.dataset.dancePositions.split(' ').map(s=>{const [id,rest]=s.split(':');return [id,rest.split(',').map(Number)];}));const adj=(a,b)=>Math.abs(Math.hypot(pos[a][0]-pos[b][0],pos[a][1]-pos[b][1])-Math.sqrt(3))<.01;
  check(adj('3','0')&&adj('3','1')&&adj('1','0'),'The map opens as one net: Europe/Africa touches both America and Asia');
  // A small drag must not flip the net the other way: the eye rests above the middle of the free area.

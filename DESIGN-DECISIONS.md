@@ -792,9 +792,11 @@ Back in favour of a round × on each card, to be judged for consistency with the
 ‹. Decisions: at first the map opened as the base net with the rule waiting for the
 first interaction, but the user found the flip on first touch wrong and asked
 for a natural rule instead of a hard-coded start, suggesting the centre move
-upwards; the rule now measures from the middle of the free part of the screen,
-40% down from its top, which lands nearest the Europe/Africa–America–Asia
-vertex on phone and desktop alike; a shared control palette (`--control-bg`, `--control-ink`)
+upwards; the rule now measures from the middle of the free part of the screen
+carried 0.8 of a cell in map space toward the continental junction, holds the
+current vertex until another is half a cell nearer, and waits for the first
+fit; on a real iPhone the earlier 40%-down point had landed on another vertex
+before the camera was fitted, pushing South America over the title; a shared control palette (`--control-bg`, `--control-ink`)
 covers the sidebar buttons, the dial, the view tools, the legend button, the
 card arrows and close, and the scrubber ticks; on phones the cards float over
 the map with no panel behind them.

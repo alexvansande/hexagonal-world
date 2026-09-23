@@ -285,9 +285,11 @@ function danceJoin(placed,e){
 const sameCell=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y)<1e-6;
 const dancePlaced=()=>[...danceTargets.entries()].map(([id,t])=>({id,...t}));
 const joined=(from,t)=>{for(let e=0;e<6;e++){const j=danceJoin(from,e);if(j&&j.id===t.id&&j.r===t.r&&sameCell(j,t))return true;}return false;};
-// Where the eye rests: the middle of the free part of the screen, a little above centre, rather than
-// the geometric middle of the window (which the sidebar and heading pull away from the map).
-function danceCentre(){const {left,right,top,bottom}=freeRect(),unit=scale*state.zoom,x=(left+right)/2,y=top+(bottom-top)*.4,c=rotateScreen([(x-w/2-state.panX)/unit,(y-h/2-state.panY)/unit],-state.gridRotation*Math.PI/180);return [c[0],-c[1]];}
+// Where the eye rests: the middle of the free part of the screen (beside the sidebar on wide screens,
+// between the heading and the sidebar on phones), carried in map space most of the way toward the
+// junction of the three continental plates, which lies one cell west of the net's middle. So a
+// fitted map settles on that junction whatever the screen, and the bias turns with the map.
+function danceCentre(){const {left,right,top,bottom}=freeRect(),unit=scale*state.zoom,x=(left+right)/2,y=(top+bottom)/2,c=rotateScreen([(x-w/2-state.panX)/unit,(y-h/2-state.panY)/unit],-state.gridRotation*Math.PI/180);return [c[0]-.8,-c[1]];}
 // Every piece reachable from the first through valid joins.
 function danceConnected(){
  const placed=dancePlaced(),seen=new Set([placed[0].id]);let grew=true;
@@ -296,15 +298,17 @@ function danceConnected(){
 }
 function danceFill(centre=danceCentre()){
  const placed=dancePlaced();
- let anchor=null,nearest=Infinity;
- for(const p of placed){const d=Math.hypot(p.x-centre[0],p.y-centre[1]);if(d<nearest){nearest=d;anchor=p;}}
- // The anchor's nearest three-piece corner (the two edges meeting there must name
- // two different pieces; on this sphere every other corner is a face meeting
- // itself), kept while the previous one is nearly as close.
- const corners=hex.map((v,k)=>{const q=world(v,anchor);return {k,d:Math.hypot(q[0]-centre[0],q[1]-centre[1])};}).filter(c=>{const a=danceJoin(anchor,(c.k+5)%6),b=danceJoin(anchor,c.k);return a&&b&&a.id!==b.id;}).sort((a,b)=>a.d-b.d);
+ // Every three-piece corner of every placed piece (the two edges meeting there must name two
+ // different pieces; on this sphere every other corner is a face meeting itself), nearest first;
+ // among corners at one point the piece nearest the eye is the anchor. The current vertex is
+ // kept until another is clearly nearer, half a cell nearer, so a nudge never re-forms the net.
+ const corners=[];
+ for(const p of placed)for(let k=0;k<6;k++){const a=danceJoin(p,(k+5)%6),b=danceJoin(p,k);if(!a||!b||a.id===b.id)continue;const q=world(hex[k],p);corners.push({anchor:p,k,d:Math.hypot(q[0]-centre[0],q[1]-centre[1]),own:Math.hypot(p.x-centre[0],p.y-centre[1])});}
  if(!corners.length)return;
- let corner=corners[0].k;
- if(danceVertex&&danceVertex.anchor===anchor.id){const previous=corners.find(c=>c.k===danceVertex.corner);if(previous&&previous.d<corners[0].d+.15)corner=previous.k;}
+ corners.sort((a,b)=>a.d-b.d||a.own-b.own);
+ let choice=corners[0];
+ if(danceVertex){const current=corners.find(c=>c.anchor.id===danceVertex.anchor&&c.k===danceVertex.corner);if(current&&current.d<=corners[0].d+.5)choice=current;}
+ const anchor=choice.anchor,corner=choice.k;
  if(danceVertex&&danceVertex.anchor===anchor.id&&danceVertex.corner===corner)return;
  danceVertex={anchor:anchor.id,corner};danceCentreState=`${anchor.id}:${corner}`;
  const targets=new Map([[anchor.id,{x:anchor.x,y:anchor.y,r:anchor.r}]]),taken=cell=>[...targets.values()].some(q=>sameCell(q,cell));
@@ -323,8 +327,9 @@ function danceFill(centre=danceCentre()){
 const easeOutBack=p=>p>=1?1:1+2*Math.pow(p-1,3)+1*Math.pow(p-1,2);
 function danceStep(now){
  if(!danceActive())return false;
- // While a story flight is in the air the centre is not where the user looks yet; the frame already placed the pieces.
- if(!tourAnimation)danceFill();
+ // Not before the first fit (the camera is nowhere yet) nor while a story flight is in the air (the
+ // centre is not where the user looks yet; the frame already placed the pieces).
+ if(persistenceReady&&!tourAnimation)danceFill();
  const instant=matchMedia('(prefers-reduced-motion: reduce)').matches,duration=380;let moving=false;
  for(const t of net){
   const {x:tx,y:ty,r:tr}=danceTargets.get(t.id);
