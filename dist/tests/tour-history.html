@@ -19,9 +19,9 @@ try{
  await until(()=>frame.contentDocument?.querySelectorAll('.tour-marker:not([hidden])').length===7,'map');
  let d=frame.contentDocument,w=frame.contentWindow;await pause(400);
  const toggle=d.querySelector('#show-history'),tools=d.querySelector('.history-tools'),routes=d.querySelector('.tour-routes'),viewTools=d.querySelector('.view-tools'),map=d.querySelector('#map');
- const visible=()=>[...routes.querySelectorAll('g[data-route-id]')].filter(g=>g.style.display!=='none');
+ const visible=()=>routes.style.display!=='none'&&routes.dataset.visibleRoutes?routes.dataset.visibleRoutes.split(' '):[];
  const dots=()=>[...d.querySelectorAll('.tour-marker:not([hidden])')].map(b=>b.dataset.tourId);
- const drawn=()=>visible().map(g=>g.dataset.routeId).sort().join();
+ const drawn=()=>[...visible()].sort().join();
  const scrub=async id=>{const previous=drawn();d.querySelector('#history-stop').value=periods.findIndex(p=>p.id===id);d.querySelector('#history-stop').dispatchEvent(new w.Event('input',{bubbles:true}));await until(()=>drawn()!==previous,'settled '+id);await pause(250);};
  check(getComputedStyle(d.querySelector('#show-history')).display!=='none'&&tools.hidden&&d.querySelector('#show-history').tagName==='BUTTON','The History button sits in the collapsed sidebar; scrubber hidden');
  check(!w.performance.getEntriesByType('resource').some(r=>/\/history\/.*\.(md|json)$/.test(r.name)),'No period data before enabling history');
@@ -30,9 +30,9 @@ try{
  const slider=d.querySelector('#history-stop');check(slider.max===String(periods.length-1)&&d.querySelectorAll('.history-stop-labels button').length===periods.length,'One tick per period');
  await until(()=>w.location.pathname==='/history/1000-ce/','default period in URL');check(w.location.hash.includes('&s=lifezones/spaceship-earth'),'The address is /history/<age>/ with style and layout in the hash');
  const middle=periods.find(p=>p.id==='1000-ce');
- check(new Set(visible().map(g=>g.dataset.routeId.split('-')[0])).size>=3,'Middle Ages draws several stories at once');
+ check(new Set(visible().map(id=>id.split('-')[0])).size>=3,'Middle Ages draws several stories at once');
  check(dots().length===middle.stories.length&&middle.stories.every(id=>dots().includes(id)),'Story dots are the period spots');
- check(!!d.querySelector('#wave-colours')&&getComputedStyle(visible()[0]).getPropertyValue('--route-color').trim().startsWith('#'),'Wave colours come from history/waves.json');
+ check(!!d.querySelector('#wave-colours')&&routes.tagName==='CANVAS'&&+routes.dataset.dots>0&&!d.querySelector('.tour-routes path'),'Comets are drawn on a canvas, not animated paths; wave colours come from history/waves.json');
  // Detail routes appear only when zoomed in, and hide again.
  const overview=visible().length;for(let i=0;i<3;i++)d.querySelector('#zoom-in').click();await until(()=>visible().length>overview,'detail routes');
  check(visible().length>overview,'Regional detail routes appear when zoomed in');
@@ -69,7 +69,7 @@ try{
  const labels=()=>[...d.querySelectorAll('.tour-labels .tour-label:not([hidden])')];
  check(labels().some(l=>l.dataset.kind==='site'&&l.textContent==='Samarkand')&&labels().some(l=>l.dataset.kind==='area'&&l.textContent==='Steppe'),'Site and area labels of the focused story are drawn');
  check(getComputedStyle(labels().find(l=>l.dataset.kind==='site')).textTransform==='uppercase'&&getComputedStyle(labels().find(l=>l.dataset.kind==='area')).fontStyle==='italic','Sites are all caps, areas italic');
- check(parseFloat(getComputedStyle(d.querySelector('.tour-routes .route-line')).strokeWidth)<=4&&d.querySelector('.tour-routes .route-trail')&&parseFloat(getComputedStyle(d.querySelector('.tour-routes .route-trail')).strokeWidth)<parseFloat(getComputedStyle(d.querySelector('.tour-routes .route-line')).strokeWidth)&&d.querySelector('.tour-routes .route-trail').style.strokeDasharray.split(' ').length===d.querySelector('.tour-routes .route-line').style.strokeDasharray.split(' ').length,'Each dot is a bright head with a thinner faint tail on the same loop');
+ const comet=(await import('../tour-route-renderer.mjs')).comet;check(comet.head<=4&&comet.tail.length===3&&comet.tail.map(t=>t[0]).join()==='0.5,0.25,0.1'&&comet.tail.reduce((sum,t)=>sum+t[1],0)>=20,'Each dot is a bright head with a tail in three steps of 50, 25 and 10% opacity');
  // Framing a story picks the band that gathers it: the Pacific for Polynesia, the diagonal for the Atlantic.
  // (Stepping with the card's arrow: a dot framed out of view cannot be clicked.)
  d.querySelector('.tour-story-next').click();await pause(2000);await until(()=>map.dataset.danceMoving==='false','pieces settle');
@@ -107,7 +107,7 @@ try{
  await until(()=>w.location.pathname==='/lifezones/spaceship-earth/','map address');check(getComputedStyle(viewTools).display!=='none','Unchecking restores the toolbox, dots and the map address');
  // Direct URL entry restores the period, including an older stop name.
  await load(fresh('/lifezones/spaceship-earth/?history=bronze-age'));await until(()=>frame.contentDocument?.querySelector('.history-tools')&&!frame.contentDocument.querySelector('.history-tools').hidden,'reload');
- d=frame.contentDocument;w=frame.contentWindow;await until(()=>[...d.querySelectorAll('.tour-routes g[data-route-id]')].some(g=>g.style.display!=='none'),'reload routes');await until(()=>w.location.pathname==='/history/3k-ya/','rewritten stop name');
+ d=frame.contentDocument;w=frame.contentWindow;await until(()=>+d.querySelector('.tour-routes')?.dataset.routeCount>0,'reload routes');await until(()=>w.location.pathname==='/history/3k-ya/','rewritten stop name');
  check(d.querySelector('#history-date').textContent.endsWith('c. 1000 BCE'),'Reload restores the Bronze Age period from its old stop name');
  // A story URL opens the timeline focused on that story.
  await load(fresh('/iceland-to-vinland/'));await until(()=>frame.contentDocument?.querySelector('#tour-story')?.hidden===false,'story URL');await pause(1800);

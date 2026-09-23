@@ -9,18 +9,10 @@ const frame=document.querySelector('iframe'),result=document.querySelector('#res
 const pause=ms=>new Promise(r=>setTimeout(r,ms));
 async function until(test,label){for(let i=0;i<600;i++){if(test())return;await pause(100);}throw Error('Timed out: '+label);}
 const texts=new Map();
-async function drawSVG(ctx,svg){
- if(!svg||getComputedStyle(svg).display==='none')return;
- const copy=svg.cloneNode(true),originals=[svg,...svg.querySelectorAll('*')],copies=[copy,...copy.querySelectorAll('*')];
- originals.forEach((el,i)=>{
-  const css=getComputedStyle(el);
-  for(const key of ['display','fill','fill-opacity','fill-rule','stroke','stroke-width','stroke-opacity','stroke-linecap','stroke-linejoin','stroke-dasharray','stroke-dashoffset','opacity'])copies[i].style.setProperty(key,css.getPropertyValue(key));
-  copies[i].style.animation='none';
-  if(el.matches('.route-sporadic path')){copies[i].style.strokeDasharray='.1 8';copies[i].style.strokeDashoffset='0';}
- });
- copy.setAttribute('width','1200');copy.setAttribute('height','630');copy.setAttribute('xmlns','http://www.w3.org/2000/svg');
- const url=URL.createObjectURL(new Blob([new XMLSerializer().serializeToString(copy)],{type:'image/svg+xml'}));
- try{const image=new Image();image.src=url;await image.decode();ctx.drawImage(image,0,0);}finally{URL.revokeObjectURL(url);}
+// Sparse traffic packets vanish at thumbnail size: draw the full dotted corridor in previews.
+function drawRoutes(ctx,d){
+ const routes=d.querySelector('.tour-routes');if(!routes||getComputedStyle(routes).display==='none')return;
+ routes.renderer.snapshot(true);ctx.drawImage(routes,0,0,1200,630);
 }
 // Map labels are HTML: draw them by hand in the same styles.
 function drawLabels(ctx,d){
@@ -40,7 +32,7 @@ try{
   const info=periods.find(p=>p.id===page.period),text=texts.get(page.period),spot=page.spot?text.spots[page.spot]:null;
   const loaded=new Promise(resolve=>frame.onload=resolve);frame.src=page.path+'?tour-artwork=1&fresh='+Date.now();await loaded;
   const d=frame.contentDocument,map=d.querySelector('#map');
-  await until(()=>d.querySelector('.history-tools')&&!d.querySelector('.history-tools').hidden&&[...d.querySelectorAll('.tour-routes g[data-route-id]')].some(g=>g.style.display!=='none'),'routes');
+  await until(()=>d.querySelector('.history-tools')&&!d.querySelector('.history-tools').hidden&&+d.querySelector('.tour-routes')?.dataset.routeCount>0,'routes');
   if(page.spot)await until(()=>d.querySelector('#tour-story')?.hidden===false,'story');
   await pause(2200);
   await until(()=>map.dataset.surfacePreview==='false'&&map.dataset.surfacePending==='0'&&map.dataset.danceMoving==='false','map images');
@@ -49,7 +41,7 @@ try{
   ctx.fillStyle=d.querySelector('#background-color').value;ctx.fillRect(0,0,1200,630);
   ctx.save();ctx.beginPath();ctx.rect(0,150,1200,480);ctx.clip();
   ctx.drawImage(map,0,0,1200,630);ctx.drawImage(d.querySelector('#overlay'),0,0,1200,630);
-  await drawSVG(ctx,d.querySelector('.tour-routes'));drawLabels(ctx,d);ctx.restore();
+  drawRoutes(ctx,d);drawLabels(ctx,d);ctx.restore();
   ctx.fillStyle='#234b59';ctx.font='bold 13px Arial,sans-serif';ctx.letterSpacing='2px';ctx.fillText(`HEXAGONAL EARTH  /  HISTORY  /  ${info.tick.toUpperCase()}`,44,35);ctx.letterSpacing='0px';
   const title=spot?spot.title:`${info.label} · ${info.date}`;let size=52;
   do{ctx.font=`${size--}px Baskerville,Georgia,serif`;}while(ctx.measureText(title).width>1112);

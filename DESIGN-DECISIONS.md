@@ -815,8 +815,15 @@ trail and larger icon-like pieces, the user chose the comet. Decision: dots at
 half their size drawn as short streaks with round ends; a first version with
 two extra trail strokes per fragment made the app noticeably slow even on a
 fast machine, so the fragment went back to two strokes with a uniform streak, which the
-user found looked like worms; the comet is now a thin faint tail under a
-bright head, three strokes, paid for by sparser dots. Icons, if wanted, belong to spots. The user also found the eye's
+user found looked like worms; a gradient tail as a thin faint stroke under a
+bright head was the next step, paid for by sparser dots. Even that ran at
+3 fps: measured headlessly, the cost was the animated `stroke-dashoffset` on
+about a thousand SVG paths, not the dots. When the user asked for a tail in
+three parts (50, 25, 10%) and longer, the layer became a canvas: every dot is
+drawn each frame from its pattern offset, and the tail is three 8 px steps of
+falling opacity stroked along the course. Full frame rate at 0.6 ms a frame,
+and a real stepped tail instead of a thinner stroke standing in for one.
+Icons, if wanted, belong to spots. The user also found the eye's
 cell empty with Africa able to fit and South America off screen: the vertex
 rule now drops its stickiness when the eye's cell is empty, and the leftover
 piece takes the free join nearest the eye. The

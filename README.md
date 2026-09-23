@@ -173,12 +173,16 @@ Vikings and Polynesia, each with its own smooth noise, so parallel courses jiggl
 through valleys and along coasts while the stops stay exact. Sea handling per
 story: `coastal` prefers shorelines, `open` treats open water as free as coast and
 islands as stops (Polynesia, Ocean crossings); the Beringia leg is a `landBridge`.
-Dots are comets: a bright head on a dark halo with a thinner, fainter tail
-of up to 10 px ending under the head (shorter where the gap before it is
-tight), built from the same dash loop so it rides the dot animation. Three
-strokes per fragment; to pay for the tail the dots are sparser, intervals at
-0.7 of the drawn pattern rather than half. Dots fade in at a route's first
-stop and out at its last through a per-route luminance mask. Nothing runs at runtime beyond the usual projection. Regenerate
+Dots are comets drawn on a 2D canvas each frame (`tour-route-renderer.mjs`):
+a bright head on a dark halo with a tail in three steps of 8 px at 50, 25
+and 10% opacity, stroked along the course behind the head so it bends with
+the route. Each strand keeps its seeded dot pattern (`tour-trade-traffic.mjs`,
+intervals at 0.7 of the drawn pattern), and a dot's place at time t is its
+pattern offset plus speed·t, found on the fragment polyline by binary search
+over cumulative distances; a frame costs well under a millisecond. Dots fade
+in at a route's first stop and out at its last by distance to the terminus.
+Previews draw the full corridor (a dot every 8 px) so the courses survive
+thumbnail size. Nothing runs at runtime beyond the projection and that frame. Regenerate
 with a local virtualenv holding numpy and Pillow. Checks: `history-tests.mjs`
 (every period parses, spots for every story, routes valid, strands fresh and
 covering every route, one colour per wave), `tour-performance-tests.mjs`

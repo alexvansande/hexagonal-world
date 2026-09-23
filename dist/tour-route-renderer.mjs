@@ -39,90 +39,130 @@ function routePositions(anchors,point,lane=0){
 export function routePath(anchors,point,lane=0){
  return routePositions(anchors,point,lane).map(([x,y],i)=>`${i&&anchors[i-1].tile===anchors[i].tile?'L':'M'}${x.toFixed(2)},${y.toFixed(2)}`).join(' ');
 }
-// Carry the dash phase across separate hexagons without drawing the intervening
-// gap. Otherwise each SVG subpath would restart the same cluster at every cut.
+// Carry the dot phase across separate hexagons without drawing the intervening
+// gap. Otherwise each piece would restart the same cluster at every cut.
+// Each fragment keeps its screen points and the travelled distance at each
+// point (`at`), so a dot at route distance p is found by one binary search.
 export function routeFragments(anchors,point,lane=0){
  const positions=routePositions(anchors,point,lane),parts=[];let distance=0;
  for(let i=0;i<positions.length;i++){
   const [x,y]=positions[i],start=!i||anchors[i-1].tile!==anchors[i].tile;
-  if(start)parts.push({d:'',start:distance});
+  if(start)parts.push({d:'',start:distance,points:[],at:[]});
   else distance+=Math.hypot(x-positions[i-1][0],y-positions[i-1][1]);
-  parts.at(-1).d+=`${start?'M':'L'}${x.toFixed(2)},${y.toFixed(2)} `;
+  const part=parts.at(-1);part.d+=`${start?'M':'L'}${x.toFixed(2)},${y.toFixed(2)} `;part.points.push(x,y);part.at.push(distance);
  }
+ for(const part of parts)part.length=part.at.at(-1)-part.start;
  return parts;
 }
+// The dot pattern as loop distances: where each dot sits in one repeat of the
+// traffic pattern (`.1 gap .1 gap …`), so the dots on a strand at time t lie at
+// (offset − phase + speed·t) mod loop length, counted from the strand's start.
+const dotOffsets=new WeakMap();
+export function trafficDots(traffic){
+ if(dotOffsets.has(traffic))return dotOffsets.get(traffic);
+ const v=traffic.dasharray.split(' ').map(Number),out=[];let d=0;
+ for(let i=0;i<v.length;i+=2){out.push(d+v[i]/2);d+=v[i]+v[i+1];}
+ dotOffsets.set(traffic,out);return out;
+}
+// The comet: a head on a dark halo, then a tail drawn as steps of falling
+// opacity. Each step is a stroke of the route behind the head, so the tail
+// bends along the course instead of pointing straight back.
+export const comet={head:3.2,halo:5.6,tail:[[.5,8],[.25,8],[.1,8]]};
+// Position on a fragment at distance p from its start; from a binary search on
+// the cumulative distances, interpolated within the segment found.
+function along(part,p,out){
+ const at=part.at,n=at.length;let lo=0,hi=n-1;
+ const target=part.start+p;
+ while(hi-lo>1){const mid=(lo+hi)>>1;if(at[mid]<=target)lo=mid;else hi=mid;}
+ const span=at[hi]-at[lo],t=span?Math.max(0,Math.min(1,(target-at[lo])/span)):0;
+ out[0]=part.points[2*lo]+(part.points[2*hi]-part.points[2*lo])*t;out[1]=part.points[2*lo+1]+(part.points[2*hi+1]-part.points[2*lo+1])*t;
+ return lo;
+}
 export function createTourRoutes(stage){
- const ns='http://www.w3.org/2000/svg',svg=document.createElementNS(ns,'svg');
- svg.classList.add('tour-routes');svg.setAttribute('aria-hidden','true');svg.style.display='none';stage.prepend(svg);
- const defs=document.createElementNS(ns,'defs'),clip=document.createElementNS(ns,'clipPath');clip.id='tour-route-map-clip';defs.append(clip);svg.append(defs);
- // Dots fade in at a route's first stop and out at its last instead of popping:
- // a luminance mask with a dark-centred radial gradient at each terminus.
- const fade=document.createElementNS(ns,'radialGradient');fade.id='tour-route-fade';
- for(const [offset,color] of [['0','#000'],['1','#fff']]){const stop=document.createElementNS(ns,'stop');stop.setAttribute('offset',offset);stop.setAttribute('stop-color',color);fade.append(stop);}
- defs.append(fade);const fadeRadius=30;
- const paths=new Map();
- const pathFor=route=>{
-  if(paths.has(route.id))return paths.get(route.id);
-  const group=document.createElementNS(ns,'g');group.dataset.routeId=route.id;
-  const {halo,trail,line}=makeSegment();
-  const mask=document.createElementNS(ns,'mask');mask.id=`tour-route-fade-${paths.size}`;mask.setAttribute('maskUnits','userSpaceOnUse');
-  const cover=document.createElementNS(ns,'rect');cover.setAttribute('fill','#fff');mask.append(cover);defs.append(mask);
-  group.setAttribute('mask',`url(#${mask.id})`);
-  group.append(halo,trail,line);svg.append(group);const value={group,halo,line,mask,cover,ends:[],segments:[{halo,trail,line}]};paths.set(route.id,value);return value;
- };
- // Each fragment is three strokes: a dark halo under the head, a thin faint tail that ends where
- // the head is (the comet), and the bright head on top. Animated dashes are what the browser
- // pays for, so the dots themselves are sparser to make room for the tail.
- function makeSegment(){const make=cls=>{const p=document.createElementNS(ns,'path');p.classList.add(cls);return p;};return {halo:make('route-halo'),trail:make('route-trail'),line:make('route-line')};}
- // A trail pattern from a dot pattern: every dot gets a dash ending where the dot ends, as long
- // as `length` allows or as the gap before it allows, so the loop length is unchanged and the
- // trails ride the same animation with the pattern start shifted by the first trail.
- const trailPatterns=new WeakMap();
- function trailPattern(traffic,length){
-  let byLength=trailPatterns.get(traffic);if(!byLength){byLength=new Map();trailPatterns.set(traffic,byLength);}
-  if(byLength.has(length))return byLength.get(length);
-  const v=traffic.dasharray.split(' ').map(Number),n=v.length/2,t=[];
-  for(let i=0;i<n;i++){const gapBefore=v[(2*i-1+v.length)%v.length];t.push(Math.max(.1,Math.min(length,gapBefore-.3)));}
-  const out=[];for(let i=0;i<n;i++){out.push(t[i],v[2*i+1]+v[2*i]-t[(i+1)%n]);}
-  const result={dasharray:out.map(x=>Math.round(x*100)/100).join(' '),shift:t[0]-v[0]};byLength.set(length,result);return result;
- }
- return {setPaused(paused){svg.classList.toggle('flow-paused',paused);},update(routes,point,width,height){
-  svg.style.display=routes.length?'block':'none';svg.setAttribute('viewBox',`0 0 ${width} ${height}`);
-  // Parallel lanes must still end at the map silhouette, including its cuts.
-  clip.replaceChildren();
-  if(routes.some(route=>route.lane)){const seen=new Set();for(const anchor of routes.flatMap(route=>route.anchors)){const key=anchor.tile.id+':'+(anchor.offset||[0,0]).map(v=>v.toFixed(2)).join();if(seen.has(key))continue;seen.add(key);
-   const polygon=document.createElementNS(ns,'polygon');polygon.setAttribute('points',hex.map(p=>point(p,anchor.tile,anchor.offset).join(',')).join(' '));clip.append(polygon);
-  }}
-  // Scrubbing the timeline visits hundreds of routes; drop groups that are no
-  // longer drawn once the cache grows well beyond the current set.
-  const wanted=new Set(routes.map(route=>route.id));
-  if(paths.size>wanted.size+120)for(const [id,{group,mask}] of paths)if(!wanted.has(id)){group.remove();mask.remove();paths.delete(id);}
-  for(const {group} of paths.values())group.style.display='none';
-  routes.forEach(route=>{
-   const value=pathFor(route),{group,segments}=value,traffic=route.traffic;
-   group.style.display='';group.classList.toggle('route-flow',!!route.animated);group.classList.toggle('route-sporadic',!!traffic);group.classList.toggle('route-uncertain',!!route.uncertain);group.dataset.wave=route.wave||'';
-   if(route.lane)group.setAttribute('clip-path','url(#tour-route-map-clip)');else group.removeAttribute('clip-path');
-   const strands=route.strandAnchors||[route.anchors];
-   const fragments=strands.flatMap((anchors,s)=>{const t=Array.isArray(traffic)?traffic[s]:traffic;
-    return t?routeFragments(anchors,point,route.lane).map(f=>({...f,traffic:t})):[{d:routePath(anchors,point,route.lane),start:0,traffic:null}];});
-   // Terminus fades follow the camera; cuts inside a route keep full strength.
-   const {mask,cover,ends}=value;cover.setAttribute('width',width);cover.setAttribute('height',height);
-   const termini=traffic?strands.flatMap(anchors=>anchors.length?[anchors[0],anchors.at(-1)]:[]):[];
-   while(ends.length>termini.length)ends.pop().remove();
-   termini.forEach((anchor,i)=>{
-    if(!ends[i]){const circle=document.createElementNS(ns,'circle');circle.setAttribute('r',fadeRadius);circle.setAttribute('fill','url(#tour-route-fade)');mask.append(circle);ends.push(circle);}
-    const [x,y]=point(anchor.local,anchor.tile,anchor.offset);ends[i].setAttribute('cx',x.toFixed(1));ends[i].setAttribute('cy',y.toFixed(1));
-   });
-   while(segments.length>fragments.length){for(const p of Object.values(segments.pop()))p.remove();}
-   fragments.forEach(({d,start,traffic},i)=>{
-    if(!segments[i]){const s=makeSegment();group.append(s.halo,s.trail,s.line);segments.push(s);}
-    for(const [kind,path] of Object.entries(segments[i])){
-     path.setAttribute('d',d);
-     if(traffic){const tail=kind==='trail'?trailPattern(traffic,10):null,shift=tail?tail.shift:0;
-      path.style.strokeDasharray=tail?tail.dasharray:traffic.dasharray;path.style.setProperty('--traffic-from',String(traffic.phase+start+shift));path.style.setProperty('--traffic-to',String(traffic.phase+start+shift-traffic.length));path.style.setProperty('--traffic-duration',`${traffic.length/traffic.speed}s`);}
-     else {path.style.strokeDasharray='';path.style.removeProperty('--traffic-from');path.style.removeProperty('--traffic-to');path.style.removeProperty('--traffic-duration');}
+ const canvas=document.createElement('canvas');canvas.classList.add('tour-routes');canvas.setAttribute('aria-hidden','true');canvas.style.display='none';stage.prepend(canvas);
+ const ctx=canvas.getContext('2d');
+ const reduced=typeof matchMedia==='function'&&matchMedia('(prefers-reduced-motion: reduce)').matches;
+ let drawn=[],width=0,height=0,dpr=1,paused=false,frame=0,clipPolygons=[];
+ const fadeRadius=30,started=performance.now();
+ const fadeAt=(x,y,ends)=>{let f=1;for(let i=0;i<ends.length;i+=2){const d=Math.hypot(x-ends[i],y-ends[i+1]);if(d<fadeRadius)f=Math.min(f,d/fadeRadius);}return f;};
+ const pos=[0,0],from=[0,0];
+ // `corridor` draws a dot every 8 px with no tails: previews at thumbnail size
+ // would lose the sparse packets, so they show the whole course instead.
+ function render(corridor=false){
+  frame=0;if(canvas.style.display==='none')return;
+  const ratio=Math.min(devicePixelRatio||1,2);
+  if(canvas.width!==Math.round(width*ratio)||canvas.height!==Math.round(height*ratio)){canvas.width=Math.round(width*ratio);canvas.height=Math.round(height*ratio);dpr=ratio;}
+  ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,width,height);ctx.lineCap='round';ctx.lineJoin='round';
+  const t=reduced?0:(performance.now()-started)/1000;
+  // Layers keep halo under every head: halos first, then tails, then heads.
+  for(const item of drawn){
+   const {color,fragments,traffic,ends,uncertain,lane}=item,alpha=uncertain?.65:1;
+   ctx.save();
+   if(lane&&clipPolygons.length){ctx.beginPath();for(const poly of clipPolygons){ctx.moveTo(poly[0],poly[1]);for(let i=2;i<poly.length;i+=2)ctx.lineTo(poly[i],poly[i+1]);ctx.closePath();}ctx.clip();}
+   const offsets=corridor?[0]:trafficDots(traffic),loop=corridor?8:traffic.length,shift=corridor?0:((traffic.speed*t-traffic.phase)%loop+loop)%loop,tail=corridor?[]:comet.tail;
+   const heads=[];
+   for(const part of fragments){
+    if(part.length<=0)continue;
+    // Every dot whose loop position lands inside this fragment's stretch of the strand.
+    const first=part.start,last=part.start+part.length;
+    for(const o of offsets){
+     // Loop positions p = o + shift + k·loop for integers k, within [first,last].
+     let p=((o+shift-first)%loop+loop)%loop+first;
+     for(;p<=last;p+=loop){
+      const local=p-part.start;
+      along(part,local,pos);
+      const x=pos[0],y=pos[1];
+      if(x<-20||y<-20||x>width+20||y>height+20)continue;
+      const f=fadeAt(x,y,ends)*alpha;if(f<=.02)continue;
+      heads.push(x,y,f);
+      // Tail steps: strokes of the route behind the head, each step one fixed length.
+      let back=local;
+      for(const [opacity,length] of tail){
+       const end=Math.max(0,back-length);if(end>=back)break;
+       ctx.globalAlpha=opacity*f;ctx.strokeStyle=color;ctx.lineWidth=comet.head;ctx.beginPath();
+       // Walk the polyline between end and back so the tail bends with the course.
+       const hiBack=along(part,back,pos);ctx.moveTo(pos[0],pos[1]);
+       const loEnd=along(part,end,from);
+       for(let i=hiBack;i>loEnd;i--)ctx.lineTo(part.points[2*i],part.points[2*i+1]);
+       ctx.lineTo(from[0],from[1]);ctx.stroke();
+       back=end;
+      }
+     }
     }
-   });
-  });
- }};
+   }
+   item.dots=heads.length/3;
+   ctx.globalAlpha=1;
+   // Halo under the heads, then the heads.
+   ctx.fillStyle='#213e46';
+   for(let i=0;i<heads.length;i+=3){ctx.globalAlpha=.8*heads[i+2];ctx.beginPath();ctx.arc(heads[i],heads[i+1],comet.halo/2,0,Math.PI*2);ctx.fill();}
+   ctx.fillStyle=color;
+   for(let i=0;i<heads.length;i+=3){ctx.globalAlpha=heads[i+2];ctx.beginPath();ctx.arc(heads[i],heads[i+1],comet.head/2,0,Math.PI*2);ctx.fill();}
+   ctx.restore();
+  }
+  canvas.dataset.dots=String(drawn.reduce((sum,item)=>sum+(item.dots||0),0));
+  if(!paused&&!reduced&&drawn.length)frame=requestAnimationFrame(loop);
+ }
+ const loop=()=>render(false);const schedule=()=>{if(!frame)frame=requestAnimationFrame(loop);};
+ document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')schedule();});
+ const api={
+  canvas,
+  setPaused(value){paused=value;canvas.classList.toggle('flow-paused',paused);if(!paused)schedule();},
+  // Draw one frame now (previews and tests) and return the canvas.
+  snapshot(corridor=false){cancelAnimationFrame(frame);frame=0;render(corridor);return canvas;},
+  update(routes,point,w,h){
+   width=w;height=h;canvas.style.display=routes.length?'block':'none';
+   canvas.dataset.visibleRoutes=routes.map(route=>route.id).join(' ');canvas.dataset.routeCount=String(routes.length);
+   // Parallel lanes must still end at the map silhouette, including its cuts.
+   clipPolygons=[];
+   if(routes.some(route=>route.lane)){const seen=new Set();for(const anchor of routes.flatMap(route=>route.anchors)){const key=anchor.tile.id+':'+(anchor.offset||[0,0]).map(v=>v.toFixed(2)).join();if(seen.has(key))continue;seen.add(key);
+    clipPolygons.push(hex.flatMap(p=>point(p,anchor.tile,anchor.offset)));}}
+   drawn=routes.map(route=>{
+    const strands=route.strandAnchors||[route.anchors],traffic=route.traffic;
+    return strands.map((anchors,s)=>{const t=Array.isArray(traffic)?traffic[s]:traffic;if(!t||!anchors.length)return null;
+     const ends=[anchors[0],anchors.at(-1)].flatMap(anchor=>point(anchor.local,anchor.tile,anchor.offset));
+     return {id:route.id,color:route.color||'#fff3c9',uncertain:!!route.uncertain,lane:route.lane,traffic:t,ends,fragments:routeFragments(anchors,point,route.lane)};}).filter(Boolean);
+   }).flat();
+   if(routes.length){cancelAnimationFrame(frame);frame=0;render();}else{cancelAnimationFrame(frame);frame=0;canvas.dataset.dots='0';}
+  } };
+ canvas.renderer=api;return api;
 }

@@ -251,12 +251,8 @@ body:not(.customizing) aside.tour-story-open>#tour-story{display:block}
 #tour-story .tour-story-note{font-size:11px;line-height:1.5;color:#60777d;margin-bottom:6px}
 #tour-story-close{position:absolute;right:-4px;top:-4px;width:44px;height:44px;padding:0;border:0;font:28px/1 Arial,sans-serif}
 .tour-story-source{font-size:11px;color:#346e7c;text-underline-offset:3px}
-.tour-routes{position:absolute;inset:0;width:100%;height:100%;z-index:1;pointer-events:none;overflow:hidden}
-.tour-routes path{fill:none;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:.1 8;vector-effect:non-scaling-stroke}
-/* Comets: a bright head on a dark halo, and a thinner, fainter tail ending under the head; the thinning stands in for a fade. */
-.tour-routes .route-halo{stroke:#213e46;stroke-width:5.6;stroke-opacity:.8}
-.tour-routes .route-trail{stroke:var(--route-color,#fff3c9);stroke-width:1.8;stroke-opacity:.38}
-.tour-routes .route-line{stroke:var(--route-color,#fff3c9);stroke-width:3.2}
+.tour-routes{position:absolute;inset:0;width:100%;height:100%;z-index:1;pointer-events:none}
+/* Comets are drawn on this canvas each frame: a bright head on a dark halo and a tail in three steps of falling opacity (tour-route-renderer.mjs). */
 .tour-markers{z-index:2}
 /* Map labels for the focused story: sites as black circles with all-caps names, areas as italic names. */
 .tour-labels{position:absolute;inset:0;z-index:2;pointer-events:none;overflow:hidden}
@@ -266,15 +262,9 @@ body:not(.customizing) aside.tour-story-open>#tour-story{display:block}
 .tour-label[data-kind="site"]{padding-left:17px;margin:-7px 0 0 -6px;font:700 9.5px/14px Gotham,"Gotham SSm",Montserrat,"Proxima Nova","Avenir Next",Avenir,"Helvetica Neue",Arial,sans-serif;text-transform:uppercase;letter-spacing:.09em}
 .tour-label[data-kind="site"]::before{content:"";position:absolute;left:0;top:1px;width:12px;height:12px;border-radius:50%;background:#000;border:2px solid rgba(255,255,255,.5);background-clip:padding-box}
 .tour-label[data-kind="area"]{transform:translate(-50%,-50%);font:italic 500 22px/1.1 Baskerville,"Libre Baskerville","Baskerville Old Face",Georgia,"Times New Roman",serif;letter-spacing:.02em}
-/* Negative dash offset advances each dot from the first waypoint to the last.
-   One repeat is exactly .1 + 8 CSS pixels; halo and light remain registered. */
-@keyframes migration-flow{from{stroke-dashoffset:0}to{stroke-dashoffset:-8.1}}
-.tour-routes .route-flow path{animation:migration-flow 1.15s linear infinite}
-.tour-routes.flow-paused .route-flow path{animation-play-state:paused}
 .tour-route-key{list-style:none;margin:0 0 12px;padding:0;font-size:11px;line-height:1.5;color:#34545e}
 .tour-route-key li{position:relative;padding-left:17px;margin:5px 0}
 .tour-route-key li::before{content:"";position:absolute;left:0;top:5px;width:7px;height:7px;border-radius:50%;background:var(--route-color,#fff3c9);box-shadow:0 0 0 1px #65797d}
-@media(prefers-reduced-motion:reduce){.tour-routes .route-flow path{animation:none}}
 
 .tour-areas{position:absolute;inset:0;width:100%;height:100%;z-index:1;pointer-events:none;overflow:hidden}
 .tour-areas .area-fill{fill:#ffcc73;fill-opacity:.22;stroke:none}
@@ -284,13 +274,6 @@ body:not(.customizing) aside.tour-story-open>#tour-story{display:block}
 .tour-areas .area-border{stroke:#fff3c9;stroke-width:2.4}
 .tour-areas [data-kind="basin"] .area-border{stroke:#cefbff}
 
-/* Chapter waves: hominins/archaic humans, North Atlantic sailing, Pacific voyaging and American goods. */
-.tour-routes .route-uncertain{opacity:.65}
-/* Sparse trade packets share one phase across cuts. Migration keeps its rhythm. */
-@keyframes trade-traffic{from{stroke-dashoffset:var(--traffic-from)}to{stroke-dashoffset:var(--traffic-to)}}
-.tour-routes .route-sporadic path{animation:trade-traffic var(--traffic-duration) linear infinite;stroke-dashoffset:var(--traffic-from)}
-.tour-routes.flow-paused .route-sporadic path{animation-play-state:paused}
-@media(prefers-reduced-motion:reduce){.tour-routes .route-sporadic path{animation:none}}
 
 /* History mode: one stop of the unified timeline replaces the positioning toolbox. */
 /* One look for the clickable things around the map: no border, a grey a step

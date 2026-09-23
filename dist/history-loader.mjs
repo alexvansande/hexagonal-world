@@ -3,7 +3,7 @@
 // routes expand into a reversed partner on the same lane; every strand gets its
 // own sparse traffic timing. Fetched on demand, cached per period.
 import {parsePeriod} from './tour-content.mjs?v=history-3';
-import {tradeTraffic} from './tour-trade-traffic.mjs?v=comet-1';
+import {tradeTraffic} from './tour-trade-traffic.mjs?v=comet-2';
 import {period as periodInfo} from './history/index.mjs?v=history-1';
 const base=new URL('./history/',import.meta.url);
 const cache=new Map();let wavesPromise=null;
@@ -11,7 +11,7 @@ export function loadWaves(){
  return wavesPromise||=fetch(new URL('waves.json',base),{cache:'no-cache'}).then(r=>{if(!r.ok)throw Error('Wave colours unavailable');return r.json();}).then(waves=>{
   // One colour per wave everywhere: publish them as CSS variables for routes and legends.
   if(typeof document!=='undefined'){const style=document.createElement('style');style.id='wave-colours';
-   style.textContent=Object.entries(waves).map(([id,w])=>`.tour-routes [data-wave="${id}"],.tour-route-key [data-wave="${id}"]{--route-color:${w.color}}`).join('\n');document.head.append(style);}
+   style.textContent=Object.entries(waves).map(([id,w])=>`.tour-route-key [data-wave="${id}"]{--route-color:${w.color}}`).join('\n');document.head.append(style);}
   return waves;
  }).catch(error=>{wavesPromise=null;throw error;});
 }
@@ -35,7 +35,7 @@ export function loadPeriod(id){
   fetch(new URL(`${info.id}.strands.json`,base),{cache:'no-cache'}).then(r=>r.ok?r.json():{strands:{}}).catch(()=>({strands:{}})),
   loadWaves(),
  ]).then(([markdown,authored,sidecar,waves])=>{
-  const text=parsePeriod(markdown),routes=assembleRoutes(authored,sidecar.strands||{});
+  const text=parsePeriod(markdown),routes=Object.freeze(assembleRoutes(authored,sidecar.strands||{}).map(route=>Object.freeze({...route,color:waves[route.wave]?.color||'#fff3c9'})));
   const spots=Object.values(text.spots).filter(s=>s.spot).map(s=>({id:s.id,title:s.title,latitude:s.spot[0],longitude:s.spot[1],view:s.view}));
   return Object.freeze({period:info,text,routes,spots,waves,stories:Object.freeze([...new Set([...Object.keys(text.spots),...authored.map(r=>r.story)])])});
  }).catch(error=>{cache.delete(info.id);throw error;});
