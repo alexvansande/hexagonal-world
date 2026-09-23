@@ -836,7 +836,24 @@ monsoons to Cuiabá, the Pampas forts). 1800 gains an Americas exchange pane
 for them; the trails after 1800 are shown on the last age and said to be so.
 The Fit button and the turning dial now also sit inside the history pane, Fit
 above the dial at its right edge, because the positioning toolbox is hidden
-while the timeline is open. The user also found the eye's
+while the timeline is open.
+
+**Pieces that stay (September 23).** Zoomed into the Atlantic, the user tried
+to centre it and North America left for a corner; panning felt like the hexes
+running away, while pieces arriving to fill empty space felt magical. The
+vertex rule re-formed the net whenever a different three-piece corner came
+nearest the eye, and the eye itself sat most of a cell west of the screen's
+middle, a bias meant for the fitted map. Decision: the bias fades to nothing
+by twice the fit zoom, and the current arrangement is kept while the cell
+under the eye holds a piece, unless another arrangement scores clearly higher
+(by 8% of the screen) on the share of the free screen it covers less the
+on-screen share of every piece it would move, a little per moved piece and per
+unit of distance. So pieces in front of the user never move because a nearer
+corner appeared; the net re-forms to fill the cell the eye enters, or a large
+empty stretch that pieces from off screen can fill. Measured headlessly over
+28 drags at 172% zoom, on-screen pieces moved 10 times instead of 15, and the
+Atlantic drag no longer moves anything. Coverage is sampled on a 10×6 grid of
+the free screen per candidate corner, well under a millisecond. The user also found the eye's
 cell empty with Africa able to fit and South America off screen: the vertex
 rule now drops its stickiness when the eye's cell is empty, and the leftover
 piece takes the free join nearest the eye. The

@@ -289,7 +289,21 @@ const joined=(from,t)=>{for(let e=0;e<6;e++){const j=danceJoin(from,e);if(j&&j.i
 // between the heading and the sidebar on phones), carried in map space most of the way toward the
 // junction of the three continental plates, which lies one cell west of the net's middle. So a
 // fitted map settles on that junction whatever the screen, and the bias turns with the map.
-function danceCentre(){const {left,right,top,bottom}=freeRect(),unit=scale*state.zoom,x=(left+right)/2,y=(top+bottom)/2,c=rotateScreen([(x-w/2-state.panX)/unit,(y-h/2-state.panY)/unit],-state.gridRotation*Math.PI/180);return [c[0]-.8,-c[1]];}
+// The bias is for the fitted map; zoomed in past twice the fit the eye is the screen's centre,
+// since a bias of most of a cell would then point far off what the user brought to the middle.
+function danceNetAt(x,y){const unit=scale*state.zoom,c=rotateScreen([(x-w/2-state.panX)/unit,(y-h/2-state.panY)/unit],-state.gridRotation*Math.PI/180);return [c[0],-c[1]];}
+function danceCentre(){const {left,right,top,bottom}=freeRect(),c=danceNetAt((left+right)/2,(top+bottom)/2),bias=.8*Math.max(0,Math.min(1,2-state.zoom));return [c[0]-bias,c[1]];}
+// The share of the free part of the screen an arrangement covers, and each piece's own share, from
+// a grid of sample points; a piece's share is what the user would watch leave if it moved.
+function danceShares(targets){
+ const {left,right,top,bottom}=freeRect(),cols=10,rows=6,polys=[...targets].map(([id,t])=>[id,hex.map(p=>world(p,t))]),shares=new Map(polys.map(([id])=>[id,0]));let hit=0;
+ for(let i=0;i<cols;i++)for(let j=0;j<rows;j++){
+  const [x,y]=danceNetAt(left+(i+.5)/cols*(right-left),top+(j+.5)/rows*(bottom-top));
+  const owner=polys.find(([,poly])=>{let inside=false;for(let a=0,b=poly.length-1;a<poly.length;b=a++){const [xa,ya]=poly[a],[xb,yb]=poly[b];if((ya>y)!==(yb>y)&&x<(xb-xa)*(y-ya)/(yb-ya)+xa)inside=!inside;}return inside;});
+  if(owner){hit++;shares.set(owner[0],shares.get(owner[0])+1/(cols*rows));}
+ }
+ return {coverage:hit/(cols*rows),shares};
+}
 // Every piece reachable from the first through valid joins.
 function danceConnected(){
  const placed=dancePlaced(),seen=new Set([placed[0].id]);let grew=true;
@@ -301,31 +315,54 @@ function danceFill(centre=danceCentre()){
  // Every three-piece corner of every placed piece (the two edges meeting there must name two
  // different pieces; on this sphere every other corner is a face meeting itself), nearest first;
  // among corners at one point the piece nearest the eye is the anchor. The current vertex is
- // kept until another is clearly nearer, half a cell nearer, so a nudge never re-forms the net.
+ // kept while the cell under the eye holds a piece and no other arrangement would cover much
+ // more of the screen: pieces in front of the user never run away because a nearer corner
+ // appeared; the net re-forms to fill the cell the eye enters or a large empty stretch of the
+ // screen, which is the magic the user wants, and never as a side effect of looking around.
  const corners=[];
  for(const p of placed)for(let k=0;k<6;k++){const a=danceJoin(p,(k+5)%6),b=danceJoin(p,k);if(!a||!b||a.id===b.id)continue;const q=world(hex[k],p);corners.push({anchor:p,k,d:Math.hypot(q[0]-centre[0],q[1]-centre[1]),own:Math.hypot(p.x-centre[0],p.y-centre[1])});}
  if(!corners.length)return;
  corners.sort((a,b)=>a.d-b.d||a.own-b.own);
  // When the eye sits in an empty cell, filling it comes first: no stickiness then.
  const eyeEmpty=Math.min(...placed.map(p=>Math.hypot(p.x-centre[0],p.y-centre[1])))>1;danceEyeEmpty=eyeEmpty;
+ // The pieces a vertex asks for: its anchor stays, the two across the corner's edges join it (three
+ // plates always meet at the vertex), and the leftover takes the free join nearest the eye, so the
+ // fourth hex comes to where the user looks rather than lingering off screen; it keeps its cell only
+ // while that is about as near.
+ const plan=({anchor,k:corner})=>{
+  const targets=new Map([[anchor.id,{x:anchor.x,y:anchor.y,r:anchor.r}]]),taken=cell=>[...targets.values()].some(q=>sameCell(q,cell));
+  for(const j of [danceJoin(anchor,(corner+5)%6),danceJoin(anchor,corner)])targets.set(j.id,{x:j.x,y:j.y,r:j.r});
+  for(const p of [...placed].sort((a,b)=>Math.hypot(a.x-centre[0],a.y-centre[1])-Math.hypot(b.x-centre[0],b.y-centre[1]))){
+   if(targets.has(p.id))continue;
+   const cur={x:p.x,y:p.y,r:p.r},curValid=!taken(cur)&&[...targets.entries()].some(([id,t])=>joined({id,...t},{id:p.id,...cur})),curD=Math.hypot(cur.x-centre[0],cur.y-centre[1]);
+   let best=null;
+   for(const [id,t] of targets)for(let e=0;e<6;e++){const j=danceJoin({id,...t},e);if(!j||j.id!==p.id||taken(j))continue;const d=Math.hypot(j.x-centre[0],j.y-centre[1]);if(!best||d<best.d)best={...j,d};}
+   if(curValid&&(!best||curD<=best.d+1))targets.set(p.id,cur);else targets.set(p.id,best?{x:best.x,y:best.y,r:best.r}:cur);
+  }
+  return targets;
+ };
  let choice=corners[0];
- if(danceVertex){const current=corners.find(c=>c.anchor.id===danceVertex.anchor&&c.k===danceVertex.corner);if(current&&current.d<=corners[0].d+(eyeEmpty?.05:.5))choice=current;}
+ if(danceVertex){
+  const current=corners.find(c=>c.anchor.id===danceVertex.anchor&&c.k===danceVertex.corner);
+  if(current){
+   // Every corner's plan is scored by the screen it would cover, less the on-screen share of each
+   // piece it moves (what the user watches leave), a little per moved piece and per unit of
+   // distance. The current arrangement stays unless the eye's cell is empty or a plan scores
+   // clearly higher: a large empty stretch that pieces from off screen can fill.
+   const now=danceShares(new Map(placed.map(p=>[p.id,p]))),score=c=>{
+    const targets=plan(c),moved=[...targets].filter(([id,t])=>{const p=placed.find(q=>q.id===id);return !sameCell(p,t)||p.r!==t.r;}).map(([id])=>id);
+    return {corner:c,targets,fillsEye:[...targets.values()].some(t=>Math.hypot(t.x-centre[0],t.y-centre[1])<=1),score:danceShares(targets).coverage-moved.reduce((sum,id)=>sum+now.shares.get(id),0)-.02*moved.length-.01*c.d};
+   };
+   let best=null;
+   for(const c of corners){const s=score(c);if(eyeEmpty&&!s.fillsEye)continue;if(!best||s.score>best.score)best=s;}
+   // An empty eye cell no plan fills (the eye off the net) falls back to the nearest corner.
+   choice=eyeEmpty?(best?best.corner:corners[0]):(!best||best.score<now.coverage-.01*current.d+.08)?current:best.corner;
+  }
+ }
  const anchor=choice.anchor,corner=choice.k;
  if(danceVertex&&danceVertex.anchor===anchor.id&&danceVertex.corner===corner)return;
  danceVertex={anchor:anchor.id,corner};danceCentreState=`${anchor.id}:${corner}`;
- const targets=new Map([[anchor.id,{x:anchor.x,y:anchor.y,r:anchor.r}]]),taken=cell=>[...targets.values()].some(q=>sameCell(q,cell));
- // The two pieces across the corner's edges: three plates always meet at the vertex.
- for(const j of [danceJoin(anchor,(corner+5)%6),danceJoin(anchor,corner)])targets.set(j.id,{x:j.x,y:j.y,r:j.r});
- // The leftover piece takes the free join nearest the eye, so the fourth hex comes to where the
- // user looks rather than lingering off screen; it keeps its cell only while that is about as near.
- for(const p of placed.sort((a,b)=>Math.hypot(a.x-centre[0],a.y-centre[1])-Math.hypot(b.x-centre[0],b.y-centre[1]))){
-  if(targets.has(p.id))continue;
-  const cur={x:p.x,y:p.y,r:p.r},curValid=!taken(cur)&&[...targets.entries()].some(([id,t])=>joined({id,...t},{id:p.id,...cur})),curD=Math.hypot(cur.x-centre[0],cur.y-centre[1]);
-  let best=null;
-  for(const [id,t] of targets)for(let e=0;e<6;e++){const j=danceJoin({id,...t},e);if(!j||j.id!==p.id||taken(j))continue;const d=Math.hypot(j.x-centre[0],j.y-centre[1]);if(!best||d<best.d)best={...j,d};}
-  if(curValid&&(!best||curD<=best.d+1))targets.set(p.id,cur);else targets.set(p.id,best?{x:best.x,y:best.y,r:best.r}:cur);
- }
- for(const [id,t] of targets)danceTargets.set(id,t);
+ for(const [id,t] of plan(choice))danceTargets.set(id,t);
 }
 const easeOutBack=p=>p>=1?1:1+2*Math.pow(p-1,3)+1*Math.pow(p-1,2);
 function danceStep(now){
@@ -710,7 +747,7 @@ function render(refined=false,exportMode=false){if(exporting&&!exportMode)return
   const plan=mergedMaps.draw(renderMerged,{width:w,height:h,unit:scale*state.zoom,dpr,panX:state.panX,panY:state.panY},null,[]);
   surfaceCache=mergedMaps.cache;canvas.dataset.surface='precomputed';canvas.dataset.surfacePreview=String(!plan.ready);canvas.dataset.surfaceLevel=String(plan.level);canvas.dataset.surfacePending=String(surfaceCache.pending.size);canvas.dataset.surfaceTiles=String(surfaceCache.cache.size);canvas.dataset.surfaceFailures=String(surfaceCache.failures.size);
  }else drawColor(w,h,!!lighting);
- canvas.dataset.merged=String(!!renderMerged);canvas.dataset.tourLayout=danceActive()?'dancing':'default';canvas.dataset.danceVertex=danceActive()?danceCentreState:'';canvas.dataset.danceEyeEmpty=String(danceActive()&&danceEyeEmpty);canvas.dataset.danceValid=String(danceActive()?danceConnected():true);canvas.dataset.tourLighting=spaceshipLit()?'lit':spaceshipUnlit()?'unlit':'default';canvas.dataset.litHold=litRotationHold===null?'':String(litRotationHold);canvas.dataset.turn=state.gridRotation.toFixed(1);canvas.dataset.danceMoving=String(danceTweens.size>0);canvas.dataset.dancePositions=net.map(t=>`${t.id}:${t.x.toFixed(2)},${t.y.toFixed(2)},${t.r.toFixed(2)}`).join(' ');
+ canvas.dataset.merged=String(!!renderMerged);canvas.dataset.tourLayout=danceActive()?'dancing':'default';canvas.dataset.danceVertex=danceActive()?danceCentreState:'';canvas.dataset.danceEyeEmpty=String(danceActive()&&danceEyeEmpty);canvas.dataset.danceScreen=danceActive()?net.map(t=>{const c=point([0,0],t);return `${t.id}:${c[0].toFixed(0)},${c[1].toFixed(0)}`;}).join(' '):'';canvas.dataset.danceValid=String(danceActive()?danceConnected():true);canvas.dataset.tourLighting=spaceshipLit()?'lit':spaceshipUnlit()?'unlit':'default';canvas.dataset.litHold=litRotationHold===null?'':String(litRotationHold);canvas.dataset.turn=state.gridRotation.toFixed(1);canvas.dataset.danceMoving=String(danceTweens.size>0);canvas.dataset.dancePositions=net.map(t=>`${t.id}:${t.x.toFixed(2)},${t.y.toFixed(2)},${t.r.toFixed(2)}`).join(' ');
  if(lighting){(renderDefault?defaultLayers:projectedLighting).composite(lighting,w,h,scale*state.zoom,state.panX,state.panY,state.shadowOpacity,state.lightOpacity);
   if(!renderDefault&&($('graticule').checked||$('distortion').checked)){gl.enable(gl.BLEND);gl.blendFuncSeparate(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA,gl.ONE,gl.ONE_MINUS_SRC_ALPHA);drawColor(w,h,false,true);gl.disable(gl.BLEND);}
  }

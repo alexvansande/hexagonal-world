@@ -138,14 +138,20 @@ card open. Leaving an eligible map switches history off.
 The vertex rule looks where the eye rests: the middle of the free part of the
 screen (beside the sidebar on wide screens, between the heading and the sidebar
 on phones), carried in map space most of the way (0.8 of a cell) toward the
-junction of the three continental plates, one cell west of the net's middle.
-A fitted map therefore settles on that junction whatever the screen size, the
-bias turns with the map, and the current vertex is kept until another is half
-a cell nearer, so a nudge never re-forms the net. The rule waits for the first
+junction of the three continental plates, one cell west of the net's middle;
+that bias fades to nothing by twice the fit zoom, so zoomed in the eye is the
+screen's centre. A fitted map therefore settles on that junction whatever the
+screen size, and the bias turns with the map. The rule waits for the first
 fit, so no piece moves before the camera exists and the title stays visible on
-the first view. When the eye sits in an empty cell the stickiness is dropped so
-that cell is filled first, and the leftover fourth piece takes the free join
-nearest the eye rather than lingering off screen. In history on phones the
+the first view. The current arrangement is kept while the cell under the eye
+holds a piece: pieces in front of the user never move because a nearer corner
+appeared. Every candidate corner's plan is scored by the share of the free
+screen it covers (sampled on a 10×6 grid) less the on-screen share of each
+piece it would move, a little per moved piece and per unit of distance, and
+the net re-forms only when a plan scores clearly higher (8% of the screen), a
+large empty stretch that pieces from off screen can fill, or when the eye
+enters an empty cell, which is filled first; the leftover fourth piece takes
+the free join nearest the eye rather than lingering off screen. In history on phones the
 sidebar shows only the scrubber. The pane carries its own Fit button above a
 turning dial at its right edge, since the positioning toolbox is hidden while
 the timeline is open. Clickable things around the map share one look, the More options style:
