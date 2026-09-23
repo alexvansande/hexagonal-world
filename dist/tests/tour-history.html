@@ -48,7 +48,7 @@ try{
   check(map.dataset.tourLayout==='dancing','Dancing pieces stay on for '+p.id);
  }
  check(new Set(counts).size>=(full?6:3),'Periods draw different networks: '+counts.join(','));
- check(routes.querySelectorAll('path').length<1200,'Route DOM stays bounded while scrubbing');
+ check(routes.querySelectorAll('path').length<1800,'Route DOM stays bounded while scrubbing (three strokes per fragment)');
  // Choosing a date activates the period's headline spot: the card opens on the first story of its Markdown.
  check(!d.querySelector('#tour-story').hidden&&d.querySelector('#tour-story-title').textContent.includes(full?'Galleons':'slave trade'),full?'A story focused at 1600 CE continues at 1800 CE instead of switching':'Arriving at 1800 CE from a period without the focused story opens its headline');
  d.querySelector('#tour-story-close').click();await until(()=>d.querySelector('#tour-story').hidden,'close auto');await pause(1500);
@@ -69,7 +69,7 @@ try{
  const labels=()=>[...d.querySelectorAll('.tour-labels .tour-label:not([hidden])')];
  check(labels().some(l=>l.dataset.kind==='site'&&l.textContent==='Samarkand')&&labels().some(l=>l.dataset.kind==='area'&&l.textContent==='Steppe'),'Site and area labels of the focused story are drawn');
  check(getComputedStyle(labels().find(l=>l.dataset.kind==='site')).textTransform==='uppercase'&&getComputedStyle(labels().find(l=>l.dataset.kind==='area')).fontStyle==='italic','Sites are all caps, areas italic');
- check(parseFloat(getComputedStyle(d.querySelector('.tour-routes .route-line')).strokeWidth)<=4&&!d.querySelector('.tour-routes .route-trail-near')&&d.querySelector('.tour-routes .route-line').style.strokeDasharray.split(' ').some(v=>+v>1),'Dots are short streaks on two strokes per fragment');
+ check(parseFloat(getComputedStyle(d.querySelector('.tour-routes .route-line')).strokeWidth)<=4&&d.querySelector('.tour-routes .route-trail')&&parseFloat(getComputedStyle(d.querySelector('.tour-routes .route-trail')).strokeWidth)<parseFloat(getComputedStyle(d.querySelector('.tour-routes .route-line')).strokeWidth)&&d.querySelector('.tour-routes .route-trail').style.strokeDasharray.split(' ').length===d.querySelector('.tour-routes .route-line').style.strokeDasharray.split(' ').length,'Each dot is a bright head with a thinner faint tail on the same loop');
  // Framing a story picks the band that gathers it: the Pacific for Polynesia, the diagonal for the Atlantic.
  // (Stepping with the card's arrow: a dot framed out of view cannot be clicked.)
  d.querySelector('.tour-story-next').click();await pause(2000);await until(()=>map.dataset.danceMoving==='false','pieces settle');

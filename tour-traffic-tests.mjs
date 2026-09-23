@@ -10,7 +10,7 @@ assert.equal(a.length,dash.reduce((sum,n)=>sum+n,0),'Loop matches the complete p
 assert(dash.length%2===0&&dash.every((n,i)=>i%2?n>0:n===.1));
 const gaps=dash.filter((_,i)=>i%2);
 assert(gaps.some(n=>n<11)&&gaps.some(n=>n>50),'Both clustered dots and quiet stretches');
-assert(Math.abs(a.length-2354.7/2)<.1,'Same seeded dot count covers half the original distance: twice the frequency');
+assert(Math.abs(a.length-2354.7/1.4)<.5,'Same seeded dot count covers 0.7 of the original distance: sparser than the doubled traffic, room for comet tails');
 assert(dash.length/2*3.5/a.length<.24,'Doubled dot coverage stays sparse, including round caps');
 assert(a.phase>=0&&a.phase<a.length&&a.speed>0);
 // A route split by a map cut must carry the phase forward by the travelled

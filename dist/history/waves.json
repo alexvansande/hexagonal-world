@@ -1,178 +1,178 @@
 {
  "early-homo": {
   "label": "Early Homo",
-  "color": "#d9a36b"
+  "color": "#ff3fa4"
  },
  "erectus": {
   "label": "Homo erectus & relatives",
-  "color": "#ffb37a"
+  "color": "#ffb400"
  },
  "neanderthal": {
   "label": "Neanderthals",
-  "color": "#b8a8ff"
+  "color": "#9d6bff"
  },
  "denisovan": {
   "label": "Denisovans",
-  "color": "#ff9fa8"
+  "color": "#ff5c8a"
  },
  "sapiens-africa": {
   "label": "Homo sapiens in Africa",
-  "color": "#ffe08a"
+  "color": "#ffe600"
  },
  "early": {
   "label": "Early departures",
-  "color": "#f8c67e"
+  "color": "#ff9b00"
  },
  "expansion": {
   "label": "Expansion",
-  "color": "#fff3c9"
+  "color": "#ffffff"
  },
  "admixture": {
   "label": "Admixture",
-  "color": "#e79cff"
+  "color": "#e040ff"
  },
  "settlement": {
   "label": "Settlement",
-  "color": "#fff3c9"
+  "color": "#ffffff"
  },
  "voyaging": {
   "label": "Voyaging",
-  "color": "#8fd9ff"
+  "color": "#3ecbff"
  },
  "later": {
   "label": "Ice Age Americas",
-  "color": "#bceaf3"
+  "color": "#5ad7ff"
  },
  "holocene": {
   "label": "Holocene movements",
-  "color": "#9fe3b5"
+  "color": "#3dffa0"
  },
  "tin": {
   "label": "Tin",
-  "color": "#dce8fa"
+  "color": "#bfe3ff"
  },
  "copper": {
   "label": "Copper",
-  "color": "#f4a471"
+  "color": "#ff7a1f"
  },
  "gold-silver": {
   "label": "Gold",
-  "color": "#ffd15c"
+  "color": "#ffd000"
  },
  "glass-metals": {
   "label": "Glass",
-  "color": "#aecfff"
+  "color": "#4aa8ff"
  },
  "timber": {
   "label": "Timber",
-  "color": "#b8df91"
+  "color": "#7dff3d"
  },
  "textiles-pottery": {
   "label": "Textiles & pottery",
-  "color": "#f0a4cb"
+  "color": "#ff5fcf"
  },
  "lapis-amber": {
   "label": "Lapis, carnelian & amber",
-  "color": "#8fa8ff"
+  "color": "#5b7dff"
  },
  "obsidian": {
   "label": "Obsidian",
-  "color": "#b9c4d6"
+  "color": "#c9d3e6"
  },
  "jade": {
   "label": "Jade",
-  "color": "#7fe0b0"
+  "color": "#1cf5a3"
  },
  "shell": {
   "label": "Spondylus & shell",
-  "color": "#ffb3a0"
+  "color": "#ff8c6b"
  },
  "crops": {
   "label": "Crops",
-  "color": "#f2e26b"
+  "color": "#f4ff3d"
  },
  "feathers": {
   "label": "Feathers & forest goods",
-  "color": "#b7ff8a"
+  "color": "#8cff3d"
  },
  "silk": {
   "label": "Silk",
-  "color": "#fff3d6"
+  "color": "#ffffff"
  },
  "horses": {
   "label": "Horses",
-  "color": "#c4e79a"
+  "color": "#b3ff4a"
  },
  "spices-cotton": {
   "label": "Spices & cotton",
-  "color": "#f0a4cb"
+  "color": "#ff5fcf"
  },
  "metals": {
   "label": "Copper & metals",
-  "color": "#ffd15c"
+  "color": "#ffd000"
  },
  "ceramics": {
   "label": "Pottery & river networks",
-  "color": "#82dedf"
+  "color": "#2ef0f0"
  },
  "gold-ivory": {
   "label": "Gold, ivory & ebony",
-  "color": "#f5c542"
+  "color": "#ffc400"
  },
  "salt-copper": {
   "label": "Salt & copper",
-  "color": "#f4f0e6"
+  "color": "#ffffff"
  },
  "cloth-beads": {
   "label": "Cloth, beads & wine",
-  "color": "#9ad3ff"
+  "color": "#4ec3ff"
  },
  "captives": {
   "label": "Enslaved people",
-  "color": "#ff6b6b"
+  "color": "#ff2e2e"
  },
  "furs": {
   "label": "Furs",
-  "color": "#d5b7f5"
+  "color": "#c48cff"
  },
  "raids": {
   "label": "Raids",
-  "color": "#ff9f8a"
+  "color": "#ff6a3d"
  },
  "trade": {
   "label": "Trade",
-  "color": "#ffd15c"
+  "color": "#ffd000"
  },
  "voyages": {
   "label": "Voyages",
-  "color": "#d7ecff"
+  "color": "#a8e4ff"
  },
  "contact": {
   "label": "Contact",
-  "color": "#ff9fb2"
+  "color": "#ff4f9e"
  },
  "porcelain-silk": {
   "label": "Porcelain & silk",
-  "color": "#fff3d6"
+  "color": "#ffffff"
  },
  "cotton-cloth": {
   "label": "Cotton cloth",
-  "color": "#9ad3ff"
+  "color": "#4ec3ff"
  },
  "spices-pepper": {
   "label": "Spices & pepper",
-  "color": "#f0a4cb"
+  "color": "#ff5fcf"
  },
  "bullion": {
   "label": "Silver & gold",
-  "color": "#ffd15c"
+  "color": "#ffd000"
  },
  "sugar-tobacco": {
   "label": "Sugar, tobacco & rum",
-  "color": "#c9f28a"
+  "color": "#c9ff3d"
  },
  "hunting": {
   "label": "Hunting",
-  "color": "#ff8a5c"
+  "color": "#ff5a1f"
  }
 }

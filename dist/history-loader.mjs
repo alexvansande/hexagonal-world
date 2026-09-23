@@ -3,7 +3,7 @@
 // routes expand into a reversed partner on the same lane; every strand gets its
 // own sparse traffic timing. Fetched on demand, cached per period.
 import {parsePeriod} from './tour-content.mjs?v=history-3';
-import {tradeTraffic} from './tour-trade-traffic.mjs?v=frequency-1';
+import {tradeTraffic} from './tour-trade-traffic.mjs?v=comet-1';
 import {period as periodInfo} from './history/index.mjs?v=history-1';
 const base=new URL('./history/',import.meta.url);
 const cache=new Map();let wavesPromise=null;

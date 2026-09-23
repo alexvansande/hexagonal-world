@@ -10,9 +10,10 @@ export function tradeTraffic(id,frequency=1){
   for(let j=0;j<cluster;j++)dashes.push(.1,j===cluster-1?65+random()*115:9+random()*12);
  }
  // Round the actual pattern before summing, so the animation loops exactly.
- // Halve each dot-to-dot interval: twice the arrivals at the same travel speed,
- // preserving dot size and the random mix of clusters and quiet stretches.
+ // Shorten each dot-to-dot interval to 0.7 of the drawn pattern: more arrivals at the same
+ // travel speed, preserving dot size and the random mix of clusters and quiet stretches, but
+ // sparse enough that every dot can trail a comet without the routes crawling.
  // An optional frequency multiplier only compresses gaps further (busier seas).
- const values=dashes.map((n,i)=>Math.round((i%2?Math.max(.4,(n+.1)/(2*frequency)-.1):n)*100)/100),length=values.reduce((a,b)=>a+b,0);
+ const values=dashes.map((n,i)=>Math.round((i%2?Math.max(.4,(n+.1)/(1.4*frequency)-.1):n)*100)/100),length=values.reduce((a,b)=>a+b,0);
  return Object.freeze({dasharray:values.join(' '),length,phase:phase*length,speed:13});
 }

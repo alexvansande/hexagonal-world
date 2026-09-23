@@ -11,7 +11,7 @@ import {layoutOptions} from './dist/map-options.mjs';
 // camera change and CSS animates the dots, so sample counts and path counts are
 // the real costs. Timing budgets are generous so CI machines do not flake.
 const state=layoutOptions[0].state,tiles=makeGeometry(state.method,state.height),net=makeArrangement(tiles,state.arrangement,layouts(tiles)).net;
-const budgets={routes:150,samples:70000,paths:900,projectMs:1200,pathMs:250};
+const budgets={routes:150,samples:70000,paths:1200,projectMs:1200,pathMs:250};
 let heaviest={samples:0};
 for(const info of periods){
  const authored=JSON.parse(await readFile(`dist/history/${info.id}.routes.json`,'utf8')),strands=JSON.parse(await readFile(`dist/history/${info.id}.strands.json`,'utf8')).strands;
@@ -19,7 +19,7 @@ for(const info of periods){
  const t0=performance.now(),projected=projectTourRoutes(tiles,net,state,routes),projectMs=performance.now()-t0;
  const samples=projected.reduce((sum,r)=>sum+r.anchors.length,0);
  const t1=performance.now();let paths=0;
- for(const route of projected)for(const anchors of route.strandAnchors){const fragments=routeFragments(anchors,world,route.lane);paths+=fragments.length*2;routePath(anchors,world,route.lane);for(const f of fragments)assert(!/NaN/.test(f.d),'no bridged cut or NaN in '+route.id);}
+ for(const route of projected)for(const anchors of route.strandAnchors){const fragments=routeFragments(anchors,world,route.lane);paths+=fragments.length*3;routePath(anchors,world,route.lane);for(const f of fragments)assert(!/NaN/.test(f.d),'no bridged cut or NaN in '+route.id);}
  const pathMs=performance.now()-t1;
  assert(routes.length<=budgets.routes,`${info.id}: ${routes.length} routes exceed ${budgets.routes}`);
  assert(samples<=budgets.samples,`${info.id}: ${samples} samples exceed ${budgets.samples}`);
