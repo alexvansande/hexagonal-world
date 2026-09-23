@@ -801,6 +801,15 @@ covers the sidebar buttons, the dial, the view tools, the legend button, the
 card arrows and close, and the scrubber ticks; on phones the cards float over
 the map with no panel behind them.
 
+**Megafauna (September 23).** The user asked for the extinctions to be added on
+the premise that people did the hunting: as text where a story already reaches
+the region, as a spot with a flow where none does. Decisions: text on Sahul,
+the Americas and Eurasia, Aotearoa, Mauritius and the North Pacific; new
+`megafauna` spots at Wrangel Island (3k ya) and Madagascar (1000 CE) with
+arrival routes; a `hunting` wave for the Russian fur route. The Wrangel date the
+user proposed (1000 CE, from Alaska) was corrected to about 2000 BCE from the
+Chukotka coast, and the causes are stated as contested where they are.
+
 **Dance anchored on the centre (September 22).** The user saw a small drag down,
 made only to see an arrangement better, re-form the group and move the pieces in
 front of them away. Decision: a band switch needs a deliberate pan (40% of the

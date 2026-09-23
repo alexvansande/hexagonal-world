@@ -90,6 +90,8 @@ People crossed from Wallacea to **New Guinea** more than 50,000 years ago and we
 
 By 20,000 years ago obsidian from New Britain was reaching New Ireland, the first sign of exchange between islands. Beyond the Solomons lay open ocean that no one crossed for tens of thousands of years.
 
+Sahul had giants of its own: **Diprotodon**, the marsupial lion, kangaroos twice the size of any living one and the huge bird Genyornis. All were gone by about 40,000 years ago, within a few thousand years of people's arrival; burnt Genyornis eggshell is the clearest trace of the two meeting.
+
 - settlement: **Settlement** · first crossings to new islands
 - voyaging: **Voyaging** · exchange between islands
 

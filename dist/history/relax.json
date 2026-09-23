@@ -40,6 +40,11 @@
    "strands": 3,
    "sea": "coastal",
    "noise": 0.35
+  },
+  "megafauna": {
+   "strands": 2,
+   "sea": "open",
+   "noise": 0.25
   }
  },
  "landBridge": [
@@ -497,6 +502,12 @@
    "ras-shamra": [35.6, 35.78],
    "shillourokambos": [34.77, 33.02],
    "bingol": [38.6, 42.2]
+  },
+  "megafauna": {
+   "wrangel": [71.0, -179.6],
+   "chukotka": [68.9, -179.4],
+   "madagascar-north": [-12.3, 49.3],
+   "banjarmasin": [-3.3, 114.6]
   }
  }
 }

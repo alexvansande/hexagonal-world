@@ -69,3 +69,20 @@ Crops travelled further still: maize spread south through Central America, while
 > Crop dispersals span millennia and are drawn fainter. The Amazon–Chavín link is inferred from imagery and plants, not from recovered cargo.
 
 [Sources and exchange notes ↗](./americas-exchange-sources.md)
+
+## megafauna
+### The last mammoths
+spot: 71.2, -179.5
+view: fit
+site: Wrangel Island · 71.2, -179.5
+area: Chukchi Sea · 69.5, -170
+
+Mammoths outlived the Ice Age on **Wrangel Island**, cut off from Siberia by rising seas, until about 2000 BCE: the last population anywhere, small and inbred, ended suddenly around 4,000 years ago. People reached the island at about the same time, probably from the Chukotka coast, and left a hunters' camp at Chertov Ovrag with harpoon heads and the bones of seals and birds.
+
+Whether the hunters met the last mammoths is not settled; the dates overlap by a few centuries and no butchered mammoth bone has been found.
+
+- settlement: **Arrival** · hunters reach the island
+
+> One short crossing drawn as a corridor; the timing of contact is uncertain.
+
+[Sources and notes ↗](./megafauna-sources.md)

@@ -51,7 +51,8 @@ export const periods=Object.freeze([
   "stories": [
    "silk-road",
    "french-polynesia",
-   "americas-exchange"
+   "americas-exchange",
+   "megafauna"
   ]
  },
  {
@@ -79,7 +80,8 @@ export const periods=Object.freeze([
    "iceland-to-vinland",
    "americas-exchange",
    "french-polynesia",
-   "african-networks"
+   "african-networks",
+   "megafauna"
   ]
  },
  {

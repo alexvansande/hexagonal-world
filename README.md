@@ -237,6 +237,13 @@ longer used by the app. Checks: `tour-endless-tests.mjs`,
 (the quick run by default; `?full=1` scrubs every period and drags in every
 direction). The browser pages are not part of `npm test`.
 
+Megafauna: the extinctions that followed people are told where the stories
+already reach (Sahul at 50k ya, the Americas and Eurasia at 10k ya, moa at 1400
+CE, the dodo at 1600 CE, Steller's sea cow and the fur hunters' route at 1800
+CE) and as spots of their own where none did: the last mammoths of Wrangel
+Island at 3k ya and Madagascar's giants at 1000 CE, each with arrival routes.
+Notes in `dist/megafauna-sources.md`.
+
 Story content notes: the Silk Road spans Bronze Age tin and lapis lanes to
 Mongol-era and maritime networks; Origin of mankind keeps directed, connected
 dispersal branches with early hominins running outward only, Neanderthals as a

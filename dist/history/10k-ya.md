@@ -15,6 +15,8 @@ During the last Ice Age, people crossed Beringia and spread through the Americas
 
 In the Holocene, farming spread from Anatolia into Europe, steppe herders followed, Eurasian ancestry flowed back into Africa, Bantu-speaking communities expanded across the continent, and Paleo-Inuit and Thule peoples crossed the Arctic.
 
+The people who spread through the Americas met **mammoths**, mastodons, ground sloths, horses and camels; most of the continent's large mammals were gone by about 11,000 years ago, in the same centuries as Clovis hunting and the Younger Dryas cold snap. In Eurasia the woolly rhinoceros and the mainland mammoths went at about the same time, with people and a warming climate sharing the blame.
+
 - later: **Ice Age Americas** · Beringia and the Americas
 - holocene: **Holocene movements** · later regional dispersals
 

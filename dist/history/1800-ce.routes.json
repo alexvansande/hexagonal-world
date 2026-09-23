@@ -33,5 +33,6 @@
 {"id":"ocean-brazil-gold","story":"ocean-crossings","wave":"bullion","title":"Minas Gerais gold to Lisbon","coordinates":[[-22.9,-43.2],[-15,-35],[-5,-32],[10,-28],[25,-22],[35,-14],[38.7,-9.14]],"lane":3,"geodesic":true},
 {"id":"ocean-hudson-furs","story":"ocean-crossings","wave":"furs","title":"Hudson Bay furs to London","coordinates":[[57,-92.3],[60,-85],[62,-70],[60,-50],[56,-25],[51.5,-0.1]],"geodesic":true},
 {"id":"ocean-quebec-furs","story":"ocean-crossings","wave":"furs","title":"St Lawrence furs to La Rochelle","coordinates":[[46.8,-71.2],[48,-62],[47,-40],[46,-15],[46.16,-1.15]],"lane":3,"geodesic":true},
-{"id":"ocean-charleston-rice","story":"ocean-crossings","wave":"sugar-tobacco","title":"Rice and indigo to Britain","coordinates":[[32.8,-79.9],[34,-70],[40,-50],[48,-20],[51.45,-2.6]],"lane":3,"geodesic":true}
+{"id":"ocean-charleston-rice","story":"ocean-crossings","wave":"sugar-tobacco","title":"Rice and indigo to Britain","coordinates":[[32.8,-79.9],[34,-70],[40,-50],[48,-20],[51.45,-2.6]],"lane":3,"geodesic":true},
+{"id":"oceans-fur-hunt","story":"ocean-crossings","wave":"hunting","title":"Russian fur hunters from Kamchatka to the Commander and Aleutian islands","coordinates":[[53.0,158.6],[55.0,166.0],[52.5,175.5],[53.9,-166.5]],"period":"1741–1800s","sources":["Steller 1751; Turvey & Risley 2006"]}
 ]

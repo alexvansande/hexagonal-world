@@ -108,5 +108,7 @@
 {"id":"africa-swahili-gulf","story":"african-networks","wave":"cloth-beads","title":"Swahili coast and the Persian Gulf","coordinates":[[-8.96,39.5],[-6.16,39.2],[0,44],[2.05,45.3],[8,50],[15,53],[22,58],[27.67,52.34]],"lane":3,"twoWay":true},
 {"id":"africa-swahili-ivory","story":"african-networks","wave":"gold-ivory","title":"Ivory and gold from the Swahili coast","coordinates":[[-8.96,39.5],[-6.16,39.2],[0,44],[2.05,45.3],[8,50],[15,53],[22,58],[27.67,52.34]],"lane":-3},
 {"id":"africa-swahili-captives","story":"african-networks","wave":"captives","title":"Enslaved people shipped from the Swahili coast","coordinates":[[-6.16,39.2],[0,44],[2.05,45.3],[8,50],[15,53],[22,58],[27.67,52.34]],"lane":-6},
-{"id":"africa-mapungubwe-sofala","story":"african-networks","wave":"gold-ivory","title":"Limpopo gold to the coast","coordinates":[[-22.2,29.4],[-21.5,32.5],[-20.2,34.7],[-16,38],[-11,40],[-8.96,39.5]],"uncertain":true}
+{"id":"africa-mapungubwe-sofala","story":"african-networks","wave":"gold-ivory","title":"Limpopo gold to the coast","coordinates":[[-22.2,29.4],[-21.5,32.5],[-20.2,34.7],[-16,38],[-11,40],[-8.96,39.5]],"uncertain":true},
+{"id":"megafauna-borneo","story":"megafauna","wave":"settlement","title":"Austronesian settlers from Borneo to Madagascar","coordinates":[[-3.3,114.6],[-6,100],[-8,80],[-10,62],[-12.3,49.3]],"uncertain":true,"period":"c. 500–1000 CE","sources":["Pierron et al. 2017, PNAS"]},
+{"id":"megafauna-mozambique","story":"megafauna","wave":"settlement","title":"Settlers and cattle from the African coast","coordinates":[[-15,40.7],[-15.5,46.5]],"period":"c. 700–1000 CE"}
 ]

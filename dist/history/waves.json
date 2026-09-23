@@ -170,5 +170,9 @@
  "sugar-tobacco": {
   "label": "Sugar, tobacco & rum",
   "color": "#c9f28a"
+ },
+ "hunting": {
+  "label": "Hunting",
+  "color": "#ff8a5c"
  }
 }
