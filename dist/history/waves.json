@@ -178,5 +178,9 @@
  "frontier": {
   "label": "Settler frontiers",
   "color": "#d63dff"
+ },
+ "removal": {
+  "label": "Forced removals",
+  "color": "#ff9b00"
  }
 }

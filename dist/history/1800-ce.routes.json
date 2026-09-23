@@ -33,7 +33,8 @@
     18,
     -77
    ]
-  ]
+  ],
+  "frequency": 0.7
  },
  {
   "id": "africa-gold-coast-atlantic",
@@ -74,7 +75,8 @@
     -79.9
    ]
   ],
-  "lane": 3
+  "lane": 3,
+  "frequency": 0.4
  },
  {
   "id": "africa-bight-benin-atlantic",
@@ -102,7 +104,8 @@
     -12.97,
     -38.5
    ]
-  ]
+  ],
+  "frequency": 1.6
  },
  {
   "id": "africa-biafra-atlantic",
@@ -139,7 +142,8 @@
     -72.2
    ]
   ],
-  "lane": -3
+  "lane": -3,
+  "frequency": 1.0
  },
  {
   "id": "africa-angola-brazil",
@@ -171,7 +175,8 @@
     -22.9,
     -43.2
    ]
-  ]
+  ],
+  "frequency": 2.4
  },
  {
   "id": "africa-loango-caribbean",
@@ -208,7 +213,8 @@
     -72.2
    ]
   ],
-  "lane": 3
+  "lane": 3,
+  "frequency": 1.2
  },
  {
   "id": "africa-atlantic-goods",
@@ -371,7 +377,8 @@
     32.9,
     13.2
    ]
-  ]
+  ],
+  "frequency": 0.4
  },
  {
   "id": "africa-sahara-gold-3",
@@ -448,7 +455,8 @@
     23.6,
     58.6
    ]
-  ]
+  ],
+  "frequency": 0.6
  },
  {
   "id": "africa-zanzibar-india",
@@ -515,7 +523,8 @@
     -43.2
    ]
   ],
-  "uncertain": true
+  "uncertain": true,
+  "frequency": 0.5
  },
  {
   "id": "africa-ethiopia-jeddah",
@@ -547,7 +556,8 @@
     21.5,
     39.2
    ]
-  ]
+  ],
+  "frequency": 0.4
  },
  {
   "id": "ocean-manila-galleon-west",
@@ -1704,6 +1714,242 @@
   "period": "1820s",
   "sources": [
    "Rock 1985"
+  ]
+ },
+ {
+  "id": "removal-choctaw",
+  "story": "americas-exchange",
+  "wave": "removal",
+  "title": "Choctaw removal from Mississippi to Indian Territory",
+  "coordinates": [
+   [
+    32.9,
+    -89.1
+   ],
+   [
+    32.35,
+    -90.88
+   ],
+   [
+    34.75,
+    -92.29
+   ],
+   [
+    34.0,
+    -95.3
+   ]
+  ],
+  "period": "1831–1833",
+  "sources": [
+   "Foreman 1932"
+  ]
+ },
+ {
+  "id": "removal-creek",
+  "story": "americas-exchange",
+  "wave": "removal",
+  "title": "Muscogee (Creek) removal from Alabama to Fort Gibson",
+  "coordinates": [
+   [
+    32.4,
+    -85.7
+   ],
+   [
+    32.37,
+    -86.3
+   ],
+   [
+    35.15,
+    -90.05
+   ],
+   [
+    34.75,
+    -92.29
+   ],
+   [
+    35.8,
+    -95.25
+   ]
+  ],
+  "period": "1836–1837",
+  "sources": [
+   "Foreman 1932"
+  ]
+ },
+ {
+  "id": "removal-chickasaw",
+  "story": "americas-exchange",
+  "wave": "removal",
+  "title": "Chickasaw removal from Mississippi through Memphis",
+  "coordinates": [
+   [
+    34.25,
+    -89.0
+   ],
+   [
+    35.15,
+    -90.05
+   ],
+   [
+    35.35,
+    -94.3
+   ]
+  ],
+  "period": "1837–1838",
+  "sources": [
+   "Foreman 1932"
+  ]
+ },
+ {
+  "id": "removal-cherokee",
+  "story": "americas-exchange",
+  "wave": "removal",
+  "title": "Cherokee Trail of Tears, the northern land route",
+  "coordinates": [
+   [
+    34.54,
+    -84.87
+   ],
+   [
+    35.05,
+    -85.31
+   ],
+   [
+    36.16,
+    -86.78
+   ],
+   [
+    36.87,
+    -87.49
+   ],
+   [
+    37.3,
+    -89.52
+   ],
+   [
+    37.2,
+    -93.3
+   ],
+   [
+    36.06,
+    -94.16
+   ],
+   [
+    35.92,
+    -94.97
+   ]
+  ],
+  "period": "1838–1839",
+  "sources": [
+   "NPS Trail of Tears National Historic Trail; Perdue & Green 2007"
+  ]
+ },
+ {
+  "id": "removal-seminole",
+  "story": "americas-exchange",
+  "wave": "removal",
+  "title": "Seminole shipped from Tampa Bay to New Orleans and up the rivers",
+  "coordinates": [
+   [
+    27.95,
+    -82.46
+   ],
+   [
+    29.95,
+    -90.07
+   ],
+   [
+    34.75,
+    -92.29
+   ],
+   [
+    35.8,
+    -95.25
+   ]
+  ],
+  "period": "1836–1842",
+  "sources": [
+   "Missall & Missall 2004"
+  ]
+ },
+ {
+  "id": "removal-potawatomi",
+  "story": "americas-exchange",
+  "wave": "removal",
+  "title": "Potawatomi Trail of Death from Indiana to Kansas",
+  "coordinates": [
+   [
+    41.3,
+    -86.3
+   ],
+   [
+    39.8,
+    -89.65
+   ],
+   [
+    39.93,
+    -91.4
+   ],
+   [
+    38.5,
+    -94.95
+   ]
+  ],
+  "period": "1838",
+  "sources": [
+   "Potawatomi Trail of Death Association"
+  ]
+ },
+ {
+  "id": "removal-delaware",
+  "story": "americas-exchange",
+  "wave": "removal",
+  "title": "Delaware (Lenape) pushed from Indiana to Missouri and Kansas",
+  "coordinates": [
+   [
+    39.9,
+    -86.2
+   ],
+   [
+    37.1,
+    -93.3
+   ],
+   [
+    39.1,
+    -94.9
+   ]
+  ],
+  "period": "1820–1831",
+  "sources": [
+   "Weslager 1972"
+  ]
+ },
+ {
+  "id": "removal-navajo",
+  "story": "americas-exchange",
+  "wave": "removal",
+  "title": "Navajo Long Walk to Bosque Redondo",
+  "coordinates": [
+   [
+    36.15,
+    -109.5
+   ],
+   [
+    35.75,
+    -109.07
+   ],
+   [
+    35.08,
+    -106.65
+   ],
+   [
+    34.47,
+    -104.25
+   ]
+  ],
+  "period": "1864",
+  "sources": [
+   "Denetdale 2008"
   ]
  }
 ]

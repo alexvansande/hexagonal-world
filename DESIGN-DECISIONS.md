@@ -838,6 +838,22 @@ The Fit button and the turning dial now also sit inside the history pane, Fit
 above the dial at its right edge, because the positioning toolbox is hidden
 while the timeline is open.
 
+**Ships in proportion, and the removals (September 23).** The user pointed out
+that Brazil took far more of the Atlantic slave trade than the United States
+and asked for the ships to show it. Decision: each captive lane carries a
+frequency from the Slave Voyages shares (Angola to Brazil 2.4, Bight of Benin
+to Bahia 1.6, Loango and Biafra to the Caribbean 1.2 and 1.0, Senegambia 0.7,
+Gold Coast to Charleston 0.4, Mozambique 0.5, the Indian Ocean and Saharan
+lanes 0.4–0.6), the 1800 text says nearly half landed in Brazil and fewer than
+one in twenty in North America, and 1600 gains the lanes that already ran from
+Luanda to Pernambuco and Bahia and from Upper Guinea to Cartagena and Veracruz.
+The user also asked for the Trail of Tears and other Native diasporas: a
+`removal` wave (orange) on the 1800 Frontiers pane draws the Choctaw, Muscogee,
+Chickasaw, Cherokee and Seminole removals to Indian Territory, the Potawatomi
+Trail of Death, the Delaware moves to Kansas and the Navajo Long Walk, with an
+Indian Territory label and sources; the many smaller removals are named as
+missing.
+
 **Pieces that stay (September 23).** Zoomed into the Atlantic, the user tried
 to centre it and North America left for a corner; panning felt like the hexes
 running away, while pieces arriving to fill empty space felt magical. The

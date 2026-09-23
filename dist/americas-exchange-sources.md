@@ -56,3 +56,16 @@ Research checked September 23, 2026. Colonial roads and trails, drawn as schemat
 - Rock 1985, *Argentina 1516–1987*: the southward fort line of the 1820s (Tandil 1823, Bahía Blanca 1828).
 
 Limitations: these are corridors of settlement, not surveys of particular trails; dates give the span of use. The Santa Fe and Oregon trails and the Pampas forts belong to the decades after 1800 and are shown on the last age of the timeline because the frontier they extended is the same one.
+
+## Forced removals (1800 pane)
+
+Research checked September 23, 2026. Corridors of the removals that followed the Indian Removal Act of 1830 and the Long Walk, drawn between the homelands and the destinations, not the many detachments' exact roads.
+
+- [NPS: Trail of Tears National Historic Trail](https://www.nps.gov/trte/): the Cherokee northern land route of 1838–39 from the Georgia and Tennessee stockades through Nashville, Hopkinsville and southern Missouri to Tahlequah; Perdue & Green 2007, *The Cherokee Nation and the Trail of Tears*, on the death toll, in the thousands.
+- Foreman 1932, *Indian Removal*: the Choctaw (1831–33), Muscogee (1836–37) and Chickasaw (1837–38) removals through Vicksburg, Memphis and Little Rock to the Choctaw Nation and Fort Gibson.
+- Missall & Missall 2004, *The Seminole Wars*: Seminole captives shipped from Tampa Bay to New Orleans and up the Mississippi and Arkansas to Fort Gibson, 1836–42.
+- [Potawatomi Trail of Death Association](https://potawatomi-tda.org/): the 1838 march from Twin Lakes, Indiana, through Illinois to eastern Kansas.
+- Weslager 1972, *The Delaware Indians*: the Lenape moved from the White River in Indiana to the James Fork of the White River in Missouri (1820–21) and on to the Kansas reserve (1829–31).
+- Denetdale 2008, *The Long Walk*: the 1864 marches from Fort Defiance and Canyon de Chelly through Fort Wingate and Albuquerque to Bosque Redondo.
+
+Limitations: each nation moved in many detachments over land and water; the corridors show the main lines only, and the many smaller removals (Ho-Chunk, Sauk and Meskwaki, Wyandot, Shawnee, Miami, Ottawa and others) are not drawn.

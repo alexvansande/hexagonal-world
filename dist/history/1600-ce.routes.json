@@ -2160,5 +2160,75 @@
   "sources": [
    "Trudel 1973"
   ]
+ },
+ {
+  "id": "africa-luanda-brazil",
+  "story": "african-networks",
+  "wave": "captives",
+  "title": "Luanda and Kongo to the sugar mills of Pernambuco and Bahia",
+  "coordinates": [
+   [
+    -8.84,
+    13.23
+   ],
+   [
+    -10,
+    0
+   ],
+   [
+    -8,
+    -20
+   ],
+   [
+    -8.05,
+    -34.9
+   ],
+   [
+    -12.97,
+    -38.5
+   ]
+  ],
+  "frequency": 1.2,
+  "period": "1580s–1600s",
+  "sources": [
+   "Slave Voyages"
+  ]
+ },
+ {
+  "id": "africa-guinea-cartagena",
+  "story": "african-networks",
+  "wave": "captives",
+  "title": "Upper Guinea to Cartagena and Veracruz",
+  "coordinates": [
+   [
+    12.28,
+    -16.16
+   ],
+   [
+    12,
+    -30
+   ],
+   [
+    11.5,
+    -55
+   ],
+   [
+    10.4,
+    -75.5
+   ],
+   [
+    16,
+    -80
+   ],
+   [
+    19.2,
+    -96.1
+   ]
+  ],
+  "frequency": 0.6,
+  "period": "1590s–1640",
+  "sources": [
+   "Slave Voyages; Wheat 2016"
+  ]
  }
 ]
