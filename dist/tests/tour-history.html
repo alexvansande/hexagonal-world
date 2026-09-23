@@ -122,12 +122,13 @@ try{
  d=frame.contentDocument;w=frame.contentWindow;const canvas=d.querySelector('#map');canvas.setPointerCapture=()=>{};canvas.releasePointerCapture=()=>{};
  for(let i=0;i<3;i++){d.querySelector('#zoom-in').click();await pause(300);}await pause(600);
  const rect=canvas.getBoundingClientRect(),cx=rect.left+rect.width/2,cy=rect.top+rect.height/2;
- const drag=async(dx,dy)=>{const ev=(type,x,y)=>canvas.dispatchEvent(new w.PointerEvent(type,{bubbles:true,clientX:x,clientY:y,pointerId:1,pointerType:'mouse',isPrimary:true,button:0,buttons:type==='pointerup'?0:1}));ev('pointerdown',cx,cy);for(let i=1;i<=10;i++){ev('pointermove',cx+dx*i/10,cy+dy*i/10);await pause(30);}ev('pointerup',cx+dx,cy+dy);await pause(1200);for(let i=0;i<3;i++){await until(()=>canvas.dataset.danceMoving==='false','pieces settle after drag');await pause(500);if(canvas.dataset.danceMoving==='false')break;}};
+ const drag=async(dx,dy)=>{const ev=(type,x,y)=>canvas.dispatchEvent(new w.PointerEvent(type,{bubbles:true,clientX:x,clientY:y,pointerId:1,pointerType:'mouse',isPrimary:true,button:0,buttons:type==='pointerup'?0:1}));ev('pointerdown',cx,cy);for(let i=1;i<=10;i++){ev('pointermove',cx+dx*i/10,cy+dy*i/10);await pause(30);}ev('pointerup',cx+dx,cy+dy);await pause(1200);let still=0;for(let i=0;i<30&&still<3;i++){await pause(300);still=canvas.dataset.danceMoving==='false'?still+1:0;}};
  check(canvas.dataset.tourLighting==='lit'&&canvas.dataset.merged==='false','Spaceship Earth draws its lit per-piece sets through the layered renderer');
  for(const [dx,dy] of full?[[0,500],[-500,0],[0,-500],[500,0],[350,350]]:[[0,500],[-500,0]]){
-  await drag(dx,dy);const cells=Object.values(pos()).map(p=>p.slice(0,2).map(v=>v.toFixed(2)).join());
-  const [aid,ck]=canvas.dataset.danceVertex.split(':'),three=(()=>{const p=pos();const a=p[aid];return Object.entries(p).filter(([id,q])=>id!==aid&&Math.abs(Math.hypot(q[0]-a[0],q[1]-a[1])-Math.sqrt(3))<.01).length;})();
-  check(canvas.dataset.danceValid==='true'&&new Set(cells).size===4&&three>=2,`After a drag of ${dx},${dy} three plates meet at the vertex nearest the centre, every piece touches the group along a valid edge and no two share a cell`);
+  await drag(dx,dy);const cells=canvas.dataset.dancePositions.split(' ').map(s=>s.split(':')[1].split(',').slice(0,2).join());
+  const posNow=()=>Object.fromEntries(canvas.dataset.dancePositions.split(' ').map(s=>{const [id,rest]=s.split(':');return [id,rest.split(',').map(Number)];}));
+  const [aid,ck]=canvas.dataset.danceVertex.split(':'),three=(()=>{const p=posNow();const a=p[aid];return Object.entries(p).filter(([id,q])=>id!==aid&&Math.abs(Math.hypot(q[0]-a[0],q[1]-a[1])-Math.sqrt(3))<.01).length;})();
+  check(canvas.dataset.danceValid==='true'&&new Set(cells).size===4&&three>=2,`After a drag of ${dx},${dy} three plates meet at the vertex nearest the centre, every piece touches the group along a valid edge and no two share a cell (valid ${canvas.dataset.danceValid}, cells ${new Set(cells).size}, adjacent ${three}, vertex ${canvas.dataset.danceVertex}, positions ${canvas.dataset.dancePositions})`);
  }
  // The rotation dial beside Fit turns the map in 15° steps.
  const dial=d.querySelector('#rotate-dial'),rotation=()=>+d.querySelector('#gridRotation').value;dial.setPointerCapture=()=>{};

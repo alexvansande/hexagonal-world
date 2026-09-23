@@ -336,6 +336,7 @@ body.history .view-tools{display:none}
 @media(max-width:700px), (max-width:1000px) and (max-height:500px){
  body.history:not(.customizing) #customize{display:none}
  body.history:not(.customizing) #show-history .history-back{display:inline-flex}
+ body.history:not(.customizing) aside .layout-presets,body.history:not(.customizing) aside .style-presets{display:none}
  body.history:not(.customizing) #show-history{background:transparent;padding-left:44px;padding-right:44px}
  aside .history-tools{position:static;width:auto;margin:4px 0 0;padding:6px 2px 2px;background:transparent;border:0;box-shadow:none;backdrop-filter:none}
  body.history-focus:not(.customizing) aside .history-tools,body.history-focus:not(.customizing) aside .layout-presets,body.history-focus:not(.customizing) aside .style-presets,body.history-focus:not(.customizing) aside>#show-history{display:none}

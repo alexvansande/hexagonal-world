@@ -16,6 +16,10 @@ try{
  check(+d.querySelector('#gridRotation').value===120,'A tall screen starts Spaceship Earth a quarter turn round (120°)');
  const pos=Object.fromEntries(map.dataset.dancePositions.split(' ').map(s=>{const [id,rest]=s.split(':');return [id,rest.split(',').map(Number)];}));const adj=(a,b)=>Math.abs(Math.hypot(pos[a][0]-pos[b][0],pos[a][1]-pos[b][1])-Math.sqrt(3))<.01;
  check(adj('3','0')&&adj('3','1')&&adj('1','0'),'The map opens as one net: Europe/Africa touches both America and Asia');
+ // A small drag must not flip the net the other way: the eye rests above the middle of the free area.
+ {map.setPointerCapture=()=>{};map.releasePointerCapture=()=>{};const r=map.getBoundingClientRect(),cx=r.left+r.width/2,cy=r.top+r.height/2;const ev=(type,x,y)=>map.dispatchEvent(new w.PointerEvent(type,{bubbles:true,clientX:x,clientY:y,pointerId:1,pointerType:'touch',isPrimary:true,button:0,buttons:type==='pointerup'?0:1}));ev('pointerdown',cx,cy);for(let i=1;i<=6;i++){ev('pointermove',cx+8*i,cy+10*i);await pause(30);}ev('pointerup',cx+48,cy+60);await pause(1500);await until(()=>map.dataset.danceMoving==='false','settle after nudge');
+  const p2=Object.fromEntries(map.dataset.dancePositions.split(' ').map(s=>{const [id,rest]=s.split(':');return [id,rest.split(',').map(Number)];}));const adj2=(a,b)=>Math.abs(Math.hypot(p2[a][0]-p2[b][0],p2[a][1]-p2[b][1])-Math.sqrt(3))<.01;
+  check(adj2('3','0')&&adj2('3','1'),'A small drag keeps Europe/Africa with America and Asia');}
  const button=d.querySelector('#show-history'),scrub=async id=>{const s=d.querySelector('#history-stop');s.value=periods.findIndex(p=>p.id===id);s.dispatchEvent(new w.Event('input',{bubbles:true}));await pause(1800);};
  check(button.tagName==='BUTTON'&&button.querySelector('.history-label').textContent==='History'&&getComputedStyle(button.querySelector('.history-back')).display==='none'&&getComputedStyle(d.querySelector('#customize')).display!=='none','The History button and the options button sit in the sidebar');
  button.click();await until(()=>!d.querySelector('.history-tools').hidden&&!d.querySelector('#tour-story-strip'),'scrubber');await pause(600);
@@ -23,6 +27,7 @@ try{
  check(button.querySelector('.history-label').textContent==='History'&&getComputedStyle(button.querySelector('.history-back')).display!=='none'&&button.getAttribute('aria-pressed')==='true','A round back mark appears to the left of History');
  await scrub('1400-ce');await until(()=>d.querySelector('#tour-story-strip'),'cards');await pause(800);
  const strip=d.querySelector('#tour-story-strip'),cards=[...strip.querySelectorAll('.tour-story-card')];
+ check(getComputedStyle(d.querySelector('.layout-presets')).display==='none','In history the sidebar shows only the scrubber, not the map options');
  check(cards.length===periods.find(p=>p.id==='1400-ce').stories.length&&getComputedStyle(d.querySelector('.history-tools')).display==='none'&&getComputedStyle(button).display==='none'&&getComputedStyle(aside).backgroundColor==='rgba(0, 0, 0, 0)','Choosing a period swaps the scrubber for floating cards, one per spot, with no panel or bar behind them');
  check(cards.every(c=>c.querySelector('.tour-card-close')),'Each card has a round close mark');
  check(!d.querySelector('.tour-story-nav')||d.querySelector('#tour-story').hidden,'No arrows on the phone cards');

@@ -223,14 +223,19 @@ function drawGeometry(p){
  gl.drawArrays(gl.TRIANGLES,0,count);
 }
 function bounds(){const all=arrangement.outline?arrangement.outline.flat().map(([x,y])=>{const v=rotateScreen([x,-y]);return [v[0],-v[1]];}):arrangement.clip?arrangement.clip.map(([x,y])=>{const v=rotateScreen([x,-y]);return [v[0],-v[1]];}):net.flatMap(t=>($('puzzlegrid').checked?puzzleFor(t.id).outline:t.polygon||hex).map(p=>{const v=rotateScreen(canvasWorld(p,t));return [v[0],-v[1]];}));return [Math.min(...all.map(p=>p[0])),Math.min(...all.map(p=>p[1])),Math.max(...all.map(p=>p[0])),Math.max(...all.map(p=>p[1]))];}
-function fitView(){
- const b=bounds(),panel=document.querySelector('aside').getBoundingClientRect();
+// The part of the screen the map can use: beside the sidebar on wide screens, between the heading and the sidebar on phones.
+function freeRect(){
+ const panel=document.querySelector('aside').getBoundingClientRect();
  const wide=w>700||w>h;
  let left=wide?Math.min(w-100,panel.right+28):24;
  let top=state.sidebarExpanded&&!wide?Math.min(h-100,panel.bottom+20):!state.sidebarExpanded&&wide?24:Math.min(h*.25,156);
  let right=w-24,bottom=state.sidebarExpanded||wide?h-84:Math.max(top+80,panel.top-24);
  if(compactDevice&&!state.sidebarExpanded){({left,right,top,bottom}=mobileFitRect(w,h,$('map-heading').getBoundingClientRect().bottom,panel.top,panel.right));}
  if(mobileRepositioning){left=16;right=w-16;top=Math.min(h-120,$('map-heading').getBoundingClientRect().bottom+20);bottom=Math.max(top+40,document.querySelector('.view-tools').getBoundingClientRect().top-16);}
+ return {left,right,top,bottom};
+}
+function fitView(){
+ const b=bounds(),{left,right,top,bottom}=freeRect();
  scale=Math.max(1,Math.min(Math.max(40,right-left)/(b[2]-b[0]),Math.max(40,bottom-top)/(b[3]-b[1])));
  state.zoom=1;state.panX=(left+right-w)/2-(b[0]+b[2])/2*scale;state.panY=(top+bottom-h)/2+(b[1]+b[3])/2*scale;draw();
 }
@@ -259,9 +264,6 @@ const spaceshipLit=()=>spaceshipUnlit()&&!!renderDefault.lit&&$('relief-enabled'
 const forcedLitSet=['localhost','127.0.0.1','[::1]'].includes(location.hostname)?new URLSearchParams(location.search).get('lit-set'):null;
 function litPathFor(t){if(!spaceshipLit()||!danceBase)return null;const r=danceTargets.get(t.id)?.r??t.r,turn=litRotationHold??state.gridRotation,k=forcedLitSet!==null?+forcedLitSet:((Math.round((turn-60*Math.round(r))/30)%renderDefault.lit)+renderDefault.lit)%renderDefault.lit;return `${renderDefault.path}/lit/${k}`;}
 let danceBase=null,danceKey='',danceTargets=new Map(),danceTweens=new Map(),danceCentreState='',danceVertex=null;
-// The map opens with the four pieces as one net (Asia, North America and Europe/Africa round one
-// vertex); the vertex rule only starts once the user pans, zooms, turns or opens a story.
-let danceArmed=false;
 function danceGrid(){
  const key=[state.method,state.height,state.arrangement,arrangement===arrangementCache.get(state.arrangement)?'a':'b'].join('/');
  if(key!==danceKey){
@@ -283,7 +285,9 @@ function danceJoin(placed,e){
 const sameCell=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y)<1e-6;
 const dancePlaced=()=>[...danceTargets.entries()].map(([id,t])=>({id,...t}));
 const joined=(from,t)=>{for(let e=0;e<6;e++){const j=danceJoin(from,e);if(j&&j.id===t.id&&j.r===t.r&&sameCell(j,t))return true;}return false;};
-function danceCentre(){const unit=scale*state.zoom,c=rotateScreen([-state.panX/unit,-state.panY/unit],-state.gridRotation*Math.PI/180);return [c[0],-c[1]];}
+// Where the eye rests: the middle of the free part of the screen, a little above centre, rather than
+// the geometric middle of the window (which the sidebar and heading pull away from the map).
+function danceCentre(){const {left,right,top,bottom}=freeRect(),unit=scale*state.zoom,x=(left+right)/2,y=top+(bottom-top)*.4,c=rotateScreen([(x-w/2-state.panX)/unit,(y-h/2-state.panY)/unit],-state.gridRotation*Math.PI/180);return [c[0],-c[1]];}
 // Every piece reachable from the first through valid joins.
 function danceConnected(){
  const placed=dancePlaced(),seen=new Set([placed[0].id]);let grew=true;
@@ -320,7 +324,7 @@ const easeOutBack=p=>p>=1?1:1+2*Math.pow(p-1,3)+1*Math.pow(p-1,2);
 function danceStep(now){
  if(!danceActive())return false;
  // While a story flight is in the air the centre is not where the user looks yet; the frame already placed the pieces.
- if(!tourAnimation&&danceArmed)danceFill();
+ if(!tourAnimation)danceFill();
  const instant=matchMedia('(prefers-reduced-motion: reduce)').matches,duration=380;let moving=false;
  for(const t of net){
   const {x:tx,y:ty,r:tr}=danceTargets.get(t.id);
@@ -402,7 +406,7 @@ function focusView(points){
 // Focus: a dot frames its story's routes for this period and shows the spot text
 // from the period Markdown. Every other story stays drawn; the scrubber stays.
 function focusHistoryStory(id){
- if(!historyOn||!historyPeriod)return;danceArmed=true;const spot=historyPeriod.text.spots[id];if(!spot)return;
+ if(!historyOn||!historyPeriod)return;const spot=historyPeriod.text.spots[id];if(!spot)return;
  if(!historyFocus)historyFocusView={scale,view:{zoom:state.zoom,panX:state.panX,panY:state.panY},expanded:state.sidebarExpanded};
  historyFocus=id;setSidebarExpanded(false,false);showHistoryCard(id);
  hideCoordinateReadout();
@@ -826,7 +830,7 @@ for(const id of ['relief-treatment','relief-tone'])$(id).onchange=()=>{if($('lig
 // Repositioning the globe is a toggle in More options > Position; on phones it opens the full-screen repositioning flow.
 function mode(value){state.mode=value;$('rotate').setAttribute('aria-pressed',String(value==='rotate'));$('rotate').textContent=value==='rotate'?'Stop repositioning':'Reposition globe by dragging';scheduleSave();}
 $('rotate').onclick=()=>{if(state.mode==='rotate'){if(mobileRepositioning)finishRepositioning();else mode('pan');return;}if(compactDevice)confirmCustomization(startRepositioning);else mode('rotate');};$('fit').onclick=fitView;
-function zoom(factor,x=w/2,y=h/2){danceArmed=true;const old=state.zoom;state.zoom=Math.min(maximumZoom(scale),Math.max(.25,old*factor));const r=state.zoom/old;state.panX=(state.panX-(x-w/2))*r+(x-w/2);state.panY=(state.panY-(y-h/2))*r+(y-h/2);draw();}
+function zoom(factor,x=w/2,y=h/2){const old=state.zoom;state.zoom=Math.min(maximumZoom(scale),Math.max(.25,old*factor));const r=state.zoom/old;state.panX=(state.panX-(x-w/2))*r+(x-w/2);state.panY=(state.panY-(y-h/2))*r+(y-h/2);draw();}
 $('zoom-in').onclick=()=>zoom(1.25);$('zoom-out').onclick=()=>zoom(.8);canvas.addEventListener('wheel',e=>{e.preventDefault();const r=canvas.getBoundingClientRect();zoom(Math.exp(-e.deltaY*.0015),e.clientX-r.left,e.clientY-r.top);},{passive:false});
 let dragging=null;const pointers=new Map();let pinchDistance=0,grabbed=null;
 // Two fingers turn the map as well as zoom it. The lit sets keep the turn the gesture started
@@ -875,7 +879,7 @@ $('stage').addEventListener('pointermove',event=>{
 $('stage').addEventListener('pointerleave',hideCoordinateReadout);
 $('stage').addEventListener('pointercancel',hideCoordinateReadout);
 window.addEventListener('blur',hideCoordinateReadout);
-canvas.onpointerdown=e=>{cancelPanSpring();danceArmed=true;
+canvas.onpointerdown=e=>{cancelPanSpring();
  canvas.setPointerCapture(e.pointerId);pointers.set(e.pointerId,[e.clientX,e.clientY]);dragging={x:e.clientX,y:e.clientY};
  const sample=state.mode==='rotate'?cursorSphere(e):null;
  if(pointers.size===1&&state.mode==='rotate'&&!sample)mode('pan');
@@ -1191,7 +1195,7 @@ if(historyPeriodId)enableHistory(true);
 if($('rotate-dial')){
  const dial=$('rotate-dial'),input=$('gridRotation');
  const show=()=>dial.style.setProperty('--dial',`${state.gridRotation}deg`);
- const set=degrees=>{danceArmed=true;let v=Math.round(degrees/30)*30;v=((v+180)%360+360)%360-180;if(v===state.gridRotation)return;input.value=v;input.dispatchEvent(new Event('input',{bubbles:true}));show();};
+ const set=degrees=>{let v=Math.round(degrees/30)*30;v=((v+180)%360+360)%360-180;if(v===state.gridRotation)return;input.value=v;input.dispatchEvent(new Event('input',{bubbles:true}));show();};
  const angleAt=e=>{const r=dial.getBoundingClientRect();return Math.atan2(e.clientY-r.top-r.height/2,e.clientX-r.left-r.width/2)*180/Math.PI;};
  let grab=null;
  dial.addEventListener('pointerdown',e=>{if(e.button!==0)return;e.preventDefault();dial.setPointerCapture(e.pointerId);grab={id:e.pointerId,start:angleAt(e),base:state.gridRotation};});

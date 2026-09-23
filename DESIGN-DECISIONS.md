@@ -789,8 +789,12 @@ border, grey a step darker than the panel, same ink); that the phone scrubber
 replace the options pane with a small round ‹ beside “History” rather than a
 full-width Back; and that the cards lose their extra white layer and full-width
 Back in favour of a round × on each card, to be judged for consistency with the
-‹. Decisions: the map opens as the base net and the vertex rule waits for the
-first interaction; a shared control palette (`--control-bg`, `--control-ink`)
+‹. Decisions: at first the map opened as the base net with the rule waiting for the
+first interaction, but the user found the flip on first touch wrong and asked
+for a natural rule instead of a hard-coded start, suggesting the centre move
+upwards; the rule now measures from the middle of the free part of the screen,
+40% down from its top, which lands nearest the Europe/Africa–America–Asia
+vertex on phone and desktop alike; a shared control palette (`--control-bg`, `--control-ink`)
 covers the sidebar buttons, the dial, the view tools, the legend button, the
 card arrows and close, and the scrubber ticks; on phones the cards float over
 the map with no panel behind them.

@@ -135,9 +135,12 @@ story has no spot there; closing restores the camera. The period persists as
 such as `/silk-road/` open the timeline at that story's first period with its
 card open. Leaving an eligible map switches history off.
 
-The map opens with the four pieces as one net (Europe/Africa touching both
-America and Asia); the vertex rule starts with the first pan, zoom, turn or
-story. Clickable things around the map share one look, the More options style:
+The vertex rule looks where the eye rests: the middle of the free part of the
+screen (beside the sidebar on wide screens, between the heading and the sidebar
+on phones), a little above centre. With the fitted net that is nearest the
+vertex where Europe/Africa meets America and Asia, so the map opens as one net
+and a small nudge keeps it so; nothing is hard-coded. In history on phones the
+sidebar shows only the scrubber. Clickable things around the map share one look, the More options style:
 no border, a grey a step darker than the panel, the same ink, pressed a step
 darker; round marks (‹, ×) use the same grey.
 
