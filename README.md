@@ -146,7 +146,9 @@ fit, so no piece moves before the camera exists and the title stays visible on
 the first view. When the eye sits in an empty cell the stickiness is dropped so
 that cell is filled first, and the leftover fourth piece takes the free join
 nearest the eye rather than lingering off screen. In history on phones the
-sidebar shows only the scrubber. Clickable things around the map share one look, the More options style:
+sidebar shows only the scrubber. The pane carries its own Fit button above a
+turning dial at its right edge, since the positioning toolbox is hidden while
+the timeline is open. Clickable things around the map share one look, the More options style:
 no border, a grey a step darker than the panel, the same ink, pressed a step
 darker; round marks (‹, ×) use the same grey.
 

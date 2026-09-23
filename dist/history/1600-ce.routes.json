@@ -1,55 +1,2164 @@
 [
-{"id":"americas-late-obsidian-tenochtitlan","story":"americas-exchange","wave":"obsidian","title":"Pachuca obsidian to Tenochtitlan","coordinates":[[20.1,-98.7],[19.43,-99.13]]},
-{"id":"americas-late-pochteca","story":"americas-exchange","wave":"obsidian","title":"Pochteca merchants to the Gulf and Soconusco","coordinates":[[19.43,-99.13],[18.5,-96],[17.5,-93.5],[18.6,-91.9]]},
-{"id":"americas-late-pochteca-south","story":"americas-exchange","wave":"obsidian","title":"Pochteca merchants to Soconusco","coordinates":[[19.43,-99.13],[18.5,-96],[16.5,-94],[15,-92.5]],"lane":3},
-{"id":"americas-late-cacao","story":"americas-exchange","wave":"crops","title":"Soconusco cacao to Tenochtitlan","coordinates":[[15,-92.5],[16.5,-94],[18.5,-96],[19.43,-99.13]],"lane":-3},
-{"id":"americas-late-quetzal","story":"americas-exchange","wave":"feathers","title":"Quetzal feathers from the Maya highlands","coordinates":[[15.5,-90.3],[15,-92.5],[16.5,-94],[18.5,-96],[19.43,-99.13]],"lane":-6},
-{"id":"americas-late-maya-canoes","story":"americas-exchange","wave":"crops","title":"Maya canoe trade around Yucatán","coordinates":[[15.7,-88.6],[16.5,-88.2],[18.5,-87.6],[20.4,-86.9],[21.5,-88],[21,-90.5],[19.5,-91.5],[18.6,-91.9]]},
-{"id":"americas-late-macaws","story":"americas-exchange","wave":"feathers","title":"Paquimé macaws to the Pueblo world","coordinates":[[30.4,-107.95],[33,-108.5],[35.1,-108.8]]},
-{"id":"americas-late-shell-mississippi","story":"americas-exchange","wave":"shell","title":"Gulf shell to Moundville and Spiro","coordinates":[[27.8,-82.6],[30,-86],[33,-87.6],[34.5,-90],[35.3,-94.6]]},
-{"id":"americas-late-copper-etowah","story":"americas-exchange","wave":"metals","title":"Lake Superior copper to Etowah","coordinates":[[47.5,-88],[43,-86],[39,-85],[36,-85],[34.1,-84.8]]},
-{"id":"americas-late-spondylus","story":"americas-exchange","wave":"shell","title":"Spondylus to Chincha and Cusco","coordinates":[[-2.2,-80.9],[-6,-80],[-10,-78],[-13.4,-76.1],[-13.7,-73.5],[-13.5,-72]]},
-{"id":"americas-late-inca-north","story":"americas-exchange","wave":"metals","title":"Qhapaq Ñan: gold and tribute from Quito to Cusco","coordinates":[[-0.2,-78.5],[-7.2,-78.5],[-9.9,-76.8],[-11.5,-75],[-13.5,-72]],"lane":3},
-{"id":"americas-late-inca-south","story":"americas-exchange","wave":"metals","title":"Qhapaq Ñan: silver from the south","coordinates":[[-33.4,-70.6],[-27,-69],[-21.4,-65.7],[-19.5,-66],[-16.5,-68.2],[-15,-70],[-13.5,-72]],"lane":3},
-{"id":"americas-late-cumbi-north","story":"americas-exchange","wave":"feathers","title":"Fine cloth distributed from Cusco","coordinates":[[-13.5,-72],[-11.5,-75],[-9.9,-76.8],[-7.2,-78.5],[-0.2,-78.5]],"lane":3},
-{"id":"americas-late-cumbi-south","story":"americas-exchange","wave":"feathers","title":"Fine cloth distributed from Cusco","coordinates":[[-13.5,-72],[-15,-70],[-16.5,-68.2],[-19.5,-66],[-21.4,-65.7],[-27,-69],[-33.4,-70.6]],"lane":3},
-{"id":"americas-late-amazon","story":"americas-exchange","wave":"feathers","title":"Coca, feathers and the Inca eastern frontier","coordinates":[[-12.5,-69.2],[-13,-70.5],[-13.5,-72]],"lane":3,"uncertain":true,"twoWay":true},
-{"id":"americas-late-guanin","story":"americas-exchange","wave":"metals","title":"Guanín gold-copper alloys from the mainland","coordinates":[[8.6,-62.5],[10.5,-61.3],[12.1,-61.7],[14.6,-61],[16.2,-61.6],[17.3,-63],[18.2,-66.5],[18.9,-70.2]],"uncertain":true},
-{"id":"americas-late-taino-cuba","story":"americas-exchange","wave":"ceramics","title":"Taíno exchange: Hispaniola and Cuba","coordinates":[[18.9,-70.2],[20,-74],[21.5,-78]],"lane":3,"twoWay":true},
-{"id":"americas-late-taino-puerto-rico","story":"americas-exchange","wave":"ceramics","title":"Taíno exchange: Hispaniola and Puerto Rico","coordinates":[[18.9,-70.2],[18.2,-66.5]],"lane":3,"twoWay":true},
-{"id":"americas-late-tapajos","story":"americas-exchange","wave":"ceramics","title":"Santarém pottery along the lower Amazon","coordinates":[[-2.4,-54.7],[-1.5,-52],[-0.9,-49.5]],"lane":3,"uncertain":true,"twoWay":true},
-{"id":"americas-late-amazon-river","story":"americas-exchange","wave":"ceramics","title":"Middle Amazon and Rio Negro","coordinates":[[-2.4,-54.7],[-2.8,-57.5],[-3.1,-60],[0,-63],[2,-66.9]],"lane":3,"uncertain":true,"twoWay":true},
-{"id":"americas-late-ucayali","story":"americas-exchange","wave":"feathers","title":"Ucayali lowlands and the Inca frontier","coordinates":[[-8.4,-74.5],[-9,-76],[-9.9,-76.8]],"lane":3,"uncertain":true,"twoWay":true},
-{"id":"africa-songhai-gold","story":"african-networks","wave":"gold-ivory","title":"Songhai gold across the Sahara","coordinates":[[12.5,-11],[12,-9],[14,-6],[13.9,-4.55],[16.77,-3],[20,-4],[23.6,-5],[28,-5],[31.3,-4.3],[33,-4.8],[34.03,-5]]},
-{"id":"africa-songhai-salt","story":"african-networks","wave":"salt-copper","title":"Salt to the Niger bend","coordinates":[[23.6,-5],[20,-4],[16.77,-3],[16.3,-0.05]],"lane":3},
-{"id":"africa-songhai-cloth","story":"african-networks","wave":"cloth-beads","title":"Cloth, horses and books south","coordinates":[[34.03,-5],[33,-4.8],[31.3,-4.3],[28,-5],[23.6,-5],[20,-4],[16.77,-3]],"lane":-3},
-{"id":"africa-songhai-cairo","story":"african-networks","wave":"gold-ivory","title":"Gao and Timbuktu to Cairo","coordinates":[[16.77,-3],[16.3,-0.05],[20,2],[24,5.5],[27.9,-0.3],[28.5,5],[30,9],[30.1,9.5],[30.5,16],[30.5,24],[30.05,31.2]],"lane":3},
-{"id":"africa-songhai-tripoli","story":"african-networks","wave":"captives","title":"Enslaved people to Tripoli","coordinates":[[16.3,-0.05],[20,2],[24,5.5],[27,9],[30.1,9.5],[31.5,11.5],[32.9,13.2]]},
-{"id":"africa-bornu-tripoli","story":"african-networks","wave":"captives","title":"Bornu to Tripoli","coordinates":[[13.5,14.5],[17,14],[21,14],[24.5,12],[26.5,13.4],[30.5,13.5],[32.9,13.2]],"lane":3},
-{"id":"africa-akan-elmina","story":"african-networks","wave":"gold-ivory","title":"Akan gold to Elmina","coordinates":[[6.7,-1.6],[6,-1.5],[5.08,-1.35]]},
-{"id":"africa-elmina-lisbon","story":"african-networks","wave":"gold-ivory","title":"Gold and pepper to Lisbon","coordinates":[[5.08,-1.35],[3,-4],[5,-15],[15,-25],[25,-22],[33,-14],[38.7,-9.14]],"lane":3},
-{"id":"africa-lisbon-elmina","story":"african-networks","wave":"cloth-beads","title":"Cloth, brass and beads to the Gold Coast","coordinates":[[38.7,-9.14],[33,-14],[25,-22],[15,-25],[5,-15],[3,-4],[5.08,-1.35]],"lane":-3},
-{"id":"africa-benin-cloth","story":"african-networks","wave":"cloth-beads","title":"Benin cloth and pepper to the coast","coordinates":[[6.3,5.6],[5.5,5],[3,3],[0.3,6.7]],"uncertain":true},
-{"id":"africa-kongo-captives","story":"african-networks","wave":"captives","title":"Enslaved people from Kongo to São Tomé","coordinates":[[-6.27,14.25],[-5.5,12.5],[-3,10],[0.3,6.7]]},
-{"id":"africa-arguin-captives","story":"african-networks","wave":"captives","title":"Senegambia to Arguin and Iberia","coordinates":[[14.7,-17.4],[20.6,-16.5],[24,-17],[30,-13],[38.7,-9.14]],"uncertain":true},
-{"id":"africa-kilwa-cambay-2","story":"african-networks","wave":"cloth-beads","title":"Kilwa and Gujarat on the monsoon","coordinates":[[-8.96,39.5],[-3,48],[6,58],[15,66],[22.31,72.62]],"lane":3,"twoWay":true},
-{"id":"africa-zimbabwe-sofala-2","story":"african-networks","wave":"gold-ivory","title":"Zimbabwe plateau gold to Sofala","coordinates":[[-20.3,30.9],[-20.5,32.5],[-20.2,34.7],[-16,38],[-11,40],[-8.96,39.5]]},
-{"id":"ocean-treasure-fleets","story":"ocean-crossings","wave":"porcelain-silk","title":"Ming treasure fleets from Nanjing to Hormuz","coordinates":[[32.06,118.8],[31.5,121.5],[25.96,119.5],[22,116],[18,111],[13.8,109.2],[10,109],[4,106],[-7.25,112.75],[-3,108],[2.2,102.25],[5.2,97.1],[6,90],[6.03,80.2],[8,77],[11.25,75.78],[15,68],[22,62],[27.07,56.46]],"lane":3,"geodesic":true,"twoWay":true},
-{"id":"ocean-treasure-africa","story":"ocean-crossings","wave":"porcelain-silk","title":"Treasure fleets to Aden and the Swahili coast","coordinates":[[11.25,75.78],[12,65],[13,52],[12.8,45],[10,48],[2.05,45.3],[0,43],[-3.2,40.1]],"lane":3,"geodesic":true,"twoWay":true},
-{"id":"ocean-gujarat-aden","story":"ocean-crossings","wave":"cotton-cloth","title":"Gujarat, Aden and the Red Sea","coordinates":[[22.31,72.62],[18,66],[14,54],[12.8,45],[13,43],[18,40],[21.5,39.2]],"lane":3,"geodesic":true,"twoWay":true},
-{"id":"ocean-gujarat-malacca","story":"ocean-crossings","wave":"cotton-cloth","title":"Gujarat and Malabar to Malacca","coordinates":[[22.31,72.62],[15,71],[11.25,75.78],[7,78],[5,88],[5,96],[2.2,102.25]],"lane":3,"geodesic":true,"twoWay":true},
-{"id":"ocean-malacca-china","story":"ocean-crossings","wave":"porcelain-silk","title":"Malacca to the China coast","coordinates":[[2.2,102.25],[3,106],[8,110],[16,113],[21,115],[24.87,118.67]],"lane":3,"geodesic":true,"twoWay":true},
-{"id":"ocean-ryukyu","story":"ocean-crossings","wave":"porcelain-silk","title":"Ryukyu between Japan, China and Southeast Asia","coordinates":[[26.2,127.7],[22,122],[16,118],[2.2,102.25]],"lane":3,"uncertain":true,"geodesic":true,"twoWay":true},
-{"id":"ocean-swahili-cambay","story":"ocean-crossings","wave":"cotton-cloth","title":"Swahili coast and Gujarat on the monsoon","coordinates":[[-8.96,39.5],[-3,48],[6,58],[15,66],[22.31,72.62]],"lane":3,"geodesic":true,"twoWay":true},
-{"id":"ocean-spice-route","story":"ocean-crossings","wave":"spices-pepper","title":"Spices from Malacca to Alexandria and Venice","coordinates":[[2.2,102.25],[5,96],[6,90],[6.03,80.2],[8,77],[11.25,75.78],[12,65],[13,52],[12.8,45],[13,43],[18,40],[21.5,39.2],[24,36],[28,33],[30.05,31.2],[30.3,31.1],[31.2,29.9],[33,25],[38,18],[41,16],[45.44,12.34]],"geodesic":true},
-{"id":"ocean-bullion-east","story":"ocean-crossings","wave":"bullion","title":"Silver and gold eastward for spices","coordinates":[[45.44,12.34],[41,16],[38,18],[33,25],[31.2,29.9],[30.3,31.1],[30.05,31.2],[28,33],[24,36],[21.5,39.2],[18,40],[13,43],[12.8,45],[13,52],[12,65],[11.25,75.78]],"lane":-3,"geodesic":true},
-{"id":"ocean-cape-route","story":"ocean-crossings","wave":"spices-pepper","title":"Lisbon to India around the Cape","coordinates":[[38.7,-9.14],[33,-14],[32.7,-17],[24,-20],[15,-23.5],[5,-25],[-10,-32],[-25,-30],[-34,-5],[-34.4,18.5],[-30,32],[-22,38],[-15,40.7],[-8,41],[-3.2,40.1],[2,55],[8,68],[11.25,75.78]],"lane":3,"geodesic":true,"twoWay":true},
-{"id":"ocean-cape-bullion","story":"ocean-crossings","wave":"bullion","title":"Silver and copper eastward for pepper","coordinates":[[38.7,-9.14],[33,-14],[32.7,-17],[24,-20],[15,-23.5],[5,-25],[-10,-32],[-25,-30],[-34,-5],[-34.4,18.5],[-30,32],[-22,38],[-15,40.7],[-8,41],[-3.2,40.1],[2,55],[8,68],[11.25,75.78]],"lane":-3,"geodesic":true},
-{"id":"ocean-columbus-crossing","story":"ocean-crossings","wave":"cotton-cloth","title":"Atlantic crossings to the Caribbean","coordinates":[[37.2,-6.9],[33,-11],[28.1,-15.4],[24,-30],[20,-50],[19,-70]],"geodesic":true},
-{"id":"ocean-atlantic-return","story":"ocean-crossings","wave":"bullion","title":"Return on the westerlies","coordinates":[[19,-70],[25,-65],[33,-50],[38.7,-27.2],[38,-15],[37.39,-5.99]],"lane":3,"geodesic":true},
-{"id":"ocean-brazil-route","story":"ocean-crossings","wave":"cotton-cloth","title":"Portuguese ships to Brazil","coordinates":[[38.7,-9.14],[33,-14],[32.7,-17],[24,-20],[15,-23.5],[5,-25],[-8,-32],[-16.4,-39.1]],"lane":3,"geodesic":true},
-{"id":"ocean-gold-coast-lisbon","story":"ocean-crossings","wave":"bullion","title":"Gold Coast gold to Lisbon","coordinates":[[5.08,-1.35],[3,-4],[5,-15],[15,-25],[25,-22],[33,-14],[38.7,-9.14]],"geodesic":true},
-{"id":"ocean-spice-route-2","story":"ocean-crossings","wave":"spices-pepper","title":"The older spice route through the Red Sea continues","coordinates":[[11.25,75.78],[12,65],[13,52],[12.8,45],[13,43],[18,40],[21.5,39.2],[24,36],[28,33],[30.05,31.2],[30.3,31.1],[31.2,29.9],[33,25],[38,18],[41,16],[45.44,12.34]],"lane":3,"geodesic":true},
-{"id":"ocean-gujarat-malacca-2","story":"ocean-crossings","wave":"cotton-cloth","title":"Gujarat and Malabar to Malacca","coordinates":[[22.31,72.62],[15,71],[11.25,75.78],[7,78],[5,88],[5,96],[2.2,102.25]],"lane":3,"geodesic":true,"twoWay":true},
-{"id":"ocean-malacca-china-2","story":"ocean-crossings","wave":"porcelain-silk","title":"Malacca to the China coast","coordinates":[[2.2,102.25],[3,106],[8,110],[16,113],[21,115],[24.87,118.67]],"lane":3,"geodesic":true,"twoWay":true}
+ {
+  "id": "americas-late-obsidian-tenochtitlan",
+  "story": "americas-exchange",
+  "wave": "obsidian",
+  "title": "Pachuca obsidian to Tenochtitlan",
+  "coordinates": [
+   [
+    20.1,
+    -98.7
+   ],
+   [
+    19.43,
+    -99.13
+   ]
+  ]
+ },
+ {
+  "id": "americas-late-pochteca",
+  "story": "americas-exchange",
+  "wave": "obsidian",
+  "title": "Pochteca merchants to the Gulf and Soconusco",
+  "coordinates": [
+   [
+    19.43,
+    -99.13
+   ],
+   [
+    18.5,
+    -96
+   ],
+   [
+    17.5,
+    -93.5
+   ],
+   [
+    18.6,
+    -91.9
+   ]
+  ]
+ },
+ {
+  "id": "americas-late-pochteca-south",
+  "story": "americas-exchange",
+  "wave": "obsidian",
+  "title": "Pochteca merchants to Soconusco",
+  "coordinates": [
+   [
+    19.43,
+    -99.13
+   ],
+   [
+    18.5,
+    -96
+   ],
+   [
+    16.5,
+    -94
+   ],
+   [
+    15,
+    -92.5
+   ]
+  ],
+  "lane": 3
+ },
+ {
+  "id": "americas-late-cacao",
+  "story": "americas-exchange",
+  "wave": "crops",
+  "title": "Soconusco cacao to Tenochtitlan",
+  "coordinates": [
+   [
+    15,
+    -92.5
+   ],
+   [
+    16.5,
+    -94
+   ],
+   [
+    18.5,
+    -96
+   ],
+   [
+    19.43,
+    -99.13
+   ]
+  ],
+  "lane": -3
+ },
+ {
+  "id": "americas-late-quetzal",
+  "story": "americas-exchange",
+  "wave": "feathers",
+  "title": "Quetzal feathers from the Maya highlands",
+  "coordinates": [
+   [
+    15.5,
+    -90.3
+   ],
+   [
+    15,
+    -92.5
+   ],
+   [
+    16.5,
+    -94
+   ],
+   [
+    18.5,
+    -96
+   ],
+   [
+    19.43,
+    -99.13
+   ]
+  ],
+  "lane": -6
+ },
+ {
+  "id": "americas-late-maya-canoes",
+  "story": "americas-exchange",
+  "wave": "crops",
+  "title": "Maya canoe trade around Yucatán",
+  "coordinates": [
+   [
+    15.7,
+    -88.6
+   ],
+   [
+    16.5,
+    -88.2
+   ],
+   [
+    18.5,
+    -87.6
+   ],
+   [
+    20.4,
+    -86.9
+   ],
+   [
+    21.5,
+    -88
+   ],
+   [
+    21,
+    -90.5
+   ],
+   [
+    19.5,
+    -91.5
+   ],
+   [
+    18.6,
+    -91.9
+   ]
+  ]
+ },
+ {
+  "id": "americas-late-macaws",
+  "story": "americas-exchange",
+  "wave": "feathers",
+  "title": "Paquimé macaws to the Pueblo world",
+  "coordinates": [
+   [
+    30.4,
+    -107.95
+   ],
+   [
+    33,
+    -108.5
+   ],
+   [
+    35.1,
+    -108.8
+   ]
+  ]
+ },
+ {
+  "id": "americas-late-shell-mississippi",
+  "story": "americas-exchange",
+  "wave": "shell",
+  "title": "Gulf shell to Moundville and Spiro",
+  "coordinates": [
+   [
+    27.8,
+    -82.6
+   ],
+   [
+    30,
+    -86
+   ],
+   [
+    33,
+    -87.6
+   ],
+   [
+    34.5,
+    -90
+   ],
+   [
+    35.3,
+    -94.6
+   ]
+  ]
+ },
+ {
+  "id": "americas-late-copper-etowah",
+  "story": "americas-exchange",
+  "wave": "metals",
+  "title": "Lake Superior copper to Etowah",
+  "coordinates": [
+   [
+    47.5,
+    -88
+   ],
+   [
+    43,
+    -86
+   ],
+   [
+    39,
+    -85
+   ],
+   [
+    36,
+    -85
+   ],
+   [
+    34.1,
+    -84.8
+   ]
+  ]
+ },
+ {
+  "id": "americas-late-spondylus",
+  "story": "americas-exchange",
+  "wave": "shell",
+  "title": "Spondylus to Chincha and Cusco",
+  "coordinates": [
+   [
+    -2.2,
+    -80.9
+   ],
+   [
+    -6,
+    -80
+   ],
+   [
+    -10,
+    -78
+   ],
+   [
+    -13.4,
+    -76.1
+   ],
+   [
+    -13.7,
+    -73.5
+   ],
+   [
+    -13.5,
+    -72
+   ]
+  ]
+ },
+ {
+  "id": "americas-late-inca-north",
+  "story": "americas-exchange",
+  "wave": "metals",
+  "title": "Qhapaq Ñan: gold and tribute from Quito to Cusco",
+  "coordinates": [
+   [
+    -0.2,
+    -78.5
+   ],
+   [
+    -7.2,
+    -78.5
+   ],
+   [
+    -9.9,
+    -76.8
+   ],
+   [
+    -11.5,
+    -75
+   ],
+   [
+    -13.5,
+    -72
+   ]
+  ],
+  "lane": 3
+ },
+ {
+  "id": "americas-late-inca-south",
+  "story": "americas-exchange",
+  "wave": "metals",
+  "title": "Qhapaq Ñan: silver from the south",
+  "coordinates": [
+   [
+    -33.4,
+    -70.6
+   ],
+   [
+    -27,
+    -69
+   ],
+   [
+    -21.4,
+    -65.7
+   ],
+   [
+    -19.5,
+    -66
+   ],
+   [
+    -16.5,
+    -68.2
+   ],
+   [
+    -15,
+    -70
+   ],
+   [
+    -13.5,
+    -72
+   ]
+  ],
+  "lane": 3
+ },
+ {
+  "id": "americas-late-cumbi-north",
+  "story": "americas-exchange",
+  "wave": "feathers",
+  "title": "Fine cloth distributed from Cusco",
+  "coordinates": [
+   [
+    -13.5,
+    -72
+   ],
+   [
+    -11.5,
+    -75
+   ],
+   [
+    -9.9,
+    -76.8
+   ],
+   [
+    -7.2,
+    -78.5
+   ],
+   [
+    -0.2,
+    -78.5
+   ]
+  ],
+  "lane": 3
+ },
+ {
+  "id": "americas-late-cumbi-south",
+  "story": "americas-exchange",
+  "wave": "feathers",
+  "title": "Fine cloth distributed from Cusco",
+  "coordinates": [
+   [
+    -13.5,
+    -72
+   ],
+   [
+    -15,
+    -70
+   ],
+   [
+    -16.5,
+    -68.2
+   ],
+   [
+    -19.5,
+    -66
+   ],
+   [
+    -21.4,
+    -65.7
+   ],
+   [
+    -27,
+    -69
+   ],
+   [
+    -33.4,
+    -70.6
+   ]
+  ],
+  "lane": 3
+ },
+ {
+  "id": "americas-late-amazon",
+  "story": "americas-exchange",
+  "wave": "feathers",
+  "title": "Coca, feathers and the Inca eastern frontier",
+  "coordinates": [
+   [
+    -12.5,
+    -69.2
+   ],
+   [
+    -13,
+    -70.5
+   ],
+   [
+    -13.5,
+    -72
+   ]
+  ],
+  "lane": 3,
+  "uncertain": true,
+  "twoWay": true
+ },
+ {
+  "id": "americas-late-guanin",
+  "story": "americas-exchange",
+  "wave": "metals",
+  "title": "Guanín gold-copper alloys from the mainland",
+  "coordinates": [
+   [
+    8.6,
+    -62.5
+   ],
+   [
+    10.5,
+    -61.3
+   ],
+   [
+    12.1,
+    -61.7
+   ],
+   [
+    14.6,
+    -61
+   ],
+   [
+    16.2,
+    -61.6
+   ],
+   [
+    17.3,
+    -63
+   ],
+   [
+    18.2,
+    -66.5
+   ],
+   [
+    18.9,
+    -70.2
+   ]
+  ],
+  "uncertain": true
+ },
+ {
+  "id": "americas-late-taino-cuba",
+  "story": "americas-exchange",
+  "wave": "ceramics",
+  "title": "Taíno exchange: Hispaniola and Cuba",
+  "coordinates": [
+   [
+    18.9,
+    -70.2
+   ],
+   [
+    20,
+    -74
+   ],
+   [
+    21.5,
+    -78
+   ]
+  ],
+  "lane": 3,
+  "twoWay": true
+ },
+ {
+  "id": "americas-late-taino-puerto-rico",
+  "story": "americas-exchange",
+  "wave": "ceramics",
+  "title": "Taíno exchange: Hispaniola and Puerto Rico",
+  "coordinates": [
+   [
+    18.9,
+    -70.2
+   ],
+   [
+    18.2,
+    -66.5
+   ]
+  ],
+  "lane": 3,
+  "twoWay": true
+ },
+ {
+  "id": "americas-late-tapajos",
+  "story": "americas-exchange",
+  "wave": "ceramics",
+  "title": "Santarém pottery along the lower Amazon",
+  "coordinates": [
+   [
+    -2.4,
+    -54.7
+   ],
+   [
+    -1.5,
+    -52
+   ],
+   [
+    -0.9,
+    -49.5
+   ]
+  ],
+  "lane": 3,
+  "uncertain": true,
+  "twoWay": true
+ },
+ {
+  "id": "americas-late-amazon-river",
+  "story": "americas-exchange",
+  "wave": "ceramics",
+  "title": "Middle Amazon and Rio Negro",
+  "coordinates": [
+   [
+    -2.4,
+    -54.7
+   ],
+   [
+    -2.8,
+    -57.5
+   ],
+   [
+    -3.1,
+    -60
+   ],
+   [
+    0,
+    -63
+   ],
+   [
+    2,
+    -66.9
+   ]
+  ],
+  "lane": 3,
+  "uncertain": true,
+  "twoWay": true
+ },
+ {
+  "id": "americas-late-ucayali",
+  "story": "americas-exchange",
+  "wave": "feathers",
+  "title": "Ucayali lowlands and the Inca frontier",
+  "coordinates": [
+   [
+    -8.4,
+    -74.5
+   ],
+   [
+    -9,
+    -76
+   ],
+   [
+    -9.9,
+    -76.8
+   ]
+  ],
+  "lane": 3,
+  "uncertain": true,
+  "twoWay": true
+ },
+ {
+  "id": "africa-songhai-gold",
+  "story": "african-networks",
+  "wave": "gold-ivory",
+  "title": "Songhai gold across the Sahara",
+  "coordinates": [
+   [
+    12.5,
+    -11
+   ],
+   [
+    12,
+    -9
+   ],
+   [
+    14,
+    -6
+   ],
+   [
+    13.9,
+    -4.55
+   ],
+   [
+    16.77,
+    -3
+   ],
+   [
+    20,
+    -4
+   ],
+   [
+    23.6,
+    -5
+   ],
+   [
+    28,
+    -5
+   ],
+   [
+    31.3,
+    -4.3
+   ],
+   [
+    33,
+    -4.8
+   ],
+   [
+    34.03,
+    -5
+   ]
+  ]
+ },
+ {
+  "id": "africa-songhai-salt",
+  "story": "african-networks",
+  "wave": "salt-copper",
+  "title": "Salt to the Niger bend",
+  "coordinates": [
+   [
+    23.6,
+    -5
+   ],
+   [
+    20,
+    -4
+   ],
+   [
+    16.77,
+    -3
+   ],
+   [
+    16.3,
+    -0.05
+   ]
+  ],
+  "lane": 3
+ },
+ {
+  "id": "africa-songhai-cloth",
+  "story": "african-networks",
+  "wave": "cloth-beads",
+  "title": "Cloth, horses and books south",
+  "coordinates": [
+   [
+    34.03,
+    -5
+   ],
+   [
+    33,
+    -4.8
+   ],
+   [
+    31.3,
+    -4.3
+   ],
+   [
+    28,
+    -5
+   ],
+   [
+    23.6,
+    -5
+   ],
+   [
+    20,
+    -4
+   ],
+   [
+    16.77,
+    -3
+   ]
+  ],
+  "lane": -3
+ },
+ {
+  "id": "africa-songhai-cairo",
+  "story": "african-networks",
+  "wave": "gold-ivory",
+  "title": "Gao and Timbuktu to Cairo",
+  "coordinates": [
+   [
+    16.77,
+    -3
+   ],
+   [
+    16.3,
+    -0.05
+   ],
+   [
+    20,
+    2
+   ],
+   [
+    24,
+    5.5
+   ],
+   [
+    27.9,
+    -0.3
+   ],
+   [
+    28.5,
+    5
+   ],
+   [
+    30,
+    9
+   ],
+   [
+    30.1,
+    9.5
+   ],
+   [
+    30.5,
+    16
+   ],
+   [
+    30.5,
+    24
+   ],
+   [
+    30.05,
+    31.2
+   ]
+  ],
+  "lane": 3
+ },
+ {
+  "id": "africa-songhai-tripoli",
+  "story": "african-networks",
+  "wave": "captives",
+  "title": "Enslaved people to Tripoli",
+  "coordinates": [
+   [
+    16.3,
+    -0.05
+   ],
+   [
+    20,
+    2
+   ],
+   [
+    24,
+    5.5
+   ],
+   [
+    27,
+    9
+   ],
+   [
+    30.1,
+    9.5
+   ],
+   [
+    31.5,
+    11.5
+   ],
+   [
+    32.9,
+    13.2
+   ]
+  ]
+ },
+ {
+  "id": "africa-bornu-tripoli",
+  "story": "african-networks",
+  "wave": "captives",
+  "title": "Bornu to Tripoli",
+  "coordinates": [
+   [
+    13.5,
+    14.5
+   ],
+   [
+    17,
+    14
+   ],
+   [
+    21,
+    14
+   ],
+   [
+    24.5,
+    12
+   ],
+   [
+    26.5,
+    13.4
+   ],
+   [
+    30.5,
+    13.5
+   ],
+   [
+    32.9,
+    13.2
+   ]
+  ],
+  "lane": 3
+ },
+ {
+  "id": "africa-akan-elmina",
+  "story": "african-networks",
+  "wave": "gold-ivory",
+  "title": "Akan gold to Elmina",
+  "coordinates": [
+   [
+    6.7,
+    -1.6
+   ],
+   [
+    6,
+    -1.5
+   ],
+   [
+    5.08,
+    -1.35
+   ]
+  ]
+ },
+ {
+  "id": "africa-elmina-lisbon",
+  "story": "african-networks",
+  "wave": "gold-ivory",
+  "title": "Gold and pepper to Lisbon",
+  "coordinates": [
+   [
+    5.08,
+    -1.35
+   ],
+   [
+    3,
+    -4
+   ],
+   [
+    5,
+    -15
+   ],
+   [
+    15,
+    -25
+   ],
+   [
+    25,
+    -22
+   ],
+   [
+    33,
+    -14
+   ],
+   [
+    38.7,
+    -9.14
+   ]
+  ],
+  "lane": 3
+ },
+ {
+  "id": "africa-lisbon-elmina",
+  "story": "african-networks",
+  "wave": "cloth-beads",
+  "title": "Cloth, brass and beads to the Gold Coast",
+  "coordinates": [
+   [
+    38.7,
+    -9.14
+   ],
+   [
+    33,
+    -14
+   ],
+   [
+    25,
+    -22
+   ],
+   [
+    15,
+    -25
+   ],
+   [
+    5,
+    -15
+   ],
+   [
+    3,
+    -4
+   ],
+   [
+    5.08,
+    -1.35
+   ]
+  ],
+  "lane": -3
+ },
+ {
+  "id": "africa-benin-cloth",
+  "story": "african-networks",
+  "wave": "cloth-beads",
+  "title": "Benin cloth and pepper to the coast",
+  "coordinates": [
+   [
+    6.3,
+    5.6
+   ],
+   [
+    5.5,
+    5
+   ],
+   [
+    3,
+    3
+   ],
+   [
+    0.3,
+    6.7
+   ]
+  ],
+  "uncertain": true
+ },
+ {
+  "id": "africa-kongo-captives",
+  "story": "african-networks",
+  "wave": "captives",
+  "title": "Enslaved people from Kongo to São Tomé",
+  "coordinates": [
+   [
+    -6.27,
+    14.25
+   ],
+   [
+    -5.5,
+    12.5
+   ],
+   [
+    -3,
+    10
+   ],
+   [
+    0.3,
+    6.7
+   ]
+  ]
+ },
+ {
+  "id": "africa-arguin-captives",
+  "story": "african-networks",
+  "wave": "captives",
+  "title": "Senegambia to Arguin and Iberia",
+  "coordinates": [
+   [
+    14.7,
+    -17.4
+   ],
+   [
+    20.6,
+    -16.5
+   ],
+   [
+    24,
+    -17
+   ],
+   [
+    30,
+    -13
+   ],
+   [
+    38.7,
+    -9.14
+   ]
+  ],
+  "uncertain": true
+ },
+ {
+  "id": "africa-kilwa-cambay-2",
+  "story": "african-networks",
+  "wave": "cloth-beads",
+  "title": "Kilwa and Gujarat on the monsoon",
+  "coordinates": [
+   [
+    -8.96,
+    39.5
+   ],
+   [
+    -3,
+    48
+   ],
+   [
+    6,
+    58
+   ],
+   [
+    15,
+    66
+   ],
+   [
+    22.31,
+    72.62
+   ]
+  ],
+  "lane": 3,
+  "twoWay": true
+ },
+ {
+  "id": "africa-zimbabwe-sofala-2",
+  "story": "african-networks",
+  "wave": "gold-ivory",
+  "title": "Zimbabwe plateau gold to Sofala",
+  "coordinates": [
+   [
+    -20.3,
+    30.9
+   ],
+   [
+    -20.5,
+    32.5
+   ],
+   [
+    -20.2,
+    34.7
+   ],
+   [
+    -16,
+    38
+   ],
+   [
+    -11,
+    40
+   ],
+   [
+    -8.96,
+    39.5
+   ]
+  ]
+ },
+ {
+  "id": "ocean-treasure-fleets",
+  "story": "ocean-crossings",
+  "wave": "porcelain-silk",
+  "title": "Ming treasure fleets from Nanjing to Hormuz",
+  "coordinates": [
+   [
+    32.06,
+    118.8
+   ],
+   [
+    31.5,
+    121.5
+   ],
+   [
+    25.96,
+    119.5
+   ],
+   [
+    22,
+    116
+   ],
+   [
+    18,
+    111
+   ],
+   [
+    13.8,
+    109.2
+   ],
+   [
+    10,
+    109
+   ],
+   [
+    4,
+    106
+   ],
+   [
+    -7.25,
+    112.75
+   ],
+   [
+    -3,
+    108
+   ],
+   [
+    2.2,
+    102.25
+   ],
+   [
+    5.2,
+    97.1
+   ],
+   [
+    6,
+    90
+   ],
+   [
+    6.03,
+    80.2
+   ],
+   [
+    8,
+    77
+   ],
+   [
+    11.25,
+    75.78
+   ],
+   [
+    15,
+    68
+   ],
+   [
+    22,
+    62
+   ],
+   [
+    27.07,
+    56.46
+   ]
+  ],
+  "lane": 3,
+  "geodesic": true,
+  "twoWay": true
+ },
+ {
+  "id": "ocean-treasure-africa",
+  "story": "ocean-crossings",
+  "wave": "porcelain-silk",
+  "title": "Treasure fleets to Aden and the Swahili coast",
+  "coordinates": [
+   [
+    11.25,
+    75.78
+   ],
+   [
+    12,
+    65
+   ],
+   [
+    13,
+    52
+   ],
+   [
+    12.8,
+    45
+   ],
+   [
+    10,
+    48
+   ],
+   [
+    2.05,
+    45.3
+   ],
+   [
+    0,
+    43
+   ],
+   [
+    -3.2,
+    40.1
+   ]
+  ],
+  "lane": 3,
+  "geodesic": true,
+  "twoWay": true
+ },
+ {
+  "id": "ocean-gujarat-aden",
+  "story": "ocean-crossings",
+  "wave": "cotton-cloth",
+  "title": "Gujarat, Aden and the Red Sea",
+  "coordinates": [
+   [
+    22.31,
+    72.62
+   ],
+   [
+    18,
+    66
+   ],
+   [
+    14,
+    54
+   ],
+   [
+    12.8,
+    45
+   ],
+   [
+    13,
+    43
+   ],
+   [
+    18,
+    40
+   ],
+   [
+    21.5,
+    39.2
+   ]
+  ],
+  "lane": 3,
+  "geodesic": true,
+  "twoWay": true
+ },
+ {
+  "id": "ocean-gujarat-malacca",
+  "story": "ocean-crossings",
+  "wave": "cotton-cloth",
+  "title": "Gujarat and Malabar to Malacca",
+  "coordinates": [
+   [
+    22.31,
+    72.62
+   ],
+   [
+    15,
+    71
+   ],
+   [
+    11.25,
+    75.78
+   ],
+   [
+    7,
+    78
+   ],
+   [
+    5,
+    88
+   ],
+   [
+    5,
+    96
+   ],
+   [
+    2.2,
+    102.25
+   ]
+  ],
+  "lane": 3,
+  "geodesic": true,
+  "twoWay": true
+ },
+ {
+  "id": "ocean-malacca-china",
+  "story": "ocean-crossings",
+  "wave": "porcelain-silk",
+  "title": "Malacca to the China coast",
+  "coordinates": [
+   [
+    2.2,
+    102.25
+   ],
+   [
+    3,
+    106
+   ],
+   [
+    8,
+    110
+   ],
+   [
+    16,
+    113
+   ],
+   [
+    21,
+    115
+   ],
+   [
+    24.87,
+    118.67
+   ]
+  ],
+  "lane": 3,
+  "geodesic": true,
+  "twoWay": true
+ },
+ {
+  "id": "ocean-ryukyu",
+  "story": "ocean-crossings",
+  "wave": "porcelain-silk",
+  "title": "Ryukyu between Japan, China and Southeast Asia",
+  "coordinates": [
+   [
+    26.2,
+    127.7
+   ],
+   [
+    22,
+    122
+   ],
+   [
+    16,
+    118
+   ],
+   [
+    2.2,
+    102.25
+   ]
+  ],
+  "lane": 3,
+  "uncertain": true,
+  "geodesic": true,
+  "twoWay": true
+ },
+ {
+  "id": "ocean-swahili-cambay",
+  "story": "ocean-crossings",
+  "wave": "cotton-cloth",
+  "title": "Swahili coast and Gujarat on the monsoon",
+  "coordinates": [
+   [
+    -8.96,
+    39.5
+   ],
+   [
+    -3,
+    48
+   ],
+   [
+    6,
+    58
+   ],
+   [
+    15,
+    66
+   ],
+   [
+    22.31,
+    72.62
+   ]
+  ],
+  "lane": 3,
+  "geodesic": true,
+  "twoWay": true
+ },
+ {
+  "id": "ocean-spice-route",
+  "story": "ocean-crossings",
+  "wave": "spices-pepper",
+  "title": "Spices from Malacca to Alexandria and Venice",
+  "coordinates": [
+   [
+    2.2,
+    102.25
+   ],
+   [
+    5,
+    96
+   ],
+   [
+    6,
+    90
+   ],
+   [
+    6.03,
+    80.2
+   ],
+   [
+    8,
+    77
+   ],
+   [
+    11.25,
+    75.78
+   ],
+   [
+    12,
+    65
+   ],
+   [
+    13,
+    52
+   ],
+   [
+    12.8,
+    45
+   ],
+   [
+    13,
+    43
+   ],
+   [
+    18,
+    40
+   ],
+   [
+    21.5,
+    39.2
+   ],
+   [
+    24,
+    36
+   ],
+   [
+    28,
+    33
+   ],
+   [
+    30.05,
+    31.2
+   ],
+   [
+    30.3,
+    31.1
+   ],
+   [
+    31.2,
+    29.9
+   ],
+   [
+    33,
+    25
+   ],
+   [
+    38,
+    18
+   ],
+   [
+    41,
+    16
+   ],
+   [
+    45.44,
+    12.34
+   ]
+  ],
+  "geodesic": true
+ },
+ {
+  "id": "ocean-bullion-east",
+  "story": "ocean-crossings",
+  "wave": "bullion",
+  "title": "Silver and gold eastward for spices",
+  "coordinates": [
+   [
+    45.44,
+    12.34
+   ],
+   [
+    41,
+    16
+   ],
+   [
+    38,
+    18
+   ],
+   [
+    33,
+    25
+   ],
+   [
+    31.2,
+    29.9
+   ],
+   [
+    30.3,
+    31.1
+   ],
+   [
+    30.05,
+    31.2
+   ],
+   [
+    28,
+    33
+   ],
+   [
+    24,
+    36
+   ],
+   [
+    21.5,
+    39.2
+   ],
+   [
+    18,
+    40
+   ],
+   [
+    13,
+    43
+   ],
+   [
+    12.8,
+    45
+   ],
+   [
+    13,
+    52
+   ],
+   [
+    12,
+    65
+   ],
+   [
+    11.25,
+    75.78
+   ]
+  ],
+  "lane": -3,
+  "geodesic": true
+ },
+ {
+  "id": "ocean-cape-route",
+  "story": "ocean-crossings",
+  "wave": "spices-pepper",
+  "title": "Lisbon to India around the Cape",
+  "coordinates": [
+   [
+    38.7,
+    -9.14
+   ],
+   [
+    33,
+    -14
+   ],
+   [
+    32.7,
+    -17
+   ],
+   [
+    24,
+    -20
+   ],
+   [
+    15,
+    -23.5
+   ],
+   [
+    5,
+    -25
+   ],
+   [
+    -10,
+    -32
+   ],
+   [
+    -25,
+    -30
+   ],
+   [
+    -34,
+    -5
+   ],
+   [
+    -34.4,
+    18.5
+   ],
+   [
+    -30,
+    32
+   ],
+   [
+    -22,
+    38
+   ],
+   [
+    -15,
+    40.7
+   ],
+   [
+    -8,
+    41
+   ],
+   [
+    -3.2,
+    40.1
+   ],
+   [
+    2,
+    55
+   ],
+   [
+    8,
+    68
+   ],
+   [
+    11.25,
+    75.78
+   ]
+  ],
+  "lane": 3,
+  "geodesic": true,
+  "twoWay": true
+ },
+ {
+  "id": "ocean-cape-bullion",
+  "story": "ocean-crossings",
+  "wave": "bullion",
+  "title": "Silver and copper eastward for pepper",
+  "coordinates": [
+   [
+    38.7,
+    -9.14
+   ],
+   [
+    33,
+    -14
+   ],
+   [
+    32.7,
+    -17
+   ],
+   [
+    24,
+    -20
+   ],
+   [
+    15,
+    -23.5
+   ],
+   [
+    5,
+    -25
+   ],
+   [
+    -10,
+    -32
+   ],
+   [
+    -25,
+    -30
+   ],
+   [
+    -34,
+    -5
+   ],
+   [
+    -34.4,
+    18.5
+   ],
+   [
+    -30,
+    32
+   ],
+   [
+    -22,
+    38
+   ],
+   [
+    -15,
+    40.7
+   ],
+   [
+    -8,
+    41
+   ],
+   [
+    -3.2,
+    40.1
+   ],
+   [
+    2,
+    55
+   ],
+   [
+    8,
+    68
+   ],
+   [
+    11.25,
+    75.78
+   ]
+  ],
+  "lane": -3,
+  "geodesic": true
+ },
+ {
+  "id": "ocean-columbus-crossing",
+  "story": "ocean-crossings",
+  "wave": "cotton-cloth",
+  "title": "Atlantic crossings to the Caribbean",
+  "coordinates": [
+   [
+    37.2,
+    -6.9
+   ],
+   [
+    33,
+    -11
+   ],
+   [
+    28.1,
+    -15.4
+   ],
+   [
+    24,
+    -30
+   ],
+   [
+    20,
+    -50
+   ],
+   [
+    19,
+    -70
+   ]
+  ],
+  "geodesic": true
+ },
+ {
+  "id": "ocean-atlantic-return",
+  "story": "ocean-crossings",
+  "wave": "bullion",
+  "title": "Return on the westerlies",
+  "coordinates": [
+   [
+    19,
+    -70
+   ],
+   [
+    25,
+    -65
+   ],
+   [
+    33,
+    -50
+   ],
+   [
+    38.7,
+    -27.2
+   ],
+   [
+    38,
+    -15
+   ],
+   [
+    37.39,
+    -5.99
+   ]
+  ],
+  "lane": 3,
+  "geodesic": true
+ },
+ {
+  "id": "ocean-brazil-route",
+  "story": "ocean-crossings",
+  "wave": "cotton-cloth",
+  "title": "Portuguese ships to Brazil",
+  "coordinates": [
+   [
+    38.7,
+    -9.14
+   ],
+   [
+    33,
+    -14
+   ],
+   [
+    32.7,
+    -17
+   ],
+   [
+    24,
+    -20
+   ],
+   [
+    15,
+    -23.5
+   ],
+   [
+    5,
+    -25
+   ],
+   [
+    -8,
+    -32
+   ],
+   [
+    -16.4,
+    -39.1
+   ]
+  ],
+  "lane": 3,
+  "geodesic": true
+ },
+ {
+  "id": "ocean-gold-coast-lisbon",
+  "story": "ocean-crossings",
+  "wave": "bullion",
+  "title": "Gold Coast gold to Lisbon",
+  "coordinates": [
+   [
+    5.08,
+    -1.35
+   ],
+   [
+    3,
+    -4
+   ],
+   [
+    5,
+    -15
+   ],
+   [
+    15,
+    -25
+   ],
+   [
+    25,
+    -22
+   ],
+   [
+    33,
+    -14
+   ],
+   [
+    38.7,
+    -9.14
+   ]
+  ],
+  "geodesic": true
+ },
+ {
+  "id": "ocean-spice-route-2",
+  "story": "ocean-crossings",
+  "wave": "spices-pepper",
+  "title": "The older spice route through the Red Sea continues",
+  "coordinates": [
+   [
+    11.25,
+    75.78
+   ],
+   [
+    12,
+    65
+   ],
+   [
+    13,
+    52
+   ],
+   [
+    12.8,
+    45
+   ],
+   [
+    13,
+    43
+   ],
+   [
+    18,
+    40
+   ],
+   [
+    21.5,
+    39.2
+   ],
+   [
+    24,
+    36
+   ],
+   [
+    28,
+    33
+   ],
+   [
+    30.05,
+    31.2
+   ],
+   [
+    30.3,
+    31.1
+   ],
+   [
+    31.2,
+    29.9
+   ],
+   [
+    33,
+    25
+   ],
+   [
+    38,
+    18
+   ],
+   [
+    41,
+    16
+   ],
+   [
+    45.44,
+    12.34
+   ]
+  ],
+  "lane": 3,
+  "geodesic": true
+ },
+ {
+  "id": "ocean-gujarat-malacca-2",
+  "story": "ocean-crossings",
+  "wave": "cotton-cloth",
+  "title": "Gujarat and Malabar to Malacca",
+  "coordinates": [
+   [
+    22.31,
+    72.62
+   ],
+   [
+    15,
+    71
+   ],
+   [
+    11.25,
+    75.78
+   ],
+   [
+    7,
+    78
+   ],
+   [
+    5,
+    88
+   ],
+   [
+    5,
+    96
+   ],
+   [
+    2.2,
+    102.25
+   ]
+  ],
+  "lane": 3,
+  "geodesic": true,
+  "twoWay": true
+ },
+ {
+  "id": "ocean-malacca-china-2",
+  "story": "ocean-crossings",
+  "wave": "porcelain-silk",
+  "title": "Malacca to the China coast",
+  "coordinates": [
+   [
+    2.2,
+    102.25
+   ],
+   [
+    3,
+    106
+   ],
+   [
+    8,
+    110
+   ],
+   [
+    16,
+    113
+   ],
+   [
+    21,
+    115
+   ],
+   [
+    24.87,
+    118.67
+   ]
+  ],
+  "lane": 3,
+  "geodesic": true,
+  "twoWay": true
+ },
+ {
+  "id": "frontier-camino-real-santa-fe",
+  "story": "americas-exchange",
+  "wave": "frontier",
+  "title": "Camino Real de Tierra Adentro: Mexico City past Zacatecas to Santa Fe",
+  "coordinates": [
+   [
+    19.43,
+    -99.13
+   ],
+   [
+    20.59,
+    -100.39
+   ],
+   [
+    22.77,
+    -102.58
+   ],
+   [
+    24.02,
+    -104.65
+   ],
+   [
+    28.63,
+    -106.08
+   ],
+   [
+    31.76,
+    -106.49
+   ],
+   [
+    35.69,
+    -105.94
+   ]
+  ],
+  "period": "1598–1600s",
+  "sources": [
+   "UNESCO 2010 (Camino Real de Tierra Adentro)"
+  ]
+ },
+ {
+  "id": "frontier-potosi-cordoba",
+  "story": "americas-exchange",
+  "wave": "frontier",
+  "title": "Mule road from Potosí through Jujuy and Tucumán to Córdoba",
+  "coordinates": [
+   [
+    -19.58,
+    -65.75
+   ],
+   [
+    -24.19,
+    -65.3
+   ],
+   [
+    -26.82,
+    -65.22
+   ],
+   [
+    -27.78,
+    -64.26
+   ],
+   [
+    -31.42,
+    -64.18
+   ]
+  ],
+  "period": "1550s–1580s",
+  "sources": [
+   "Lockhart & Schwartz 1983"
+  ]
+ },
+ {
+  "id": "frontier-asuncion-buenos-aires",
+  "story": "americas-exchange",
+  "wave": "frontier",
+  "title": "Down the Paraná from Asunción to Santa Fe and Buenos Aires",
+  "coordinates": [
+   [
+    -25.3,
+    -57.63
+   ],
+   [
+    -27.47,
+    -58.83
+   ],
+   [
+    -31.63,
+    -60.7
+   ],
+   [
+    -34.6,
+    -58.38
+   ]
+  ],
+  "period": "1573–1580",
+  "sources": [
+   "Lockhart & Schwartz 1983"
+  ]
+ },
+ {
+  "id": "frontier-bandeiras",
+  "story": "americas-exchange",
+  "wave": "frontier",
+  "title": "Bandeirantes from São Paulo inland to the Guairá missions",
+  "coordinates": [
+   [
+    -23.55,
+    -46.63
+   ],
+   [
+    -23.5,
+    -47.46
+   ],
+   [
+    -23.4,
+    -50.5
+   ],
+   [
+    -24.08,
+    -54.25
+   ]
+  ],
+  "period": "1600s",
+  "sources": [
+   "Monteiro 1994"
+  ]
+ },
+ {
+  "id": "frontier-florida-missions",
+  "story": "americas-exchange",
+  "wave": "frontier",
+  "title": "Spanish Florida: St Augustine to the Apalachee missions",
+  "coordinates": [
+   [
+    29.9,
+    -81.31
+   ],
+   [
+    29.65,
+    -82.32
+   ],
+   [
+    30.44,
+    -84.28
+   ]
+  ],
+  "period": "1565–1633",
+  "sources": [
+   "Hann 1988"
+  ]
+ },
+ {
+  "id": "frontier-st-lawrence",
+  "story": "americas-exchange",
+  "wave": "frontier",
+  "title": "Up the St Lawrence from Tadoussac to Quebec and Montreal",
+  "coordinates": [
+   [
+    48.14,
+    -69.72
+   ],
+   [
+    46.81,
+    -71.21
+   ],
+   [
+    46.34,
+    -72.54
+   ],
+   [
+    45.5,
+    -73.57
+   ]
+  ],
+  "period": "1608–1642",
+  "sources": [
+   "Trudel 1973"
+  ]
+ }
 ]

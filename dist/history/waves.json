@@ -173,6 +173,10 @@
  },
  "hunting": {
   "label": "Hunting",
-  "color": "#ff5a1f"
+  "color": "#19f5e0"
+ },
+ "frontier": {
+  "label": "Settler frontiers",
+  "color": "#d63dff"
  }
 }

@@ -1200,17 +1200,21 @@ if(historyPeriodId)enableHistory(true);
 // Rotation dial beside Fit: dragging around it turns the whole map in 30° steps
 // (the dot shows the current turn); arrow keys step it too. It drives the grid
 // rotation range so the map turns about the viewport centre like the slider.
-if($('rotate-dial')){
- const dial=$('rotate-dial'),input=$('gridRotation');
- const show=()=>dial.style.setProperty('--dial',`${state.gridRotation}deg`);
+// The turning dial sits in the positioning toolbox and again in the history pane; both show the same turn.
+{
+ const dials=[...document.querySelectorAll('.rotate-dial')],input=$('gridRotation');
+ const show=()=>{for(const dial of dials)dial.style.setProperty('--dial',`${state.gridRotation}deg`);};
  const set=degrees=>{let v=Math.round(degrees/30)*30;v=((v+180)%360+360)%360-180;if(v===state.gridRotation)return;input.value=v;input.dispatchEvent(new Event('input',{bubbles:true}));show();};
- const angleAt=e=>{const r=dial.getBoundingClientRect();return Math.atan2(e.clientY-r.top-r.height/2,e.clientX-r.left-r.width/2)*180/Math.PI;};
- let grab=null;
- dial.addEventListener('pointerdown',e=>{if(e.button!==0)return;e.preventDefault();dial.setPointerCapture(e.pointerId);grab={id:e.pointerId,start:angleAt(e),base:state.gridRotation};});
- dial.addEventListener('pointermove',e=>{if(!grab||e.pointerId!==grab.id)return;let d=angleAt(e)-grab.start;d=((d+540)%360)-180;set(grab.base+d);});
- for(const type of ['pointerup','pointercancel'])dial.addEventListener(type,e=>{if(grab&&e.pointerId===grab.id)grab=null;});
- dial.addEventListener('keydown',e=>{if(e.key==='ArrowRight'||e.key==='ArrowUp'){e.preventDefault();set(state.gridRotation+30);}else if(e.key==='ArrowLeft'||e.key==='ArrowDown'){e.preventDefault();set(state.gridRotation-30);}});
+ for(const dial of dials){
+  const angleAt=e=>{const r=dial.getBoundingClientRect();return Math.atan2(e.clientY-r.top-r.height/2,e.clientX-r.left-r.width/2)*180/Math.PI;};
+  let grab=null;
+  dial.addEventListener('pointerdown',e=>{if(e.button!==0)return;e.preventDefault();dial.setPointerCapture(e.pointerId);grab={id:e.pointerId,start:angleAt(e),base:state.gridRotation};});
+  dial.addEventListener('pointermove',e=>{if(!grab||e.pointerId!==grab.id)return;let d=angleAt(e)-grab.start;d=((d+540)%360)-180;set(grab.base+d);});
+  for(const type of ['pointerup','pointercancel'])dial.addEventListener(type,e=>{if(grab&&e.pointerId===grab.id)grab=null;});
+  dial.addEventListener('keydown',e=>{if(e.key==='ArrowRight'||e.key==='ArrowUp'){e.preventDefault();set(state.gridRotation+30);}else if(e.key==='ArrowLeft'||e.key==='ArrowDown'){e.preventDefault();set(state.gridRotation-30);}});
+ }
  input.addEventListener('input',show);show();
+ if($('history-fit'))$('history-fit').onclick=fitView;
 }
 document.querySelectorAll('aside details').forEach(el=>el.addEventListener('toggle',scheduleSave));
 new ResizeObserver(resize).observe($('stage'));

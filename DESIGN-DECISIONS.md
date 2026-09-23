@@ -823,7 +823,20 @@ three parts (50, 25, 10%) and longer, the layer became a canvas: every dot is
 drawn each frame from its pattern offset, and the tail is three 8 px steps of
 falling opacity stroked along the course. Full frame rate at 0.6 ms a frame,
 and a real stepped tail instead of a thinner stroke standing in for one.
-Icons, if wanted, belong to spots. The user also found the eye's
+Icons, if wanted, belong to spots. The user then saw the Russian fur hunters'
+orange-red read as the red of enslaved people: the `hunting` wave is now
+teal. They also asked for the settler paths that pushed the frontier inside
+the United States and Latin America: a `frontier` wave (magenta) on the
+Americas exchange story, with six roads around 1600 (Camino Real de Tierra
+Adentro, Potosí to Córdoba, the Paraná to Buenos Aires, the bandeiras, the
+Florida missions, the St Lawrence) and twelve around 1800 (Wilderness Road,
+the Ohio, the Natchez Trace, Lewis and Clark, the Santa Fe and Oregon trails,
+the Camino Real de los Tejas, Alta California, the Minas Gerais roads, the
+monsoons to Cuiabá, the Pampas forts). 1800 gains an Americas exchange pane
+for them; the trails after 1800 are shown on the last age and said to be so.
+The Fit button and the turning dial now also sit inside the history pane, Fit
+above the dial at its right edge, because the positioning toolbox is hidden
+while the timeline is open. The user also found the eye's
 cell empty with Africa able to fit and South America off screen: the vertex
 rule now drops its stickiness when the eye's cell is empty, and the leftover
 piece takes the free join nearest the eye. The

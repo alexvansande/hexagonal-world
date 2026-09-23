@@ -36,3 +36,23 @@ Four periods show selected exchanges around 1000 BCE, 400 CE, 1000 CE and 1450 C
 ## Deliberate limits
 
 No claim is made about the volume, frequency or political control of any exchange, nor about direct contact between Mesoamerica and the Andes, which remains unproven. Mesoamerica–Caribbean links, Amazonian river networks, Andean maritime balsa trade and many regional systems are omitted. Modern coastlines are retained; the hexagonal map’s cuts interrupt lines without implying interrupted exchange.
+
+## Settler frontiers (1600 and 1800 panes)
+
+Research checked September 23, 2026. Colonial roads and trails, drawn as schematic corridors between founded towns, missions, forts and mines.
+
+- [UNESCO: Camino Real de Tierra Adentro](https://whc.unesco.org/en/list/1351/): the silver road from Mexico City through Zacatecas, extended to Santa Fe by Juan de Oñate in 1598.
+- Lockhart & Schwartz 1983, *Early Latin America*: the Potosí–Tucumán–Córdoba mule road and the towns of the Paraná (Santa Fe 1573, Buenos Aires refounded 1580).
+- Monteiro 1994, *Negros da terra*: the São Paulo bandeiras and the raids on the Guairá reductions in the 1620s–30s.
+- Hann 1988, *Apalachee: The Land between the Rivers*: the Florida mission chain from St Augustine to Apalachee (1633).
+- Trudel 1973, *The Beginnings of New France*: Tadoussac, Quebec (1608), Trois-Rivières (1634) and Montreal (1642).
+- Faragher 1992, *Daniel Boone*: the Wilderness Road (1775) and Ohio River settlement; the Great Wagon Road from Philadelphia.
+- [NPS: Natchez Trace Parkway](https://www.nps.gov/natr/) and [NPS: Santa Fe National Historic Trail](https://www.nps.gov/safe/): the Trace as the boatmen's road home (1790s–1810s) and William Becknell's 1821 trail.
+- Moulton (ed.) 1983–2001, *The Journals of the Lewis and Clark Expedition*: the 1804–06 route up the Missouri, over Lemhi Pass and down the Columbia.
+- Unruh 1979, *The Plains Across*: overland emigration on the Oregon Trail, 1840–60.
+- Hackel 2005, *Children of Coyote, Missionaries of Saint Francis*: the Alta California missions from San Diego (1769) to San Francisco (1776) and beyond; the Portolá expedition set out from Loreto.
+- [NPS: El Camino Real de los Tejas](https://www.nps.gov/elte/): Saltillo, Monclova, San Antonio (1718) and Nacogdoches.
+- Boxer 1962, *The Golden Age of Brazil*: the Caminho Velho from São Paulo and the Caminho Novo from Rio to the Minas Gerais mines; Holanda 1945, *Monções*: the river monsoons from Porto Feliz to Cuiabá.
+- Rock 1985, *Argentina 1516–1987*: the southward fort line of the 1820s (Tandil 1823, Bahía Blanca 1828).
+
+Limitations: these are corridors of settlement, not surveys of particular trails; dates give the span of use. The Santa Fe and Oregon trails and the Pampas forts belong to the decades after 1800 and are shown on the last age of the timeline because the frontier they extended is the same one.

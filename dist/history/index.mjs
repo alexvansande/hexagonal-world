@@ -120,7 +120,8 @@ export const periods=Object.freeze([
   "year": 1800,
   "stories": [
    "african-networks",
-   "ocean-crossings"
+   "ocean-crossings",
+   "americas-exchange"
   ]
  }
 ].map(Object.freeze));

@@ -28,7 +28,7 @@ aside{position:fixed;z-index:8;left:20px;top:20px;bottom:20px;width:330px;max-he
 .canvas-top,.canvas-bottom{display:none!important}
 .view-tools{z-index:5;left:auto;right:24px;bottom:24px;transform:none}
 /* Rotation dial: a circle with an off-centre dot that shows the map's turn; dragging around it turns the map in 15° steps. */
-#rotate-dial{position:relative;width:34px;height:34px;min-width:34px;padding:0;margin-left:2px;border-radius:50%;box-shadow:none;cursor:grab;touch-action:none}
+.rotate-dial{position:relative;width:34px;height:34px;min-width:34px;padding:0;margin-left:2px;border-radius:50%;box-shadow:none;cursor:grab;touch-action:none}
 .rotate-dial:active{cursor:grabbing}
 .rotate-dial .dial-dot{position:absolute;left:50%;top:50%;width:8px;height:8px;margin:-4px 0 0 -4px;border-radius:50%;transform:rotate(var(--dial,0deg)) translate(0,-10px);transition:transform .12s ease}
 .rotate-dial:focus-visible{outline:2px solid #407b8c;outline-offset:2px}
@@ -285,9 +285,9 @@ body:not(.customizing) aside.tour-story-open>#tour-story{display:block}
 .round-mark,.round-button{display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;padding:0;border:0;border-radius:50%;background:var(--control-bg);color:var(--control-ink);font:600 18px/1 'DM Sans',sans-serif;cursor:pointer}
 .round-button:hover{background:var(--control-hover)}
 #show-history .history-back{display:none;position:absolute;left:6px;top:50%;transform:translateY(-50%)}
-#rotate-dial{border:0;background:var(--control-bg)}
-#rotate-dial:hover{background:var(--control-hover)}
-#rotate-dial .dial-dot{background:var(--control-ink)}
+.rotate-dial{border:0;background:var(--control-bg)}
+.rotate-dial:hover{background:var(--control-hover)}
+.rotate-dial .dial-dot{background:var(--control-ink)}
 .view-tools button{color:var(--control-ink);font-size:12px;font-weight:600}
 .view-tools button:hover{background:var(--control-bg)}
 #legend-toggle:not([hidden]){border:0;background:var(--control-bg);color:var(--control-ink);font-size:12px;font-weight:600}
@@ -300,8 +300,14 @@ body:not(.customizing) aside.tour-story-open>#tour-story{display:block}
 #history-toggle input{margin:0;width:16px;height:16px;accent-color:#407b8c}
 body:not(.customizing) aside.tour-story-open>#show-history{display:none}
 body.history .view-tools{display:none}
-.history-tools{position:fixed;z-index:6;right:24px;bottom:24px;width:min(600px,calc(100% - 440px));display:flex;flex-direction:column;gap:6px;padding:12px 14px 10px;background:rgba(255,255,255,.94);border:1px solid rgba(205,218,220,.95);border-radius:12px;box-shadow:0 12px 36px rgba(22,52,59,.18);backdrop-filter:blur(18px)}
+.history-tools{position:fixed;z-index:6;right:24px;bottom:24px;width:min(600px,calc(100% - 440px));display:flex;flex-direction:column;gap:6px;padding:12px 64px 10px 14px;background:rgba(255,255,255,.94);border:1px solid rgba(205,218,220,.95);border-radius:12px;box-shadow:0 12px 36px rgba(22,52,59,.18);backdrop-filter:blur(18px)}
 .history-tools[hidden]{display:none}
+/* Fit above the turning dial at the pane's right edge: the positioning toolbox is hidden while the timeline is open. */
+.history-side{position:absolute;right:12px;top:10px;bottom:8px;width:40px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px}
+#history-fit{width:40px;height:30px;padding:0;border:0;border-radius:15px;background:var(--control-bg);color:var(--control-ink);font:600 11px/1 'DM Sans',sans-serif;cursor:pointer}
+#history-fit:hover{background:var(--control-hover)}
+#history-fit:focus-visible{outline:2px solid #407b8c;outline-offset:2px}
+#history-dial{margin-left:0}
 .history-head{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:11px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:#6e858d}
 .history-head output{font-weight:650;letter-spacing:0;text-transform:none;font-size:12px;color:#234b59;font-variant-numeric:tabular-nums}
 #history-stop{display:block;width:100%;height:28px;margin:0;accent-color:#407b8c;cursor:pointer}
@@ -312,7 +318,7 @@ body.history .view-tools{display:none}
 .history-stop-labels button[aria-pressed="true"]{color:#234b59;background:#e0edef;font-weight:650}
 .history-stop-labels button:focus-visible,#history-stop:focus-visible{outline:2px solid #407b8c;outline-offset:2px}
 .history-note{margin:0;font-size:11px;line-height:1.45;color:#60777d}
-@media(max-width:700px){body.history .map-heading{display:none}body.history #legend-toggle{top:calc(env(safe-area-inset-top) + 150px)}.history-tools{left:12px;right:12px;bottom:auto;top:calc(env(safe-area-inset-top) + 64px);width:auto;padding:10px 12px 8px;gap:5px}.history-stop-labels button{font-size:9px;padding:3px 0}}
+@media(max-width:700px){body.history .map-heading{display:none}body.history #legend-toggle{top:calc(env(safe-area-inset-top) + 150px)}.history-tools{left:12px;right:12px;bottom:auto;top:calc(env(safe-area-inset-top) + 64px);width:auto;padding:10px 12px 8px;gap:5px}.history-stop-labels button{font-size:9px;padding:2px 0;white-space:normal;line-height:1.15}}
 
 /* Phones: the scrubber sits inside the sidebar where the options button was; a
    focused spot swaps it for a strip of cards (no arrows: the next one peeks in
@@ -323,7 +329,8 @@ body.history .view-tools{display:none}
  body.history:not(.customizing) #show-history .history-back{display:inline-flex}
  body.history:not(.customizing) aside .layout-presets,body.history:not(.customizing) aside .style-presets{display:none}
  body.history:not(.customizing) #show-history{background:transparent;padding-left:44px;padding-right:44px}
- aside .history-tools{position:static;width:auto;margin:4px 0 0;padding:6px 2px 2px;background:transparent;border:0;box-shadow:none;backdrop-filter:none}
+ aside .history-tools{position:relative;inset:auto;width:auto;margin:4px 0 0;padding:6px 50px 2px 2px;background:transparent;border:0;box-shadow:none;backdrop-filter:none}
+ aside .history-side{right:2px;top:4px;bottom:2px}
  body.history-focus:not(.customizing) aside .history-tools,body.history-focus:not(.customizing) aside .layout-presets,body.history-focus:not(.customizing) aside .style-presets,body.history-focus:not(.customizing) aside>#show-history{display:none}
  body.history-focus:not(.customizing) aside{background:transparent;border:0;box-shadow:none;backdrop-filter:none;padding:0;left:0;right:0;max-width:none;width:auto}
  body:not(.customizing) aside.tour-story-open>#tour-story-strip{display:flex}
@@ -341,7 +348,7 @@ body.history .view-tools{display:none}
 }
 
 /* Tablets and narrow windows: the scrubber keeps to the right of the sidebar and its ticks shrink before they collide. */
-@media(min-width:701px) and (max-width:1000px){.history-tools{width:calc(100% - 420px);padding:10px 12px 8px}.history-stop-labels button{font-size:9px;padding:3px 0;letter-spacing:-.1px}}
+@media(min-width:701px) and (max-width:1000px){.history-tools{width:calc(100% - 420px);padding:10px 60px 8px 12px}.history-stop-labels button{font-size:9px;padding:2px 0;letter-spacing:-.1px;white-space:normal;line-height:1.15}}
 
 /* Wide screens: the legend sits level with the title instead of below it. */
 @media(min-width:1240px){#floating-legend{top:30px}}
