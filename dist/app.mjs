@@ -6,7 +6,7 @@ import {createTourRoutes,projectTourRoutes} from './tour-route-renderer.mjs?v=hi
 import {loadPeriod} from './history-loader.mjs?v=history-3';
 import {pacificTourNet} from './tour-layout.mjs?v=dancing-2';
 import pacificLighting from './maps/pacific-manifest.mjs?v=pacific-light-1';
-import {createTourStory} from './tour-story.mjs?v=history-4';
+import {createTourStory} from './tour-story.mjs?v=history-5';
 import {periods,period as periodInfo} from './history/index.mjs?v=history-1';
 import {MergedMaps,mergedEntry,mergedCompatible} from './merged-maps.mjs?v=turn-30';
 import {riverFieldGLSL} from './river-layers.mjs?v=cloud-assets-1';
@@ -259,6 +259,9 @@ const spaceshipLit=()=>spaceshipUnlit()&&!!renderDefault.lit&&$('relief-enabled'
 const forcedLitSet=['localhost','127.0.0.1','[::1]'].includes(location.hostname)?new URLSearchParams(location.search).get('lit-set'):null;
 function litPathFor(t){if(!spaceshipLit()||!danceBase)return null;const r=danceTargets.get(t.id)?.r??t.r,turn=litRotationHold??state.gridRotation,k=forcedLitSet!==null?+forcedLitSet:((Math.round((turn-60*Math.round(r))/30)%renderDefault.lit)+renderDefault.lit)%renderDefault.lit;return `${renderDefault.path}/lit/${k}`;}
 let danceBase=null,danceKey='',danceTargets=new Map(),danceTweens=new Map(),danceCentreState='',danceVertex=null;
+// The map opens with the four pieces as one net (Asia, North America and Europe/Africa round one
+// vertex); the vertex rule only starts once the user pans, zooms, turns or opens a story.
+let danceArmed=false;
 function danceGrid(){
  const key=[state.method,state.height,state.arrangement,arrangement===arrangementCache.get(state.arrangement)?'a':'b'].join('/');
  if(key!==danceKey){
@@ -317,7 +320,7 @@ const easeOutBack=p=>p>=1?1:1+2*Math.pow(p-1,3)+1*Math.pow(p-1,2);
 function danceStep(now){
  if(!danceActive())return false;
  // While a story flight is in the air the centre is not where the user looks yet; the frame already placed the pieces.
- if(!tourAnimation)danceFill();
+ if(!tourAnimation&&danceArmed)danceFill();
  const instant=matchMedia('(prefers-reduced-motion: reduce)').matches,duration=380;let moving=false;
  for(const t of net){
   const {x:tx,y:ty,r:tr}=danceTargets.get(t.id);
@@ -399,7 +402,7 @@ function focusView(points){
 // Focus: a dot frames its story's routes for this period and shows the spot text
 // from the period Markdown. Every other story stays drawn; the scrubber stays.
 function focusHistoryStory(id){
- if(!historyOn||!historyPeriod)return;const spot=historyPeriod.text.spots[id];if(!spot)return;
+ if(!historyOn||!historyPeriod)return;danceArmed=true;const spot=historyPeriod.text.spots[id];if(!spot)return;
  if(!historyFocus)historyFocusView={scale,view:{zoom:state.zoom,panX:state.panX,panY:state.panY},expanded:state.sidebarExpanded};
  historyFocus=id;setSidebarExpanded(false,false);showHistoryCard(id);
  hideCoordinateReadout();
@@ -435,7 +438,7 @@ function syncHistoryFocus(){
 // The card's bottom arrows cycle through the period's spots in Markdown order.
 function showHistoryCard(id){
  const spot=historyPeriod.text.spots[id],ids=Object.keys(historyPeriod.text.spots),index=ids.indexOf(id);
- if(compactDevice){tourStory.strip(ids.map(sid=>({id:sid,title:historyPeriod.text.spots[sid].title,story:historyPeriod.text.spots[sid]})),id,sid=>{if(sid!==historyFocus)focusHistoryStory(sid);});return;}
+ if(compactDevice){tourStory.strip(ids.map(sid=>({id:sid,title:historyPeriod.text.spots[sid].title,story:historyPeriod.text.spots[sid]})),id,sid=>{if(sid!==historyFocus)focusHistoryStory(sid);},()=>closeHistoryFocus(true));return;}
  tourStory.show(historySpots().find(s=>s.id===id)||{id,title:spot.title},{...spot,storyId:id},{index,count:ids.length,step:delta=>focusHistoryStory(ids[(index+delta+ids.length)%ids.length])});
 }
 const firstPeriodFor=id=>periods.find(p=>p.stories.includes(id))?.id||null;
@@ -453,7 +456,7 @@ for(const p of periods){const b=document.createElement('button');b.type='button'
 function syncHistoryTools(){
  const info=currentPeriod();
  historyToggle.setAttribute('aria-pressed',String(historyOn));historyToggle.classList.toggle('back',compactDevice&&historyOn);
- historyLabel.textContent=compactDevice&&historyOn?'‹ Back':historyOn?'Close history':'History';
+ historyLabel.textContent=historyOn&&!compactDevice?'Close history':'History';
  historyTools.hidden=!historyOn;document.body.classList.toggle('history',historyOn);document.body.classList.toggle('history-focus',historyOn&&!!historyFocus);
  historySlider.value=String(periods.indexOf(info));historySlider.setAttribute('aria-valuetext',`${info.label}, ${info.date}`);historyDate.textContent=`${info.label} · ${info.date}`;
  for(const b of historyLabels.children)b.setAttribute('aria-pressed',String(b.dataset.stop===info.id));
@@ -823,7 +826,7 @@ for(const id of ['relief-treatment','relief-tone'])$(id).onchange=()=>{if($('lig
 // Repositioning the globe is a toggle in More options > Position; on phones it opens the full-screen repositioning flow.
 function mode(value){state.mode=value;$('rotate').setAttribute('aria-pressed',String(value==='rotate'));$('rotate').textContent=value==='rotate'?'Stop repositioning':'Reposition globe by dragging';scheduleSave();}
 $('rotate').onclick=()=>{if(state.mode==='rotate'){if(mobileRepositioning)finishRepositioning();else mode('pan');return;}if(compactDevice)confirmCustomization(startRepositioning);else mode('rotate');};$('fit').onclick=fitView;
-function zoom(factor,x=w/2,y=h/2){const old=state.zoom;state.zoom=Math.min(maximumZoom(scale),Math.max(.25,old*factor));const r=state.zoom/old;state.panX=(state.panX-(x-w/2))*r+(x-w/2);state.panY=(state.panY-(y-h/2))*r+(y-h/2);draw();}
+function zoom(factor,x=w/2,y=h/2){danceArmed=true;const old=state.zoom;state.zoom=Math.min(maximumZoom(scale),Math.max(.25,old*factor));const r=state.zoom/old;state.panX=(state.panX-(x-w/2))*r+(x-w/2);state.panY=(state.panY-(y-h/2))*r+(y-h/2);draw();}
 $('zoom-in').onclick=()=>zoom(1.25);$('zoom-out').onclick=()=>zoom(.8);canvas.addEventListener('wheel',e=>{e.preventDefault();const r=canvas.getBoundingClientRect();zoom(Math.exp(-e.deltaY*.0015),e.clientX-r.left,e.clientY-r.top);},{passive:false});
 let dragging=null;const pointers=new Map();let pinchDistance=0,grabbed=null;
 // Two fingers turn the map as well as zoom it. The lit sets keep the turn the gesture started
@@ -872,7 +875,7 @@ $('stage').addEventListener('pointermove',event=>{
 $('stage').addEventListener('pointerleave',hideCoordinateReadout);
 $('stage').addEventListener('pointercancel',hideCoordinateReadout);
 window.addEventListener('blur',hideCoordinateReadout);
-canvas.onpointerdown=e=>{cancelPanSpring();
+canvas.onpointerdown=e=>{cancelPanSpring();danceArmed=true;
  canvas.setPointerCapture(e.pointerId);pointers.set(e.pointerId,[e.clientX,e.clientY]);dragging={x:e.clientX,y:e.clientY};
  const sample=state.mode==='rotate'?cursorSphere(e):null;
  if(pointers.size===1&&state.mode==='rotate'&&!sample)mode('pan');
@@ -1188,7 +1191,7 @@ if(historyPeriodId)enableHistory(true);
 if($('rotate-dial')){
  const dial=$('rotate-dial'),input=$('gridRotation');
  const show=()=>dial.style.setProperty('--dial',`${state.gridRotation}deg`);
- const set=degrees=>{let v=Math.round(degrees/30)*30;v=((v+180)%360+360)%360-180;if(v===state.gridRotation)return;input.value=v;input.dispatchEvent(new Event('input',{bubbles:true}));show();};
+ const set=degrees=>{danceArmed=true;let v=Math.round(degrees/30)*30;v=((v+180)%360+360)%360-180;if(v===state.gridRotation)return;input.value=v;input.dispatchEvent(new Event('input',{bubbles:true}));show();};
  const angleAt=e=>{const r=dial.getBoundingClientRect();return Math.atan2(e.clientY-r.top-r.height/2,e.clientX-r.left-r.width/2)*180/Math.PI;};
  let grab=null;
  dial.addEventListener('pointerdown',e=>{if(e.button!==0)return;e.preventDefault();dial.setPointerCapture(e.pointerId);grab={id:e.pointerId,start:angleAt(e),base:state.gridRotation};});

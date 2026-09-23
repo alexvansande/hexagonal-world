@@ -14,14 +14,17 @@ try{
  await until(()=>frame.contentDocument?.querySelectorAll('.tour-marker:not([hidden])').length>0&&frame.contentDocument.querySelector('#map')?.dataset.tourLayout==='dancing','map');
  const d=frame.contentDocument,w=frame.contentWindow,map=d.querySelector('#map'),aside=d.querySelector('#controls');await pause(600);
  check(+d.querySelector('#gridRotation').value===120,'A tall screen starts Spaceship Earth a quarter turn round (120°)');
+ const pos=Object.fromEntries(map.dataset.dancePositions.split(' ').map(s=>{const [id,rest]=s.split(':');return [id,rest.split(',').map(Number)];}));const adj=(a,b)=>Math.abs(Math.hypot(pos[a][0]-pos[b][0],pos[a][1]-pos[b][1])-Math.sqrt(3))<.01;
+ check(adj('3','0')&&adj('3','1')&&adj('1','0'),'The map opens as one net: Europe/Africa touches both America and Asia');
  const button=d.querySelector('#show-history'),scrub=async id=>{const s=d.querySelector('#history-stop');s.value=periods.findIndex(p=>p.id===id);s.dispatchEvent(new w.Event('input',{bubbles:true}));await pause(1800);};
- check(button.tagName==='BUTTON'&&button.textContent.trim()==='History'&&getComputedStyle(d.querySelector('#customize')).display!=='none','The History button and the options button sit in the sidebar');
+ check(button.tagName==='BUTTON'&&button.querySelector('.history-label').textContent==='History'&&getComputedStyle(button.querySelector('.history-back')).display==='none'&&getComputedStyle(d.querySelector('#customize')).display!=='none','The History button and the options button sit in the sidebar');
  button.click();await until(()=>!d.querySelector('.history-tools').hidden&&!d.querySelector('#tour-story-strip'),'scrubber');await pause(600);
  check(aside.contains(d.querySelector('.history-tools'))&&getComputedStyle(d.querySelector('#customize')).display==='none','The scrubber takes the place of the options button inside the sidebar');
- check(button.textContent.trim()==='‹ Back'&&button.getAttribute('aria-pressed')==='true','The History button becomes Back');
+ check(button.querySelector('.history-label').textContent==='History'&&getComputedStyle(button.querySelector('.history-back')).display!=='none'&&button.getAttribute('aria-pressed')==='true','A round back mark appears to the left of History');
  await scrub('1400-ce');await until(()=>d.querySelector('#tour-story-strip'),'cards');await pause(800);
  const strip=d.querySelector('#tour-story-strip'),cards=[...strip.querySelectorAll('.tour-story-card')];
- check(cards.length===periods.find(p=>p.id==='1400-ce').stories.length&&getComputedStyle(d.querySelector('.history-tools')).display==='none','Choosing a period swaps the scrubber for a strip with one card per spot');
+ check(cards.length===periods.find(p=>p.id==='1400-ce').stories.length&&getComputedStyle(d.querySelector('.history-tools')).display==='none'&&getComputedStyle(button).display==='none'&&getComputedStyle(aside).backgroundColor==='rgba(0, 0, 0, 0)','Choosing a period swaps the scrubber for floating cards, one per spot, with no panel or bar behind them');
+ check(cards.every(c=>c.querySelector('.tour-card-close')),'Each card has a round close mark');
  check(!d.querySelector('.tour-story-nav')||d.querySelector('#tour-story').hidden,'No arrows on the phone cards');
  const active=strip.querySelector('.tour-story-card.active'),rect=active.getBoundingClientRect(),next=cards[cards.indexOf(active)+1].getBoundingClientRect();
  check(rect.height<=w.innerHeight/3+2&&getComputedStyle(active).overflowY==='auto','Cards take at most a third of the height and scroll inside');
@@ -29,10 +32,10 @@ try{
  check(getComputedStyle(strip).scrollSnapType.includes('x')&&getComputedStyle(strip).overflowX==='auto','The strip snaps and scrolls natively');
  const before=w.location.pathname;strip.scrollTo({left:cards[1].offsetLeft-12,behavior:'instant'});await pause(600);await until(()=>w.location.pathname!==before,'next spot');await pause(1500);
  check(strip.querySelector('.tour-story-card.active')===cards[1]&&d.querySelector('#tour-story-strip'),'Thumbing the strip to the next card focuses that spot and keeps the strip');
- button.click();await until(()=>!d.querySelector('#tour-story-strip')&&getComputedStyle(d.querySelector('.history-tools')).display!=='none','back to scrubber');
- check(true,'Back returns from the cards to the scrubber');
+ strip.querySelector('.tour-story-card.active .tour-card-close').click();await until(()=>!d.querySelector('#tour-story-strip')&&getComputedStyle(d.querySelector('.history-tools')).display!=='none','back to scrubber');
+ check(true,'Closing a card returns to the scrubber');
  button.click();await until(()=>d.querySelector('.history-tools').hidden&&getComputedStyle(d.querySelector('#customize')).display!=='none','back to map');
- check(button.textContent.trim()==='History','Back again leaves history and restores the options button');
+ check(getComputedStyle(button.querySelector('.history-back')).display==='none','The back mark leaves history and restores the options button');
  // Two fingers turn the map; the lit sets wait for the release and the turn snaps to a stop.
  map.setPointerCapture=()=>{};map.releasePointerCapture=()=>{};const r=map.getBoundingClientRect(),cx=r.left+r.width/2,cy=r.top+r.height/2;
  const ev=(type,id,x,y)=>map.dispatchEvent(new w.PointerEvent(type,{bubbles:true,clientX:x,clientY:y,pointerId:id,pointerType:'touch',isPrimary:id===1,button:0,buttons:type==='pointerup'?0:1}));

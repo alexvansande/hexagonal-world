@@ -28,8 +28,9 @@ export function createTourStory(controls,onClose){
  const stripCards=()=>strip?[...strip.querySelectorAll('.tour-story-card')]:[];
  const nearestCard=()=>{const cards=stripCards();if(!cards.length)return null;const left=strip.scrollLeft+parseFloat(getComputedStyle(strip).scrollPaddingLeft||'0');return cards.reduce((best,card)=>Math.abs(card.offsetLeft-left)<Math.abs(best.offsetLeft-left)?card:best,cards[0]);};
  const settled=()=>{const card=nearestCard();if(!card)return;for(const c of stripCards())c.classList.toggle('active',c===card);if(card.dataset.spot!==stripActive){stripActive=card.dataset.spot;stripSelect?.(stripActive);}};
- const renderCard=(card,item)=>{
-  card.replaceChildren();const h=document.createElement('h2');h.textContent=item.story?.title||item.title;card.append(h);
+ const renderCard=(card,item,onClose)=>{
+  card.replaceChildren();const close=document.createElement('button');close.type='button';close.className='tour-card-close round-button';close.setAttribute('aria-label','Close story');close.textContent='×';close.onclick=()=>onClose?.();card.append(close);
+  const h=document.createElement('h2');h.textContent=item.story?.title||item.title;card.append(h);
   const inner=document.createElement('div');inner.className='tour-story-body';card.append(inner);
   const story=item.story;if(!story){const p=document.createElement('p');p.textContent='Story text is unavailable.';inner.append(p);return;}
   for(const text of story.paragraphs){const p=document.createElement('p');appendMarkdown(p,text);inner.append(p);}
@@ -38,12 +39,12 @@ export function createTourStory(controls,onClose){
   if(story.source){const a=document.createElement('a');a.className='tour-story-source';a.textContent=story.source.title;a.href=new URL(story.source.url,import.meta.url).href;a.target='_blank';a.rel='noreferrer';inner.append(a);}
  };
  return {
-  strip(items,activeId,onSelect){
+  strip(items,activeId,onSelect,onCloseStrip=null){
    stripSelect=onSelect;
    const same=strip&&stripCards().map(c=>c.dataset.spot).join()===items.map(i=>i.id).join();
    if(!same){
     strip?.remove();strip=document.createElement('div');strip.id='tour-story-strip';strip.setAttribute('role','region');strip.setAttribute('aria-label','Stories of this period');
-    for(const item of items){const card=document.createElement('section');card.className='tour-story-card';card.dataset.spot=item.id;renderCard(card,item);strip.append(card);}
+    for(const item of items){const card=document.createElement('section');card.className='tour-story-card';card.dataset.spot=item.id;renderCard(card,item,onCloseStrip);strip.append(card);}
     controls.append(strip);
     strip.addEventListener('scroll',()=>{clearTimeout(settleTimer);settleTimer=setTimeout(settled,120);},{passive:true});
     strip.addEventListener('scrollend',()=>{clearTimeout(settleTimer);settled();});

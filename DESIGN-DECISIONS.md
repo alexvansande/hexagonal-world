@@ -782,6 +782,19 @@ phones; a pinch turns the map about the fingers' midpoint while the lit sets
 hold the starting turn, then the turn snaps with a short ease and the sets
 switch. A phone-sized check page covers all of it, including a synthetic pinch.
 
+**Start as one net, one control look (September 23).** The user asked that the
+phone start show Europe/Africa one cell up, touching both America and Asia;
+that History, More options and the dial share the More options style (no
+border, grey a step darker than the panel, same ink); that the phone scrubber
+replace the options pane with a small round ‹ beside “History” rather than a
+full-width Back; and that the cards lose their extra white layer and full-width
+Back in favour of a round × on each card, to be judged for consistency with the
+‹. Decisions: the map opens as the base net and the vertex rule waits for the
+first interaction; a shared control palette (`--control-bg`, `--control-ink`)
+covers the sidebar buttons, the dial, the view tools, the legend button, the
+card arrows and close, and the scrubber ticks; on phones the cards float over
+the map with no panel behind them.
+
 **Dance anchored on the centre (September 22).** The user saw a small drag down,
 made only to see an arrangement better, re-form the group and move the pieces in
 front of them away. Decision: a band switch needs a deliberate pan (40% of the

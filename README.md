@@ -135,11 +135,17 @@ story has no spot there; closing restores the camera. The period persists as
 such as `/silk-road/` open the timeline at that story's first period with its
 card open. Leaving an eligible map switches history off.
 
+The map opens with the four pieces as one net (Europe/Africa touching both
+America and Asia); the vertex rule starts with the first pan, zoom, turn or
+story. Clickable things around the map share one look, the More options style:
+no border, a grey a step darker than the panel, the same ink, pressed a step
+darker; round marks (‹, ×) use the same grey.
+
 On phones (`compactDevice`): a tall screen starts Spaceship Earth a quarter turn
 round (120°) so the net stands upright; the scrubber moves inside the sidebar in
-place of the More options button and the History button becomes “‹ Back”;
-choosing a period swaps the scrubber for a horizontal strip of cards, one per
-spot, with no arrows: the next card peeks in from the right and a thumb drag
+place of the More options button, with a round ‹ mark to the left of “History”
+to leave; choosing a period swaps the sidebar for floating cards, one per spot,
+each with a round × to close, with no arrows: the next card peeks in from the right and a thumb drag
 snaps natively (`scroll-snap-type: x mandatory`, momentum and rubber-banding
 come from the browser), and landing on a card focuses that spot. Cards take at
 most a third of the height and scroll inside. Back returns to the scrubber, and
