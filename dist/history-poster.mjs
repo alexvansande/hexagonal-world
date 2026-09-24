@@ -120,7 +120,9 @@ export function posterLayout({map,spots,labels=[],scale=1,measure,heading=null,r
    posterBottom=Math.max(posterBottom,(list.length?list.at(-1).y+list.at(-1).height:bottom)+margin);
   }
  }
- const left=map.left-gap-column-margin,right=map.right+gap+column+margin;
+ // A side without boxes keeps only the margin, so a poster with all its stories on one side is not lopsided.
+ const used=side=>boxes.some(b=>b.side===side);
+ const left=used('left')?map.left-gap-column-margin:map.left-margin,right=used('right')?map.right+gap+column+margin:map.right+margin;
  for(const b of boxes){
   b.x=b.side==='left'?map.left-gap-column:map.right+gap;
   b.width=column;

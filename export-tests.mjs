@@ -120,6 +120,9 @@ console.log('PDF 2x and 10x: exact map raster scale, bounded tiles, complete pix
  const oneSided=posterLayout({map,spots:[0,1,2,3,4,5].map(i=>({...story(i),x:700,y:60+i*90})),scale:1,measure});
  assert(oneSided.boxes.some(b=>b.side==='left')&&oneSided.boxes.some(b=>b.side==='right'),'a crowded side hands boxes across');
  for(const box of oneSided.boxes)for(const other of oneSided.boxes)if(other!==box)assert(!overlaps(box,other));
+ // Stories all on one side within reach: the empty side keeps only its margin.
+ const lopsided=posterLayout({map,spots:[0,1].map(i=>({...story(i),x:100,y:150+i*250})),scale:1,measure});
+ assert(lopsided.boxes.every(b=>b.side==='left')&&lopsided.right-map.right<map.right*.1&&map.left-lopsided.left>map.right*.3,'an unused column is dropped');
  // Far more text than the map is tall: the poster grows instead of stacking boxes over each other.
  const crowded=posterLayout({map,spots:Array.from({length:10},(_,i)=>({...story(i),x:i%2?700:100,y:60+i*50})),scale:1,measure});
  assert(crowded.bottom>map.bottom+100,'the poster lengthens for long columns');
