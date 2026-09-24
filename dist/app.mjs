@@ -989,7 +989,7 @@ $('reset').onclick=()=>{for(const [id,value] of Object.entries({lon:0,lat:0,roll
 $('research').onclick=()=>$('research-dialog').showModal();$('close-dialog').onclick=()=>$('research-dialog').close();$('research-dialog').onclick=e=>{if(e.target===$('research-dialog')){const r=e.target.getBoundingClientRect();if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)e.target.close();}};
 // Poster data in the saved view's screen units: the period's routes as still
 // lines, every spot's place names, and one text box per story beside the map.
-function preparePoster(crop,forPDF,aspect=null){
+function preparePoster(crop,forPDF,aspect=null,wall=null){
  const period=historyPeriod,b=bounds(),unit=scale*state.zoom,k=(b[2]-b[0])*unit/800;
  const pairs=flat=>{const out=[];for(let i=0;i<flat.length;i+=2)out.push([flat[i],flat[i+1]]);return out;};
  const routes=projectTourRoutes(tiles,net,state,period.routes).flatMap(route=>(route.strandAnchors||[route.anchors]).flatMap(anchors=>routeFragments(anchors,point,route.lane).filter(part=>part.points.length>=4).map(part=>({points:pairs(part.points),color:route.color||'#fff3c9',alpha:route.uncertain?.65:1,width:state.routeLineWidth*k}))));
@@ -1002,7 +1002,7 @@ function preparePoster(crop,forPDF,aspect=null){
  // On a Lifezones PDF the vector legend at the page's top right may reach a little below the title band.
  let reservedRight=0;
  if(forPDF&&displayedSource==='ecology'){const legend=lifezoneLegendLayout(classCount('land-classes'),classCount('ocean-classes')),intrusion=Math.max(0,18+legend.height*.8-124);reservedRight=intrusion*crop.width*1.78/1118;}
- const layout=posterLayout({map:{left:crop.x,top:crop.y,right:crop.x+crop.width,bottom:crop.y+crop.height},spots,labels,scale:k,measure,heading:{label:period.period.label,date:period.period.date},labelScale:state.labelScale/100,reservedRight,aspect});
+ const layout=posterLayout({map:{left:crop.x,top:crop.y,right:crop.x+crop.width,bottom:crop.y+crop.height},spots,labels,scale:k,measure,heading:{label:period.period.label,date:period.period.date},labelScale:state.labelScale/100,reservedRight,aspect,wall,text:$('export-poster-text').value});
  return {layout,routes,labels,clip};
 }
 const posterFormats=['poster-pdf','poster-png','poster-instagram'];
@@ -1031,7 +1031,7 @@ async function exportMap(format=$('export-scale').value){
   if(!wholeMap){const right=Math.min(saved.w,crop.x+crop.width),bottom=Math.min(saved.h,crop.y+crop.height);crop.x=Math.max(0,crop.x);crop.y=Math.max(0,crop.y);crop.width=right-crop.x;crop.height=bottom-crop.y;if(crop.width<=0||crop.height<=0)Object.assign(crop,{x:0,y:0,width:saved.w,height:saved.h});}
   // The poster grows the crop around the map: a heading above, story columns at both sides.
   // The poster takes the shape of its page: story columns beside the map, or a band of stories under it.
-  const posterData=poster?preparePoster(crop,isPDF,grid?3*1080/((Number($('export-grid').value)||2)*1350):isPDF?1118/664:null):null;
+  const posterData=poster?preparePoster(crop,isPDF,isPDF?1118/664:null,grid?{columns:3,rows:Number($('export-grid').value)||2,tile:{width:1080,height:1350}}:null):null;
   if(posterData)Object.assign(crop,{x:posterData.layout.left,y:posterData.layout.top,width:posterData.layout.width,height:posterData.layout.height,topInset:0});
   const renderTile=async(x,y,width,height,ratio=factor)=>{
    control.signal.throwIfAborted();
@@ -1065,7 +1065,8 @@ async function exportMap(format=$('export-scale').value){
   let blob,extension;
   if(grid){
    // A wall of portrait posts: each tile is its own PNG, zipped with the posting order.
-   const plan=instagramGrid({width:crop.width,height:crop.height,rows:Number($('export-grid').value)||2}),files=[];
+   // A poster is laid out on the wall itself, so it fills it exactly.
+   const plan=instagramGrid({width:crop.width,height:crop.height,rows:Number($('export-grid').value)||2,margin:poster?0:.04}),files=[];
    for(const [index,tile] of plan.tiles.entries()){
     const png=await pngFromTiles({attribution,width:tile.width,height:tile.height,signal:control.signal,onProgress:value=>onProgress((index+value)/plan.tiles.length),renderTile:(x,y,width,height)=>renderTile(x+tile.x-plan.offset[0],y+tile.y-plan.offset[1],width,height,plan.scale)});
     files.push({name:`post-${String(tile.post).padStart(2,'0')} - row ${tile.row+1} column ${tile.column+1}.png`,data:new Uint8Array(await png.arrayBuffer())});

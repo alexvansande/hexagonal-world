@@ -74,7 +74,10 @@ export function placeLabels(labels,{scale=1,labelScale=1,measure}){
 // Lay the boxes out around the map. `map` is its bounding rectangle in poster
 // units, each spot has its anchor in the same units and its texts, `measure`
 // returns the width of a text in a font string, `scale` is map width / 800.
-export function posterLayout({map,spots,labels=[],scale=1,measure,heading=null,reservedRight=0,labelScale=1,aspect=null,bandColumns=3}){
+// How much of each story a box carries: everything, the title with the first sentence, or titles only; the legend always.
+export const posterTextLevels=Object.freeze(['full','brief','titles']);
+export const firstSentence=text=>(text.match(/^[\s\S]*?[.!?](?=\s|$)/)||[text])[0];
+export function posterLayout({map,spots,labels=[],scale=1,measure,heading=null,reservedRight=0,labelScale=1,aspect=null,bandColumns=3,text='full',wall=null}){
  const k=scale,T=posterType,mapWidth=map.right-map.left;
  const gap=mapWidth*.05,margin=mapWidth*.04,lead=T.lineHeight;
  const headBand=heading?T.heading*k*1.15+T.date*k*1.6+margin:margin;
@@ -87,7 +90,8 @@ export function posterLayout({map,spots,labels=[],scale=1,measure,heading=null,r
   const push=(items,style,extra={})=>{const size=style.size*k;y+=size;lines.push({y,items,style,...extra});y+=size*(lead-1);};
   for(const line of wrapRuns([{text:spot.title,bold:false}],textWidth,textMeasure(styles.title)))push(line,styles.title);
   y+=T.body*k*.35;
-  for(const paragraph of spot.paragraphs||[]){
+  const paragraphs=text==='titles'?[]:text==='brief'?(spot.paragraphs||[]).slice(0,1).map(firstSentence):spot.paragraphs||[];
+  for(const paragraph of paragraphs){
    for(const line of wrapRuns(markdownRuns(paragraph),textWidth,textMeasure(styles.body)))push(line,styles.body);
    y+=T.body*k*.45;
   }
@@ -95,11 +99,11 @@ export function posterLayout({map,spots,labels=[],scale=1,measure,heading=null,r
    const wrapped=wrapRuns(markdownRuns(entry.text),textWidth-swatch-T.legend*k*.6,textMeasure(styles.legend));
    wrapped.forEach((line,i)=>push(line,styles.legend,{indent:swatch+T.legend*k*.6,swatch:i===0?entry.color:null}));
   }
-  if(spot.note){y+=T.body*k*.35;for(const line of wrapRuns(markdownRuns(spot.note),textWidth,textMeasure(styles.note)))push(line,styles.note);}
+  if(spot.note&&text==='full'){y+=T.body*k*.35;for(const line of wrapRuns(markdownRuns(spot.note),textWidth,textMeasure(styles.note)))push(line,styles.note);}
   return {id:spot.id,anchor:[spot.x,spot.y],height:y,lines,width:column};
  });
  const top=map.top-headBand;
- const finish=(boxes,left,right,bottom)=>({left,top,right,bottom,width:right-left,height:bottom-top,map,scale:k,labels:placeLabels(labels,{scale:k,labelScale,measure}),heading:heading?{x:left+margin,y:top+margin+T.heading*k,label:heading.label,date:heading.date}:null,boxes,labelScale});
+ const finish=(boxes,left,right,bottom,posterTop=top,pad=margin)=>({left,top:posterTop,right,bottom,width:right-left,height:bottom-posterTop,map,scale:k,labels:placeLabels(labels,{scale:k,labelScale,measure}),heading:heading?{x:left+pad,y:posterTop+pad+T.heading*k,label:heading.label,date:heading.date}:null,boxes,labelScale});
  // Side layout: two columns beside the map, each box on the side of its spot.
  const side=()=>{
   const column=mapWidth*.3,boxes=build(column,false),bottom=map.bottom+margin;
@@ -142,36 +146,60 @@ export function posterLayout({map,spots,labels=[],scale=1,measure,heading=null,r
   }
   return finish(boxes,left,right,posterBottom);
  };
- // Band layout: the boxes in columns under the map, each with a rule along its top and a
- // leader rising to its spot; boxes are dealt to the columns in the order of their spots.
- const band=()=>{
-  const n=Math.max(1,Math.min(bandColumns,spots.length||1)),column=(mapWidth-(n-1)*gap)/n,boxes=build(column,true);
-  // Deal the boxes, in the order of their spots, to the column that stays shortest, leaning
-  // toward the column under the spot so the leaders stay short.
-  const columns=Array.from({length:n},()=>[]),heights=Array(n).fill(0),centre=c=>map.left+c*(column+gap)+column/2;
+// A box under the map: a rule along its top; the first box of a column sends its leader straight
+ // up from the rule's middle, a lower box leaves the end of its rule at 45° into the gutter beside
+ // it, climbs the gutter past the boxes above (one lane per row) and continues from above the band.
+ const bandLeader=(b,row,bandTop,gutter)=>{
+  if(!row)return leaderPath([b.x+b.width/2,b.y],b.anchor,'vertical');
+  const right=b.anchor[0]>b.x+b.width/2,x0=right?b.x+b.width:b.x,lane=gutter/2+(row-1)*2.2*k,xg=right?x0+lane:x0-lane;
+  const up=[xg,b.y-lane],top=[xg,bandTop-gutter/2];
+  return [[x0,b.y],up,top,...leaderPath(top,b.anchor,'vertical').slice(1)];
+ };
+ const deal=(boxes,n,centre)=>{
+  const columns=Array.from({length:n},()=>[]),heights=Array(n).fill(0);
   for(const b of [...boxes].sort((a,b)=>a.anchor[0]-b.anchor[0])){
    const shortest=Math.min(...heights),near=[...heights.keys()].filter(c=>heights[c]<=shortest+b.height/2);
    const best=near.reduce((a,c)=>Math.abs(centre(c)-b.anchor[0])<Math.abs(centre(a)-b.anchor[0])?c:a,near[0]);
    columns[best].push(b);heights[best]+=b.height+spacing;
   }
-  const bandTop=map.bottom+gap;let posterBottom=bandTop;
+  return columns;
+ };
+ // Wall layout: the poster is the Instagram wall itself. The map is as wide as the wall allows,
+ // the stories stand in the wall's own post columns under it, and a box that would cross the
+ // gutter between two rows of posts moves below it, so no text is ever cut by the grid. When the
+ // band does not fit, the wall grows around the map (the map gets smaller on the wall) until it does.
+ const wallLayout=()=>{
+  const W=wall.columns*wall.tile.width,H=wall.rows*wall.tile.height,padW=wall.tile.width*.05;
+  let s=(W-2*padW)/mapWidth;
+  for(let attempt=0;attempt<12;attempt++,s*=.92){
+   const tw=wall.tile.width/s,th=wall.tile.height/s,pad=padW/s,Wc=W/s,Hc=H/s;
+   const boxes=build(tw-2*pad,true),head=heading?T.heading*k*1.15+T.date*k*1.6+pad*1.5:pad;
+   const originX=map.left-(Wc-mapWidth)/2,originY=map.top-head,bandTop=map.bottom+pad,rowOf=y=>Math.floor((y-originY)/th);
+   const columns=deal(boxes,wall.columns,c=>originX+(c+.5)*tw);let bottom=bandTop;
+   columns.forEach((list,c)=>{
+    let y=bandTop;
+    list.forEach((b,row)=>{
+     if(rowOf(y)!==rowOf(y+b.height)&&b.height<th-2*pad)y=originY+(rowOf(y)+1)*th+pad;
+     b.x=originX+c*tw+pad;b.y=y;b.side='below';b.rule=b.y;b.textX=b.x;b.align='left';
+     b.leader=bandLeader(b,row,bandTop,2*pad);y+=b.height+spacing;bottom=Math.max(bottom,y-spacing);
+    });
+   });
+   if(bottom+pad<=originY+Hc||attempt===11)return finish(boxes,originX,originX+Wc,originY+Hc,originY,pad);
+  }
+ };
+ // Band layout: the boxes in columns under the map, each with a rule along its top and a
+ // leader rising to its spot; boxes are dealt to the columns in the order of their spots.
+ const band=()=>{
+  const n=Math.max(1,Math.min(bandColumns,spots.length||1)),column=(mapWidth-(n-1)*gap)/n,boxes=build(column,true);
+  const columns=deal(boxes,n,c=>map.left+c*(column+gap)+column/2),bandTop=map.bottom+gap;let posterBottom=bandTop;
   columns.forEach((list,c)=>{
    let y=bandTop;
-   list.forEach((b,row)=>{
-    b.x=map.left+c*(column+gap);b.y=y;b.side='below';b.rule=b.y;b.textX=b.x;b.align='left';y+=b.height+spacing;
-    if(!row)b.leader=leaderPath([b.x+column/2,b.y],b.anchor,'vertical');
-    else{
-     // A lower box's leader leaves the end of its rule at 45° into the gutter beside it, climbs the
-     // gutter past the boxes above (one lane per row), and continues to the spot from above the band.
-     const right=b.anchor[0]>b.x+column/2,x0=right?b.x+column:b.x,lane=gap/2+(row-1)*2.2*k,xg=right?x0+lane:x0-lane;
-     const up=[xg,b.y-lane],top=[xg,bandTop-gap/2];
-     b.leader=[[x0,b.y],up,top,...leaderPath(top,b.anchor,'vertical').slice(1)];
-    }
-   });
+   list.forEach((b,row)=>{b.x=map.left+c*(column+gap);b.y=y;b.side='below';b.rule=b.y;b.textX=b.x;b.align='left';b.leader=bandLeader(b,row,bandTop,gap);y+=b.height+spacing;});
    posterBottom=Math.max(posterBottom,y-spacing);
   });
   return finish(boxes,map.left-margin,map.right+margin,(boxes.length?posterBottom:map.bottom)+margin);
  };
+ if(wall&&spots.length)return wallLayout();
  if(!aspect||!spots.length)return side();
  const wide=side(),stacked=band(),fit=layout=>Math.abs(Math.log((layout.width/layout.height)/aspect));
  return fit(stacked)<fit(wide)?stacked:wide;

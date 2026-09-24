@@ -144,6 +144,26 @@ console.log('PDF 2x and 10x: exact map raster scale, bounded tiles, complete pix
  assert(Math.abs(Math.log((wall.width/wall.height)/1.2))<Math.abs(Math.log((layout.width/layout.height)/1.2)),'the band fits the wall better than the side columns');
  const page=posterLayout({map,spots:[0,1,2,3].map(story),scale:1,measure,aspect:2.2});
  assert(page.boxes.every(b=>b.side!=='below'),'a wide page keeps the side columns');
+ // Text levels: brief keeps the title, the first sentence and the legend; titles keeps the title and the legend.
+ const {firstSentence}=await import('./dist/history-poster.mjs');
+ assert.equal(firstSentence('Around 1000 CE the island collapsed. Settlers arrived from two directions: Borneo and Africa.'),'Around 1000 CE the island collapsed.');
+ assert.equal(firstSentence('No terminal punctuation here'),'No terminal punctuation here');
+ const full=posterLayout({map,spots:[story(0)],scale:1,measure}).boxes[0],brief=posterLayout({map,spots:[story(0)],scale:1,measure,text:'brief'}).boxes[0],titles=posterLayout({map,spots:[story(0)],scale:1,measure,text:'titles'}).boxes[0];
+ assert(full.height>brief.height&&brief.height>titles.height,'less text, shorter boxes');
+ assert(titles.lines.every(l=>l.style.size!==posterType.body&&l.style.size!==posterType.note),'titles: no body text or note');
+ assert(brief.lines.some(l=>l.style.size===posterType.body)&&!brief.lines.some(l=>l.style.size===posterType.note)&&brief.lines.some(l=>l.swatch),'brief: one sentence and the legend, no note');
+ // The Instagram wall: the poster is the wall; boxes stand in the post columns and never cross a gutter.
+ const wallSpec={columns:3,rows:2,tile:{width:1080,height:1350}};
+ const onWall=posterLayout({map,spots:[0,1,2,3,4,5].map(story),scale:1,measure,heading:{label:'Middle Ages',date:'c. 1000 CE'},wall:wallSpec});
+ const s=3240/onWall.width;assert(Math.abs(onWall.height*s-2700)<1e-6,'the poster has the wall\'s shape');
+ assert(map.left>onWall.left&&map.right<onWall.right&&map.top>onWall.top&&map.bottom<onWall.bottom,'the map is inside the wall');
+ for(const box of onWall.boxes){
+  const x0=(box.x-onWall.left)*s,x1=(box.x+box.width-onWall.left)*s,y0=(box.y-onWall.top)*s,y1=(box.y+box.height-onWall.top)*s;
+  assert(Math.floor(x0/1080)===Math.floor((x1-1e-6)/1080),`box ${box.id} stays in one post column`);
+  assert(Math.floor(y0/1350)===Math.floor((y1-1e-6)/1350),`box ${box.id} does not cross the gutter between rows`);
+  assert(y0>=(map.bottom-onWall.top)*s&&y1<=2700,`box ${box.id} is under the map and on the wall`);
+  for(const other of onWall.boxes)if(other!==box)assert(!overlaps(box,other));
+ }
  // Sizes follow the map: twice the scale doubles the column and the type.
  const big=posterLayout({map:{left:0,top:0,right:1600,bottom:1120},spots:[story(0)].map(s=>({...s,x:240,y:240})),scale:2,measure});
  assert(Math.abs(big.boxes[0].width-2*layout.boxes[0].width)<1e-6&&Math.abs(big.boxes[0].lines[0].y-2*layout.boxes[0].lines[0].y)<1e-6);
