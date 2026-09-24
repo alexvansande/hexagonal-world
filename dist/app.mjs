@@ -1002,7 +1002,7 @@ function preparePoster(crop,forPDF,aspect=null,wall=null){
  // On a Lifezones PDF the vector legend at the page's top right may reach a little below the title band.
  let reservedRight=0;
  if(forPDF&&displayedSource==='ecology'){const legend=lifezoneLegendLayout(classCount('land-classes'),classCount('ocean-classes')),intrusion=Math.max(0,18+legend.height*.8-124);reservedRight=intrusion*crop.width*1.78/1118;}
- const layout=posterLayout({map:{left:crop.x,top:crop.y,right:crop.x+crop.width,bottom:crop.y+crop.height},spots,labels,scale:k,measure,heading:{label:period.period.label,date:period.period.date},labelScale:state.labelScale/100,reservedRight,aspect,wall,text:$('export-poster-text').value});
+ const layout=posterLayout({map:{left:crop.x,top:crop.y,right:crop.x+crop.width,bottom:crop.y+crop.height},spots,labels,scale:k,measure,heading:{label:period.period.label,date:period.period.date},labelScale:state.labelScale/100,reservedRight,aspect,wall,pieces:clip,text:$('export-poster-text').value});
  return {layout,routes,labels,clip};
 }
 const posterFormats=['poster-pdf','poster-png','poster-instagram'];

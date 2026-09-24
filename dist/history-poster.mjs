@@ -50,22 +50,23 @@ export function leaderPath(from,to,leave='horizontal'){
 // Every story's place names share the poster, so they are placed greedily: a
 // site keeps its dot and tries its name to the right, left, above or below;
 // an area name may slide up or down a little; what still collides is dropped.
-export function placeLabels(labels,{scale=1,labelScale=1,measure}){
- const k=scale*labelScale,T=posterType,placed=[],boxes=[];
- const overlaps=box=>boxes.some(b=>box[0]<b[2]&&b[0]<box[2]&&box[1]<b[3]&&b[1]<box[3]);
+export function placeLabels(labels,{scale=1,labelScale=1,measure,avoid={xs:[],ys:[]},obstacles=[]}){
+ const k=scale*labelScale,T=posterType,placed=[],boxes=[...obstacles];
+ // A name may not cover another, nor lie across a line it must avoid (the gutters of a wall of posts).
+ const overlaps=box=>boxes.some(b=>box[0]<b[2]&&b[0]<box[2]&&box[1]<b[3]&&b[1]<box[3])||avoid.xs.some(x=>box[0]<x&&x<box[2])||avoid.ys.some(y=>box[1]<y&&y<box[3]);
  const site=labels.filter(l=>l.kind==='site'),area=labels.filter(l=>l.kind!=='site');
  for(const label of site){
   const dot=[label.x-7*k,label.y-7*k,label.x+7*k,label.y+7*k],text=label.text.toUpperCase(),font=`700 ${(T.site*k).toFixed(2)}px ${posterFonts.sans}`;
   const width=measure(text,font)+.09*T.site*k*text.length,height=14*k,gap=11*k;
   boxes.push(dot);
-  const tries=[{align:'left',tx:label.x+gap,ty:label.y},{align:'right',tx:label.x-gap,ty:label.y},{align:'left',tx:label.x+gap*.6,ty:label.y-height},{align:'left',tx:label.x+gap*.6,ty:label.y+height}];
+  const tries=[{align:'left',tx:label.x+gap,ty:label.y},{align:'right',tx:label.x-gap,ty:label.y},{align:'left',tx:label.x+gap*.6,ty:label.y-height},{align:'left',tx:label.x+gap*.6,ty:label.y+height},{align:'right',tx:label.x-gap*.6,ty:label.y-height},{align:'right',tx:label.x-gap*.6,ty:label.y+height}];
   const fit=tries.find(t=>!overlaps(t.align==='left'?[t.tx,t.ty-height/2,t.tx+width,t.ty+height/2]:[t.tx-width,t.ty-height/2,t.tx,t.ty+height/2]));
   if(fit)boxes.push(fit.align==='left'?[fit.tx,fit.ty-height/2,fit.tx+width,fit.ty+height/2]:[fit.tx-width,fit.ty-height/2,fit.tx,fit.ty+height/2]);
   placed.push({...label,text,...(fit||{tx:null,ty:null,align:'left'})});
  }
  for(const label of area){
   const font=`italic 500 ${(T.area*k).toFixed(2)}px ${posterFonts.serif}`,width=measure(label.text,font)+.02*T.area*k*label.text.length,height=T.area*k*1.1;
-  const fit=[0,-1,1,-2,2].map(step=>label.y+step*height*1.1).find(ty=>!overlaps([label.x-width/2,ty-height/2,label.x+width/2,ty+height/2]));
+  const fit=[0,-1,1,-2,2,-3,3].map(step=>label.y+step*height*1.1).find(ty=>!overlaps([label.x-width/2,ty-height/2,label.x+width/2,ty+height/2]));
   if(fit===undefined)continue;
   boxes.push([label.x-width/2,fit-height/2,label.x+width/2,fit+height/2]);placed.push({...label,tx:label.x,ty:fit,align:'center'});
  }
@@ -77,7 +78,7 @@ export function placeLabels(labels,{scale=1,labelScale=1,measure}){
 // How much of each story a box carries: everything, the title with the first sentence, or titles only; the legend always.
 export const posterTextLevels=Object.freeze(['full','brief','titles']);
 export const firstSentence=text=>(text.match(/^[\s\S]*?[.!?](?=\s|$)/)||[text])[0];
-export function posterLayout({map,spots,labels=[],scale=1,measure,heading=null,reservedRight=0,labelScale=1,aspect=null,bandColumns=3,text='full',wall=null}){
+export function posterLayout({map,spots,labels=[],scale=1,measure,heading=null,reservedRight=0,labelScale=1,aspect=null,bandColumns=3,text='full',wall=null,pieces=[]}){
  const k=scale,T=posterType,mapWidth=map.right-map.left;
  const gap=mapWidth*.05,margin=mapWidth*.04,lead=T.lineHeight;
  const headBand=heading?T.heading*k*1.15+T.date*k*1.6+margin:margin;
@@ -86,7 +87,7 @@ export function posterLayout({map,spots,labels=[],scale=1,measure,heading=null,r
  const textMeasure=(base)=>(text,run)=>measure(text,fontFor({...base,bold:run.bold,italic:run.italic||base.italic},k));
  // The text of every story wrapped to a column width; the band below the map starts a little under its rule.
  const build=(column,band)=>spots.map(spot=>{
-  const textWidth=band?column:column-rulePad,lines=[];let y=band?rulePad*.9:0;
+  const textWidth=band==='wall'?column-rulePad:band?column:column-rulePad,lines=[];let y=band?rulePad*.9:0;
   const push=(items,style,extra={})=>{const size=style.size*k;y+=size;lines.push({y,items,style,...extra});y+=size*(lead-1);};
   for(const line of wrapRuns([{text:spot.title,bold:false}],textWidth,textMeasure(styles.title)))push(line,styles.title);
   y+=T.body*k*.35;
@@ -100,10 +101,11 @@ export function posterLayout({map,spots,labels=[],scale=1,measure,heading=null,r
    wrapped.forEach((line,i)=>push(line,styles.legend,{indent:swatch+T.legend*k*.6,swatch:i===0?entry.color:null}));
   }
   if(spot.note&&text==='full'){y+=T.body*k*.35;for(const line of wrapRuns(markdownRuns(spot.note),textWidth,textMeasure(styles.note)))push(line,styles.note);}
-  return {id:spot.id,anchor:[spot.x,spot.y],height:y,lines,width:column};
+  return {id:spot.id,anchor:[spot.x,spot.y],height:band==='wall'?y+rulePad*.9:y,lines,width:column};
  });
  const top=map.top-headBand;
- const finish=(boxes,left,right,bottom,posterTop=top,pad=margin)=>({left,top:posterTop,right,bottom,width:right-left,height:bottom-posterTop,map,scale:k,labels:placeLabels(labels,{scale:k,labelScale,measure}),heading:heading?{x:left+pad,y:posterTop+pad+T.heading*k,label:heading.label,date:heading.date}:null,boxes,labelScale});
+ const anchorDots=spots.map(s=>[s.x-5*k,s.y-5*k,s.x+5*k,s.y+5*k]);
+ const finish=(boxes,left,right,bottom,posterTop=top,pad=margin,avoid={xs:[],ys:[]},headingAt=null)=>({left,top:posterTop,right,bottom,width:right-left,height:bottom-posterTop,map,scale:k,labels:placeLabels(labels,{scale:k,labelScale,measure,avoid,obstacles:anchorDots}),heading:heading?{x:headingAt?headingAt[0]:left+pad,y:(headingAt?headingAt[1]:posterTop+pad)+T.heading*k,label:heading.label,date:heading.date}:null,boxes,labelScale});
  // Side layout: two columns beside the map, each box on the side of its spot.
  const side=()=>{
   const column=mapWidth*.3,boxes=build(column,false),bottom=map.bottom+margin;
@@ -164,28 +166,84 @@ export function posterLayout({map,spots,labels=[],scale=1,measure,heading=null,r
   }
   return columns;
  };
- // Wall layout: the poster is the Instagram wall itself. The map is as wide as the wall allows,
- // the stories stand in the wall's own post columns under it, and a box that would cross the
- // gutter between two rows of posts moves below it, so no text is ever cut by the grid. When the
- // band does not fit, the wall grows around the map (the map gets smaller on the wall) until it does.
+ // Wall layout: the poster is the Instagram wall itself. The map spans the wall's width, centred,
+ // and every story box takes a free place: inside one post, clear of the map pieces, the heading,
+ // the place names, the other boxes and their leaders, nearest its spot. The empty corners around
+ // the net and the notches between pieces are used first by nearness; when nothing fits, the wall
+ // grows around the map until it does. So no text is ever cut by the grid.
+ const rectHit=(a,b)=>a[0]<b[2]&&b[0]<a[2]&&a[1]<b[3]&&b[1]<a[3];
+ const segmentHitsRect=(p,q,r)=>{
+  if(rectHit([Math.min(p[0],q[0]),Math.min(p[1],q[1]),Math.max(p[0],q[0]),Math.max(p[1],q[1])],r)===false)return false;
+  const inside=v=>v[0]>r[0]&&v[0]<r[2]&&v[1]>r[1]&&v[1]<r[3];if(inside(p)||inside(q))return true;
+  const corners=[[r[0],r[1]],[r[2],r[1]],[r[2],r[3]],[r[0],r[3]]],cross=(a,b,c)=>(b[0]-a[0])*(c[1]-a[1])-(b[1]-a[1])*(c[0]-a[0]);
+  for(let i=0;i<4;i++){const a=corners[i],b=corners[(i+1)%4];if(cross(p,q,a)*cross(p,q,b)<0&&cross(a,b,p)*cross(a,b,q)<0)return true;}
+  return false;
+ };
+ const polygonHitsRect=(polygon,r)=>{
+  const box=[[r[0],r[1]],[r[2],r[1]],[r[2],r[3]],[r[0],r[3]]],axes=[[1,0],[0,1],...polygon.map((p,i)=>{const q=polygon[(i+1)%polygon.length];return [p[1]-q[1],q[0]-p[0]];})];
+  for(const [x,y] of axes){const a=polygon.map(p=>p[0]*x+p[1]*y),b=box.map(p=>p[0]*x+p[1]*y);if(Math.max(...a)<Math.min(...b)||Math.max(...b)<Math.min(...a))return false;}
+  return polygon.length>2;
+ };
  const wallLayout=()=>{
-  const W=wall.columns*wall.tile.width,H=wall.rows*wall.tile.height,padW=wall.tile.width*.05;
-  let s=(W-2*padW)/mapWidth;
-  for(let attempt=0;attempt<12;attempt++,s*=.92){
+  const W=wall.columns*wall.tile.width,H=wall.rows*wall.tile.height,padW=wall.tile.width*.05,mapHeight=map.bottom-map.top;
+  const obstaclesOf=pieces.length?pieces:[[[map.left,map.top],[map.right,map.top],[map.right,map.bottom],[map.left,map.bottom]]];
+  let s=(W-2*padW)/mapWidth,last=null;
+  for(let attempt=0;attempt<16;attempt++,s*=.94){
    const tw=wall.tile.width/s,th=wall.tile.height/s,pad=padW/s,Wc=W/s,Hc=H/s;
-   const boxes=build(tw-2*pad,true),head=heading?T.heading*k*1.15+T.date*k*1.6+pad*1.5:pad;
-   const originX=map.left-(Wc-mapWidth)/2,originY=map.top-head,bandTop=map.bottom+pad,rowOf=y=>Math.floor((y-originY)/th);
-   const columns=deal(boxes,wall.columns,c=>originX+(c+.5)*tw);let bottom=bandTop;
-   columns.forEach((list,c)=>{
-    let y=bandTop;
-    list.forEach((b,row)=>{
-     if(rowOf(y)!==rowOf(y+b.height)&&b.height<th-2*pad)y=originY+(rowOf(y)+1)*th+pad;
-     b.x=originX+c*tw+pad;b.y=y;b.side='below';b.rule=b.y;b.textX=b.x;b.align='left';
-     b.leader=bandLeader(b,row,bandTop,2*pad);y+=b.height+spacing;bottom=Math.max(bottom,y-spacing);
-    });
-   });
-   if(bottom+pad<=originY+Hc||attempt===11)return finish(boxes,originX,originX+Wc,originY+Hc,originY,pad);
+   if(Hc<mapHeight+2*pad)continue;
+   const originX=map.left-(Wc-mapWidth)/2,originY=map.top-(Hc-mapHeight)/2;
+   const cells=[];for(let r=0;r<wall.rows;r++)for(let c=0;c<wall.columns;c++)cells.push([originX+c*tw+pad,originY+r*th+pad,originX+(c+1)*tw-pad,originY+(r+1)*th-pad]);
+   const avoid={xs:Array.from({length:wall.columns-1},(_,i)=>originX+(i+1)*tw),ys:Array.from({length:wall.rows-1},(_,i)=>originY+(i+1)*th)};
+   const clearOfMap=r=>!obstaclesOf.some(poly=>polygonHitsRect(poly,[r[0]-pad*.4,r[1]-pad*.4,r[2]+pad*.4,r[3]+pad*.4]));
+   // `taken` keeps boxes off everything; `blocks` (the heading and the boxes) is what a leader may not cross.
+   const taken=[],blocks=[];
+   // The heading takes the first free corner of the wall.
+   let headingAt=null;
+   if(heading){
+    const hw=Math.max(measure(heading.label,`${(T.heading*k).toFixed(2)}px ${posterFonts.serif}`),measure(heading.date.toUpperCase(),`700 ${(T.date*k).toFixed(2)}px ${posterFonts.sans}`)*1.2),hh=T.heading*k*1.15+T.date*k*1.6;
+    for(const cell of [cells[0],cells[wall.columns-1],cells[cells.length-wall.columns],cells[cells.length-1]]){
+     for(const r of [[cell[0],cell[1],cell[0]+hw,cell[1]+hh],[cell[2]-hw,cell[1],cell[2],cell[1]+hh],[cell[0],cell[3]-hh,cell[0]+hw,cell[3]],[cell[2]-hw,cell[3]-hh,cell[2],cell[3]]]){
+      if(r[0]>=cell[0]&&r[2]<=cell[2]&&clearOfMap(r)){headingAt=[r[0],r[1]];taken.push(r);blocks.push(r);break;}
+     }
+     if(headingAt)break;
+    }
+    if(!headingAt){headingAt=[cells[0][0],cells[0][1]];const r=[cells[0][0],cells[0][1],cells[0][0]+hw,cells[0][1]+hh];taken.push(r);blocks.push(r);}
+   }
+   // Place names first, so boxes stay off them.
+   const names=placeLabels(labels,{scale:k,labelScale,measure,avoid,obstacles:anchorDots});
+   for(const l of names){const ls=labelScale;if(l.kind==='site'){taken.push([l.x-7*k*ls,l.y-7*k*ls,l.x+7*k*ls,l.y+7*k*ls]);if(l.tx!==null){const w=measure(l.text,`700 ${(T.site*k*ls).toFixed(2)}px ${posterFonts.sans}`)*1.1;taken.push(l.align==='left'?[l.tx,l.ty-7*k*ls,l.tx+w,l.ty+7*k*ls]:[l.tx-w,l.ty-7*k*ls,l.tx,l.ty+7*k*ls]);}}
+    else{const w=measure(l.text,`italic 500 ${(T.area*k*ls).toFixed(2)}px ${posterFonts.serif}`);taken.push([l.tx-w/2,l.ty-T.area*k*ls*.55,l.tx+w/2,l.ty+T.area*k*ls*.55]);}}
+   const wide=build(tw-2*pad,'wall'),narrow=build((tw-2*pad)*.62,'wall'),boxes=wide,leaders=[];let failed=false;
+   // The box's rule faces its spot: on a side when the spot is beside it, along the top or bottom when above or below.
+   const orient=(b,r)=>{
+    const [x0,y0,x1,y1]=r,cx=(x0+x1)/2,ax=b.anchor[0],ay=b.anchor[1];
+    if(ax<x0)return {side:'right',rule:x0,textX:x0+rulePad,align:'left',leader:leaderPath([x0,y0+Math.min((y1-y0)/2,T.title*k*lead*1.5)],b.anchor)};
+    if(ax>x1)return {side:'left',rule:x1,textX:x1-rulePad,align:'right',leader:leaderPath([x1,y0+Math.min((y1-y0)/2,T.title*k*lead*1.5)],b.anchor)};
+    if(ay<y0)return {side:'below',rule:y0,textX:x0,align:'left',leader:leaderPath([cx,y0],b.anchor,'vertical')};
+    return {side:'above',rule:y1,textX:x0,align:'left',leader:leaderPath([cx,y1],b.anchor,'vertical')};
+   };
+   const leaderClear=path=>{for(let i=1;i<path.length;i++)for(const r of blocks)if(segmentHitsRect(path[i-1],path[i],r))return false;return true;};
+   const leaderLength=path=>path.slice(1).reduce((sum,p,i)=>sum+Math.hypot(p[0]-path[i][0],p[1]-path[i][1]),0);
+   for(const [index,b] of [...boxes.entries()].sort((a,b)=>b[1].height-a[1].height)){
+    let best=null;
+    // Each story at two widths: the post's width, or a narrower box that fits a corner or a notch.
+    for(const variant of [b,narrow[index]])for(const cell of cells){
+     const w=variant.width;if(cell[2]-cell[0]<w-1e-6)continue;
+     for(const x of [cell[0],cell[2]-w,(cell[0]+cell[2]-w)/2])for(let y=cell[1];y+variant.height<=cell[3]+1e-6;y+=th/24){
+      const r=[x,y,x+w,y+variant.height];
+      if(taken.some(t=>rectHit(r,t))||!clearOfMap(r))continue;
+      const o=orient(variant,r);if(!leaderClear(o.leader))continue;
+      if(leaders.some(path=>path.slice(1).some((p,i)=>segmentHitsRect(path[i],p,r))))continue;
+      const cost=leaderLength(o.leader)+(variant===b?0:variant.height*.5);if(!best||cost<best.cost)best={cost,r,o,variant};
+     }
+    }
+    if(!best){failed=true;break;}
+    Object.assign(b,{lines:best.variant.lines,height:best.variant.height,width:best.variant.width,x:best.r[0],y:best.r[1]},best.o);taken.push(best.r);blocks.push(best.r);leaders.push(best.o.leader);
+   }
+   const result=finish(boxes,originX,originX+Wc,originY+Hc,originY,pad,avoid,headingAt);
+   if(!failed)return result;last=result;
   }
+  return last;
  };
  // Band layout: the boxes in columns under the map, each with a rule along its top and a
  // leader rising to its spot; boxes are dealt to the columns in the order of their spots.
@@ -250,18 +308,19 @@ export function drawPoster(ctx,layout,{routes=[],labels=[],clip=[],ink=posterInk
   ctx.beginPath();ctx.arc(box.anchor[0],box.anchor[1],2.8*k,0,Math.PI*2);ctx.fillStyle=ink;ctx.fill();
   // The rule: along the box's inner side, or across its top when it stands under the map.
   ctx.strokeStyle=ink;ctx.lineWidth=1.1*k;ctx.lineCap='butt';ctx.beginPath();
-  if(box.side==='below'){ctx.moveTo(box.x,box.y);ctx.lineTo(box.x+box.width,box.y);}else{ctx.moveTo(box.rule,box.y);ctx.lineTo(box.rule,box.y+box.height);}
+  if(box.side==='below'){ctx.moveTo(box.x,box.y);ctx.lineTo(box.x+box.width,box.y);}else if(box.side==='above'){ctx.moveTo(box.x,box.y+box.height);ctx.lineTo(box.x+box.width,box.y+box.height);}else{ctx.moveTo(box.rule,box.y);ctx.lineTo(box.rule,box.y+box.height);}
   ctx.stroke();ctx.lineCap='round';
   ctx.textBaseline='alphabetic';
   for(const line of box.lines){
    const y=box.y+line.y,indent=line.indent||0;
+   const pieces=line.items.map(({text,run})=>({text,font:fontFor({...line.style,bold:run.bold,italic:run.italic||line.style.italic},k)}));
+   let width=0;for(const piece of pieces){ctx.font=piece.font;piece.width=ctx.measureText(piece.text).width;width+=piece.width;}
    if(line.swatch){
-    const x0=box.align==='left'?box.textX:box.x+T.legend*k*.3,x1=x0+T.legend*k*2.2,sy=y-line.style.size*k*.35;
+    // The swatch sits just before the text: at the indent for left-aligned text, before the line's start when right-aligned.
+    const x0=box.align==='left'?box.textX:box.textX-width-indent+T.legend*k*.3,x1=x0+T.legend*k*2.2,sy=y-line.style.size*k*.35;
     ctx.lineWidth=2.4*k;ctx.strokeStyle='#213e46';ctx.globalAlpha=.45;ctx.beginPath();ctx.moveTo(x0,sy);ctx.lineTo(x1,sy);ctx.stroke();ctx.globalAlpha=1;
     ctx.lineWidth=1.6*k;ctx.strokeStyle=line.swatch;ctx.beginPath();ctx.moveTo(x0,sy);ctx.lineTo(x1,sy);ctx.stroke();
    }
-   const pieces=line.items.map(({text,run})=>({text,font:fontFor({...line.style,bold:run.bold,italic:run.italic||line.style.italic},k)}));
-   let width=0;for(const piece of pieces){ctx.font=piece.font;piece.width=ctx.measureText(piece.text).width;width+=piece.width;}
    let x=box.align==='left'?box.textX+indent:box.textX-width;
    ctx.textAlign='left';ctx.fillStyle=line.style.color||ink;
    for(const piece of pieces){ctx.font=piece.font;ctx.fillText(piece.text,x,y);x+=piece.width;}

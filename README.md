@@ -535,10 +535,13 @@ the map in three balanced columns, each with a rule along its top; a lower box's
 leader leaves the end of its rule at 45° into the gutter beside it, climbs past
 the boxes above and continues to its spot, so no leader crosses a box. The layout
 whose shape is nearer the page's is chosen. On an Instagram wall the poster is
-the wall itself: the map spans its width, the stories stand in the wall's own
-post columns under it, a box that would cross the gutter between two rows moves
-below it, and the wall grows around the map until the band fits, so no text is
-ever cut by the grid. A *Story text* choice in the dialog sets how much each box
+the wall itself: the map spans its width, centred, and every story box takes a
+free place inside one post, clear of the map pieces, the heading, the place
+names, the other boxes and their leaders, nearest its spot, at the post's width
+or a narrower one that fits a corner or a notch between pieces; its rule faces
+the spot (a side, or the top or bottom edge). Place names keep off the gutters
+and off the story dots. When nothing fits, the wall grows around the map until
+it does, so no text is ever cut by the grid. A *Story text* choice in the dialog sets how much each box
 carries: the title, first sentence and legend (default), titles and legend, or
 the full text. All poster sizes are pixels for a map 800 px wide and scale with the
 map, so posters look alike at any zoom. The poster is rasterised into the export
