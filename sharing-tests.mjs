@@ -60,6 +60,12 @@ const riverMap={...baseline,controls:{...baseline.controls,'river-color':'#ff880
 assert.equal(decodeMapState(encodeMapState(riverMap,baseline)).controls['river-color'],'#ff8800');
 assert.equal(decodeMapState(encodeMapState(riverMap)).controls['river-color'],'#ff8800');
 assert.deepEqual(decodeMapState(btoa(JSON.stringify([2,[],[26,'none']]))).controls,{'lighting-preset':'none'});
+// Animation settings ride at the end of the positional lists, so older links still decode.
+{const animated={version:1,state:{routeDotSize:5,routeTail:0,routeLineWidth:3.5,labelScale:150},controls:{motion:false,dance:false,'route-style':'lines','route-motion':false,'marker-ripples':false},view:{scale:1,zoom:1,panX:0,panY:0},details:{}};
+ const round=decodeMapState(encodeMapState(animated,baseline));
+ assert.deepEqual(round.state,animated.state);assert.deepEqual(round.controls,animated.controls);
+ assert.equal(decodeMapState(encodeMapState(animated)).controls['route-style'],'lines');
+ assert.equal(decodeMapState(btoa(JSON.stringify([2,[],[26,'none']]))).state.labelScale,undefined,'links without animation keys leave them to the defaults');}
 console.log('River colors survive compact and full map links; existing control positions remain compatible.');
 
 const {continentChoices,sourcePair,sourceChoice}=await import('./dist/source-picker.mjs');

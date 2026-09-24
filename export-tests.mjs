@@ -55,3 +55,86 @@ try{
  }
 }finally{Object.assign(globalThis,originalGlobals);}
 console.log('PDF 2x and 10x: exact map raster scale, bounded tiles, complete pixel coverage and vector lettering pass.');
+
+// More formats: a stored zip any unpacker reads, the Instagram wall of posts,
+// and the history poster's boxes, leaders and wrapped text.
+{
+ const {zipFiles,instagramGrid,instagramTile}=await import('./dist/map-export.mjs');
+ const {crc32}=await import('node:zlib');
+ const files=[{name:'post-01.png',data:new Uint8Array([137,80,78,71,1,2,3])},{name:'READ ME.txt',data:new TextEncoder().encode('Post 01 first · ünïcode')}];
+ const zip=Buffer.from(await zipFiles(files,new Date(2026,8,24,10,30,0)).arrayBuffer());
+ const end=zip.length-22;assert.equal(zip.readUInt32LE(end),0x06054b50,'end of central directory');
+ assert.equal(zip.readUInt16LE(end+10),files.length);const centralSize=zip.readUInt32LE(end+12),centralOffset=zip.readUInt32LE(end+16);assert.equal(centralOffset+centralSize,end);
+ let offset=0,central=centralOffset;
+ for(const file of files){
+  assert.equal(zip.readUInt32LE(offset),0x04034b50,'local header');assert.equal(zip.readUInt16LE(offset+8),0,'stored, not deflated');
+  const nameLength=zip.readUInt16LE(offset+26),name=zip.toString('utf8',offset+30,offset+30+nameLength);assert.equal(name,file.name);
+  assert.equal(zip.readUInt32LE(offset+14),crc32(file.data));assert.equal(zip.readUInt32LE(offset+18),file.data.length);
+  assert.deepEqual([...zip.subarray(offset+30+nameLength,offset+30+nameLength+file.data.length)],[...file.data]);
+  assert.equal(zip.readUInt32LE(central),0x02014b50,'central directory entry');assert.equal(zip.readUInt32LE(central+42),offset,'entry points at its local header');assert.equal(zip.readUInt32LE(central+16),crc32(file.data));
+  offset+=30+nameLength+file.data.length;central+=46+zip.readUInt16LE(central+28);
+ }
+ assert.equal(central,end);
+ for(const [width,height,rows] of [[800,560,2],[560,800,3],[2053,519,1]]){
+  const plan=instagramGrid({width,height,rows});
+  assert.equal(plan.tiles.length,3*rows);assert.equal(plan.width,3*instagramTile.width);assert.equal(plan.height,rows*instagramTile.height);
+  assert(width*plan.scale<=plan.width*.86+1e-9&&height*plan.scale<=plan.height*.86+1e-9,'the map keeps a margin inside the wall');
+  assert(Math.abs(width*plan.scale-plan.width*.86)<1e-6||Math.abs(height*plan.scale-plan.height*.86)<1e-6,'the map fills the wall in one direction');
+  assert(Math.abs(plan.offset[0]*2+width*plan.scale-plan.width)<1e-6&&Math.abs(plan.offset[1]*2+height*plan.scale-plan.height)<1e-6,'centred');
+  assert.deepEqual(plan.tiles.map(t=>t.post),plan.tiles.map((_,i)=>plan.tiles.length-i),'posting order runs from the bottom right to the top left');
+  assert.equal(plan.tiles.at(-1).post,1);assert.equal(plan.tiles[0].post,plan.tiles.length);
+ }
+ console.log('More formats: stored zip with CRCs and a readable central directory, Instagram walls of 3, 6 and 9 centred posts in posting order pass.');
+
+ const {posterLayout,leaderPath,markdownRuns,wrapRuns,posterType}=await import('./dist/history-poster.mjs');
+ assert.deepEqual(markdownRuns('Some **bold** and *soft* text with a [link](https://example.org/a) end'),[{text:'Some '},{text:'bold',bold:true},{text:' and '},{text:'soft',italic:true},{text:' text with a '},{text:'link'},{text:' end'}]);
+ const measure=(text,font)=>text.length*parseFloat(font.match(/([\d.]+)px/)[1])*.5;
+ const lines=wrapRuns(markdownRuns('one two **three four** five six seven'),40,(text,run)=>text.length*10*(run.bold?1.2:1));
+ assert(lines.every(line=>line.reduce((sum,piece)=>sum+piece.text.length*10*(piece.run.bold?1.2:1),0)<=40||line.length===1),'lines fit or hold one long word');
+ assert(!lines.some(line=>/^\s|\s$/.test(line.map(p=>p.text).join(''))),'no line starts or ends with a space');
+ assert.deepEqual(lines.flatMap(l=>l.map(p=>p.text).join('').split(' ')),['one','two','three','four','five','six','seven']);
+ // Leaders leave sideways and bend once at 45°, or leave at 45° and finish straight down.
+ for(const [from,to] of [[[0,0],[100,30]],[[0,0],[-100,30]],[[0,0],[30,-100]],[[50,50],[50,50]]]){
+  const path=leaderPath(from,to);assert.equal(path.length,3);assert.deepEqual(path[0],from);assert.deepEqual(path[2],to);
+  const [a,b]=[[path[1][0]-path[0][0],path[1][1]-path[0][1]],[path[2][0]-path[1][0],path[2][1]-path[1][1]]];
+  const straight=v=>Math.abs(v[0])<1e-9||Math.abs(v[1])<1e-9,diagonal=v=>Math.abs(Math.abs(v[0])-Math.abs(v[1]))<1e-9;
+  assert((straight(a)&&diagonal(b))||(diagonal(a)&&straight(b)),`leader ${JSON.stringify(path)} is not straight then diagonal`);
+ }
+ const map={left:0,top:0,right:800,bottom:560};
+ const story=i=>({id:'s'+i,title:'Story '+i,x:120+i*170,y:120+i*80,paragraphs:['Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. '.repeat(2),'A second paragraph with **bold** words.'],legend:[{color:'#ffd000',text:'**Gold** · Mali → Mediterranean'}],note:'Volumes are unknown; dots show direction only.'});
+ const layout=posterLayout({map,spots:[0,1,2,3].map(story),scale:1,measure,heading:{label:'High Middle Ages',date:'c. 1400 CE'},labelScale:1});
+ assert.equal(layout.boxes.length,4);assert(layout.left<map.left&&layout.right>map.right&&layout.top<map.top&&layout.bottom>=map.bottom);
+ assert(layout.heading&&layout.heading.y<map.top,'the period heading sits above the map');
+ const overlaps=(a,b)=>a.x<b.x+b.width&&b.x<a.x+a.width&&a.y<b.y+b.height&&b.y<a.y+a.height;
+ for(const box of layout.boxes){
+  assert(box.x+box.width<=map.left||box.x>=map.right,`box ${box.id} stands beside the map, not over it`);
+  assert(box.y>=layout.top&&box.y+box.height<=layout.bottom,`box ${box.id} is inside the poster`);
+  assert(box.lines.length>6&&box.lines[0].style.size===posterType.title,'title first, then the wrapped text');
+  assert(box.lines.some(line=>line.swatch==='#ffd000'),'legend lines carry their wave colour');
+  assert.deepEqual(box.leader[0],[box.rule,box.leader[0][1]]);assert.deepEqual(box.leader[2],box.anchor);
+  assert(box.leader[0][1]>=box.y&&box.leader[0][1]<=box.y+box.height,'the leader leaves from the rule');
+  assert.equal(box.side==='left',box.anchor[0]<400);assert.equal(box.align,box.side==='left'?'right':'left');
+  for(const other of layout.boxes)if(other!==box)assert(!overlaps(box,other),`boxes ${box.id} and ${other.id} overlap`);
+ }
+ // Every spot on one side: the column shares its boxes with the other side rather than overflowing.
+ const oneSided=posterLayout({map,spots:[0,1,2,3,4,5].map(i=>({...story(i),x:700,y:60+i*90})),scale:1,measure});
+ assert(oneSided.boxes.some(b=>b.side==='left')&&oneSided.boxes.some(b=>b.side==='right'),'a crowded side hands boxes across');
+ for(const box of oneSided.boxes)for(const other of oneSided.boxes)if(other!==box)assert(!overlaps(box,other));
+ // Far more text than the map is tall: the poster grows instead of stacking boxes over each other.
+ const crowded=posterLayout({map,spots:Array.from({length:10},(_,i)=>({...story(i),x:i%2?700:100,y:60+i*50})),scale:1,measure});
+ assert(crowded.bottom>map.bottom+100,'the poster lengthens for long columns');
+ for(const box of crowded.boxes)for(const other of crowded.boxes)if(other!==box)assert(!overlaps(box,other));
+ assert(crowded.boxes.every(b=>b.y+b.height<=crowded.bottom));
+ // Sizes follow the map: twice the scale doubles the column and the type.
+ const big=posterLayout({map:{left:0,top:0,right:1600,bottom:1120},spots:[story(0)].map(s=>({...s,x:240,y:240})),scale:2,measure});
+ assert(Math.abs(big.boxes[0].width-2*layout.boxes[0].width)<1e-6&&Math.abs(big.boxes[0].lines[0].y-2*layout.boxes[0].lines[0].y)<1e-6);
+ // Place names: crowded sites keep their dots and move or lose their names; crowded areas slide or drop.
+ const {placeLabels}=await import('./dist/history-poster.mjs');
+ const crowd=placeLabels([{kind:'site',text:'Baghdad',x:100,y:100},{kind:'site',text:'Kyiv',x:104,y:102},{kind:'site',text:'Constantinople',x:108,y:100},{kind:'site',text:'Cairo',x:100,y:101},{kind:'area',text:'Baltic Sea',x:110,y:100},{kind:'area',text:'Steppe',x:400,y:300}],{scale:1,labelScale:1,measure});
+ assert.equal(crowd.filter(l=>l.kind==='site').length,4,'every site keeps its dot');
+ const boxes=crowd.filter(l=>l.tx!==null).map(l=>{const w=l.text.length*(l.kind==='site'?9.5:19)*.5;return l.align==='left'?[l.tx,l.ty-7,l.tx+w,l.ty+7]:l.align==='right'?[l.tx-w,l.ty-7,l.tx,l.ty+7]:[l.tx-w/2,l.ty-10,l.tx+w/2,l.ty+10];});
+ for(let i=0;i<boxes.length;i++)for(let j=i+1;j<boxes.length;j++){const a=boxes[i],b=boxes[j];assert(!(a[0]<b[2]&&b[0]<a[2]&&a[1]<b[3]&&b[1]<a[3]),'placed names never overlap');}
+ assert(crowd.some(l=>l.kind==='area'&&l.text==='Steppe'),'a lone area label stays');
+ assert(crowd.filter(l=>l.kind==='site'&&l.tx===null).length>=1||crowd.some(l=>l.align==='right'),'a crowded site moves or drops its name');
+ console.log('History poster: Markdown runs and wrapping, straight-diagonal leaders, boxes beside the map without overlaps, balanced and lengthened columns, scale-following sizes pass.');
+}

@@ -1,4 +1,4 @@
-import {projectTourLocations} from './tour-markers.mjs?v=history-3';
+import {projectTourLocations} from './tour-markers.mjs?v=history-4';
 import {hex} from './geometry.mjs';
 
 export function sampleRoute(route,step=.18){
@@ -83,6 +83,8 @@ export function createTourRoutes(stage){
  const ctx=canvas.getContext('2d');
  const reduced=typeof matchMedia==='function'&&matchMedia('(prefers-reduced-motion: reduce)').matches;
  let drawn=[],width=0,height=0,dpr=1,paused=false,frame=0,clipPolygons=[];
+ // Animation settings: comets or lines, moving or still, dot size and tail length (px).
+ const options={style:'comets',motion:true,dotSize:comet.head,tail:comet.tail.reduce((sum,[,length])=>sum+length,0),lineWidth:2};
  const fadeRadius=30,started=performance.now();
  const fadeAt=(x,y,ends)=>{let f=1;for(let i=0;i<ends.length;i+=2){const d=Math.hypot(x-ends[i],y-ends[i+1]);if(d<fadeRadius)f=Math.min(f,d/fadeRadius);}return f;};
  const pos=[0,0],from=[0,0];
@@ -93,13 +95,21 @@ export function createTourRoutes(stage){
   const ratio=Math.min(devicePixelRatio||1,2);
   if(canvas.width!==Math.round(width*ratio)||canvas.height!==Math.round(height*ratio)){canvas.width=Math.round(width*ratio);canvas.height=Math.round(height*ratio);dpr=ratio;}
   ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,width,height);ctx.lineCap='round';ctx.lineJoin='round';
-  const t=reduced?0:(performance.now()-started)/1000;
+  const still=reduced||!options.motion,lines=options.style==='lines';
+  const t=still?0:(performance.now()-started)/1000;
+  const head=options.dotSize,halo=head*1.75,tailSteps=options.tail>0?comet.tail.map(([opacity])=>[opacity,options.tail/comet.tail.length]):[];
   // Layers keep halo under every head: halos first, then tails, then heads.
   for(const item of drawn){
    const {color,fragments,traffic,ends,uncertain,lane}=item,alpha=uncertain?.65:1;
    ctx.save();
    if(lane&&clipPolygons.length){ctx.beginPath();for(const poly of clipPolygons){ctx.moveTo(poly[0],poly[1]);for(let i=2;i<poly.length;i+=2)ctx.lineTo(poly[i],poly[i+1]);ctx.closePath();}ctx.clip();}
-   const offsets=corridor?[0]:trafficDots(traffic),loop=corridor?8:traffic.length,shift=corridor?0:((traffic.speed*t-traffic.phase)%loop+loop)%loop,tail=corridor?[]:comet.tail;
+   if(lines){
+    // The whole course as a still line: a dark halo under the wave colour keeps every hue readable.
+    for(const pass of [0,1]){ctx.globalAlpha=pass?alpha:alpha*.45;ctx.strokeStyle=pass?color:'#213e46';ctx.lineWidth=pass?options.lineWidth:options.lineWidth+1.4;
+     for(const part of fragments){if(part.points.length<4)continue;ctx.beginPath();ctx.moveTo(part.points[0],part.points[1]);for(let i=2;i<part.points.length;i+=2)ctx.lineTo(part.points[i],part.points[i+1]);ctx.stroke();}}
+    item.dots=0;ctx.restore();continue;
+   }
+   const offsets=corridor?[0]:trafficDots(traffic),loop=corridor?8:traffic.length,shift=corridor?0:((traffic.speed*t-traffic.phase)%loop+loop)%loop,tail=corridor?[]:tailSteps;
    const heads=[];
    for(const part of fragments){
     if(part.length<=0)continue;
@@ -119,7 +129,7 @@ export function createTourRoutes(stage){
       let back=local;
       for(const [opacity,length] of tail){
        const end=Math.max(0,back-length);if(end>=back)break;
-       ctx.globalAlpha=opacity*f;ctx.strokeStyle=color;ctx.lineWidth=comet.head;ctx.beginPath();
+       ctx.globalAlpha=opacity*f;ctx.strokeStyle=color;ctx.lineWidth=head;ctx.beginPath();
        // Walk the polyline between end and back so the tail bends with the course.
        const hiBack=along(part,back,pos);ctx.moveTo(pos[0],pos[1]);
        const loEnd=along(part,end,from);
@@ -134,19 +144,26 @@ export function createTourRoutes(stage){
    ctx.globalAlpha=1;
    // Halo under the heads, then the heads.
    ctx.fillStyle='#213e46';
-   for(let i=0;i<heads.length;i+=3){ctx.globalAlpha=.8*heads[i+2];ctx.beginPath();ctx.arc(heads[i],heads[i+1],comet.halo/2,0,Math.PI*2);ctx.fill();}
+   for(let i=0;i<heads.length;i+=3){ctx.globalAlpha=.8*heads[i+2];ctx.beginPath();ctx.arc(heads[i],heads[i+1],halo/2,0,Math.PI*2);ctx.fill();}
    ctx.fillStyle=color;
-   for(let i=0;i<heads.length;i+=3){ctx.globalAlpha=heads[i+2];ctx.beginPath();ctx.arc(heads[i],heads[i+1],comet.head/2,0,Math.PI*2);ctx.fill();}
+   for(let i=0;i<heads.length;i+=3){ctx.globalAlpha=heads[i+2];ctx.beginPath();ctx.arc(heads[i],heads[i+1],head/2,0,Math.PI*2);ctx.fill();}
    ctx.restore();
   }
   canvas.dataset.dots=String(drawn.reduce((sum,item)=>sum+(item.dots||0),0));
-  if(!paused&&!reduced&&drawn.length)frame=requestAnimationFrame(loop);
+  canvas.dataset.routeStyle=lines?'lines':still?'still':'comets';
+  if(!paused&&!still&&!lines&&drawn.length)frame=requestAnimationFrame(loop);
  }
  const loop=()=>render(false);const schedule=()=>{if(!frame)frame=requestAnimationFrame(loop);};
  document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')schedule();});
  const api={
   canvas,
   setPaused(value){paused=value;canvas.classList.toggle('flow-paused',paused);if(!paused)schedule();},
+  // Animation pane settings; a change redraws at once (a still frame when nothing moves).
+  configure(next){
+   let changed=false;for(const [key,value] of Object.entries(next)){if(value!==undefined&&options[key]!==value){options[key]=value;changed=true;}}
+   if(changed&&drawn.length){cancelAnimationFrame(frame);frame=0;render();}
+   return options;
+  },
   // Draw one frame now (previews and tests) and return the canvas.
   snapshot(corridor=false){cancelAnimationFrame(frame);frame=0;render(corridor);return canvas;},
   update(routes,point,w,h){

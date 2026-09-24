@@ -352,3 +352,22 @@ body.history .view-tools{display:none}
 
 /* Wide screens: the legend sits level with the title instead of below it. */
 @media(min-width:1240px){#floating-legend{top:30px}}
+
+/* Animation pane: history label size, still markers and ripple-free spots. */
+.tour-label[data-kind="site"]{font-size:calc(9.5px*var(--label-scale,1));line-height:calc(14px*var(--label-scale,1));padding-left:calc(17px*var(--label-scale,1));margin:calc(-7px*var(--label-scale,1)) 0 0 calc(-6px*var(--label-scale,1))}
+.tour-label[data-kind="site"]::before{width:calc(12px*var(--label-scale,1));height:calc(12px*var(--label-scale,1));top:calc(1px*var(--label-scale,1))}
+.tour-label[data-kind="area"]{font-size:calc(22px*var(--label-scale,1))}
+body.no-ripples .tour-ripple{display:none}
+body.still .tour-ripple{animation:none;transform:scale(.65);opacity:.35}body.still .tour-ripple:nth-child(n+2){display:none}body.still .tour-center{transition:none}
+/* More formats: the Instagram grid and the history posters. */
+#export-more{position:relative;width:min(440px,calc(100vw - 32px));padding:22px 24px 20px;border:0;border-radius:14px;color:var(--ink)}
+#export-more h2{font:400 26px/1.1 Baskerville,Georgia,serif;letter-spacing:-.5px;margin:0 0 14px}
+#export-more-close{position:absolute;right:10px;top:10px;width:40px;height:40px;padding:0;border:0;border-radius:50%;font:26px/1 Arial,sans-serif;color:var(--control-ink);background:transparent}
+#export-more-close:hover{background:var(--control-bg)}
+.export-formats{display:flex;flex-direction:column;gap:8px}
+.export-format{display:flex;flex-direction:column;align-items:flex-start;gap:3px;width:100%;padding:10px 12px;text-align:left;background:var(--control-bg);border:0;border-radius:8px;color:var(--ink);cursor:pointer}
+.export-format:hover{background:var(--control-hover)}
+.export-format b{font-size:14px}.export-format small{font-size:11.5px;line-height:1.4;color:#5d727a}
+.export-grid{display:flex;align-items:center;gap:10px;font-size:12px;margin:0 0 4px;color:#5d727a}.export-grid select{width:auto;margin:0;padding:6px 24px 6px 8px;font-size:12px}
+#export-poster-formats{display:flex;flex-direction:column;gap:8px}#export-poster-formats .control-subheading{margin:10px 0 0}#export-poster-formats .note{margin:0 0 2px}
+#export-poster-note{margin:6px 0 0}

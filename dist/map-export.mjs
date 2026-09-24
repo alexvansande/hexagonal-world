@@ -58,3 +58,35 @@ export async function printPDF({width,height,rasterScale=2,renderTile,signal,onP
  const xref=offset;output.push(bytes(`xref\n0 ${objects.length+1}\n0000000000 65535 f \n`+offsets.slice(1).map(n=>String(n).padStart(10,'0')+' 00000 n \n').join('')+`trailer\n<< /Size ${objects.length+1} /Root ${catalog} 0 R /Info ${info} 0 R >>\nstartxref\n${xref}\n%%EOF\n`));
  tile.width=tile.height=1;return new Blob(output,{type:'application/pdf'});
 }
+
+// A plain stored ZIP (the PNGs inside are already compressed): local headers,
+// a central directory and the end record, with CRC-32 over every file.
+const crc32=data=>{let crc=0xffffffff;for(let i=0;i<data.length;i++)crc=crcTable[(crc^data[i])&255]^(crc>>>8);return (crc^0xffffffff)>>>0;};
+export function zipFiles(files,date=new Date()){
+ const time=((date.getHours()<<11)|(date.getMinutes()<<5)|(date.getSeconds()>>1))&0xffff,day=(((Math.max(1980,date.getFullYear())-1980)<<9)|((date.getMonth()+1)<<5)|date.getDate())&0xffff;
+ const parts=[],central=[];let offset=0;
+ for(const file of files){
+  const name=utf8.encode(file.name),data=file.data instanceof Uint8Array?file.data:new Uint8Array(file.data),crc=crc32(data);
+  const local=new Uint8Array(30+name.length),lv=new DataView(local.buffer);
+  lv.setUint32(0,0x04034b50,true);lv.setUint16(4,20,true);lv.setUint16(6,0x0800,true);lv.setUint16(8,0,true);lv.setUint16(10,time,true);lv.setUint16(12,day,true);lv.setUint32(14,crc,true);lv.setUint32(18,data.length,true);lv.setUint32(22,data.length,true);lv.setUint16(26,name.length,true);lv.setUint16(28,0,true);local.set(name,30);
+  const entry=new Uint8Array(46+name.length),ev=new DataView(entry.buffer);
+  ev.setUint32(0,0x02014b50,true);ev.setUint16(4,20,true);ev.setUint16(6,20,true);ev.setUint16(8,0x0800,true);ev.setUint16(10,0,true);ev.setUint16(12,time,true);ev.setUint16(14,day,true);ev.setUint32(16,crc,true);ev.setUint32(20,data.length,true);ev.setUint32(24,data.length,true);ev.setUint16(28,name.length,true);ev.setUint16(30,0,true);ev.setUint16(32,0,true);ev.setUint16(34,0,true);ev.setUint16(36,0,true);ev.setUint32(38,0,true);ev.setUint32(42,offset,true);entry.set(name,46);
+  parts.push(local,data);central.push(entry);offset+=local.length+data.length;
+ }
+ const size=central.reduce((sum,entry)=>sum+entry.length,0),end=new Uint8Array(22),view=new DataView(end.buffer);
+ view.setUint32(0,0x06054b50,true);view.setUint16(8,files.length,true);view.setUint16(10,files.length,true);view.setUint32(12,size,true);view.setUint32(16,offset,true);
+ return new Blob([...parts,...central,end],{type:'application/zip'});
+}
+
+// Instagram grid: the whole map centred on a wall of portrait posts (1080 × 1350,
+// the largest post Instagram keeps), three columns wide. The profile grid shows
+// the newest post first, so the tiles are numbered in posting order: the
+// bottom-right tile is posted first and the top-left last.
+export const instagramTile=Object.freeze({width:1080,height:1350});
+export function instagramGrid({width,height,columns=3,rows=2,tile=instagramTile,margin=.07}){
+ const gridWidth=columns*tile.width,gridHeight=rows*tile.height;
+ const scale=Math.min(gridWidth*(1-2*margin)/width,gridHeight*(1-2*margin)/height);
+ const offset=[(gridWidth-width*scale)/2,(gridHeight-height*scale)/2],tiles=[];
+ for(let row=0;row<rows;row++)for(let column=0;column<columns;column++)tiles.push({row,column,x:column*tile.width,y:row*tile.height,width:tile.width,height:tile.height,post:rows*columns-(row*columns+column)});
+ return {columns,rows,tile,width:gridWidth,height:gridHeight,scale,offset,tiles};
+}

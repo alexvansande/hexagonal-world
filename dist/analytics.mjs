@@ -3,7 +3,7 @@ export const goatCounterEndpoint='https://hexagonal-earth.goatcounter.com/count'
 const formats=['dymaxion','felv','bighex','gosper','flower','infinite','single','double'];
 const styles=['lifezones','satellite','elevation','political','topographic','gray-neutral','ivory','distortion-analysis'];
 export function eventPayload(kind,value){
- const allowed={format:formats,style:styles,download:['pdf','2x-png','10x-png']};
+ const allowed={format:formats,style:styles,download:['pdf','2x-png','10x-png','instagram','poster-pdf','poster-png','poster-instagram']};
  return allowed[kind]?.includes(value)?{path:`${kind}-${value}`,title:`${kind}: ${value}`,event:true,referrer:''}:null;
 }
 export function analyticsAllowed(host,privacy,framed,endpoint){return ['hexagonal.earth','www.hexagonal.earth'].includes(host)&&!privacy&&!framed&&/^https:\/\/[a-z0-9-]+\.goatcounter\.com\/count$/.test(endpoint);}

@@ -514,6 +514,44 @@ viewport without a print title frame. PDF includes full finite-map bounds,
 shadow padding, titles, and credits; infinite layouts use the visible area.
 Filenames include the site, author, selected map format, and style.
 
+**More formats…** in the file-format menu opens the extra formats
+(`dist/map-export.mjs`, `dist/history-poster.mjs`). *Instagram grid* cuts the
+whole map into a wall of 1080 × 1350 portrait posts, three columns wide and one
+to three rows tall, centred with a 7% margin, and downloads a stored zip of PNGs
+plus a note: the tiles are numbered in posting order (the bottom-right tile is
+posted first because the profile grid shows the newest post first). With the
+History timeline open the dialog adds the *History poster* in PDF (A3 at 4×, about 340 dpi), PNG
+(5×) and Instagram grid form: the age's routes drawn as still lines (every strand,
+with a dark halo; parallel lanes clipped to the pieces), every spot's site and
+area labels on the map, the age's name and date above, and one text box per story
+beside the map, with a rule on its inner side and a leader that leaves the rule
+horizontally and bends once at 45° (or leaves at 45° and finishes vertically) to a
+dot on the spot. Boxes have no background. They stand in two columns, 30% of the
+map's width each, on the side of their spot; a crowded column hands its box
+nearest the middle to the other side, and columns taller than the map lengthen
+the poster. All poster sizes are pixels for a map 800 px wide and scale with the
+map, so posters look alike at any zoom. The poster is rasterised into the export
+tiles (the PDF's embedded fonts cover only its fixed lettering), so the PDF keeps
+its title band, credit and Lifezones legend as vector, with the poster as image.
+Placeholder tiles are never exported: a tile that fails to load aborts the export
+as before.
+
+## Animation pane
+
+More options → Animation collects everything that moves. *Animate the camera
+and the pieces* is a master switch for the scripted moves (story flights, the
+dance tweens, the spring at the map's edge, the turn settling on a stop and the
+marker pulse); off, every move is immediate, as with the system's reduced-motion
+setting, which is always honoured. *Dance* switches the Spaceship Earth vertex
+rule off, returning the pieces to the base net; the option is shown only on
+Spaceship Earth. The history routes can be drawn as comets (moving or still, with
+dot size and tail length sliders; the tail keeps its three steps of falling
+opacity, each a third of the chosen length) or as lines of a chosen width. *Label
+size* scales the site and area labels through a `--label-scale` custom property
+on the stage, and *Ripples around the spots* hides the marker ripples. The
+settings live in the positional map-state lists (four state keys and five
+control keys appended after the backdrop grid) so they ride in shared links.
+
 ## Settings organization
 
 All collapsible sections are siblings: Projection method, Layout & grids, Globe orientation, Map source & colors, Rivers, Relief & lighting, and Distortion & Tissot. Panel states are saved by stable IDs; older positional panel states are migrated on load. Flower World presets use a 60° grid rotation.

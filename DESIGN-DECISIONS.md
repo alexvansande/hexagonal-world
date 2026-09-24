@@ -876,6 +876,34 @@ piece takes the free join nearest the eye. The
 desktop scrubber also grew (up to 600 px) and stays right of the sidebar on
 narrow windows, where its ticks shrink instead of colliding.
 
+**Animation pane and more formats (September 24).** The user asked for an
+Animation pane under More options (the dance, whether anything animates, whether
+the dots move, their size, their tail, lines instead of dots, label size, chosen
+"smartly" for inclusion, display and visibility) and for a "More formats"
+entry in Download with an Instagram grid of the whole map as a zip, plus, on
+the timeline, poster formats (PDF and Instagram "with labels"): the current
+history map with every story's full text in a box outside the map, no box
+background, a single rule on the box's side, a straight-then-diagonal leader to
+the point, animation off and the dots drawn as full lines, ready to print or to
+post. Decisions: one pane with a master motion switch (which also follows the
+system reduced-motion setting), the dance switch shown only on Spaceship Earth,
+routes as comets or lines with dot size, tail length and line width sliders
+shown for the chosen style, a label-size slider and a ripples switch; all of it
+in the shared-link state, appended to the positional lists. The Instagram grid
+is 1080 × 1350 posts, three columns wide and one to three rows tall, zipped with
+a note giving the posting order (bottom right first, since the profile grid
+shows the newest post first). The poster draws every strand as a still line
+with a dark halo, all the age's site and area labels, the age's name and date,
+and a text box per story in two side columns balanced between the sides and
+lengthening the poster when a column is taller than the map; the leader leaves
+the rule horizontally and bends once at 45°. The poster is rasterised into the
+export tiles because the PDF's embedded fonts hold only the fixed lettering;
+vector poster text would need full font subsets and is recorded as an untested
+idea. A PNG poster (5×) was added beside the requested PDF and Instagram forms
+since it costs nothing. Unresolved: the exact grid the user meant by "2:3" was
+read as three columns by two rows of portrait posts; other tile ratios are not
+offered.
+
 **Dance anchored on the centre (September 22).** The user saw a small drag down,
 made only to see an arrangement better, re-form the group and move the pieces in
 front of them away. Decision: a band switch needs a deliberate pan (40% of the
