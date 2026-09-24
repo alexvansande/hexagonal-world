@@ -956,6 +956,15 @@ and leaves out the stories that never fit, naming them in the zip's note. The
 portrait turn of Spaceship Earth is undone for whole-map files from the dialog
 as well as for download addresses.
 
+*Review round: the page like the wall, and arrowheads.* Comparing the PDF with
+the Instagram wall, the user preferred the wall because its text is spread
+across the space rather than stacked on the sides. Decision: PDF and PNG posters
+use the same free placement as the wall, on one page-shaped cell with five
+columns of candidate positions and side-column box widths; the side and band
+layouts are gone (the side layout remains only as the shape-free fallback). One-
+way routes drawn as lines end in an arrowhead so the direction reads without
+the comets; two-way routes have none.
+
 **Dance anchored on the centre (September 22).** The user saw a small drag down,
 made only to see an arrangement better, re-form the group and move the pieces in
 front of them away. Decision: a band switch needs a deliberate pan (40% of the

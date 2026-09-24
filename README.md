@@ -529,17 +529,14 @@ jiggle only thickens a still line; with a dark halo; parallel lanes clipped to t
 area labels on the map, the age's name and date above, and one text box per story
 beside the map, with a rule on its inner side and a leader that leaves the rule
 horizontally and bends once at 45° (or leaves at 45° and finishes vertically) to a
-dot on the spot. Boxes have no background. On a wide page they stand in two columns, 30% of
-the map's width each, on the side of their spot; a crowded column hands its box
-nearest the middle to the other side, columns taller than the map lengthen the
-poster, and a side without stories keeps only its margin. On a squarer page (an
-Instagram wall, or an A3 page when that fits better) the boxes form a band under
-the map in three balanced columns, each with a rule along its top; a lower box's
-leader leaves the end of its rule at 45° into the gutter beside it, climbs past
-the boxes above and continues to its spot, so no leader crosses a box. The layout
-whose shape is nearer the page's is chosen. On an Instagram wall the poster is
-the wall itself: the map spans its width, centred, and every story box takes a
-free place inside one post, clear of the map pieces, the heading, the place
+dot on the spot. Boxes have no background. A one-way route ends in an
+arrowhead along its last segment; two-way routes have none. On a page (PDF and
+PNG, both the A3 shape) and on an Instagram wall alike the boxes are placed
+freely around the net, each nearest its spot, so the text is spread across the
+space rather than stacked in columns: on the page the boxes are 30% of the map's
+width (or narrower to fit a notch) at five columns of candidate positions; on
+the wall the poster is the wall itself, the map spans its width, centred, and
+every story box takes a free place inside one post, clear of the map pieces, the heading, the place
 names, the other boxes and their leaders, nearest its spot, at the post's width
 or a narrower one that fits a corner or a notch between pieces; its rule faces
 the spot (a side, or the top or bottom edge). Place names keep off the gutters

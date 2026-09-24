@@ -3,8 +3,8 @@ import {readTourPath} from './tour-pages.mjs?v=history-2';
 import {historyPath,readHistoryPath,readHashShare} from './history-routes.mjs?v=history-1';
 import {readDownloadPath,downloadPath,mapFiles,posterFiles} from './download-routes.mjs?v=download-1';
 import {createTourMarkers,createTourLabels,projectTourLocations,tourEnabled,tourLocations} from './tour-markers.mjs?v=history-4';
-import {createTourRoutes,projectTourRoutes,routeFragments,lineCourses,straightenPoints} from './tour-route-renderer.mjs?v=comet-5';
-import {posterLayout,drawPoster} from './history-poster.mjs?v=poster-1';
+import {createTourRoutes,projectTourRoutes,routeFragments,lineCourses,straightenPoints} from './tour-route-renderer.mjs?v=comet-6';
+import {posterLayout,drawPoster} from './history-poster.mjs?v=poster-2';
 import {loadPeriod} from './history-loader.mjs?v=comet-2';
 import {pacificTourNet} from './tour-layout.mjs?v=dancing-2';
 import pacificLighting from './maps/pacific-manifest.mjs?v=pacific-light-1';
@@ -996,7 +996,7 @@ function preparePoster(crop,forPDF,aspect=null,wall=null){
  const period=historyPeriod,b=bounds(),unit=scale*state.zoom,k=(b[2]-b[0])*unit/800;
  const pairs=flat=>{const out=[];for(let i=0;i<flat.length;i+=2)out.push([flat[i],flat[i+1]]);return out;};
  // One course per route (see lineCourses): parallel strands and return legs would only thicken a still line.
- const routes=lineCourses(projectTourRoutes(tiles,net,state,period.routes)).flatMap(route=>routeFragments(route.anchors,point,route.lane).filter(part=>part.points.length>=4).map(part=>({points:pairs(straightenPoints(part.points)),color:route.color||'#fff3c9',alpha:route.uncertain?.65:1,width:state.routeLineWidth*k})));
+ const routes=lineCourses(projectTourRoutes(tiles,net,state,period.routes)).flatMap(route=>routeFragments(route.anchors,point,route.lane).filter(part=>part.points.length>=4).map((part,i,parts)=>({points:pairs(straightenPoints(part.points)),arrow:!route.twoWay&&i===parts.length-1,color:route.color||'#fff3c9',alpha:route.uncertain?.65:1,width:state.routeLineWidth*k})));
  const clip=net.map(t=>(t.polygon||hex).map(p=>point(p,t)));
  const seen=new Set(),wanted=[];
  for(const spot of Object.values(period.text.spots))for(const label of spot.labels){const key=label.kind+'|'+label.text;if(!seen.has(key)){seen.add(key);wanted.push(label);}}
@@ -1041,7 +1041,7 @@ async function exportMap(format=$('export-scale').value){
   // The poster grows the crop around the map: a heading above, story columns at both sides.
   // The poster takes the shape of its page: story columns beside the map, or a band of stories under it.
   const {pngFromTiles,printPDF,zipFiles,instagramGrid,instagramTile}=await import('./map-export.mjs?v=poster-2');
-  const posterData=poster?preparePoster(crop,isPDF,isPDF?1118/664:null,grid?{columns:3,rows:Number($('export-grid').value)||2,tile:instagramTile}:null):null;
+  const posterData=poster?preparePoster(crop,isPDF,grid?null:1118/664,grid?{columns:3,rows:Number($('export-grid').value)||2,tile:instagramTile}:null):null;
   if(posterData)Object.assign(crop,{x:posterData.layout.left,y:posterData.layout.top,width:posterData.layout.width,height:posterData.layout.height,topInset:0});
   const renderTile=async(x,y,width,height,ratio=factor)=>{
    control.signal.throwIfAborted();

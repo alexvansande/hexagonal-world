@@ -164,26 +164,9 @@ export function posterLayout({map,spots,labels=[],scale=1,measure,heading=null,r
   }
   return finish(boxes,left,right,posterBottom);
  };
-// A box under the map: a rule along its top; the first box of a column sends its leader straight
- // up from the rule's middle, a lower box leaves the end of its rule at 45° into the gutter beside
- // it, climbs the gutter past the boxes above (one lane per row) and continues from above the band.
- const bandLeader=(b,row,bandTop,gutter)=>{
-  if(!row)return leaderPath([b.x+b.width/2,b.y],b.anchor,'vertical');
-  const right=b.anchor[0]>b.x+b.width/2,x0=right?b.x+b.width:b.x,lane=gutter/2+(row-1)*2.2*k,xg=right?x0+lane:x0-lane;
-  const up=[xg,b.y-lane],top=[xg,bandTop-gutter/2];
-  return [[x0,b.y],up,top,...leaderPath(top,b.anchor,'vertical').slice(1)];
- };
- const deal=(boxes,n,centre)=>{
-  const columns=Array.from({length:n},()=>[]),heights=Array(n).fill(0);
-  for(const b of [...boxes].sort((a,b)=>a.anchor[0]-b.anchor[0])){
-   const shortest=Math.min(...heights),near=[...heights.keys()].filter(c=>heights[c]<=shortest+b.height/2);
-   const best=near.reduce((a,c)=>Math.abs(centre(c)-b.anchor[0])<Math.abs(centre(a)-b.anchor[0])?c:a,near[0]);
-   columns[best].push(b);heights[best]+=b.height+spacing;
-  }
-  return columns;
- };
- // Wall layout: the poster is the Instagram wall itself. The map spans the wall's width, centred,
- // and every story box takes a free place: inside one post, clear of the map pieces, the heading,
+ // Free placement: on an Instagram wall (the poster is the wall itself) or on a page of a given
+ // shape (one cell, five columns of candidate positions, narrower boxes). The map spans the wall's
+ // width, centred, and every story box takes a free place: inside one post, clear of the map pieces, the heading,
  // the place names, the other boxes and their leaders, nearest its spot. The empty corners around
  // the net and the notches between pieces are used first by nearness; when nothing fits, the wall
  // grows around the map until it does. So no text is ever cut by the grid.
@@ -200,7 +183,7 @@ export function posterLayout({map,spots,labels=[],scale=1,measure,heading=null,r
   for(const [x,y] of axes){const a=polygon.map(p=>p[0]*x+p[1]*y),b=box.map(p=>p[0]*x+p[1]*y);if(Math.max(...a)<Math.min(...b)||Math.max(...b)<Math.min(...a))return false;}
   return polygon.length>2;
  };
- const wallLayout=()=>{
+ const wallLayout=wall=>{
   const W=wall.columns*wall.tile.width,H=wall.rows*wall.tile.height,padW=wall.tile.width*.05,mapHeight=map.bottom-map.top;
   const obstaclesOf=pieces.length?pieces:[[[map.left,map.top],[map.right,map.top],[map.right,map.bottom],[map.left,map.bottom]]];
   // The map fills the wall's width, or its height when the map is the taller shape (a turned net, a 3 × 1 wall).
@@ -230,7 +213,9 @@ export function posterLayout({map,spots,labels=[],scale=1,measure,heading=null,r
    const names=placeLabels(labels,{scale:k,labelScale,measure,avoid,obstacles:anchorDots});
    for(const l of names){const ls=labelScale;if(l.kind==='site'){taken.push([l.x-7*k*ls,l.y-7*k*ls,l.x+7*k*ls,l.y+7*k*ls]);if(l.tx!==null){const w=measure(l.text,`700 ${(T.site*k*ls).toFixed(2)}px ${posterFonts.sans}`)*1.1;taken.push(l.align==='left'?[l.tx,l.ty-7*k*ls,l.tx+w,l.ty+7*k*ls]:[l.tx-w,l.ty-7*k*ls,l.tx,l.ty+7*k*ls]);}}
     else{const w=measure(l.text,`italic 500 ${(T.area*k*ls).toFixed(2)}px ${posterFonts.serif}`);taken.push([l.tx-w/2,l.ty-T.area*k*ls*.55,l.tx+w/2,l.ty+T.area*k*ls*.55]);}}
-   const wide=build(tw-2*pad,'wall'),narrow=build((tw-2*pad)*.62,'wall'),boxes=wide,leaders=[];let failed=false;
+   // A post's width on the wall; on a page the columns of the side layout, so text stays a readable measure.
+   const boxWidth=wall.page?Math.min(tw-2*pad,mapWidth*.3):tw-2*pad,ystep=wall.page?th/40:th/24;
+   const wide=build(boxWidth,'wall'),narrow=build(boxWidth*.62,'wall'),boxes=wide,leaders=[];let failed=false;
    // The box's rule faces its spot: on a side when the spot is beside it, along the top or bottom when above or below.
    const orient=(b,r)=>{
     const [x0,y0,x1,y1]=r,cx=(x0+x1)/2,ax=b.anchor[0],ay=b.anchor[1];
@@ -246,7 +231,8 @@ export function posterLayout({map,spots,labels=[],scale=1,measure,heading=null,r
     // Each story at two widths: the post's width, or a narrower box that fits a corner or a notch.
     for(const variant of [b,narrow[index]])for(const cell of cells){
      const w=variant.width;if(cell[2]-cell[0]<w-1e-6)continue;
-     for(const x of [cell[0],cell[2]-w,(cell[0]+cell[2]-w)/2])for(let y=cell[1];y+variant.height<=cell[3]+1e-6;y+=th/24){
+     const xs=wall.page?[0,.25,.5,.75,1].map(f=>cell[0]+f*(cell[2]-cell[0]-w)):[cell[0],cell[2]-w,(cell[0]+cell[2]-w)/2];
+     for(const x of xs)for(let y=cell[1];y+variant.height<=cell[3]+1e-6;y+=ystep){
       const r=[x,y,x+w,y+variant.height];
       if(taken.some(t=>rectHit(r,t))||!clearOfMap(r))continue;
       const o=orient(variant,r);if(!leaderClear(o.leader))continue;
@@ -265,24 +251,17 @@ export function posterLayout({map,spots,labels=[],scale=1,measure,heading=null,r
   if(last){last.dropped=last.boxes.filter(b=>b.x===undefined).map(b=>b.id);last.boxes=last.boxes.filter(b=>b.x!==undefined);}
   return last;
  };
- // Band layout: the boxes in columns under the map, each with a rule along its top and a
- // leader rising to its spot; boxes are dealt to the columns in the order of their spots.
- const band=()=>{
-  const n=Math.max(1,Math.min(bandColumns,spots.length||1)),column=(mapWidth-(n-1)*gap)/n,boxes=build(column,true);
-  const columns=deal(boxes,n,c=>map.left+c*(column+gap)+column/2),bandTop=map.bottom+gap;let posterBottom=bandTop;
-  columns.forEach((list,c)=>{
-   let y=bandTop;
-   list.forEach((b,row)=>{b.x=map.left+c*(column+gap);b.y=y;b.side='below';b.rule=b.y;b.textX=b.x;b.align='left';b.leader=bandLeader(b,row,bandTop,gap);y+=b.height+spacing;});
-   posterBottom=Math.max(posterBottom,y-spacing);
-  });
-  return finish(boxes,map.left-margin,map.right+margin,(boxes.length?posterBottom:map.bottom)+margin);
- };
- if(wall&&spots.length)return wallLayout();
+ if(wall&&spots.length)return wallLayout(wall);
  if(!aspect||!spots.length)return side();
- const wide=side(),stacked=band(),fit=layout=>Math.abs(Math.log((layout.width/layout.height)/aspect));
- return fit(stacked)<fit(wide)?stacked:wide;
+ // A page of a known shape (PDF, PNG) places the boxes freely around the net, like the wall, so the text
+ // is spread across the space instead of stacked in two side columns.
+ return wallLayout({columns:1,rows:1,tile:{width:aspect*1000,height:1000},page:true})||side();
 }
-// Draw the poster in poster units on a context whose transform already maps them.
+// An arrowhead at the end of a one-way route: a filled triangle along the last segment.
+const arrowhead=(ctx,points,size)=>{
+ const n=points.length,[tx,ty]=points[n-1],[px,py]=points[n-2],a=Math.atan2(ty-py,tx-px),c=Math.cos(a),si=Math.sin(a);
+ ctx.beginPath();ctx.moveTo(tx+c*size*.6,ty+si*size*.6);ctx.lineTo(tx-c*size*.7-si*size*.55,ty-si*size*.7+c*size*.55);ctx.lineTo(tx-c*size*.7+si*size*.55,ty-si*size*.7-c*size*.55);ctx.closePath();ctx.fill();
+};
 export function drawPoster(ctx,layout,{routes=[],labels=[],clip=[],ink=posterInk}={}){
  const k=layout.scale,T=posterType;
  ctx.save();ctx.lineJoin='round';ctx.lineCap='round';
@@ -293,11 +272,13 @@ export function drawPoster(ctx,layout,{routes=[],labels=[],clip=[],ink=posterInk
   if(route.points.length<2)continue;
   ctx.globalAlpha=(route.alpha??1)*.45;ctx.strokeStyle='#213e46';ctx.lineWidth=route.width+1.4*k;
   ctx.beginPath();route.points.forEach((p,i)=>i?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1]));ctx.stroke();
+  if(route.arrow){ctx.fillStyle='#213e46';arrowhead(ctx,route.points,route.width*3+4*k);}
  }
  for(const route of routes){
   if(route.points.length<2)continue;
   ctx.globalAlpha=route.alpha??1;ctx.strokeStyle=route.color;ctx.lineWidth=route.width;
   ctx.beginPath();route.points.forEach((p,i)=>i?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1]));ctx.stroke();
+  if(route.arrow){ctx.fillStyle=route.color;arrowhead(ctx,route.points,route.width*3+3*k);}
  }
  ctx.globalAlpha=1;if(clip.length)ctx.restore();
  // Site and area labels as on screen: outlined text at half-transparent white.

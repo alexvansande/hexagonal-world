@@ -118,7 +118,11 @@ export function createTourRoutes(stage){
    if(lines){
     // The whole course as a still line: a dark halo under the wave colour keeps every hue readable.
     for(const pass of [0,1]){ctx.globalAlpha=pass?alpha:alpha*.45;ctx.strokeStyle=pass?color:'#213e46';ctx.lineWidth=pass?options.lineWidth:options.lineWidth+1.4;
-     for(const part of fragments){if(part.points.length<4)continue;const pts=straightenPoints(part.points);ctx.beginPath();ctx.moveTo(pts[0],pts[1]);for(let i=2;i<pts.length;i+=2)ctx.lineTo(pts[i],pts[i+1]);ctx.stroke();}}
+     for(const part of fragments){if(part.points.length<4)continue;const pts=straightenPoints(part.points);ctx.beginPath();ctx.moveTo(pts[0],pts[1]);for(let i=2;i<pts.length;i+=2)ctx.lineTo(pts[i],pts[i+1]);ctx.stroke();}
+     // A one-way route ends in an arrowhead along its last segment.
+     const end=item.twoWay?null:fragments.findLast(part=>part.points.length>=4);
+     if(end){const pts=straightenPoints(end.points),n=pts.length,tx=pts[n-2],ty=pts[n-1],a=Math.atan2(ty-pts[n-3],tx-pts[n-4]),c=Math.cos(a),si=Math.sin(a),size=options.lineWidth*3+(pass?3:4);
+      ctx.fillStyle=pass?color:'#213e46';ctx.beginPath();ctx.moveTo(tx+c*size*.6,ty+si*size*.6);ctx.lineTo(tx-c*size*.7-si*size*.55,ty-si*size*.7+c*size*.55);ctx.lineTo(tx-c*size*.7+si*size*.55,ty-si*size*.7-c*size*.55);ctx.closePath();ctx.fill();}}
     item.dots=0;ctx.restore();continue;
    }
    const offsets=corridor?[0]:trafficDots(traffic),loop=corridor?8:traffic.length,shift=corridor?0:((traffic.speed*t-traffic.phase)%loop+loop)%loop,tail=corridor?[]:tailSteps;
@@ -189,7 +193,7 @@ export function createTourRoutes(stage){
     const strands=route.strandAnchors||[route.anchors],traffic=route.traffic;
     return strands.map((anchors,s)=>{const t=Array.isArray(traffic)?traffic[s]:traffic;if(!t||!anchors.length)return null;
      const ends=[anchors[0],anchors.at(-1)].flatMap(anchor=>point(anchor.local,anchor.tile,anchor.offset));
-     return {id:route.id,color:route.color||'#fff3c9',uncertain:!!route.uncertain,lane:route.lane,traffic:t,ends,course:s===0&&!route.returnOf,fragments:routeFragments(anchors,point,route.lane)};}).filter(Boolean);
+     return {id:route.id,color:route.color||'#fff3c9',uncertain:!!route.uncertain,lane:route.lane,traffic:t,ends,course:s===0&&!route.returnOf,twoWay:!!route.twoWay,fragments:routeFragments(anchors,point,route.lane)};}).filter(Boolean);
    }).flat();
    if(routes.length){cancelAnimationFrame(frame);frame=0;render();}else{cancelAnimationFrame(frame);frame=0;canvas.dataset.dots='0';}
   } };

@@ -133,22 +133,21 @@ console.log('PDF 2x and 10x: exact map raster scale, bounded tiles, complete pix
  assert(crowded.bottom>map.bottom+100,'the poster lengthens for long columns');
  for(const box of crowded.boxes)for(const other of crowded.boxes)if(other!==box)assert(!overlaps(box,other));
  assert(crowded.boxes.every(b=>b.y+b.height<=crowded.bottom));
- // A squarer page (an Instagram wall) puts the stories in a band under the map, dealt to three columns.
- const wall=posterLayout({map,spots:[0,1,2,3,4,5].map(story),scale:1,measure,aspect:3240/2700,heading:{label:'Middle Ages',date:'c. 1000 CE'}});
- assert(wall.boxes.every(b=>b.side==='below'&&b.y>=map.bottom&&b.x>=map.left&&b.x+b.width<=map.right+1e-6),'boxes stand under the map');
- assert.equal(new Set(wall.boxes.map(b=>b.x.toFixed(3))).size,3,'three columns');
- for(const box of wall.boxes)for(const other of wall.boxes)if(other!==box)assert(!overlaps(box,other));
- const columnsOf=wall.boxes.reduce((m,b)=>{(m[b.x]||=[]).push(b);return m;},{});
- {const tall=Object.values(columnsOf).map(l=>l.reduce((sum,b)=>sum+b.height,0));assert(Math.max(...tall)-Math.min(...tall)<=Math.max(...wall.boxes.map(b=>b.height))+1e-6,'columns are balanced to within one box');}
- for(const box of wall.boxes){
-  assert.deepEqual(box.leader.at(-1),box.anchor);assert(box.leader[0][1]===box.y,'the leader leaves the rule');
-  for(let i=1;i<box.leader.length;i++){const a=[box.leader[i][0]-box.leader[i-1][0],box.leader[i][1]-box.leader[i-1][1]];assert(Math.abs(a[0])<1e-9||Math.abs(a[1])<1e-9||Math.abs(Math.abs(a[0])-Math.abs(a[1]))<1e-9,'every leader segment is straight or at 45°');}
-  // No leader crosses another box: sample each segment.
-  for(const other of wall.boxes)if(other!==box)for(let i=1;i<box.leader.length;i++)for(let t=0;t<=1;t+=.05){const x=box.leader[i-1][0]+(box.leader[i][0]-box.leader[i-1][0])*t,y=box.leader[i-1][1]+(box.leader[i][1]-box.leader[i-1][1])*t;assert(!(x>other.x+1e-6&&x<other.x+other.width-1e-6&&y>other.y+1e-6&&y<other.y+other.height-1e-6),`leader of ${box.id} crosses ${other.id}`);}
+ // A page of a known shape (PDF, PNG) places the boxes freely around the net, nearest their spots:
+ // inside the page, off the map, never over each other, leaders straight or at 45° and never through another box.
+ for(const aspect of [1118/664,3240/2880,2.2]){
+  const page=posterLayout({map,spots:[0,1,2,3,4,5].map(story),scale:1,measure,aspect,heading:{label:'Middle Ages',date:'c. 1000 CE'}});
+  assert(Math.abs(page.width/page.height-aspect)<1e-6,'the poster has the page\'s shape');
+  assert.equal(page.boxes.length,6);assert(page.heading&&page.heading.y>page.top,'the heading is on the page');
+  const sides=new Set(page.boxes.map(b=>b.side));assert(sides.size>=2,'boxes stand on more than one side of the map: '+[...sides]);
+  for(const box of page.boxes){
+   assert(box.x>=page.left-1e-6&&box.x+box.width<=page.right+1e-6&&box.y>=page.top-1e-6&&box.y+box.height<=page.bottom+1e-6,`box ${box.id} is inside the page`);
+   assert(!(box.x<map.right&&map.left<box.x+box.width&&box.y<map.bottom&&map.top<box.y+box.height),`box ${box.id} is off the map`);
+   assert.deepEqual(box.leader.at(-1),box.anchor);
+   for(let i=1;i<box.leader.length;i++){const a=[box.leader[i][0]-box.leader[i-1][0],box.leader[i][1]-box.leader[i-1][1]];assert(Math.abs(a[0])<1e-9||Math.abs(a[1])<1e-9||Math.abs(Math.abs(a[0])-Math.abs(a[1]))<1e-9,'every leader segment is straight or at 45°');}
+   for(const other of page.boxes)if(other!==box){assert(!overlaps(box,other),`boxes ${box.id} and ${other.id} overlap`);for(let i=1;i<box.leader.length;i++)for(let t=0;t<=1;t+=.05){const x=box.leader[i-1][0]+(box.leader[i][0]-box.leader[i-1][0])*t,y=box.leader[i-1][1]+(box.leader[i][1]-box.leader[i-1][1])*t;assert(!(x>other.x+1e-6&&x<other.x+other.width-1e-6&&y>other.y+1e-6&&y<other.y+other.height-1e-6),`leader of ${box.id} crosses ${other.id}`);}}
+  }
  }
- assert(Math.abs(Math.log((wall.width/wall.height)/1.2))<Math.abs(Math.log((layout.width/layout.height)/1.2)),'the band fits the wall better than the side columns');
- const page=posterLayout({map,spots:[0,1,2,3].map(story),scale:1,measure,aspect:2.2});
- assert(page.boxes.every(b=>b.side!=='below'),'a wide page keeps the side columns');
  // Text levels: brief keeps the title, the first sentence and the legend; titles keeps the title and the legend.
  const {firstSentence}=await import('./dist/history-poster.mjs');
  assert.equal(firstSentence('Around 1000 CE the island collapsed. Settlers arrived from two directions: Borneo and Africa.'),'Around 1000 CE the island collapsed.');
