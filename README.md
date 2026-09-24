@@ -568,7 +568,10 @@ the map's page. A file later cached at the same path is served as it is, so the
 links are stable whether or not a cache exists. `npm start` now runs
 `scripts/serve.mjs`, which answers missing paths with the app in the same way,
 so the links also work locally. The PNG links are whole-map exports, unlike
-the viewport PNG of the Download button.
+the viewport PNG of the Download button. Whole-map files (PDF, Instagram grids,
+posters and the map PNGs of the links) lay the map out 1200 units wide at zoom 1
+whatever the window, so a link renders the same file on every screen, and a
+download address skips the portrait turn of Spaceship Earth.
 
 ## Animation pane
 

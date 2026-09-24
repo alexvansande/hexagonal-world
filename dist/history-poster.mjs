@@ -78,11 +78,20 @@ export function placeLabels(labels,{scale=1,labelScale=1,measure,avoid={xs:[],ys
 // returns the width of a text in a font string, `scale` is map width / 800.
 // How much of each story a box carries: everything, the title with the first sentence, or titles only; the legend always.
 export const posterTextLevels=Object.freeze(['full','brief','titles']);
-export const firstSentence=text=>(text.match(/^[\s\S]*?[.!?](?=\s|$)/)||[text])[0];
+// A sentence ends at . ! or ? followed by a space: never inside a number (2.8 million,
+// the dot has no space after it) and never after an abbreviation such as c. 1400 or e.g.
+const abbreviation=/(?:^|\s)(?:c|ca|cf|e\.g|i\.e|vs|St|Mt|no|fig)$/i;
+export function sentences(text){
+ const out=[];let start=0;const re=/[.!?]+(?=\s+\S|$)/g;let m;
+ while((m=re.exec(text))){if(abbreviation.test(text.slice(0,m.index)))continue;const end=m.index+m[0].length;out.push(text.slice(start,end));start=end;}
+ if(start<text.length)out.push(text.slice(start));
+ return out;
+}
+export const firstSentence=text=>sentences(text)[0]?.trim()||text;
 // The brief form: whole sentences from the start of the first paragraph until about 160 characters, two or three lines under the title.
 export function briefText(text,limit=160){
- const sentences=text.match(/[^.!?]*[.!?](?=\s|$)|[^.!?]+$/g)||[text];let out='';
- for(const sentence of sentences){if(out&&out.length+sentence.length>limit)break;out+=sentence;}
+ let out='';
+ for(const sentence of sentences(text)){if(out&&(out+sentence).trim().length>limit)break;out+=sentence;}
  return out.trim()||text;
 }
 export function posterLayout({map,spots,labels=[],scale=1,measure,heading=null,reservedRight=0,labelScale=1,aspect=null,bandColumns=3,text='full',wall=null,pieces=[]}){

@@ -935,6 +935,16 @@ Animation pane and on every poster, a route is one course, its first strand,
 without the return leg (`lineCourses`). Routes that really are distinct courses
 stay separate because they are separate authored routes.
 
+*Review round: files independent of the window.* Two renders of the same
+download differed: one loaded in a portrait pane, where the app turns Spaceship
+Earth upright, and the fit scale that sizes every whole-map file follows the
+window. The user's rule: download links are for use outside the browser, so
+they must not depend on it. Decision: whole-map exports lay the map out 1200
+units wide at zoom 1 (screen files keep the view), and a download address skips
+the portrait turn. The brief story text also lost everything before a decimal
+number ("about 2.8 million" became "8 million"); sentence ends now need a space
+after the stop and skip abbreviations such as c. 1400.
+
 **Dance anchored on the centre (September 22).** The user saw a small drag down,
 made only to see an arrangement better, re-form the group and move the pieces in
 front of them away. Decision: a band switch needs a deliberate pan (40% of the

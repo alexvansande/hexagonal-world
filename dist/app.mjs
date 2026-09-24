@@ -1017,7 +1017,7 @@ async function exportMap(format=$('export-scale').value){
  // Posters are wider than the map: 4× is about 340 dpi on A3, 5× a print-size PNG.
  const factor=format==='poster-pdf'?4:format==='poster-png'?5:format.startsWith('pdf-')?Number(format.slice(4)):format.startsWith('map-')?Number(format.slice(4)):/^\d+$/.test(format)?Number(format):10,wholeMap=isPDF||poster||grid||format.startsWith('map-');
  const label=grid?(poster?'Instagram poster':'Instagram grid'):poster?(isPDF?'PDF poster':'PNG poster'):`${isPDF?'PDF':'PNG'} ${factor===2?'Medium':'High'}`;
- const button=$('export'),saved={w,h,dpr,panX:state.panX,panY:state.panY};
+ const button=$('export'),saved={w,h,dpr,scale,zoom:state.zoom,panX:state.panX,panY:state.panY};
  const crop={x:0,y:0,width:saved.w,height:saved.h};
  const control=new AbortController(),dialog=$('export-progress'),progress=$('export-progress-text'),main=document.querySelector('main');
  const out=document.createElement('canvas'),context=out.getContext('2d',{willReadFrequently:true});
@@ -1031,7 +1031,10 @@ async function exportMap(format=$('export-scale').value){
   if(!activeDefault()&&relief&&$('relief-enabled').checked)await relief.load(false,control.signal);
   if(!activeDefault()&&$('relief-enabled').checked&&relief?.ready)cachedLighting();
   while($('map-loading').textContent==='Loading map…'||($('relief-enabled').checked&&relief?.loading)||$('indicatrix-status').textContent==='Preparing circles…'){control.signal.throwIfAborted();if(performance.now()>deadline)throw Error('Map assets are still loading; please retry when they finish');await new Promise(resolve=>setTimeout(resolve,100));}
- if(!tiling){const b=bounds(),unit=scale*state.zoom,pad=($('relief-enabled').checked&&(activeDefault()?.lighting||relief?.ready)?ReliefRenderer.prototype.padding(appliedLighting(),unit):0)+12;crop.x=saved.w/2+saved.panX+b[0]*unit-pad;crop.y=saved.h/2+saved.panY-b[3]*unit-pad;crop.topInset=pad;crop.width=(b[2]-b[0])*unit+2*pad;crop.height=(b[3]-b[1])*unit+2*pad;}
+ // A whole-map file does not depend on the window: the map is laid out 1200 units wide whatever the
+  // screen or zoom, so a download link renders the same file everywhere. Current-view files keep the view.
+  if(wholeMap&&!tiling){const b=bounds();state.zoom=1;scale=1200/(b[2]-b[0]);}
+  if(!tiling){const b=bounds(),unit=scale*state.zoom,pad=($('relief-enabled').checked&&(activeDefault()?.lighting||relief?.ready)?ReliefRenderer.prototype.padding(appliedLighting(),unit):0)+12;crop.x=saved.w/2+saved.panX+b[0]*unit-pad;crop.y=saved.h/2+saved.panY-b[3]*unit-pad;crop.topInset=pad;crop.width=(b[2]-b[0])*unit+2*pad;crop.height=(b[3]-b[1])*unit+2*pad;}
   if(!wholeMap){const right=Math.min(saved.w,crop.x+crop.width),bottom=Math.min(saved.h,crop.y+crop.height);crop.x=Math.max(0,crop.x);crop.y=Math.max(0,crop.y);crop.width=right-crop.x;crop.height=bottom-crop.y;if(crop.width<=0||crop.height<=0)Object.assign(crop,{x:0,y:0,width:saved.w,height:saved.h});}
   // The poster grows the crop around the map: a heading above, story columns at both sides.
   // The poster takes the shape of its page: story columns beside the map, or a band of stories under it.
@@ -1084,7 +1087,7 @@ async function exportMap(format=$('export-scale').value){
   const name=poster?`Hexagonal Earth by Alex Van de Sande - ${historyPeriod.period.label} ${historyPeriod.period.date} - ${shareSelection.style.name}${grid?' - Instagram grid':' poster'}`:`Hexagonal Earth by Alex Van de Sande - ${shareSelection.layout.name} - ${shareSelection.style.name}${grid?' - Instagram grid':''}`;
   const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=`${name}.${extension}`;a.click();trackEvent('download',poster||grid?format:factor+'x-'+(isPDF?'pdf':'png'));setTimeout(()=>URL.revokeObjectURL(url),60000);
  }catch(error){if(error.name!=='AbortError'){console.warn('Map export:',error);$('relief-status').textContent='Export failed: '+error.message;}}
- finally{w=saved.w;h=saved.h;dpr=saved.dpr;state.panX=saved.panX;state.panY=saved.panY;out.width=out.height=1;relief?.releaseDetail();exporting=false;main.inert=false;dialog.close();button.disabled=false;meshSignature=null;resize();}
+ finally{w=saved.w;h=saved.h;dpr=saved.dpr;scale=saved.scale;state.zoom=saved.zoom;state.panX=saved.panX;state.panY=saved.panY;out.width=out.height=1;relief?.releaseDetail();exporting=false;main.inert=false;dialog.close();button.disabled=false;meshSignature=null;resize();}
 }
 $('export').onclick=()=>exportMap();
 // "More formats…" in the file-format menu opens the extra formats; the menu keeps its previous choice.
@@ -1333,7 +1336,7 @@ restoreSettings(presetSettings(shareSelection));
 // A story URL keeps the preset camera: the timeline frames the story once its period loads.
 if(!initialTour)restoreSettings(readMapStateFromUrl());
 // A tall screen starts Spaceship Earth a quarter turn round, so the net stands upright.
-if(!readMapStateFromUrl()&&state.arrangement==='dymaxion'&&matchMedia('(orientation: portrait)').matches){state.gridRotation=((state.gridRotation+90+180)%360+360)%360-180;$('gridRotation').value=state.gridRotation;$('gridRotation-value').value=state.gridRotation+'°';}
+if(!readMapStateFromUrl()&&!initialDownload&&state.arrangement==='dymaxion'&&matchMedia('(orientation: portrait)').matches){state.gridRotation=((state.gridRotation+90+180)%360+360)%360-180;$('gridRotation').value=state.gridRotation;$('gridRotation-value').value=state.gridRotation+'°';}
 initAnalytics(initialTour?.path||shareSelection.path);setSidebarExpanded(state.sidebarExpanded,false);rebuild(false);initializeMapTexture();
 if(historyPeriodId)enableHistory(true);
 // Rotation dial beside Fit: dragging around it turns the whole map in 30° steps

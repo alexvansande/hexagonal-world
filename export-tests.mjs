@@ -208,9 +208,14 @@ console.log('PDF 2x and 10x: exact map raster scale, bounded tiles, complete pix
  }
  assert.equal(readDownloadPath('/download/history/middle-ages/lifezones/spaceship-earth/poster-brief.pdf').period,'1000-ce','old stop names resolve');
  for(const bad of ['/download/','/download/lifezones/spaceship-earth/','/download/lifezones/spaceship-earth/map.png','/download/nope/spaceship-earth/map-medium.png','/download/lifezones/nope/map-medium.png','/download/history/nope/lifezones/spaceship-earth/poster-brief.pdf','/download/history/1000-ce/lifezones/spaceship-earth/map-medium.png','/lifezones/spaceship-earth/'])assert.equal(readDownloadPath(bad),null,bad);
- const {briefText}=await import('./dist/history-poster.mjs');
+ const {briefText,firstSentence}=await import('./dist/history-poster.mjs');
  assert.equal(briefText('One. Two two. Three three three. Four.',14),'One. Two two.');
  assert.equal(briefText('A single long sentence that goes on well past the limit set here.',10),'A single long sentence that goes on well past the limit set here.');
  assert.equal(briefText('Short. Also short.'),'Short. Also short.');
+ // Decimals and abbreviations are not sentence ends, and nothing before them is lost.
+ assert.equal(firstSentence('Fossils are about 2.8 million years old, and tools 2.6 million. By 2 million years ago several kinds lived.'),'Fossils are about 2.8 million years old, and tools 2.6 million.');
+ assert.equal(briefText('Fossils are about 2.8 million years old, and tools 2.6 million. By 2 million years ago several kinds lived. A third sentence that would go past the limit set here for the brief.',120),'Fossils are about 2.8 million years old, and tools 2.6 million. By 2 million years ago several kinds lived.');
+ assert.equal(firstSentence('Settlers arrived c. 1400 CE from the east. Then more came.'),'Settlers arrived c. 1400 CE from the east.');
+ assert.equal(firstSentence('Was it so? Yes.'),'Was it so?');
  console.log('Download links: fixed addresses for every map and poster file round-trip, old stop names resolve, malformed paths are refused; the brief text keeps whole sentences.');
 }
