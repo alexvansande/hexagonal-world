@@ -371,3 +371,4 @@ body.still .tour-ripple{animation:none;transform:scale(.65);opacity:.35}body.sti
 .export-grid{display:flex;align-items:center;gap:10px;font-size:12px;margin:0 0 4px;color:#5d727a}.export-grid select{width:auto;margin:0;padding:6px 24px 6px 8px;font-size:12px}
 #export-poster-formats{display:flex;flex-direction:column;gap:8px}#export-poster-formats .control-subheading{margin:10px 0 0}#export-poster-formats .note{margin:0 0 2px}
 #export-poster-note{margin:6px 0 0}
+.export-links a{color:#346e7c;text-underline-offset:3px;white-space:nowrap}.export-links span{display:block;margin-top:4px}

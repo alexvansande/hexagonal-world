@@ -79,6 +79,12 @@ export function placeLabels(labels,{scale=1,labelScale=1,measure,avoid={xs:[],ys
 // How much of each story a box carries: everything, the title with the first sentence, or titles only; the legend always.
 export const posterTextLevels=Object.freeze(['full','brief','titles']);
 export const firstSentence=text=>(text.match(/^[\s\S]*?[.!?](?=\s|$)/)||[text])[0];
+// The brief form: whole sentences from the start of the first paragraph until about 160 characters, two or three lines under the title.
+export function briefText(text,limit=160){
+ const sentences=text.match(/[^.!?]*[.!?](?=\s|$)|[^.!?]+$/g)||[text];let out='';
+ for(const sentence of sentences){if(out&&out.length+sentence.length>limit)break;out+=sentence;}
+ return out.trim()||text;
+}
 export function posterLayout({map,spots,labels=[],scale=1,measure,heading=null,reservedRight=0,labelScale=1,aspect=null,bandColumns=3,text='full',wall=null,pieces=[]}){
  const k=scale,T=posterType,mapWidth=map.right-map.left;
  const gap=mapWidth*.05,margin=mapWidth*.04,lead=T.lineHeight;
@@ -92,7 +98,7 @@ export function posterLayout({map,spots,labels=[],scale=1,measure,heading=null,r
   const push=(items,style,extra={})=>{const size=style.size*k;y+=size;lines.push({y,items,style,...extra});y+=size*(lead-1);};
   for(const line of wrapRuns([{text:spot.title,bold:false}],textWidth,textMeasure(styles.title)))push(line,styles.title);
   y+=T.body*k*.35;
-  const paragraphs=text==='titles'?[]:text==='brief'?(spot.paragraphs||[]).slice(0,1).map(firstSentence):spot.paragraphs||[];
+  const paragraphs=text==='titles'?[]:text==='brief'?(spot.paragraphs||[]).slice(0,1).map(p=>briefText(p)):spot.paragraphs||[];
   for(const paragraph of paragraphs){
    for(const line of wrapRuns(markdownRuns(paragraph),textWidth,textMeasure(styles.body)))push(line,styles.body);
    y+=T.body*k*.45;

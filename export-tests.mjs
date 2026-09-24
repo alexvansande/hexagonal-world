@@ -192,3 +192,22 @@ console.log('PDF 2x and 10x: exact map raster scale, bounded tiles, complete pix
  assert(crowd.filter(l=>l.kind==='site'&&l.tx===null).length>=1||crowd.some(l=>l.align==='right'),'a crowded site moves or drops its name');
  console.log('History poster: Markdown runs and wrapping, straight-diagonal leaders, boxes beside the map without overlaps, balanced and lengthened columns, scale-following sizes pass.');
 }
+
+// Download addresses: one fixed path per file, read back exactly, nothing else accepted.
+{
+ const {downloadPath,readDownloadPath,mapFiles,posterFiles,downloadTexts,downloadRows}=await import('./dist/download-routes.mjs');
+ const {formatSlugs}=await import('./dist/share-routes.mjs');const {styleOptions}=await import('./dist/map-options.mjs');const {periods}=await import('./dist/history/index.mjs');
+ assert.equal(mapFiles.length,4+downloadRows.length);assert.equal(posterFiles.length,downloadTexts.length*(2+downloadRows.length));
+ assert.equal(new Set([...mapFiles,...posterFiles].map(f=>f.file)).size,mapFiles.length+posterFiles.length,'file names are unique');
+ for(const style of styleOptions)for(const layout of Object.keys(formatSlugs)){
+  for(const file of mapFiles){const path=downloadPath({style:style.id,layout,file:file.file});assert(/^\/download\/[a-z0-9-]+\/[a-z0-9-]+\/[a-z0-9.-]+$/.test(path),path);assert.deepEqual(readDownloadPath(path),{style:style.id,layout,period:null,...file});}
+  for(const period of periods)for(const file of posterFiles.filter((_,i)=>i%5===0)){const path=downloadPath({style:style.id,layout,period:period.id,file:file.file});assert.deepEqual(readDownloadPath(path),{style:style.id,layout,period:period.id,...file});}
+ }
+ assert.equal(readDownloadPath('/download/history/middle-ages/lifezones/spaceship-earth/poster-brief.pdf').period,'1000-ce','old stop names resolve');
+ for(const bad of ['/download/','/download/lifezones/spaceship-earth/','/download/lifezones/spaceship-earth/map.png','/download/nope/spaceship-earth/map-medium.png','/download/lifezones/nope/map-medium.png','/download/history/nope/lifezones/spaceship-earth/poster-brief.pdf','/download/history/1000-ce/lifezones/spaceship-earth/map-medium.png','/lifezones/spaceship-earth/'])assert.equal(readDownloadPath(bad),null,bad);
+ const {briefText}=await import('./dist/history-poster.mjs');
+ assert.equal(briefText('One. Two two. Three three three. Four.',14),'One. Two two.');
+ assert.equal(briefText('A single long sentence that goes on well past the limit set here.',10),'A single long sentence that goes on well past the limit set here.');
+ assert.equal(briefText('Short. Also short.'),'Short. Also short.');
+ console.log('Download links: fixed addresses for every map and poster file round-trip, old stop names resolve, malformed paths are refused; the brief text keeps whole sentences.');
+}

@@ -912,7 +912,15 @@ the band still leave the corners empty and the map small, the user asked for
 the space above and beside the net to be used and for place names off the
 grid lines: boxes now take any free place on the wall nearest their spot (the
 corners and the notches between pieces first, by nearness), leaders may cross
-place names but never a box, and names avoid the gutters and the story dots. A PNG poster (5×) was added beside the requested PDF and Instagram forms
+place names but never a box, and names avoid the gutters and the story dots.
+Seeing the map large enough, the user judged two or three lines of description
+would fit under each title (the brief form now takes whole sentences up to
+about 160 characters) and asked for hard, deterministic download links so a
+file could be linked directly and later cached. Decision: one fixed address per
+file under `/download/…`; the published site's 404 page is the app, which
+renders the file when nothing is cached there, so caching is a later step that
+changes nothing about the links. The local server was replaced by a small
+Node server that answers missing paths the same way. A PNG poster (5×) was added beside the requested PDF and Instagram forms
 since it costs nothing. Unresolved: the exact grid the user meant by "2:3" was
 read as three columns by two rows of portrait posts; other tile ratios are not
 offered.

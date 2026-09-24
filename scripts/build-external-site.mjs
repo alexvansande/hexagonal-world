@@ -22,6 +22,8 @@ async function copy(dir=''){
  }
 }
 await copy();await copyFile('LICENSE',resolve(output,'LICENSE'));await buildSharePages(output);
+// Download links are addresses without a file until one is cached there: the 404 page is the app, which renders the export.
+await copyFile(resolve(output,'index.html'),resolve(output,'404.html'));
 await writeFile(resolve(output,'asset-config.mjs'),`export const assetBaseURL=${JSON.stringify(base)};\nexport const assetOverrides=${JSON.stringify(overrides)};\n`);
 async function rewrite(dir=output){
  for(const item of await readdir(dir,{withFileTypes:true})){

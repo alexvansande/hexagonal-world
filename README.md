@@ -542,13 +542,32 @@ or a narrower one that fits a corner or a notch between pieces; its rule faces
 the spot (a side, or the top or bottom edge). Place names keep off the gutters
 and off the story dots. When nothing fits, the wall grows around the map until
 it does, so no text is ever cut by the grid. A *Story text* choice in the dialog sets how much each box
-carries: the title, first sentence and legend (default), titles and legend, or
-the full text. All poster sizes are pixels for a map 800 px wide and scale with the
+carries: the title, a few lines (whole sentences up to about 160 characters)
+and legend (default), titles and legend, or the full text. All poster sizes are pixels for a map 800 px wide and scale with the
 map, so posters look alike at any zoom. The poster is rasterised into the export
 tiles (the PDF's embedded fonts cover only its fixed lettering), so the PDF keeps
 its title band, credit and Lifezones legend as vector, with the poster as image.
 Placeholder tiles are never exported: a tile that fails to load aborts the export
 as before.
+
+## Direct download links
+
+Every download has a fixed address (`dist/download-routes.mjs`):
+`/download/<style>/<format>/<file>` for a map, with `map-medium.png`,
+`map-high.png`, `map-medium.pdf`, `map-high.pdf` and `instagram-3x1.zip` to
+`instagram-3x3.zip`; and `/download/history/<period>/<style>/<format>/<file>`
+for a poster, with `poster-<text>.pdf`, `poster-<text>.png` and
+`poster-<text>-3x<rows>.zip` where `<text>` is `brief`, `titles` or `full`. The
+More formats dialog lists the links for the current map and age; a customised
+map's link carries its `#m=` state. Nothing is stored at these addresses yet:
+the published site's 404 page is the app (`scripts/build-external-site.mjs`
+copies `index.html` to `404.html`), which reads the address, loads the map and
+the age, renders the file in the browser, starts the download and then becomes
+the map's page. A file later cached at the same path is served as it is, so the
+links are stable whether or not a cache exists. `npm start` now runs
+`scripts/serve.mjs`, which answers missing paths with the app in the same way,
+so the links also work locally. The PNG links are whole-map exports, unlike
+the viewport PNG of the Download button.
 
 ## Animation pane
 

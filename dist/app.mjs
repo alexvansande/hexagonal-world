@@ -1,6 +1,7 @@
 import {assetURL} from './asset-url.mjs';
 import {readTourPath} from './tour-pages.mjs?v=history-2';
 import {historyPath,readHistoryPath,readHashShare} from './history-routes.mjs?v=history-1';
+import {readDownloadPath,downloadPath,mapFiles,posterFiles} from './download-routes.mjs?v=download-1';
 import {createTourMarkers,createTourLabels,projectTourLocations,tourEnabled,tourLocations} from './tour-markers.mjs?v=history-4';
 import {createTourRoutes,projectTourRoutes,routeFragments} from './tour-route-renderer.mjs?v=comet-3';
 import {posterLayout,drawPoster} from './history-poster.mjs?v=poster-1';
@@ -47,6 +48,8 @@ const tourRoutes=createTourRoutes($('stage'));
 const tourStory=createTourStory($('controls'),()=>closeHistoryFocus(true));
 // A story URL such as /silk-road/ opens the timeline focused on that story.
 const initialTour=readTourPath(location.pathname),initialHistory=readHistoryPath(location.pathname);
+// A download address renders its file in the browser once the map is ready, then becomes the map's page.
+const initialDownload=readDownloadPath(location.pathname);
 let tourAnimation=0;
 // History timeline: one period at a time from dist/history (see history-loader.mjs).
 let historyOn=false,historyPeriodId=null,historyPeriod=null,historyLoad=0,historyProjection=null,historyProjectionKey='';
@@ -64,7 +67,7 @@ let mobileRepositioning=false;
 // Every scripted move honours the system setting and the Animation pane's switch.
 const reducedMotion=()=>matchMedia("(prefers-reduced-motion: reduce)").matches||!$('motion').checked;
 let exporting=false;
-let shareSelection=initialTour||initialHistory?readSharePath(readHashShare(location.hash)||'')||sharePair('lifezones','dymaxion'):readSharePath(location.pathname)||inferSharePair(readMapStateFromUrl());
+let shareSelection=initialDownload?sharePair(initialDownload.style,initialDownload.layout):initialTour||initialHistory?readSharePath(readHashShare(location.hash)||'')||sharePair('lifezones','dymaxion'):readSharePath(location.pathname)||inferSharePair(readMapStateFromUrl());
 let urlDefaults=null,defaultView=null;
 let persistenceReady=false,saveTimer=null,restoredView=null,headingBounds=null;
 let displayedSource='continents',mapRequest=0;
@@ -504,7 +507,7 @@ $('stage').addEventListener('tourselect',event=>{
 // Scrubber: nine approximate dates; the age name sits in the panel heading.
 const historyToggle=$('show-history'),historyTools=document.querySelector('.history-tools'),historyLabel=historyToggle.querySelector('.history-label'),historySlider=$('history-stop'),historyDate=$('history-date'),historyLabels=document.querySelector('.history-stop-labels'),historyNote=$('history-note');
 function readHistoryParam(value){if(!value)return null;return periods.find(p=>p.id===value||p.stop===value)?.id||null;}
-historyPeriodId=readHistoryParam(new URLSearchParams(location.search).get('history'))||initialHistory?.period||(initialTour?firstPeriodFor(initialTour.id):null);
+historyPeriodId=readHistoryParam(new URLSearchParams(location.search).get('history'))||initialHistory?.period||initialDownload?.period||(initialTour?firstPeriodFor(initialTour.id):null);
 function currentPeriod(){return periodInfo(historyPeriodId);}
 historySlider.max=String(periods.length-1);historyLabels.style.setProperty('--stop-count',String(periods.length));
 for(const p of periods){const b=document.createElement('button');b.type='button';b.dataset.stop=p.id;b.setAttribute('aria-label',`${p.label}, ${p.date}`);b.textContent=p.tick;b.onclick=()=>selectHistoryPeriod(p.id);historyLabels.append(b);}
@@ -1011,7 +1014,7 @@ async function exportMap(format=$('export-scale').value){
  const isPDF=format==='pdf-2'||format==='pdf-10'||format==='poster-pdf',poster=posterFormats.includes(format),grid=format==='instagram'||format==='poster-instagram';
  if(poster&&!(historyOn&&historyPeriod))return;
  // Posters are wider than the map: 4× is about 340 dpi on A3, 5× a print-size PNG.
- const factor=format==='poster-pdf'?4:format==='poster-png'?5:format.startsWith('pdf-')?Number(format.slice(4)):/^\d+$/.test(format)?Number(format):10,wholeMap=isPDF||poster||grid;
+ const factor=format==='poster-pdf'?4:format==='poster-png'?5:format.startsWith('pdf-')?Number(format.slice(4)):format.startsWith('map-')?Number(format.slice(4)):/^\d+$/.test(format)?Number(format):10,wholeMap=isPDF||poster||grid||format.startsWith('map-');
  const label=grid?(poster?'Instagram poster':'Instagram grid'):poster?(isPDF?'PDF poster':'PNG poster'):`${isPDF?'PDF':'PNG'} ${factor===2?'Medium':'High'}`;
  const button=$('export'),saved={w,h,dpr,panX:state.panX,panY:state.panY};
  const crop={x:0,y:0,width:saved.w,height:saved.h};
@@ -1086,10 +1089,34 @@ $('export').onclick=()=>exportMap();
 // "More formats…" in the file-format menu opens the extra formats; the menu keeps its previous choice.
 {
  const select=$('export-scale'),more=$('export-more');let choice=select.value;
- const open=()=>{const posters=historyOn&&!!historyPeriod;$('export-poster-formats').hidden=!posters;$('export-poster-note').hidden=posters;more.showModal();};
+ // Direct links: the fixed address of every file for this map (and this age), carrying a customised map's state.
+ const links=()=>{
+  // The map's settings without the view or the open panels: a whole-map file does not depend on them.
+  const preset=presetSettings(shareSelection),defaults={state:{...urlDefaults.state,...preset.state},controls:{...urlDefaults.controls,...preset.controls},details:urlDefaults.details,view:defaultView};
+  const captured=captureSettings(),encoded=encodeMapState({...captured,state:{...captured.state,sidebarExpanded:defaults.state.sidebarExpanded},view:defaultView,details:defaults.details},defaults);
+  const posters=historyOn&&!!historyPeriod,rows=Number($('export-grid').value)||2,text=$('export-poster-text').value,state=encoded?'m='+encoded:'';
+  const href=file=>downloadPath({style:shareSelection.style.id,layout:shareSelection.layout.arrangement,period:posters&&file.text?historyPeriod.period.id:null,file:file.file})+(state?'#'+state:'');
+  const render=(container,files)=>{container.replaceChildren();files.forEach((file,i)=>{const a=document.createElement('a');a.href=href(file);a.textContent=file.name;a.target='_blank';a.rel='noopener';container.append(i?' · ':'',a);});};
+  render($('export-links-map'),[{...mapFiles.find(f=>f.format==='map-2'),name:'PNG'},{...mapFiles.find(f=>f.format==='pdf-2'),name:'PDF'},{...mapFiles.find(f=>f.format==='instagram'&&f.rows===rows),name:`Instagram 3 × ${rows}`}]);
+  $('export-links-poster').hidden=!posters;
+  if(posters)render($('export-links-poster'),[{...posterFiles.find(f=>f.format==='poster-pdf'&&f.text===text),name:'Poster PDF'},{...posterFiles.find(f=>f.format==='poster-png'&&f.text===text),name:'Poster PNG'},{...posterFiles.find(f=>f.format==='poster-instagram'&&f.text===text&&f.rows===rows),name:`Poster Instagram 3 × ${rows}`}]);
+ };
+ const open=()=>{const posters=historyOn&&!!historyPeriod;$('export-poster-formats').hidden=!posters;$('export-poster-note').hidden=posters;links();more.showModal();};
+ for(const id of ['export-grid','export-poster-text'])$(id).addEventListener('change',links);
  select.addEventListener('change',()=>{if(select.value==='more'){select.value=choice;open();}else choice=select.value;});
  $('export-more-close').onclick=()=>more.close();
  more.addEventListener('click',event=>{const chosen=event.target.closest('.export-format');if(!chosen)return;more.close();exportMap(chosen.dataset.format);});
+ // Opened at a download address: wait for the map (and the age) to be ready, then render the file once.
+ if(initialDownload){
+  const started=performance.now();
+  const timer=setInterval(()=>{
+   const loaded=ready&&persistenceReady&&!$('map-loading').textContent&&canvas.dataset.layerPending==='0'&&(!initialDownload.period||(historyOn&&historyPeriod?.period.id===initialDownload.period));
+   if(!loaded&&performance.now()-started<180000)return;
+   clearInterval(timer);if(!loaded)return;
+   if(initialDownload.rows)$('export-grid').value=String(initialDownload.rows);if(initialDownload.text)$('export-poster-text').value=initialDownload.text;
+   setTimeout(()=>exportMap(initialDownload.format),600);
+  },300);
+ }
 }
 function initializeMapTexture(){
  if(!gl)return;initializeProgram(!!activeDefault());if(!program)return;
