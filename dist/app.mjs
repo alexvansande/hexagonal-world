@@ -3,7 +3,7 @@ import {readTourPath} from './tour-pages.mjs?v=history-2';
 import {historyPath,readHistoryPath,readHashShare} from './history-routes.mjs?v=history-1';
 import {readDownloadPath,downloadPath,mapFiles,posterFiles} from './download-routes.mjs?v=download-1';
 import {createTourMarkers,createTourLabels,projectTourLocations,tourEnabled,tourLocations} from './tour-markers.mjs?v=history-4';
-import {createTourRoutes,projectTourRoutes,routeFragments} from './tour-route-renderer.mjs?v=comet-3';
+import {createTourRoutes,projectTourRoutes,routeFragments,lineCourses} from './tour-route-renderer.mjs?v=comet-4';
 import {posterLayout,drawPoster} from './history-poster.mjs?v=poster-1';
 import {loadPeriod} from './history-loader.mjs?v=comet-2';
 import {pacificTourNet} from './tour-layout.mjs?v=dancing-2';
@@ -995,7 +995,8 @@ $('research').onclick=()=>$('research-dialog').showModal();$('close-dialog').onc
 function preparePoster(crop,forPDF,aspect=null,wall=null){
  const period=historyPeriod,b=bounds(),unit=scale*state.zoom,k=(b[2]-b[0])*unit/800;
  const pairs=flat=>{const out=[];for(let i=0;i<flat.length;i+=2)out.push([flat[i],flat[i+1]]);return out;};
- const routes=projectTourRoutes(tiles,net,state,period.routes).flatMap(route=>(route.strandAnchors||[route.anchors]).flatMap(anchors=>routeFragments(anchors,point,route.lane).filter(part=>part.points.length>=4).map(part=>({points:pairs(part.points),color:route.color||'#fff3c9',alpha:route.uncertain?.65:1,width:state.routeLineWidth*k}))));
+ // One course per route (see lineCourses): parallel strands and return legs would only thicken a still line.
+ const routes=lineCourses(projectTourRoutes(tiles,net,state,period.routes)).flatMap(route=>routeFragments(route.anchors,point,route.lane).filter(part=>part.points.length>=4).map(part=>({points:pairs(part.points),color:route.color||'#fff3c9',alpha:route.uncertain?.65:1,width:state.routeLineWidth*k})));
  const clip=net.map(t=>(t.polygon||hex).map(p=>point(p,t)));
  const seen=new Set(),wanted=[];
  for(const spot of Object.values(period.text.spots))for(const label of spot.labels){const key=label.kind+'|'+label.text;if(!seen.has(key)){seen.add(key);wanted.push(label);}}

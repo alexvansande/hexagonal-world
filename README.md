@@ -521,8 +521,9 @@ to three rows tall, centred with a 7% margin, and downloads a stored zip of PNGs
 plus a note: the tiles are numbered in posting order (the bottom-right tile is
 posted first because the profile grid shows the newest post first). With the
 History timeline open the dialog adds the *History poster* in PDF (A3 at 4×, about 340 dpi), PNG
-(5×) and Instagram grid form: the age's routes drawn as still lines (every strand,
-with a dark halo; parallel lanes clipped to the pieces), every spot's site and
+(5×) and Instagram grid form: the age's routes drawn as still lines (one course per
+route: the first strand, without a two-way route's return leg, since the strands'
+jiggle only thickens a still line; with a dark halo; parallel lanes clipped to the pieces), every spot's site and
 area labels on the map, the age's name and date above, and one text box per story
 beside the map, with a rule on its inner side and a leader that leaves the rule
 horizontally and bends once at 45° (or leaves at 45° and finishes vertically) to a
@@ -579,7 +580,8 @@ setting, which is always honoured. *Dance* switches the Spaceship Earth vertex
 rule off, returning the pieces to the base net; the option is shown only on
 Spaceship Earth. The history routes can be drawn as comets (moving or still, with
 dot size and tail length sliders; the tail keeps its three steps of falling
-opacity, each a third of the chosen length) or as lines of a chosen width. *Label
+opacity, each a third of the chosen length) or as lines of a chosen width, one
+course per route (`lineCourses`: the first strand, no return legs). *Label
 size* scales the site and area labels through a `--label-scale` custom property
 on the stage, and *Ripples around the spots* hides the marker ripples. The
 settings live in the positional map-state lists (four state keys and five

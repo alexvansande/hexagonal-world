@@ -925,6 +925,16 @@ since it costs nothing. Unresolved: the exact grid the user meant by "2:3" was
 read as three columns by two rows of portrait posts; other tile ratios are not
 offered.
 
+*Review round: one course per route as lines.* Seeing the 3 × 2 poster, the user
+noticed five parallel Rapa Nui to South America lines and asked that lines drop
+the duplicates unless they stand for separate trips. The parallels were the
+relaxed strands (two or three per route, each with its own noise so the comets
+jiggle) and, for two-way routes, the return leg drawn over the same course.
+Decision: the strands' variability is for the worms only; as still lines, in the
+Animation pane and on every poster, a route is one course, its first strand,
+without the return leg (`lineCourses`). Routes that really are distinct courses
+stay separate because they are separate authored routes.
+
 **Dance anchored on the centre (September 22).** The user saw a small drag down,
 made only to see an arrangement better, re-form the group and move the pieces in
 front of them away. Decision: a band switch needs a deliberate pan (40% of the

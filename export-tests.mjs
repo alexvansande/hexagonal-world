@@ -86,6 +86,9 @@ console.log('PDF 2x and 10x: exact map raster scale, bounded tiles, complete pix
  }
  console.log('More formats: stored zip with CRCs and a readable central directory, Instagram walls of 3, 6 and 9 centred posts in posting order pass.');
 
+ // As lines, a route is one course: the first strand only, and no return leg of a two-way route.
+ const {lineCourses}=await import('./dist/tour-route-renderer.mjs');
+ assert.deepEqual(lineCourses([{id:'a',strandAnchors:[['a0'],['a1'],['a2']],anchors:['a0','a1','a2']},{id:'a-return',returnOf:'a',strandAnchors:[['a2'],['a1'],['a0']],anchors:['a2','a1','a0']},{id:'b',anchors:['b0']}]).map(r=>[r.id,r.anchors]),[['a',['a0']],['b',['b0']]]);
  const {posterLayout,leaderPath,markdownRuns,wrapRuns,posterType}=await import('./dist/history-poster.mjs');
  assert.deepEqual(markdownRuns('Some **bold** and *soft* text with a [link](https://example.org/a) end'),[{text:'Some '},{text:'bold',bold:true},{text:' and '},{text:'soft',italic:true},{text:' text with a '},{text:'link'},{text:' end'}]);
  const measure=(text,font)=>text.length*parseFloat(font.match(/([\d.]+)px/)[1])*.5;

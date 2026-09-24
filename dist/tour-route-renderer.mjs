@@ -22,6 +22,10 @@ export function projectTourRoutes(tiles,net,angles,routes=[]){
   return {...route,anchors:strandAnchors.flat(),strandAnchors};
  });
 }
+// Drawn as lines, a route is one course: its first strand, and a two-way route's
+// return leg (the same coordinates reversed) adds nothing. The strands' jiggle
+// and the return traffic are for the comets.
+export const lineCourses=routes=>routes.filter(route=>!route.returnOf).map(route=>({...route,anchors:(route.strandAnchors||[route.anchors])[0]}));
 // Never bridge a cut between separate map pieces. Split at tile changes; samples
 // on either side approach the seam within a fraction of a geographic degree.
 function routePositions(anchors,point,lane=0){
@@ -101,6 +105,7 @@ export function createTourRoutes(stage){
   // Layers keep halo under every head: halos first, then tails, then heads.
   for(const item of drawn){
    const {color,fragments,traffic,ends,uncertain,lane}=item,alpha=uncertain?.65:1;
+   if(lines&&!item.course){item.dots=0;continue;}
    ctx.save();
    if(lane&&clipPolygons.length){ctx.beginPath();for(const poly of clipPolygons){ctx.moveTo(poly[0],poly[1]);for(let i=2;i<poly.length;i+=2)ctx.lineTo(poly[i],poly[i+1]);ctx.closePath();}ctx.clip();}
    if(lines){
@@ -150,7 +155,7 @@ export function createTourRoutes(stage){
    ctx.restore();
   }
   canvas.dataset.dots=String(drawn.reduce((sum,item)=>sum+(item.dots||0),0));
-  canvas.dataset.routeStyle=lines?'lines':still?'still':'comets';
+  canvas.dataset.routeStyle=lines?'lines':still?'still':'comets';canvas.dataset.lines=String(lines?drawn.filter(item=>item.course).length:0);
   if(!paused&&!still&&!lines&&drawn.length)frame=requestAnimationFrame(loop);
  }
  const loop=()=>render(false);const schedule=()=>{if(!frame)frame=requestAnimationFrame(loop);};
@@ -177,7 +182,7 @@ export function createTourRoutes(stage){
     const strands=route.strandAnchors||[route.anchors],traffic=route.traffic;
     return strands.map((anchors,s)=>{const t=Array.isArray(traffic)?traffic[s]:traffic;if(!t||!anchors.length)return null;
      const ends=[anchors[0],anchors.at(-1)].flatMap(anchor=>point(anchor.local,anchor.tile,anchor.offset));
-     return {id:route.id,color:route.color||'#fff3c9',uncertain:!!route.uncertain,lane:route.lane,traffic:t,ends,fragments:routeFragments(anchors,point,route.lane)};}).filter(Boolean);
+     return {id:route.id,color:route.color||'#fff3c9',uncertain:!!route.uncertain,lane:route.lane,traffic:t,ends,course:s===0&&!route.returnOf,fragments:routeFragments(anchors,point,route.lane)};}).filter(Boolean);
    }).flat();
    if(routes.length){cancelAnimationFrame(frame);frame=0;render();}else{cancelAnimationFrame(frame);frame=0;canvas.dataset.dots='0';}
   } };
