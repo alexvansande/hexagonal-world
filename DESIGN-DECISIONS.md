@@ -876,6 +876,75 @@ piece takes the free join nearest the eye. The
 desktop scrubber also grew (up to 600 px) and stays right of the sidebar on
 narrow windows, where its ticks shrink instead of colliding.
 
+**Animation pane and more formats (September 24).** The user asked for an
+Animation pane under More options (the dance, whether anything animates, whether
+the dots move, their size, their tail, lines instead of dots, label size, chosen
+"smartly" for inclusion, display and visibility) and for a "More formats"
+entry in Download with an Instagram grid of the whole map as a zip, plus, on
+the timeline, poster formats (PDF and Instagram "with labels"): the current
+history map with every story's full text in a box outside the map, no box
+background, a single rule on the box's side, a straight-then-diagonal leader to
+the point, animation off and the dots drawn as full lines, ready to print or to
+post. Decisions: one pane with a master motion switch (which also follows the
+system reduced-motion setting), the dance switch shown only on Spaceship Earth,
+routes as comets or lines with dot size, tail length and line width sliders
+shown for the chosen style, a label-size slider and a ripples switch; all of it
+in the shared-link state, appended to the positional lists. The Instagram grid
+is 1080 × 1350 posts, three columns wide and one to three rows tall, zipped with
+a note giving the posting order (bottom right first, since the profile grid
+shows the newest post first). The poster draws every strand as a still line
+with a dark halo, all the age's site and area labels, the age's name and date,
+and a text box per story in two side columns balanced between the sides and
+lengthening the poster when a column is taller than the map; the leader leaves
+the rule horizontally and bends once at 45°. The poster is rasterised into the
+export tiles because the PDF's embedded fonts hold only the fixed lettering;
+vector poster text would need full font subsets and is recorded as an untested
+idea. Reviewing the first Instagram wall (10k ya, two stories, both beside the
+Old World), the user found the result tiny and the space badly used: a side
+without stories now keeps only its margin, and on a squarer page the stories
+form a band of balanced columns under the map, with lower leaders routed up the
+gutters; the layout nearer the page's shape wins. Then, to see the map bigger, the
+user asked for less text per box (title and first sentence, or titles only,
+always with the colour legend) and for no text on the grid lines: the dialog
+gained a story-text choice defaulting to the brief form, and the Instagram
+poster is now laid out on the wall itself, each box inside one post. Seeing
+the band still leave the corners empty and the map small, the user asked for
+the space above and beside the net to be used and for place names off the
+grid lines: boxes now take any free place on the wall nearest their spot (the
+corners and the notches between pieces first, by nearness), leaders may cross
+place names but never a box, and names avoid the gutters and the story dots.
+Seeing the map large enough, the user judged two or three lines of description
+would fit under each title (the brief form now takes whole sentences up to
+about 160 characters) and asked for hard, deterministic download links so a
+file could be linked directly and later cached. Decision: one fixed address per
+file under `/download/…`; the published site's 404 page is the app, which
+renders the file when nothing is cached there, so caching is a later step that
+changes nothing about the links. The local server was replaced by a small
+Node server that answers missing paths the same way. A PNG poster (5×) was added beside the requested PDF and Instagram forms
+since it costs nothing. Unresolved: the exact grid the user meant by "2:3" was
+read as three columns by two rows of portrait posts; other tile ratios are not
+offered.
+
+*Review round: one course per route as lines.* Seeing the 3 × 2 poster, the user
+noticed five parallel Rapa Nui to South America lines and asked that lines drop
+the duplicates unless they stand for separate trips. The parallels were the
+relaxed strands (two or three per route, each with its own noise so the comets
+jiggle) and, for two-way routes, the return leg drawn over the same course.
+Decision: the strands' variability is for the worms only; as still lines, in the
+Animation pane and on every poster, a route is one course, its first strand,
+without the return leg (`lineCourses`). Routes that really are distinct courses
+stay separate because they are separate authored routes.
+
+*Review round: files independent of the window.* Two renders of the same
+download differed: one loaded in a portrait pane, where the app turns Spaceship
+Earth upright, and the fit scale that sizes every whole-map file follows the
+window. The user's rule: download links are for use outside the browser, so
+they must not depend on it. Decision: whole-map exports lay the map out 1200
+units wide at zoom 1 (screen files keep the view), and a download address skips
+the portrait turn. The brief story text also lost everything before a decimal
+number ("about 2.8 million" became "8 million"); sentence ends now need a space
+after the stop and skip abbreviations such as c. 1400.
+
 **Dance anchored on the centre (September 22).** The user saw a small drag down,
 made only to see an arrangement better, re-form the group and move the pieces in
 front of them away. Decision: a band switch needs a deliberate pan (40% of the

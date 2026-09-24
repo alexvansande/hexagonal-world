@@ -514,6 +514,82 @@ viewport without a print title frame. PDF includes full finite-map bounds,
 shadow padding, titles, and credits; infinite layouts use the visible area.
 Filenames include the site, author, selected map format, and style.
 
+**More formats…** in the file-format menu opens the extra formats
+(`dist/map-export.mjs`, `dist/history-poster.mjs`). *Instagram grid* cuts the
+whole map into a wall of 1080 × 1350 portrait posts, three columns wide and one
+to three rows tall, centred with a 7% margin, and downloads a stored zip of PNGs
+plus a note: the tiles are numbered in posting order (the bottom-right tile is
+posted first because the profile grid shows the newest post first). With the
+History timeline open the dialog adds the *History poster* in PDF (A3 at 4×, about 340 dpi), PNG
+(5×) and Instagram grid form: the age's routes drawn as still lines (one course per
+route: the first strand, without a two-way route's return leg, since the strands'
+jiggle only thickens a still line; with a dark halo; parallel lanes clipped to the pieces), every spot's site and
+area labels on the map, the age's name and date above, and one text box per story
+beside the map, with a rule on its inner side and a leader that leaves the rule
+horizontally and bends once at 45° (or leaves at 45° and finishes vertically) to a
+dot on the spot. Boxes have no background. On a wide page they stand in two columns, 30% of
+the map's width each, on the side of their spot; a crowded column hands its box
+nearest the middle to the other side, columns taller than the map lengthen the
+poster, and a side without stories keeps only its margin. On a squarer page (an
+Instagram wall, or an A3 page when that fits better) the boxes form a band under
+the map in three balanced columns, each with a rule along its top; a lower box's
+leader leaves the end of its rule at 45° into the gutter beside it, climbs past
+the boxes above and continues to its spot, so no leader crosses a box. The layout
+whose shape is nearer the page's is chosen. On an Instagram wall the poster is
+the wall itself: the map spans its width, centred, and every story box takes a
+free place inside one post, clear of the map pieces, the heading, the place
+names, the other boxes and their leaders, nearest its spot, at the post's width
+or a narrower one that fits a corner or a notch between pieces; its rule faces
+the spot (a side, or the top or bottom edge). Place names keep off the gutters
+and off the story dots. When nothing fits, the wall grows around the map until
+it does, so no text is ever cut by the grid. A *Story text* choice in the dialog sets how much each box
+carries: the title, a few lines (whole sentences up to about 160 characters)
+and legend (default), titles and legend, or the full text. All poster sizes are pixels for a map 800 px wide and scale with the
+map, so posters look alike at any zoom. The poster is rasterised into the export
+tiles (the PDF's embedded fonts cover only its fixed lettering), so the PDF keeps
+its title band, credit and Lifezones legend as vector, with the poster as image.
+Placeholder tiles are never exported: a tile that fails to load aborts the export
+as before.
+
+## Direct download links
+
+Every download has a fixed address (`dist/download-routes.mjs`):
+`/download/<style>/<format>/<file>` for a map, with `map-medium.png`,
+`map-high.png`, `map-medium.pdf`, `map-high.pdf` and `instagram-3x1.zip` to
+`instagram-3x3.zip`; and `/download/history/<period>/<style>/<format>/<file>`
+for a poster, with `poster-<text>.pdf`, `poster-<text>.png` and
+`poster-<text>-3x<rows>.zip` where `<text>` is `brief`, `titles` or `full`. The
+More formats dialog lists the links for the current map and age; a customised
+map's link carries its `#m=` state. Nothing is stored at these addresses yet:
+the published site's 404 page is the app (`scripts/build-external-site.mjs`
+copies `index.html` to `404.html`), which reads the address, loads the map and
+the age, renders the file in the browser, starts the download and then becomes
+the map's page. A file later cached at the same path is served as it is, so the
+links are stable whether or not a cache exists. `npm start` now runs
+`scripts/serve.mjs`, which answers missing paths with the app in the same way,
+so the links also work locally. The PNG links are whole-map exports, unlike
+the viewport PNG of the Download button. Whole-map files (PDF, Instagram grids,
+posters and the map PNGs of the links) lay the map out 1200 units wide at zoom 1
+whatever the window, so a link renders the same file on every screen, and a
+download address skips the portrait turn of Spaceship Earth.
+
+## Animation pane
+
+More options → Animation collects everything that moves. *Animate the camera
+and the pieces* is a master switch for the scripted moves (story flights, the
+dance tweens, the spring at the map's edge, the turn settling on a stop and the
+marker pulse); off, every move is immediate, as with the system's reduced-motion
+setting, which is always honoured. *Dance* switches the Spaceship Earth vertex
+rule off, returning the pieces to the base net; the option is shown only on
+Spaceship Earth. The history routes can be drawn as comets (moving or still, with
+dot size and tail length sliders; the tail keeps its three steps of falling
+opacity, each a third of the chosen length) or as lines of a chosen width, one
+course per route (`lineCourses`: the first strand, no return legs). *Label
+size* scales the site and area labels through a `--label-scale` custom property
+on the stage, and *Ripples around the spots* hides the marker ripples. The
+settings live in the positional map-state lists (four state keys and five
+control keys appended after the backdrop grid) so they ride in shared links.
+
 ## Settings organization
 
 All collapsible sections are siblings: Projection method, Layout & grids, Globe orientation, Map source & colors, Rivers, Relief & lighting, and Distortion & Tissot. Panel states are saved by stable IDs; older positional panel states are migrated on load. Flower World presets use a 60° grid rotation.

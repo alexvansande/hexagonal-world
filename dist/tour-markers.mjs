@@ -57,7 +57,7 @@ export function createTourMarkers(stage,canvas){
  const select=location=>{
   const button=buttons.get(location.id);
   if(layer.hidden||button.hidden)return;
-  if(!matchMedia('(prefers-reduced-motion: reduce)').matches)button.querySelector('.tour-center').animate([{transform:'scale(1.7)'},{transform:'scale(1)'}],{duration:350});
+  if(!matchMedia('(prefers-reduced-motion: reduce)').matches&&!document.body.classList.contains('still'))button.querySelector('.tour-center').animate([{transform:'scale(1.7)'},{transform:'scale(1)'}],{duration:350});
   // A single integration point for the future story/route/area controller.
   layer.dispatchEvent(new CustomEvent('tourselect',{bubbles:true,detail:location}));
  };
