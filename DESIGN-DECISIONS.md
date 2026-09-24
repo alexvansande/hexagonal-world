@@ -899,7 +899,11 @@ lengthening the poster when a column is taller than the map; the leader leaves
 the rule horizontally and bends once at 45°. The poster is rasterised into the
 export tiles because the PDF's embedded fonts hold only the fixed lettering;
 vector poster text would need full font subsets and is recorded as an untested
-idea. A PNG poster (5×) was added beside the requested PDF and Instagram forms
+idea. Reviewing the first Instagram wall (10k ya, two stories, both beside the
+Old World), the user found the result tiny and the space badly used: a side
+without stories now keeps only its margin, and on a squarer page the stories
+form a band of balanced columns under the map, with lower leaders routed up the
+gutters; the layout nearer the page's shape wins. A PNG poster (5×) was added beside the requested PDF and Instagram forms
 since it costs nothing. Unresolved: the exact grid the user meant by "2:3" was
 read as three columns by two rows of portrait posts; other tile ratios are not
 offered.

@@ -78,8 +78,8 @@ console.log('PDF 2x and 10x: exact map raster scale, bounded tiles, complete pix
  for(const [width,height,rows] of [[800,560,2],[560,800,3],[2053,519,1]]){
   const plan=instagramGrid({width,height,rows});
   assert.equal(plan.tiles.length,3*rows);assert.equal(plan.width,3*instagramTile.width);assert.equal(plan.height,rows*instagramTile.height);
-  assert(width*plan.scale<=plan.width*.86+1e-9&&height*plan.scale<=plan.height*.86+1e-9,'the map keeps a margin inside the wall');
-  assert(Math.abs(width*plan.scale-plan.width*.86)<1e-6||Math.abs(height*plan.scale-plan.height*.86)<1e-6,'the map fills the wall in one direction');
+  assert(width*plan.scale<=plan.width*.92+1e-9&&height*plan.scale<=plan.height*.92+1e-9,'the map keeps a margin inside the wall');
+  assert(Math.abs(width*plan.scale-plan.width*.92)<1e-6||Math.abs(height*plan.scale-plan.height*.92)<1e-6,'the map fills the wall in one direction');
   assert(Math.abs(plan.offset[0]*2+width*plan.scale-plan.width)<1e-6&&Math.abs(plan.offset[1]*2+height*plan.scale-plan.height)<1e-6,'centred');
   assert.deepEqual(plan.tiles.map(t=>t.post),plan.tiles.map((_,i)=>plan.tiles.length-i),'posting order runs from the bottom right to the top left');
   assert.equal(plan.tiles.at(-1).post,1);assert.equal(plan.tiles[0].post,plan.tiles.length);
@@ -128,6 +128,22 @@ console.log('PDF 2x and 10x: exact map raster scale, bounded tiles, complete pix
  assert(crowded.bottom>map.bottom+100,'the poster lengthens for long columns');
  for(const box of crowded.boxes)for(const other of crowded.boxes)if(other!==box)assert(!overlaps(box,other));
  assert(crowded.boxes.every(b=>b.y+b.height<=crowded.bottom));
+ // A squarer page (an Instagram wall) puts the stories in a band under the map, dealt to three columns.
+ const wall=posterLayout({map,spots:[0,1,2,3,4,5].map(story),scale:1,measure,aspect:3240/2700,heading:{label:'Middle Ages',date:'c. 1000 CE'}});
+ assert(wall.boxes.every(b=>b.side==='below'&&b.y>=map.bottom&&b.x>=map.left&&b.x+b.width<=map.right+1e-6),'boxes stand under the map');
+ assert.equal(new Set(wall.boxes.map(b=>b.x.toFixed(3))).size,3,'three columns');
+ for(const box of wall.boxes)for(const other of wall.boxes)if(other!==box)assert(!overlaps(box,other));
+ const columnsOf=wall.boxes.reduce((m,b)=>{(m[b.x]||=[]).push(b);return m;},{});
+ {const tall=Object.values(columnsOf).map(l=>l.reduce((sum,b)=>sum+b.height,0));assert(Math.max(...tall)-Math.min(...tall)<=Math.max(...wall.boxes.map(b=>b.height))+1e-6,'columns are balanced to within one box');}
+ for(const box of wall.boxes){
+  assert.deepEqual(box.leader.at(-1),box.anchor);assert(box.leader[0][1]===box.y,'the leader leaves the rule');
+  for(let i=1;i<box.leader.length;i++){const a=[box.leader[i][0]-box.leader[i-1][0],box.leader[i][1]-box.leader[i-1][1]];assert(Math.abs(a[0])<1e-9||Math.abs(a[1])<1e-9||Math.abs(Math.abs(a[0])-Math.abs(a[1]))<1e-9,'every leader segment is straight or at 45°');}
+  // No leader crosses another box: sample each segment.
+  for(const other of wall.boxes)if(other!==box)for(let i=1;i<box.leader.length;i++)for(let t=0;t<=1;t+=.05){const x=box.leader[i-1][0]+(box.leader[i][0]-box.leader[i-1][0])*t,y=box.leader[i-1][1]+(box.leader[i][1]-box.leader[i-1][1])*t;assert(!(x>other.x+1e-6&&x<other.x+other.width-1e-6&&y>other.y+1e-6&&y<other.y+other.height-1e-6),`leader of ${box.id} crosses ${other.id}`);}
+ }
+ assert(Math.abs(Math.log((wall.width/wall.height)/1.2))<Math.abs(Math.log((layout.width/layout.height)/1.2)),'the band fits the wall better than the side columns');
+ const page=posterLayout({map,spots:[0,1,2,3].map(story),scale:1,measure,aspect:2.2});
+ assert(page.boxes.every(b=>b.side!=='below'),'a wide page keeps the side columns');
  // Sizes follow the map: twice the scale doubles the column and the type.
  const big=posterLayout({map:{left:0,top:0,right:1600,bottom:1120},spots:[story(0)].map(s=>({...s,x:240,y:240})),scale:2,measure});
  assert(Math.abs(big.boxes[0].width-2*layout.boxes[0].width)<1e-6&&Math.abs(big.boxes[0].lines[0].y-2*layout.boxes[0].lines[0].y)<1e-6);

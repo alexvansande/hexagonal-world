@@ -83,7 +83,7 @@ export function zipFiles(files,date=new Date()){
 // the newest post first, so the tiles are numbered in posting order: the
 // bottom-right tile is posted first and the top-left last.
 export const instagramTile=Object.freeze({width:1080,height:1350});
-export function instagramGrid({width,height,columns=3,rows=2,tile=instagramTile,margin=.07}){
+export function instagramGrid({width,height,columns=3,rows=2,tile=instagramTile,margin=.04}){
  const gridWidth=columns*tile.width,gridHeight=rows*tile.height;
  const scale=Math.min(gridWidth*(1-2*margin)/width,gridHeight*(1-2*margin)/height);
  const offset=[(gridWidth-width*scale)/2,(gridHeight-height*scale)/2],tiles=[];

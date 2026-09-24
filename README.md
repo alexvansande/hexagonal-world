@@ -526,10 +526,15 @@ with a dark halo; parallel lanes clipped to the pieces), every spot's site and
 area labels on the map, the age's name and date above, and one text box per story
 beside the map, with a rule on its inner side and a leader that leaves the rule
 horizontally and bends once at 45° (or leaves at 45° and finishes vertically) to a
-dot on the spot. Boxes have no background. They stand in two columns, 30% of the
-map's width each, on the side of their spot; a crowded column hands its box
-nearest the middle to the other side, and columns taller than the map lengthen
-the poster. All poster sizes are pixels for a map 800 px wide and scale with the
+dot on the spot. Boxes have no background. On a wide page they stand in two columns, 30% of
+the map's width each, on the side of their spot; a crowded column hands its box
+nearest the middle to the other side, columns taller than the map lengthen the
+poster, and a side without stories keeps only its margin. On a squarer page (an
+Instagram wall, or an A3 page when that fits better) the boxes form a band under
+the map in three balanced columns, each with a rule along its top; a lower box's
+leader leaves the end of its rule at 45° into the gutter beside it, climbs past
+the boxes above and continues to its spot, so no leader crosses a box. The layout
+whose shape is nearer the page's is chosen. All poster sizes are pixels for a map 800 px wide and scale with the
 map, so posters look alike at any zoom. The poster is rasterised into the export
 tiles (the PDF's embedded fonts cover only its fixed lettering), so the PDF keeps
 its title band, credit and Lifezones legend as vector, with the poster as image.
