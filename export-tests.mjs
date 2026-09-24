@@ -173,6 +173,9 @@ console.log('PDF 2x and 10x: exact map raster scale, bounded tiles, complete pix
  const {placeLabels:placeNames}=await import('./dist/history-poster.mjs');
  const gutterX=onWall.left+1080/s,near=placeNames([{kind:'site',text:'Kilwa',x:gutterX-8,y:200},{kind:'area',text:'Indian Ocean',x:gutterX+3,y:300}],{scale:1,labelScale:1,measure,avoid:{xs:[gutterX],ys:[]}});
  for(const l of near){if(l.tx===null)continue;const w=l.text.length*(l.kind==='site'?9.5:19)*.5,box=l.align==='left'?[l.tx,l.tx+w]:l.align==='right'?[l.tx-w,l.tx]:[l.tx-w/2,l.tx+w/2];assert(!(box[0]<gutterX&&gutterX<box[1]),`${l.text} lies across a gutter`);}
+ // A later site's dot never lands on an earlier name.
+ const pair=placeNames([{kind:'site',text:'Chaco Canyon',x:100,y:100},{kind:'site',text:'Later',x:130,y:100}],{scale:1,labelScale:1,measure});
+ assert(pair[0].tx===null||pair[0].align!=='left'||Math.abs(pair[0].ty-100)>1,'the first name moves away from the second dot');
  // A story's own dot keeps place names off it.
  const dotted=placeNames([{kind:'site',text:'Chaco Canyon',x:100,y:100}],{scale:1,labelScale:1,measure,obstacles:[[118,95,128,105]]});
  assert(dotted[0].tx!==null&&!(dotted[0].align==='left'&&Math.abs(dotted[0].ty-100)<1),'the name moves off the story dot to its right');

@@ -55,10 +55,11 @@ export function placeLabels(labels,{scale=1,labelScale=1,measure,avoid={xs:[],ys
  // A name may not cover another, nor lie across a line it must avoid (the gutters of a wall of posts).
  const overlaps=box=>boxes.some(b=>box[0]<b[2]&&b[0]<box[2]&&box[1]<b[3]&&b[1]<box[3])||avoid.xs.some(x=>box[0]<x&&x<box[2])||avoid.ys.some(y=>box[1]<y&&y<box[3]);
  const site=labels.filter(l=>l.kind==='site'),area=labels.filter(l=>l.kind!=='site');
+ // Every dot stands before any name is placed, so no later dot lands on an earlier name.
+ for(const label of site)boxes.push([label.x-7*k,label.y-7*k,label.x+7*k,label.y+7*k]);
  for(const label of site){
-  const dot=[label.x-7*k,label.y-7*k,label.x+7*k,label.y+7*k],text=label.text.toUpperCase(),font=`700 ${(T.site*k).toFixed(2)}px ${posterFonts.sans}`;
+  const text=label.text.toUpperCase(),font=`700 ${(T.site*k).toFixed(2)}px ${posterFonts.sans}`;
   const width=measure(text,font)+.09*T.site*k*text.length,height=14*k,gap=11*k;
-  boxes.push(dot);
   const tries=[{align:'left',tx:label.x+gap,ty:label.y},{align:'right',tx:label.x-gap,ty:label.y},{align:'left',tx:label.x+gap*.6,ty:label.y-height},{align:'left',tx:label.x+gap*.6,ty:label.y+height},{align:'right',tx:label.x-gap*.6,ty:label.y-height},{align:'right',tx:label.x-gap*.6,ty:label.y+height}];
   const fit=tries.find(t=>!overlaps(t.align==='left'?[t.tx,t.ty-height/2,t.tx+width,t.ty+height/2]:[t.tx-width,t.ty-height/2,t.tx,t.ty+height/2]));
   if(fit)boxes.push(fit.align==='left'?[fit.tx,fit.ty-height/2,fit.tx+width,fit.ty+height/2]:[fit.tx-width,fit.ty-height/2,fit.tx,fit.ty+height/2]);
