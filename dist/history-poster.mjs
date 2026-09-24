@@ -150,8 +150,8 @@ export function posterLayout({map,spots,labels=[],scale=1,measure,heading=null,r
   // toward the column under the spot so the leaders stay short.
   const columns=Array.from({length:n},()=>[]),heights=Array(n).fill(0),centre=c=>map.left+c*(column+gap)+column/2;
   for(const b of [...boxes].sort((a,b)=>a.anchor[0]-b.anchor[0])){
-   let best=0,bestCost=Infinity;
-   for(let c=0;c<n;c++){const cost=heights[c]+b.height+.3*Math.abs(centre(c)-b.anchor[0]);if(cost<bestCost){bestCost=cost;best=c;}}
+   const shortest=Math.min(...heights),near=[...heights.keys()].filter(c=>heights[c]<=shortest+b.height/2);
+   const best=near.reduce((a,c)=>Math.abs(centre(c)-b.anchor[0])<Math.abs(centre(a)-b.anchor[0])?c:a,near[0]);
    columns[best].push(b);heights[best]+=b.height+spacing;
   }
   const bandTop=map.bottom+gap;let posterBottom=bandTop;
