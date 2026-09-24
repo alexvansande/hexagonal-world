@@ -3,7 +3,7 @@ import {readTourPath} from './tour-pages.mjs?v=history-2';
 import {historyPath,readHistoryPath,readHashShare} from './history-routes.mjs?v=history-1';
 import {readDownloadPath,downloadPath,mapFiles,posterFiles} from './download-routes.mjs?v=download-1';
 import {createTourMarkers,createTourLabels,projectTourLocations,tourEnabled,tourLocations} from './tour-markers.mjs?v=history-4';
-import {createTourRoutes,projectTourRoutes,routeFragments,lineCourses} from './tour-route-renderer.mjs?v=comet-4';
+import {createTourRoutes,projectTourRoutes,routeFragments,lineCourses,straightenPoints} from './tour-route-renderer.mjs?v=comet-5';
 import {posterLayout,drawPoster} from './history-poster.mjs?v=poster-1';
 import {loadPeriod} from './history-loader.mjs?v=comet-2';
 import {pacificTourNet} from './tour-layout.mjs?v=dancing-2';
@@ -996,7 +996,7 @@ function preparePoster(crop,forPDF,aspect=null,wall=null){
  const period=historyPeriod,b=bounds(),unit=scale*state.zoom,k=(b[2]-b[0])*unit/800;
  const pairs=flat=>{const out=[];for(let i=0;i<flat.length;i+=2)out.push([flat[i],flat[i+1]]);return out;};
  // One course per route (see lineCourses): parallel strands and return legs would only thicken a still line.
- const routes=lineCourses(projectTourRoutes(tiles,net,state,period.routes)).flatMap(route=>routeFragments(route.anchors,point,route.lane).filter(part=>part.points.length>=4).map(part=>({points:pairs(part.points),color:route.color||'#fff3c9',alpha:route.uncertain?.65:1,width:state.routeLineWidth*k})));
+ const routes=lineCourses(projectTourRoutes(tiles,net,state,period.routes)).flatMap(route=>routeFragments(route.anchors,point,route.lane).filter(part=>part.points.length>=4).map(part=>({points:pairs(straightenPoints(part.points)),color:route.color||'#fff3c9',alpha:route.uncertain?.65:1,width:state.routeLineWidth*k})));
  const clip=net.map(t=>(t.polygon||hex).map(p=>point(p,t)));
  const seen=new Set(),wanted=[];
  for(const spot of Object.values(period.text.spots))for(const label of spot.labels){const key=label.kind+'|'+label.text;if(!seen.has(key)){seen.add(key);wanted.push(label);}}
@@ -1017,7 +1017,7 @@ async function exportMap(format=$('export-scale').value){
  // Posters are wider than the map: 4× is about 340 dpi on A3, 5× a print-size PNG.
  const factor=format==='poster-pdf'?4:format==='poster-png'?5:format.startsWith('pdf-')?Number(format.slice(4)):format.startsWith('map-')?Number(format.slice(4)):/^\d+$/.test(format)?Number(format):10,wholeMap=isPDF||poster||grid||format.startsWith('map-');
  const label=grid?(poster?'Instagram poster':'Instagram grid'):poster?(isPDF?'PDF poster':'PNG poster'):`${isPDF?'PDF':'PNG'} ${factor===2?'Medium':'High'}`;
- const button=$('export'),saved={w,h,dpr,scale,zoom:state.zoom,panX:state.panX,panY:state.panY};
+ const button=$('export'),saved={w,h,dpr,scale,zoom:state.zoom,gridRotation:state.gridRotation,panX:state.panX,panY:state.panY};
  const crop={x:0,y:0,width:saved.w,height:saved.h};
  const control=new AbortController(),dialog=$('export-progress'),progress=$('export-progress-text'),main=document.querySelector('main');
  const out=document.createElement('canvas'),context=out.getContext('2d',{willReadFrequently:true});
@@ -1033,12 +1033,15 @@ async function exportMap(format=$('export-scale').value){
   while($('map-loading').textContent==='Loading map…'||($('relief-enabled').checked&&relief?.loading)||$('indicatrix-status').textContent==='Preparing circles…'){control.signal.throwIfAborted();if(performance.now()>deadline)throw Error('Map assets are still loading; please retry when they finish');await new Promise(resolve=>setTimeout(resolve,100));}
  // A whole-map file does not depend on the window: the map is laid out 1200 units wide whatever the
   // screen or zoom, so a download link renders the same file everywhere. Current-view files keep the view.
+  // The portrait turn is a screen convenience: a whole-map file keeps the map's own orientation unless the user turned it further.
+  if(wholeMap&&portraitTurn&&Math.abs(state.gridRotation-portraitTurn.to)<1e-6){state.gridRotation=portraitTurn.from;meshSignature=null;}
   if(wholeMap&&!tiling){const b=bounds();state.zoom=1;scale=1200/(b[2]-b[0]);}
   if(!tiling){const b=bounds(),unit=scale*state.zoom,pad=($('relief-enabled').checked&&(activeDefault()?.lighting||relief?.ready)?ReliefRenderer.prototype.padding(appliedLighting(),unit):0)+12;crop.x=saved.w/2+saved.panX+b[0]*unit-pad;crop.y=saved.h/2+saved.panY-b[3]*unit-pad;crop.topInset=pad;crop.width=(b[2]-b[0])*unit+2*pad;crop.height=(b[3]-b[1])*unit+2*pad;}
   if(!wholeMap){const right=Math.min(saved.w,crop.x+crop.width),bottom=Math.min(saved.h,crop.y+crop.height);crop.x=Math.max(0,crop.x);crop.y=Math.max(0,crop.y);crop.width=right-crop.x;crop.height=bottom-crop.y;if(crop.width<=0||crop.height<=0)Object.assign(crop,{x:0,y:0,width:saved.w,height:saved.h});}
   // The poster grows the crop around the map: a heading above, story columns at both sides.
   // The poster takes the shape of its page: story columns beside the map, or a band of stories under it.
-  const posterData=poster?preparePoster(crop,isPDF,isPDF?1118/664:null,grid?{columns:3,rows:Number($('export-grid').value)||2,tile:{width:1080,height:1350}}:null):null;
+  const {pngFromTiles,printPDF,zipFiles,instagramGrid,instagramTile}=await import('./map-export.mjs?v=poster-2');
+  const posterData=poster?preparePoster(crop,isPDF,isPDF?1118/664:null,grid?{columns:3,rows:Number($('export-grid').value)||2,tile:instagramTile}:null):null;
   if(posterData)Object.assign(crop,{x:posterData.layout.left,y:posterData.layout.top,width:posterData.layout.width,height:posterData.layout.height,topInset:0});
   const renderTile=async(x,y,width,height,ratio=factor)=>{
    control.signal.throwIfAborted();
@@ -1068,7 +1071,6 @@ async function exportMap(format=$('export-scale').value){
   const license=mapLicense(displayedSource);
   const attribution=[`Hexagonal Earth by Alex Van de Sande - ${license.name} (${license.url}). Third-party source credits and terms also apply.`,sourceAttribution(displayedSource),!$('height-credit').hidden?'Height imagery: NASA Earth Observatory / Jesse Allen, using GEBCO data from the British Oceanographic Data Centre. Height composite by Alex Van de Sande. '+'https://science.nasa.gov/earth/earth-observatory/blue-marble-next-generation/topography-bathymetry-maps/':''].filter(Boolean).join(' ');
   const exportOptions={attribution,rasterScale:factor,width:crop.width,height:crop.height,mapInsetTop:crop.topInset||0,renderTile,signal:control.signal,onProgress,background:$('background-color').value};
-  const {pngFromTiles,printPDF,zipFiles,instagramGrid}=await import('./map-export.mjs?v=poster-1');
   let blob,extension;
   if(grid){
    // A wall of portrait posts: each tile is its own PNG, zipped with the posting order.
@@ -1079,7 +1081,7 @@ async function exportMap(format=$('export-scale').value){
     files.push({name:`post-${String(tile.post).padStart(2,'0')} - row ${tile.row+1} column ${tile.column+1}.png`,data:new Uint8Array(await png.arrayBuffer())});
    }
    files.sort((a,b)=>a.name.localeCompare(b.name));
-   files.push({name:'READ ME - posting order.txt',data:new TextEncoder().encode(`Instagram grid: ${plan.columns} × ${plan.rows} posts of ${plan.tile.width} × ${plan.tile.height} pixels.\n\nPost the files in their numbered order, post-01 first: it is the bottom-right tile, and the profile grid shows the newest post first, so the picture assembles from the bottom up. Row and column count from the top left.\n\n${attribution}\n`)});
+   files.push({name:'READ ME - posting order.txt',data:new TextEncoder().encode(`Instagram grid: ${plan.columns} × ${plan.rows} posts of ${plan.tile.width} × ${plan.tile.height} pixels.\n\nPost the files in their numbered order, post-01 first: it is the bottom-right tile, and the profile grid shows the newest post first, so the picture assembles from the bottom up. Row and column count from the top left.\n${posterData?.layout.dropped?.length?`\nStories without room on the wall were left out: ${posterData.layout.dropped.join(', ')}.\n`:''}\n${attribution}\n`)});
    blob=zipFiles(files);extension='zip';
   }else if(isPDF){blob=await printPDF({...exportOptions,lifezones:displayedSource==='ecology'?{colorFade:legendFade(),landCount:classCount('land-classes'),oceanCount:classCount('ocean-classes')}:null});extension='pdf';}
   else{blob=await pngFromTiles({attribution,width:Math.max(1,Math.round(crop.width*factor)),height:Math.max(1,Math.round(crop.height*factor)),renderTile,signal:control.signal,onProgress});extension='png';}
@@ -1087,7 +1089,7 @@ async function exportMap(format=$('export-scale').value){
   const name=poster?`Hexagonal Earth by Alex Van de Sande - ${historyPeriod.period.label} ${historyPeriod.period.date} - ${shareSelection.style.name}${grid?' - Instagram grid':' poster'}`:`Hexagonal Earth by Alex Van de Sande - ${shareSelection.layout.name} - ${shareSelection.style.name}${grid?' - Instagram grid':''}`;
   const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=`${name}.${extension}`;a.click();trackEvent('download',poster||grid?format:factor+'x-'+(isPDF?'pdf':'png'));setTimeout(()=>URL.revokeObjectURL(url),60000);
  }catch(error){if(error.name!=='AbortError'){console.warn('Map export:',error);$('relief-status').textContent='Export failed: '+error.message;}}
- finally{w=saved.w;h=saved.h;dpr=saved.dpr;scale=saved.scale;state.zoom=saved.zoom;state.panX=saved.panX;state.panY=saved.panY;out.width=out.height=1;relief?.releaseDetail();exporting=false;main.inert=false;dialog.close();button.disabled=false;meshSignature=null;resize();}
+ finally{w=saved.w;h=saved.h;dpr=saved.dpr;scale=saved.scale;state.zoom=saved.zoom;state.gridRotation=saved.gridRotation;state.panX=saved.panX;state.panY=saved.panY;out.width=out.height=1;relief?.releaseDetail();exporting=false;main.inert=false;dialog.close();button.disabled=false;meshSignature=null;resize();}
 }
 $('export').onclick=()=>exportMap();
 // "More formats…" in the file-format menu opens the extra formats; the menu keeps its previous choice.
@@ -1336,7 +1338,9 @@ restoreSettings(presetSettings(shareSelection));
 // A story URL keeps the preset camera: the timeline frames the story once its period loads.
 if(!initialTour)restoreSettings(readMapStateFromUrl());
 // A tall screen starts Spaceship Earth a quarter turn round, so the net stands upright.
-if(!readMapStateFromUrl()&&!initialDownload&&state.arrangement==='dymaxion'&&matchMedia('(orientation: portrait)').matches){state.gridRotation=((state.gridRotation+90+180)%360+360)%360-180;$('gridRotation').value=state.gridRotation;$('gridRotation-value').value=state.gridRotation+'°';}
+// A portrait screen turns Spaceship Earth upright; whole-map files undo that turn (see exportMap).
+let portraitTurn=null;
+if(!readMapStateFromUrl()&&!initialDownload&&state.arrangement==='dymaxion'&&matchMedia('(orientation: portrait)').matches){const from=state.gridRotation;state.gridRotation=((state.gridRotation+90+180)%360+360)%360-180;portraitTurn={from,to:state.gridRotation};$('gridRotation').value=state.gridRotation;$('gridRotation-value').value=state.gridRotation+'°';}
 initAnalytics(initialTour?.path||shareSelection.path);setSidebarExpanded(state.sidebarExpanded,false);rebuild(false);initializeMapTexture();
 if(historyPeriodId)enableHistory(true);
 // Rotation dial beside Fit: dragging around it turns the whole map in 30° steps

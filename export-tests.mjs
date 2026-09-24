@@ -87,7 +87,9 @@ console.log('PDF 2x and 10x: exact map raster scale, bounded tiles, complete pix
  console.log('More formats: stored zip with CRCs and a readable central directory, Instagram walls of 3, 6 and 9 centred posts in posting order pass.');
 
  // As lines, a route is one course: the first strand only, and no return leg of a two-way route.
- const {lineCourses}=await import('./dist/tour-route-renderer.mjs');
+ const {lineCourses,straightenPoints}=await import('./dist/tour-route-renderer.mjs');
+ const wiggle=Array.from({length:42},(_,i)=>i);assert.deepEqual(straightenPoints(wiggle),[0,1,8,9,16,17,24,25,32,33,40,41],'one point in four, both ends kept');
+ assert.deepEqual(straightenPoints([0,1,2,3,4,5]),[0,1,2,3,4,5],'short courses are left alone');
  assert.deepEqual(lineCourses([{id:'a',strandAnchors:[['a0'],['a1'],['a2']],anchors:['a0','a1','a2']},{id:'a-return',returnOf:'a',strandAnchors:[['a2'],['a1'],['a0']],anchors:['a2','a1','a0']},{id:'b',anchors:['b0']}]).map(r=>[r.id,r.anchors]),[['a',['a0']],['b',['b0']]]);
  const {posterLayout,leaderPath,markdownRuns,wrapRuns,posterType}=await import('./dist/history-poster.mjs');
  assert.deepEqual(markdownRuns('Some **bold** and *soft* text with a [link](https://example.org/a) end'),[{text:'Some '},{text:'bold',bold:true},{text:' and '},{text:'soft',italic:true},{text:' text with a '},{text:'link'},{text:' end'}]);
@@ -157,24 +159,31 @@ console.log('PDF 2x and 10x: exact map raster scale, bounded tiles, complete pix
  assert(brief.lines.some(l=>l.style.size===posterType.body)&&!brief.lines.some(l=>l.style.size===posterType.note)&&brief.lines.some(l=>l.swatch),'brief: one sentence and the legend, no note');
  // The Instagram wall: the poster is the wall; every box sits inside one post, clear of the map pieces,
  // the heading and the other boxes, no leader crosses a box, and the map keeps the wall's full width.
- const wallSpec={columns:3,rows:2,tile:{width:1080,height:1350}};
+ const wallSpec={columns:3,rows:2,tile:instagramTile};
  const hexes=[[[400,0],[600,120],[600,320],[400,440],[200,320],[200,120]],[[200,320],[400,440],[400,560],[200,560],[0,560],[0,440]],[[600,320],[800,440],[800,560],[600,560],[400,560],[400,440]]];
  const onWall=posterLayout({map,spots:[0,1,2,3,4,5].map(story),scale:1,measure,heading:{label:'Middle Ages',date:'c. 1000 CE'},wall:wallSpec,pieces:hexes,text:'titles'});
- const s=3240/onWall.width;assert(Math.abs(onWall.height*s-2700)<1e-6,'the poster has the wall\'s shape');
+ const s=3*instagramTile.width/onWall.width;assert(Math.abs(onWall.height*s-2*instagramTile.height)<1e-6,'the poster has the wall\'s shape');
  assert(map.left>onWall.left&&map.right<onWall.right&&map.top>onWall.top&&map.bottom<onWall.bottom,'the map is inside the wall');
  assert(map.right-map.left>=onWall.width*.85,'with short boxes the map keeps almost the whole width of the wall');
  const hit=(poly,r)=>{const box=[[r[0],r[1]],[r[2],r[1]],[r[2],r[3]],[r[0],r[3]]],axes=[[1,0],[0,1],...poly.map((p,i)=>{const q=poly[(i+1)%poly.length];return [p[1]-q[1],q[0]-p[0]];})];for(const [x,y] of axes){const a=poly.map(p=>p[0]*x+p[1]*y),b=box.map(p=>p[0]*x+p[1]*y);if(Math.max(...a)<Math.min(...b)||Math.max(...b)<Math.min(...a))return false;}return true;};
  for(const box of onWall.boxes){
   const x0=(box.x-onWall.left)*s,x1=(box.x+box.width-onWall.left)*s,y0=(box.y-onWall.top)*s,y1=(box.y+box.height-onWall.top)*s;
-  assert(Math.floor(x0/1080)===Math.floor((x1-1e-6)/1080),`box ${box.id} stays in one post column`);
-  assert(Math.floor(y0/1350)===Math.floor((y1-1e-6)/1350),`box ${box.id} does not cross the gutter between rows`);
+  assert(Math.floor(x0/instagramTile.width)===Math.floor((x1-1e-6)/instagramTile.width),`box ${box.id} stays in one post column`);
+  assert(Math.floor(y0/instagramTile.height)===Math.floor((y1-1e-6)/instagramTile.height),`box ${box.id} does not cross the gutter between rows`);
   assert(!hexes.some(h=>hit(h,[box.x,box.y,box.x+box.width,box.y+box.height])),`box ${box.id} is clear of the map pieces`);
   assert(['left','right','above','below'].includes(box.side)&&box.leader.at(-1)===box.anchor||box.leader.at(-1)[0]===box.anchor[0],'rule faces the spot');
   for(const other of onWall.boxes)if(other!==box){assert(!overlaps(box,other));for(let i=1;i<box.leader.length;i++)for(let t=0;t<=1;t+=.05){const x=box.leader[i-1][0]+(box.leader[i][0]-box.leader[i-1][0])*t,y=box.leader[i-1][1]+(box.leader[i][1]-box.leader[i-1][1])*t;assert(!(x>other.x+1e-6&&x<other.x+other.width-1e-6&&y>other.y+1e-6&&y<other.y+other.height-1e-6),`leader of ${box.id} crosses ${other.id}`);}}
  }
+ // A map taller than wide on a 3 × 1 wall still gets a layout, fitted by height; stories that never find room are dropped and named.
+ const portrait=posterLayout({map:{left:0,top:0,right:560,bottom:800},spots:[0,1,2].map(i=>({...story(i),x:280,y:150+i*250})),scale:1,measure,heading:{label:'Middle Ages',date:'c. 1000 CE'},wall:{columns:3,rows:1,tile:instagramTile},text:'titles'});
+ assert(portrait&&portrait.boxes.length+(portrait.dropped?.length||0)===3,'a portrait map on a 3 × 1 wall is laid out');
+ assert(portrait.boxes.every(b=>b.leader&&b.x!==undefined),'every kept box has a place and a leader');
+ const crowded3x1=posterLayout({map,spots:Array.from({length:24},(_,i)=>({...story(i),x:60+(i%8)*95,y:60+Math.floor(i/8)*150,paragraphs:[story(i).paragraphs[0].repeat(3)]})),scale:1,measure,heading:{label:'X',date:'Y'},wall:{columns:3,rows:1,tile:instagramTile},text:'full'});
+ assert(crowded3x1.dropped.length>0&&crowded3x1.boxes.length+crowded3x1.dropped.length===24,'stories without room are dropped, not drawn without a place');
+ assert(crowded3x1.boxes.every(b=>b.leader&&b.x!==undefined)&&crowded3x1.boxes.length>0,'the stories that fit are kept');
  // Place names keep off the gutters of the wall.
  const {placeLabels:placeNames}=await import('./dist/history-poster.mjs');
- const gutterX=onWall.left+1080/s,near=placeNames([{kind:'site',text:'Kilwa',x:gutterX-8,y:200},{kind:'area',text:'Indian Ocean',x:gutterX+3,y:300}],{scale:1,labelScale:1,measure,avoid:{xs:[gutterX],ys:[]}});
+ const gutterX=onWall.left+instagramTile.width/s,near=placeNames([{kind:'site',text:'Kilwa',x:gutterX-8,y:200},{kind:'area',text:'Indian Ocean',x:gutterX+3,y:300}],{scale:1,labelScale:1,measure,avoid:{xs:[gutterX],ys:[]}});
  for(const l of near){if(l.tx===null)continue;const w=l.text.length*(l.kind==='site'?9.5:19)*.5,box=l.align==='left'?[l.tx,l.tx+w]:l.align==='right'?[l.tx-w,l.tx]:[l.tx-w/2,l.tx+w/2];assert(!(box[0]<gutterX&&gutterX<box[1]),`${l.text} lies across a gutter`);}
  // A later site's dot never lands on an earlier name.
  const pair=placeNames([{kind:'site',text:'Chaco Canyon',x:100,y:100},{kind:'site',text:'Later',x:130,y:100}],{scale:1,labelScale:1,measure});

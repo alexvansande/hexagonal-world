@@ -516,7 +516,9 @@ Filenames include the site, author, selected map format, and style.
 
 **More formats…** in the file-format menu opens the extra formats
 (`dist/map-export.mjs`, `dist/history-poster.mjs`). *Instagram grid* cuts the
-whole map into a wall of 1080 × 1350 portrait posts, three columns wide and one
+whole map into a wall of 1080 × 1440 portrait posts (3:4, the tallest post
+Instagram keeps at full size and the shape of the profile grid's thumbnails, so
+the wall assembles without a crop), three columns wide and one
 to three rows tall, centred with a 7% margin, and downloads a stored zip of PNGs
 plus a note: the tiles are numbered in posting order (the bottom-right tile is
 posted first because the profile grid shows the newest post first). With the
@@ -570,8 +572,11 @@ links are stable whether or not a cache exists. `npm start` now runs
 so the links also work locally. The PNG links are whole-map exports, unlike
 the viewport PNG of the Download button. Whole-map files (PDF, Instagram grids,
 posters and the map PNGs of the links) lay the map out 1200 units wide at zoom 1
-whatever the window, so a link renders the same file on every screen, and a
-download address skips the portrait turn of Spaceship Earth.
+whatever the window, so a link renders the same file on every screen; the portrait turn of Spaceship
+Earth (a screen convenience) is undone for them, and a download address never
+applies it. On an Instagram wall the map is fitted by width or by height,
+whichever binds; stories that find no free post are left out and named in the
+zip's note rather than drawn without a place.
 
 ## Animation pane
 
@@ -584,7 +589,9 @@ rule off, returning the pieces to the base net; the option is shown only on
 Spaceship Earth. The history routes can be drawn as comets (moving or still, with
 dot size and tail length sliders; the tail keeps its three steps of falling
 opacity, each a third of the chosen length) or as lines of a chosen width, one
-course per route (`lineCourses`: the first strand, no return legs). *Label
+course per route (`lineCourses`: the first strand, no return legs) drawn through
+one point in four of the relaxed course (`straightenPoints`), so the jiggle made
+for the comets does not wobble the line. *Label
 size* scales the site and area labels through a `--label-scale` custom property
 on the stage, and *Ripples around the spots* hides the marker ripples. The
 settings live in the positional map-state lists (four state keys and five

@@ -26,6 +26,13 @@ export function projectTourRoutes(tiles,net,angles,routes=[]){
 // return leg (the same coordinates reversed) adds nothing. The strands' jiggle
 // and the return traffic are for the comets.
 export const lineCourses=routes=>routes.filter(route=>!route.returnOf).map(route=>({...route,anchors:(route.strandAnchors||[route.anchors])[0]}));
+// A still line keeps one point in four of the relaxed course (and both ends), so the
+// strand's jiggle, made for the comets, does not read as a wobble in the line.
+export function straightenPoints(points,step=4){
+ if(points.length<=2*step+2)return points;
+ const out=[];for(let i=0;i<points.length-2;i+=2*step)out.push(points[i],points[i+1]);
+ out.push(points[points.length-2],points[points.length-1]);return out;
+}
 // Never bridge a cut between separate map pieces. Split at tile changes; samples
 // on either side approach the seam within a fraction of a geographic degree.
 function routePositions(anchors,point,lane=0){
@@ -111,7 +118,7 @@ export function createTourRoutes(stage){
    if(lines){
     // The whole course as a still line: a dark halo under the wave colour keeps every hue readable.
     for(const pass of [0,1]){ctx.globalAlpha=pass?alpha:alpha*.45;ctx.strokeStyle=pass?color:'#213e46';ctx.lineWidth=pass?options.lineWidth:options.lineWidth+1.4;
-     for(const part of fragments){if(part.points.length<4)continue;ctx.beginPath();ctx.moveTo(part.points[0],part.points[1]);for(let i=2;i<part.points.length;i+=2)ctx.lineTo(part.points[i],part.points[i+1]);ctx.stroke();}}
+     for(const part of fragments){if(part.points.length<4)continue;const pts=straightenPoints(part.points);ctx.beginPath();ctx.moveTo(pts[0],pts[1]);for(let i=2;i<pts.length;i+=2)ctx.lineTo(pts[i],pts[i+1]);ctx.stroke();}}
     item.dots=0;ctx.restore();continue;
    }
    const offsets=corridor?[0]:trafficDots(traffic),loop=corridor?8:traffic.length,shift=corridor?0:((traffic.speed*t-traffic.phase)%loop+loop)%loop,tail=corridor?[]:tailSteps;

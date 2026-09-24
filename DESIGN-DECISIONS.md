@@ -945,6 +945,17 @@ the portrait turn. The brief story text also lost everything before a decimal
 number ("about 2.8 million" became "8 million"); sentence ends now need a space
 after the stop and skip abbreviations such as c. 1400.
 
+*Review round after shipping.* Instagram's help page keeps photos at full size
+between 1.91:1 and 3:4 (1080 × 1440), and the profile grid shows 3:4
+thumbnails, so a 4:5 post loses a sliver at every column seam of an assembled
+wall; the tile is now 1080 × 1440. Still lines looked wiggly because the relaxed
+strands carry noise for the comets: a still line keeps one point in four. The
+wall layout crashed on a map taller than the wall (a turned net or a 3 × 1 wall)
+and drew boxes that had found no place; it now fits the map by width or height
+and leaves out the stories that never fit, naming them in the zip's note. The
+portrait turn of Spaceship Earth is undone for whole-map files from the dialog
+as well as for download addresses.
+
 **Dance anchored on the centre (September 22).** The user saw a small drag down,
 made only to see an arrangement better, re-form the group and move the pieces in
 front of them away. Decision: a band switch needs a deliberate pan (40% of the

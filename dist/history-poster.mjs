@@ -203,7 +203,8 @@ export function posterLayout({map,spots,labels=[],scale=1,measure,heading=null,r
  const wallLayout=()=>{
   const W=wall.columns*wall.tile.width,H=wall.rows*wall.tile.height,padW=wall.tile.width*.05,mapHeight=map.bottom-map.top;
   const obstaclesOf=pieces.length?pieces:[[[map.left,map.top],[map.right,map.top],[map.right,map.bottom],[map.left,map.bottom]]];
-  let s=(W-2*padW)/mapWidth,last=null;
+  // The map fills the wall's width, or its height when the map is the taller shape (a turned net, a 3 × 1 wall).
+  let s=Math.min((W-2*padW)/mapWidth,(H-2*padW)/mapHeight),last=null;
   for(let attempt=0;attempt<16;attempt++,s*=.94){
    const tw=wall.tile.width/s,th=wall.tile.height/s,pad=padW/s,Wc=W/s,Hc=H/s;
    if(Hc<mapHeight+2*pad)continue;
@@ -253,12 +254,15 @@ export function posterLayout({map,spots,labels=[],scale=1,measure,heading=null,r
       const cost=leaderLength(o.leader)+(variant===b?0:variant.height*.5);if(!best||cost<best.cost)best={cost,r,o,variant};
      }
     }
-    if(!best){failed=true;break;}
+    if(!best){failed=true;continue;}
     Object.assign(b,{lines:best.variant.lines,height:best.variant.height,width:best.variant.width,x:best.r[0],y:best.r[1]},best.o);taken.push(best.r);blocks.push(best.r);leaders.push(best.o.leader);
    }
    const result=finish(boxes,originX,originX+Wc,originY+Hc,originY,pad,avoid,headingAt);
    if(!failed)return result;last=result;
   }
+  // No attempt found room for every story: keep the boxes that found a place and name the rest,
+  // rather than drawing boxes that have no place.
+  if(last){last.dropped=last.boxes.filter(b=>b.x===undefined).map(b=>b.id);last.boxes=last.boxes.filter(b=>b.x!==undefined);}
   return last;
  };
  // Band layout: the boxes in columns under the map, each with a rule along its top and a
