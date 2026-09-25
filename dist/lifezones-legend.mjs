@@ -1,4 +1,4 @@
-import {landRows,oceanRows} from './map-layers.mjs?v=cloud-assets-1';
+import {landRows,oceanRows} from './map-layers.mjs?v=eras-1';
 
 // Both renderers consume the same layout, so print and web keep identical axes.
 export function lifezoneLegendLayout(landCount,oceanCount){

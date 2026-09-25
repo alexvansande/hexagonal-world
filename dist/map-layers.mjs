@@ -141,7 +141,7 @@ export function paintEcology(pixels,landCount,oceanCount){
 }
 const images=new Map();
 function loadImage(path){if(!images.has(path)){if(images.size>=3)images.delete(images.keys().next().value);images.set(path,new Promise((resolve,reject)=>{const image=new Image();image.onload=()=>resolve(image);image.onerror=()=>{images.delete(path);reject(Error('Could not load '+path));};image.crossOrigin='anonymous';image.src=assetURL(path);}));}return images.get(path);}
-let ecologyPixels,riverCanvas,riverMaskKey,riverPixels;
+const ecologyRasters=new Map();let riverCanvas,riverMaskKey,riverPixels;
 const riverFields=new RiverFields({mobile:compactDevice});
 export async function riverMask(levels=6,widthScale=1){
  const field=await riverFields.get(levels),key=`${field.level}/${Number(widthScale).toFixed(2)}`;
@@ -152,7 +152,9 @@ export async function riverMask(levels=6,widthScale=1){
  paintRiverMask(field.distances,widthScale,riverPixels.data,field.widths);
  context.putImageData(riverPixels,0,0);riverMaskKey=key;return riverCanvas;
 }
-export async function mapSource(type,landCount=10,oceanCount=6){
+export async function mapSource(type,landCount=10,oceanCount=6,era=null){
+ // A map of its time (History timeline): the era's class raster for life zones, its fills for the political map.
+ if(era)return type==='ecology'?ecologySource(landCount,oceanCount,era):loadImage(compactDevice?era.replace(/^maps\/(eras\/)?/,(m,eras)=>eras?'maps/eras/mobile/':'maps/mobile/'):era);
  const reference=referenceSources[type];
  if(reference){
   const image=await loadImage(compactDevice&&reference.mobileFile?reference.mobileFile:reference.file);
@@ -171,13 +173,13 @@ async function desktopSource(type,landCount,oceanCount){
  if(type!=='ecology')return loadImage(type==='terrain'?'maps/topography.jpg':type==='marble'?'maps/bluemarble-high.jpg':type==='countries'?'maps/countries.png?v=fills-1':'continents.png');
  return ecologySource(landCount,oceanCount);
 }
-async function ecologySource(landCount,oceanCount){
- const img=await loadImage('maps/ecology-waves.png'),canvas=document.createElement('canvas');canvas.width=img.width;canvas.height=img.height;const context=canvas.getContext('2d');
- if(!ecologyPixels){context.drawImage(img,0,0);ecologyPixels=prepareEcologyRaster(context.getImageData(0,0,img.width,img.height).data,img.width,img.height);}
- context.putImageData(new ImageData(paintEcology(ecologyPixels,landCount,oceanCount),img.width,img.height),0,0);
+async function ecologySource(landCount,oceanCount,file='maps/ecology-waves.png'){
+ const img=await loadImage(file),canvas=document.createElement('canvas');canvas.width=img.width;canvas.height=img.height;const context=canvas.getContext('2d');
+ if(!ecologyRasters.has(file)){context.drawImage(img,0,0);ecologyRasters.set(file,prepareEcologyRaster(context.getImageData(0,0,img.width,img.height).data,img.width,img.height));}
+ context.putImageData(new ImageData(paintEcology(ecologyRasters.get(file),landCount,oceanCount),img.width,img.height),0,0);
  return canvas;
 }
 
 export async function riverTextureData(level,maxWidth){return packRiverField(await riverFields.get(level),maxWidth);}
 export function releaseRiverMask(){riverPixels=null;riverMaskKey=null;if(riverCanvas)riverCanvas.width=riverCanvas.height=1;riverCanvas=null;}
-export function releaseLiveMapData(){releaseRiverMask();riverFields.clear();images.clear();ecologyPixels=null;}
+export function releaseLiveMapData(){releaseRiverMask();riverFields.clear();images.clear();ecologyRasters.clear();}

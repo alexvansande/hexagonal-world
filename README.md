@@ -582,6 +582,41 @@ applies it. On an Instagram wall the map is fitted by width or by height,
 whichever binds; stories that find no free post are left out and named in the
 zip's note rather than drawn without a place.
 
+## Maps of their time
+
+`dist/history/era-maps.mjs` names, per period and style, a raster that replaces
+the base map while the timeline is on: the last glacial life zones for Peopling
+the world, and a political map for every stop (an all-grey one before states).
+They draw on the live path with the period's own texture, so the tour stays
+eligible, the credit in Sources and info names the data, and a download carries
+it in its attribution. The present political map is drawn the same way, so the
+timeline fades from one age's borders to the next and to today's; when a period's
+map differs from the last, the previous frame stays on a veil over the map until
+the new one is drawn (2.5 s at most) and then dissolves (`crossFade` in
+`app.mjs`; off with reduced motion or the Animation pane's switch).
+
+- `scripts/build-era-lifezones.py` classifies Holdridge life zones from
+  CHELSA-TraCE21k (CC0) centennial bioclim at 21,000 years ago (bio01, bio05,
+  bio06 and bio12 for a sinusoidal-year biotemperature and the PET ratio) in
+  the site's 38 classes; ice sheets are where the surface altitude of the time
+  stands more than 250 m above the present, exposed shelf where it is above the
+  sea level of the time. Oceans keep the present exposure and temperature. Only
+  where the change is drastic: 2 million years ago and the Holocene stops keep
+  the present map, since their shift would not move a class.
+- `scripts/build-era-political.py` rasterises aourednik/historical-basemaps
+  (GPL-3.0, a work in progress) for 1000 BCE, 200, 1000, 1400, 1600 and 1800 CE
+  and Natural Earth for the present, in one style: land without a state is grey
+  (cultural regions of hunters, herders and peoples too, and Australia's named
+  nations), the twelve largest polities by true area get bold colours (a
+  territory whose overlord is one takes a lighter tint), the rest a patchwork of
+  pastels chosen so neighbours differ; no border pixels. `countries.png` is
+  rebuilt in the same style.
+
+The rasters live under `dist/maps/eras/` (and `mobile/`), are gitignored like
+every map image and ship with the asset release. Both scripts need a virtualenv
+with numpy, Pillow, rasterio, shapely and pyshp; the climate layers download
+once (about 1.7 GB) into `data/chelsa-trace/`.
+
 ## Animation pane
 
 More options → Animation collects everything that moves. *Animate the camera

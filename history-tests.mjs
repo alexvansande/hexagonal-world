@@ -78,6 +78,24 @@ assert.equal(readHistoryPath('/history/never/'),null);assert.equal(readHistoryPa
 assert.equal(historyPages.length,periods.length+spots,'one page per age plus one per pane');
 assert.equal(new Set(historyPages.map(p=>p.path)).size,historyPages.length);
 assert.equal(readHashShare('#m=abc&s=lifezones/spaceship-earth'),'/lifezones/spaceship-earth/');assert.equal(readHashShare('#m=abc'),null);
+// Maps of their time: every era map names a period and a style, its file exists in the ecology or the
+// political encoding, and the present political map is drawn the same way.
+{
+ const {eraMaps,eraMap,modernMaps,eraCredit}=await import('./dist/history/era-maps.mjs');
+ const size=async path=>{const b=await readFile('dist/'+path);return [b.readUInt32BE(16),b.readUInt32BE(20)];};
+ for(const [period,maps] of Object.entries(eraMaps)){
+  assert(periods.some(p=>p.id===period),`era map for an unknown period ${period}`);
+  for(const [type,path] of Object.entries(maps)){
+   assert(['ecology','countries'].includes(type),`${period}: era map style ${type}`);
+   assert.deepEqual(await size(path),type==='ecology'?[1440,720]:[4320,2160],`${period}/${type}: ${path} has the raster's size`);
+   if(type==='countries')assert.deepEqual(await size(path.replace('maps/eras/','maps/eras/mobile/')),[1920,960],`${period}: mobile political map`);
+   assert(eraCredit(path),`${period}/${type}: credited`);
+  }
+ }
+ assert.equal(eraMap('50k-ya','ecology'),'maps/eras/ecology-50k-ya.png');assert.equal(eraMap('1400-ce','ecology'),null,'life zones change only where drastic');
+ for(const p of periods)assert(eraMap(p.id,'countries'),`${p.id}: a political map of its time (or the grey one before states)`);
+ assert.equal(modernMaps.countries,'maps/countries.png');assert.deepEqual(await size('maps/countries.png'),[4320,2160]);assert.equal(eraCredit('maps/countries.png'),null,'the present keeps its own credit');
+}
 // Startup never pays for history: the app imports the loader, not the data.
 const app=await readFile('dist/app.mjs','utf8');
 assert(app.includes("from './history-loader.mjs")&&!/\.routes\.json|\.strands\.json|tour-stories\.md/.test(app));

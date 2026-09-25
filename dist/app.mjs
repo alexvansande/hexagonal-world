@@ -7,6 +7,7 @@ import {createTourRoutes,projectTourRoutes,routeFragments,lineCourses,straighten
 import {posterLayout,drawPoster} from './history-poster.mjs?v=poster-5';
 import {instagramTile} from './map-export.mjs?v=poster-2';
 import {loadPeriod} from './history-loader.mjs?v=comet-2';
+import {eraMap,eraCredit,modernMaps} from './history/era-maps.mjs?v=eras-1';
 import {pacificTourNet} from './tour-layout.mjs?v=dancing-2';
 import pacificLighting from './maps/pacific-manifest.mjs?v=pacific-light-1';
 import {createTourStory} from './tour-story.mjs?v=history-5';
@@ -35,7 +36,7 @@ import {gosperScale,rotateLocal,subgridLevels,subgridArea,dotGridArea} from './s
 import {decodeMapState,encodeMapState,distortionEnabled,restorePanelStates} from './map-state.mjs?v=focus-3';
 import {sphereAt,followPoint,geographicPoint} from './globe-drag.mjs?v=tetra-area-2';
 import {makeArrangement,arrangementNames} from './arrangements.mjs?v=gosper-1';
-import {experimentPaletteRevision,mapSource,landLegends,oceanLegend,missing,riverMask,riverTextureData,releaseRiverMask,releaseLiveMapData} from './map-layers.mjs?v=cloud-assets-1';
+import {experimentPaletteRevision,mapSource,landLegends,oceanLegend,missing,riverMask,riverTextureData,releaseRiverMask,releaseLiveMapData} from './map-layers.mjs?v=eras-1';
 import {searchPresets} from './search-presets.mjs?v=rus-search-1';
 import {visibleTiles} from './tiling.mjs';
 import {makeGeometry,layouts,matching,canvasWorld,hex,world} from './geometry.mjs?v=tetra-area-2';
@@ -54,6 +55,8 @@ const initialDownload=readDownloadPath(location.pathname);
 let tourAnimation=0;
 // History timeline: one period at a time from dist/history (see history-loader.mjs).
 let historyOn=false,historyPeriodId=null,historyPeriod=null,historyLoad=0,historyProjection=null,historyProjectionKey='';
+// The map of the period's time, when the timeline is on and the style has one: drawn on the live path.
+function eraSource(type=$('map-source').value){return (historyOn&&historyPeriodId?eraMap(historyPeriodId,type):null)||modernMaps[type]||null;}
 let historyFocus=initialTour?.id||initialHistory?.spot||null,historyFocusView=null,historyFocusPending=!!(initialTour||initialHistory?.spot);
 const coordinateReadout=document.createElement('div');
 coordinateReadout.id='map-coordinates';coordinateReadout.hidden=true;
@@ -106,7 +109,8 @@ let mergedPreview=null;
 if(['127.0.0.1','localhost','[::1]'].includes(location.hostname)&&new URLSearchParams(location.search).has('merged-preview'))import('./merged-preview.mjs').then(async module=>{mergedPreview=await module.createMergedPreview(draw);draw();}).catch(console.error);
 let defaultLayers=null,renderDefault=null,mergedMaps=null,renderMerged=null;
 const separateComparison=['127.0.0.1','localhost','[::1]'].includes(location.hostname)&&['merged-preview','separate-layers'].some(key=>new URLSearchParams(location.search).has(key));
-function activeDefault(){if(offlineBake||new URLSearchParams(location.search).has('palette-lab')||new URLSearchParams(location.search).get('surface')==='live')return null;
+// `ignoreEra`: the entry the settings would use without the period's map, which still decides whether the tour is eligible.
+function activeDefault(ignoreEra=false){if(offlineBake||(!ignoreEra&&eraSource())||new URLSearchParams(location.search).has('palette-lab')||new URLSearchParams(location.search).get('surface')==='live')return null;
  // Spaceship Earth draws the unlit per-piece base, which does not depend on the map's turn: match its preset at any dial angle.
  const probe=state.arrangement==='dymaxion'?{...state,gridRotation:layoutOptions.find(l=>l.arrangement==='dymaxion')?.state.gridRotation??state.gridRotation}:state,controls=captureSettings().controls;
  let entry=defaultLayerPreset(probe,controls);
@@ -525,7 +529,23 @@ function syncHistoryTools(){
 // Choosing a date activates the period's headline spot (the first section of its
 // Markdown) unless the focused story continues there, in which case it re-reads.
 let historyAutoFocus=false;
-function selectHistoryPeriod(id,writeURL=true){historyPeriodId=periodInfo(id).id;historyProjection=null;historyAutoFocus=true;syncHistoryTools();if(writeURL)updateMapUrl();loadHistoryPeriod();draw();}
+// Dragging the slider across periods whose maps differ: the frame before the change stays on a veil
+// over the map until the new map is drawn (or 2.5 s pass), then dissolves.
+let veilTimer=0,veilArmed=false;
+function crossFade(){
+ $('stage').dataset.fade=String((+$('stage').dataset.fade||0)+1);
+ if(!ready||!gl||reducedMotion())return;
+ try{render(true);}catch(error){$('stage').dataset.fadeError=String(error);return;}
+ let veil=$('map-veil');if(!veil){veil=document.createElement('canvas');veil.id='map-veil';veil.className='map-veil';veil.setAttribute('aria-hidden','true');$('stage').append(veil);}
+ veil.width=canvas.width;veil.height=canvas.height;veil.getContext('2d').drawImage(canvas,0,0);
+ veil.style.transition='none';veil.style.opacity='1';veilArmed=true;
+ clearTimeout(veilTimer);veilTimer=setTimeout(releaseVeil,2500);
+}
+function releaseVeil(){
+ if(!veilArmed)return;veilArmed=false;const veil=$('map-veil');if(!veil)return;
+ clearTimeout(veilTimer);requestAnimationFrame(()=>{veil.style.transition='opacity .6s ease';veil.style.opacity='0';veilTimer=setTimeout(()=>veil.remove(),700);});
+}
+function selectHistoryPeriod(id,writeURL=true){const before=eraSource();historyPeriodId=periodInfo(id).id;if(eraSource()!==before)crossFade();historyProjection=null;historyAutoFocus=true;syncHistoryTools();if(writeURL)updateMapUrl();loadHistoryPeriod();draw();}
 async function loadHistoryPeriod(){
  const token=++historyLoad,id=currentPeriod().id;
  try{const data=await loadPeriod(id);if(token!==historyLoad||!historyOn)return;historyPeriod=data;historyProjection=null;
@@ -536,11 +556,12 @@ async function loadHistoryPeriod(){
   syncHistoryTools();draw();}
  catch{if(token===historyLoad){historyNote.textContent='Could not load this period. Try again.';historyNote.hidden=false;}}
 }
-async function enableHistory(on){
+async function enableHistory(on){const before=eraSource();
  if(historyOn===on){syncHistoryTools();return;}
- historyOn=on;
+ historyOn=on;if(eraSource()!==before)crossFade();
  // Judge eligibility from the current settings, not from a renderer that may not be ready yet.
- if(on&&!tourEnabled(renderDefault||activeDefault())){const pair=sharePair('lifezones','dymaxion');applyMapOption(pair.layout,'layout');applyMapOption(pair.style,'style');}
+ // A period with a map of its own for the current style (the political map of an age) is eligible even where the style alone is not.
+ if(on&&!tourEnabled(renderDefault||activeDefault(true))&&!eraMap(historyPeriodId,$('map-source').value)){const pair=sharePair('lifezones','dymaxion');applyMapOption(pair.layout,'layout');applyMapOption(pair.style,'style');}
  if(!on){++historyLoad;historyPeriod=null;historyProjection=null;closeHistoryFocus(false);syncHistoryTools();updateMapUrl();draw();return;}
  syncHistoryTools();updateMapUrl();loadHistoryPeriod();draw();
 }
@@ -689,7 +710,7 @@ function drawIndicatrixes(){
 function materialMode(){return displayedSource==='ivory'?'ivory':displayedSource==='elevation'?'elevation':'source';}
 let surfaceCache=null,liveSourceKey=null;
 const surfaceMeshes=new Map();
-function sourceKey(type){return [experimentPaletteRevision,type,classCount('land-classes'),classCount('ocean-classes')].join('/');}
+function sourceKey(type){return [experimentPaletteRevision,type,classCount('land-classes'),classCount('ocean-classes'),eraSource(type)||''].join('/');}
 function selectedSurface(){if(new URLSearchParams(location.search).has('palette-lab'))return null;return surfacePreset(state,displayedSource,classCount('land-classes'),classCount('ocean-classes'),+$('interpolation').value,hexBridgesEnabled);}
 function visibleSurfaceTiles(level){
  const n=2**level,result=[];
@@ -702,7 +723,7 @@ function visibleSurfaceTiles(level){
  return result;
 }
 function drawPrecomputedSurface(){
- if($('puzzlegrid').checked){canvas.dataset.surface='live';return false;}
+ if($('puzzlegrid').checked||eraSource()){canvas.dataset.surface='live';return false;}
  const entry=renderDefault?{...renderDefault,path:renderDefault.basePath||renderDefault.path+'/base'}:selectedSurface();if(!entry||(new URLSearchParams(location.search).has('bake-surfaces')||new URLSearchParams(location.search).get('surface')==='live')){canvas.dataset.surface='live';return false;}
  if(renderDefault)surfaceCache=defaultLayers.base;else if(!surfaceCache||surfaceCache===defaultLayers?.base)surfaceCache=new PrecomputedSurfaces(gl,draw);
  const plan=surfacePlan(surfaceLevel(scale*state.zoom*dpr,entry.maxLevel),entry.regions,visibleSurfaceTiles);
@@ -761,7 +782,7 @@ function syncAnimationSettings(){
 $('dance').addEventListener('change',()=>{if(!$('dance').checked)resetDance();draw();});
 for(const id of ['motion','route-style','route-motion','marker-ripples'])$(id).addEventListener('change',()=>{syncAnimationSettings();draw();});
 document.addEventListener('change',syncSettingsVisibility);
-function render(refined=false,exportMode=false){if(exporting&&!exportMode)return;queued=false;document.documentElement.style.setProperty('--map-background',$('background-color').value);const background=$('background-color').value,brightness=[1,3,5].reduce((sum,i,k)=>sum+parseInt(background.slice(i,i+2),16)*[.299,.587,.114][k],0);document.documentElement.style.setProperty('--heading-ink',brightness>145?'#193c49':'#f6f4ed');for(const id of ['background-color','border-color','hex-grid-color','puzzle-color','graticule-color','river-color','backdrop-color'])$(id+'-value').value=$(id).value;syncOptionCards();syncSettingsVisibility();updateDistortionLegend();$('zoom-value').textContent=Math.round(state.zoom*100)+'%';if(!ready||!gl)return;const currentDefault=activeDefault();const previousPath=!!renderDefault;selectRenderPath(currentDefault);initializeProgram(!!renderDefault);if(previousPath&&!renderDefault&&($('relief-enabled').checked||['ivory','elevation'].includes(displayedSource)))ensureRelief();if(!program)return;if(renderDefault&&!defaultLayers)defaultLayers=new DefaultLayers(gl,draw);if(renderDefault)defaultLayers.prepare(renderDefault);const wasMerged=!!renderMerged;renderMerged=!separateComparison&&!spaceshipUnlit()?mergedEntry(renderDefault):null;if(renderMerged&&!wasMerged){if(surfaceCache===defaultLayers.base)surfaceCache=null;defaultLayers.dispose();defaultLayers=new DefaultLayers(gl,draw);defaultLayers.prepare(renderDefault);}if(!renderMerged&&mergedMaps){if(surfaceCache===mergedMaps.cache)surfaceCache=null;mergedMaps.dispose();mergedMaps=null;}const lighting=renderMerged||spaceshipUnlit()?(defaultLayers?.detail.setRequired(new Set()),null):renderDefault?defaultLayers.lighting(renderDefault,scale*state.zoom,dpr,w,h,state.panX,state.panY,{capToBase:$('lighting-resolution-test').value==='map',compareHighest:$('lighting-resolution-test').value!=='auto'}):$('relief-enabled').checked&&relief?.ready?cachedLighting():null;canvas.dataset.renderPath=renderDefault?'images':'live';if(!renderDefault&&$('rivers-visible').checked&&uploadedRiverKey!==state.riverLevels+'/field'&&!offlineBake)updateRiverLayer();if(danceActive()&&danceStep(performance.now()))requestAnimationFrame(draw);updateVisibleMesh();if(!exportMode)updateHeadingVisibility();gl.bindFramebuffer(gl.FRAMEBUFFER,null);gl.viewport(0,0,canvas.width,canvas.height);gl.clearColor(...[1,3,5].map(i=>parseInt(background.slice(i,i+2),16)/255),1);gl.clear(gl.COLOR_BUFFER_BIT);gl.useProgram(program);gl.uniform1f(uniforms.gridRotation,state.gridRotation*Math.PI/180);gl.uniform2f(uniforms.size,w,h);gl.uniform3f(uniforms.view,scale*state.zoom,state.panX,state.panY);gl.uniform3f(uniforms.angles,state.lon*Math.PI/180,state.lat*Math.PI/180,state.roll*Math.PI/180);gl.uniform1f(uniforms.bias,state.bias);gl.uniform1f(uniforms.blend,+$('interpolation').value);gl.uniform1f(uniforms.grid,$('graticule').checked?state.grid*Math.PI/180:0);gl.uniform1f(uniforms.gridWidth,.6*state.graticuleWidth/(scale*state.zoom));gl.uniform3fv(uniforms.gridColor,[1,3,5].map(i=>parseInt($('graticule-color').value.slice(i,i+2),16)/255));gl.uniform1i(uniforms.palette,displayedSource==='continents'?['atlas','original','night'].indexOf($('palette').value):1);gl.uniform1i(uniforms.distortion,derivativeSupport?($('distortion').checked?3:0):0);gl.uniform1f(uniforms.distortionOpacity,state.distortionOpacity);gl.uniform1f(uniforms.pixelScale,scale*state.zoom*dpr);gl.uniform1i(uniforms.map,0);gl.uniform1i(uniforms.felvClip,arrangement.clip?1:0);
+function render(refined=false,exportMode=false){if(exporting&&!exportMode)return;queued=false;document.documentElement.style.setProperty('--map-background',$('background-color').value);const background=$('background-color').value,brightness=[1,3,5].reduce((sum,i,k)=>sum+parseInt(background.slice(i,i+2),16)*[.299,.587,.114][k],0);document.documentElement.style.setProperty('--heading-ink',brightness>145?'#193c49':'#f6f4ed');for(const id of ['background-color','border-color','hex-grid-color','puzzle-color','graticule-color','river-color','backdrop-color'])$(id+'-value').value=$(id).value;syncOptionCards();syncSettingsVisibility();updateDistortionLegend();$('zoom-value').textContent=Math.round(state.zoom*100)+'%';if(!ready||!gl)return;const currentDefault=activeDefault();const previousPath=!!renderDefault;selectRenderPath(currentDefault);initializeProgram(!!renderDefault);if(previousPath&&!renderDefault&&($('relief-enabled').checked||['ivory','elevation'].includes(displayedSource)))ensureRelief();if(!program)return;if(renderDefault&&!defaultLayers)defaultLayers=new DefaultLayers(gl,draw);if(renderDefault)defaultLayers.prepare(renderDefault);const wasMerged=!!renderMerged;renderMerged=!separateComparison&&!spaceshipUnlit()&&!eraSource()?mergedEntry(renderDefault):null;if(renderMerged&&!wasMerged){if(surfaceCache===defaultLayers.base)surfaceCache=null;defaultLayers.dispose();defaultLayers=new DefaultLayers(gl,draw);defaultLayers.prepare(renderDefault);}if(!renderMerged&&mergedMaps){if(surfaceCache===mergedMaps.cache)surfaceCache=null;mergedMaps.dispose();mergedMaps=null;}const lighting=renderMerged||spaceshipUnlit()?(defaultLayers?.detail.setRequired(new Set()),null):renderDefault?defaultLayers.lighting(renderDefault,scale*state.zoom,dpr,w,h,state.panX,state.panY,{capToBase:$('lighting-resolution-test').value==='map',compareHighest:$('lighting-resolution-test').value!=='auto'}):$('relief-enabled').checked&&relief?.ready?cachedLighting():null;canvas.dataset.renderPath=renderDefault?'images':'live';if(!renderDefault&&$('rivers-visible').checked&&uploadedRiverKey!==state.riverLevels+'/field'&&!offlineBake)updateRiverLayer();if(danceActive()&&danceStep(performance.now()))requestAnimationFrame(draw);updateVisibleMesh();if(!exportMode)updateHeadingVisibility();gl.bindFramebuffer(gl.FRAMEBUFFER,null);gl.viewport(0,0,canvas.width,canvas.height);gl.clearColor(...[1,3,5].map(i=>parseInt(background.slice(i,i+2),16)/255),1);gl.clear(gl.COLOR_BUFFER_BIT);gl.useProgram(program);gl.uniform1f(uniforms.gridRotation,state.gridRotation*Math.PI/180);gl.uniform2f(uniforms.size,w,h);gl.uniform3f(uniforms.view,scale*state.zoom,state.panX,state.panY);gl.uniform3f(uniforms.angles,state.lon*Math.PI/180,state.lat*Math.PI/180,state.roll*Math.PI/180);gl.uniform1f(uniforms.bias,state.bias);gl.uniform1f(uniforms.blend,+$('interpolation').value);gl.uniform1f(uniforms.grid,$('graticule').checked?state.grid*Math.PI/180:0);gl.uniform1f(uniforms.gridWidth,.6*state.graticuleWidth/(scale*state.zoom));gl.uniform3fv(uniforms.gridColor,[1,3,5].map(i=>parseInt($('graticule-color').value.slice(i,i+2),16)/255));gl.uniform1i(uniforms.palette,displayedSource==='continents'?['atlas','original','night'].indexOf($('palette').value):1);gl.uniform1i(uniforms.distortion,derivativeSupport?($('distortion').checked?3:0):0);gl.uniform1f(uniforms.distortionOpacity,state.distortionOpacity);gl.uniform1f(uniforms.pixelScale,scale*state.zoom*dpr);gl.uniform1i(uniforms.map,0);gl.uniform1i(uniforms.felvClip,arrangement.clip?1:0);
  const drawColor=(width=w,height=h,baseOnly=false,overlayOnly=false)=>{gl.useProgram(program);gl.uniform1i(uniforms.overlayOnly,overlayOnly?1:0);gl.uniform1f(uniforms.grid,!baseOnly&&$('graticule').checked?state.grid*Math.PI/180:0);gl.uniform1i(uniforms.distortion,!baseOnly&&derivativeSupport?($('distortion').checked?3:0):0);gl.uniform2f(uniforms.size,width,height);if(!renderDefault){bindMaterialUniforms();bindRiverUniforms();}gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,texture);if(!overlayOnly&&drawPrecomputedSurface())return;gl.uniform1i(uniforms.bakedOn,0);if(!overlayOnly&&liveSourceKey!==sourceKey(displayedSource)){if(!$('map-loading').textContent)updateMapSource();return;}drawGeometry(program);};
  if(renderMerged){
   if(!mergedMaps)mergedMaps=new MergedMaps(gl,draw);
@@ -781,7 +802,7 @@ function render(refined=false,exportMode=false){if(exporting&&!exportMode)return
  updateLoadingStatus();
  if(!exportMode){
   syncAnimationSettings();
-  const enabled=tourEnabled(renderDefault)&&!isAboutPath(location.pathname);
+  const enabled=(tourEnabled(renderDefault||(eraSource()&&activeDefault(true)))||!!eraSource())&&!isAboutPath(location.pathname);
   if(historyOn&&!enabled)enableHistory(false);
   // Off the timeline the seven entry dots invite a click; on it each period places its own spots.
   tourMarkers.update(enabled?projectTourLocations(tiles,net,state,historyOn?historySpots():tourLocations):[],point,w,h);
@@ -1086,7 +1107,7 @@ async function exportMap(format=$('export-scale').value){
   };
   const onProgress=value=>progress.textContent=`Rendering ${label} · ${Math.round(value*100)}%`;
   const license=mapLicense(displayedSource);
-  const attribution=[`Hexagonal Earth by Alex Van de Sande - ${license.name} (${license.url}). Third-party source credits and terms also apply.`,sourceAttribution(displayedSource),!$('height-credit').hidden?'Height imagery: NASA Earth Observatory / Jesse Allen, using GEBCO data from the British Oceanographic Data Centre. Height composite by Alex Van de Sande. '+'https://science.nasa.gov/earth/earth-observatory/blue-marble-next-generation/topography-bathymetry-maps/':''].filter(Boolean).join(' ');
+  const attribution=[`Hexagonal Earth by Alex Van de Sande - ${license.name} (${license.url}). Third-party source credits and terms also apply.`,sourceAttribution(displayedSource),eraCredit(eraSource())?.name||'',!$('height-credit').hidden?'Height imagery: NASA Earth Observatory / Jesse Allen, using GEBCO data from the British Oceanographic Data Centre. Height composite by Alex Van de Sande. '+'https://science.nasa.gov/earth/earth-observatory/blue-marble-next-generation/topography-bathymetry-maps/':''].filter(Boolean).join(' ');
   const exportOptions={attribution,rasterScale:factor,width:crop.width,height:crop.height,mapInsetTop:crop.topInset||0,renderTile,signal:control.signal,onProgress,background:$('background-color').value};
   let blob,extension;
   if(grid){
@@ -1289,14 +1310,16 @@ async function updateMapSource(){
  const request=++mapRequest,type=$('map-source').value;
  const imageEntry=activeDefault();if(imageEntry){displayedSource=type;$('map-loading').textContent='';$('source-name').textContent=styleOptions.find(s=>s.source===type)?.name||type;$('source-detail').textContent='';draw();return;}
  const baked=surfacePreset(state,type,classCount('land-classes'),classCount('ocean-classes'),+$('interpolation').value,hexBridgesEnabled);
- if(baked&&!new URLSearchParams(location.search).has('palette-lab')&&!$('puzzlegrid').checked&&!new URLSearchParams(location.search).has('bake-surfaces')&&new URLSearchParams(location.search).get('surface')!=='live'){displayedSource=type;$('map-loading').textContent='';$('source-name').textContent=styleOptions.find(s=>s.source===type)?.name||type;$('source-detail').textContent='';draw();return;}
+ if(baked&&!eraSource(type)&&!new URLSearchParams(location.search).has('palette-lab')&&!$('puzzlegrid').checked&&!new URLSearchParams(location.search).has('bake-surfaces')&&new URLSearchParams(location.search).get('surface')!=='live'){displayedSource=type;$('map-loading').textContent='';$('source-name').textContent=styleOptions.find(s=>s.source===type)?.name||type;$('source-detail').textContent='';draw();return;}
  $('map-loading').textContent='Loading map…';
- try{let source=await mapSource(type,classCount('land-classes'),classCount('ocean-classes'));if(request!==mapRequest)return;
+ const era=eraSource(type);
+ try{let source=await mapSource(type,classCount('land-classes'),classCount('ocean-classes'),era);if(request!==mapRequest)return;
   const originalWidth=source.width,originalHeight=source.height,max=gl.getParameter(gl.MAX_TEXTURE_SIZE);
   if(source.width>max){const resized=document.createElement('canvas');resized.width=max;resized.height=Math.round(source.height*max/source.width);const c=resized.getContext('2d');c.imageSmoothingEnabled=!['ecology','continents','countries'].includes(type);c.drawImage(source,0,0,resized.width,resized.height);source=resized;}
   gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,texture);const filter=['ecology','continents','countries'].includes(type)?gl.NEAREST:gl.LINEAR;gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,filter);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,filter);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,source);
   liveSourceKey=sourceKey(type);displayedSource=type;$('map-loading').textContent='';$('source-name').textContent=referenceSources[type]?.name||{continents:'continents.png',marble:'Blue Marble · bluemarble-high.jpg',countries:'Natural Earth · 1:50m · de facto country boundaries.',terrain:'Shaded topographic map',ivory:'Ivory · sculpted paper',elevation:'Elevation · earth & sea',ecology:'Holdridge + marine zones'}[type];$('source-detail').textContent=type==='ecology'?'0.5° land · 1° ocean temperature · 0.8° wave exposure':['ivory','elevation'].includes(type)?'Derived from supplied heightfield':`${originalWidth.toLocaleString()} × ${originalHeight.toLocaleString()} · equirectangular`;
-  draw();
+  const credit=eraCredit(era);if(credit){$('source-name').textContent=credit.name;$('source-detail').textContent=credit.detail;}
+  draw();releaseVeil();
  }catch(error){if(request!==mapRequest)return;$('map-source').value=displayedSource;updateMapUI();updateRelief();$('map-loading').textContent='Map could not load. Previous layer retained; select again to retry.';scheduleSave();}
 }
 for(const id of ['background-color','border-color','hex-grid-color','puzzle-color','graticule-color','river-color'])$(id).addEventListener('input',draw);

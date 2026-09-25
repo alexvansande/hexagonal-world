@@ -990,6 +990,20 @@ and handaxes (four Acheulean corridors), the Great American Biotic Interchange
 (two corridors across Panama) and a cooling world (the start of the ice ages;
 no routes), seven stories in all, so a 3 × 2 wall fills every post.
 
+*Review round: maps of their time.* The user asked for life zones that follow
+the era where the change is drastic (Beringia, walking to Britain), a political
+map across the ages (grey where no state, bold empires, a patchwork of small
+kingdoms), the present political map recreated in that style, and a fade
+between maps when the slider moves. Decisions: one glacial life-zone raster
+for Peopling the world, classified from CHELSA-TraCE21k at 21,000 years ago
+(the movements ran through and after the maximum, so it is a composite and
+says so); no era map for 2 million years ago or the Holocene stops, where a
+half-degree shift would not move a class. Political maps from
+aourednik/historical-basemaps, GPL-3.0 and a work in progress, credited in
+Sources and info and in every download; the present map drawn the same way on
+the live path so the fade is continuous, which leaves the baked political tiles
+unused. A veil holding the last frame dissolves once the new map is drawn.
+
 **Dance anchored on the centre (September 22).** The user saw a small drag down,
 made only to see an arrangement better, re-form the group and move the pieces in
 front of them away. Decision: a band switch needs a deliberate pan (40% of the
