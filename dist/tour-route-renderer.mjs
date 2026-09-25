@@ -121,7 +121,7 @@ export function createTourRoutes(stage){
      for(const part of fragments){if(part.points.length<4)continue;const pts=straightenPoints(part.points);ctx.beginPath();ctx.moveTo(pts[0],pts[1]);for(let i=2;i<pts.length;i+=2)ctx.lineTo(pts[i],pts[i+1]);ctx.stroke();}
      // A one-way route ends in an arrowhead along its last segment.
      const end=item.twoWay?null:fragments.findLast(part=>part.points.length>=4);
-     if(end){const pts=straightenPoints(end.points),n=pts.length,tx=pts[n-2],ty=pts[n-1],a=Math.atan2(ty-pts[n-3],tx-pts[n-4]),c=Math.cos(a),si=Math.sin(a),size=options.lineWidth*3+(pass?3:4);
+     if(end){const pts=straightenPoints(end.points),n=pts.length,tx=pts[n-2],ty=pts[n-1],a=Math.atan2(ty-pts[n-3],tx-pts[n-4]),c=Math.cos(a),si=Math.sin(a),size=options.lineWidth*1.5+(pass?1.5:2);
       ctx.fillStyle=pass?color:'#213e46';ctx.beginPath();ctx.moveTo(tx+c*size*.6,ty+si*size*.6);ctx.lineTo(tx-c*size*.7-si*size*.55,ty-si*size*.7+c*size*.55);ctx.lineTo(tx-c*size*.7+si*size*.55,ty-si*size*.7-c*size*.55);ctx.closePath();ctx.fill();}}
     item.dots=0;ctx.restore();continue;
    }

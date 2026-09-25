@@ -3,8 +3,9 @@ import {readTourPath} from './tour-pages.mjs?v=history-2';
 import {historyPath,readHistoryPath,readHashShare} from './history-routes.mjs?v=history-1';
 import {readDownloadPath,downloadPath,mapFiles,posterFiles} from './download-routes.mjs?v=download-1';
 import {createTourMarkers,createTourLabels,projectTourLocations,tourEnabled,tourLocations} from './tour-markers.mjs?v=history-4';
-import {createTourRoutes,projectTourRoutes,routeFragments,lineCourses,straightenPoints} from './tour-route-renderer.mjs?v=comet-6';
-import {posterLayout,drawPoster} from './history-poster.mjs?v=poster-3';
+import {createTourRoutes,projectTourRoutes,routeFragments,lineCourses,straightenPoints} from './tour-route-renderer.mjs?v=comet-7';
+import {posterLayout,drawPoster} from './history-poster.mjs?v=poster-4';
+import {instagramTile} from './map-export.mjs?v=poster-2';
 import {loadPeriod} from './history-loader.mjs?v=comet-2';
 import {pacificTourNet} from './tour-layout.mjs?v=dancing-2';
 import pacificLighting from './maps/pacific-manifest.mjs?v=pacific-light-1';
@@ -66,7 +67,7 @@ const state={routeDotSize:3.2,routeTail:24,routeLineWidth:2,labelScale:100,metho
 let mobileRepositioning=false;
 // Every scripted move honours the system setting and the Animation pane's switch.
 const reducedMotion=()=>matchMedia("(prefers-reduced-motion: reduce)").matches||!$('motion').checked;
-let exporting=false;
+let exporting=false,gridChosen=false;
 let shareSelection=initialDownload?sharePair(initialDownload.style,initialDownload.layout):initialTour||initialHistory?readSharePath(readHashShare(location.hash)||'')||sharePair('lifezones','dymaxion'):readSharePath(location.pathname)||inferSharePair(readMapStateFromUrl());
 let urlDefaults=null,defaultView=null;
 let persistenceReady=false,saveTimer=null,restoredView=null,headingBounds=null;
@@ -1011,6 +1012,8 @@ function preparePoster(crop,forPDF,aspect=null,wall=null){
  return {layout,routes,labels,clip};
 }
 const posterCredit=Object.freeze({name:'Alex Van de Sande',url:'hexagonal.earth'});
+// Rows of a three-column wall whose shape is nearest the map's: 3 × 1 for a wide net, 3 × 2 for a squarer one.
+const gridRowsFor=(width,height)=>Math.max(1,Math.min(3,Math.round(height/width*3*instagramTile.width/instagramTile.height)));
 // A plain map on an Instagram wall: no stories, but the site's title, subtitle and credit take free
 // corners of the posts, by the same rule as a poster's blocks.
 function prepareTitledWall(crop,wall){
@@ -1052,6 +1055,8 @@ async function exportMap(format=$('export-scale').value){
   // The poster grows the crop around the map: a heading above, story columns at both sides.
   // The poster takes the shape of its page: story columns beside the map, or a band of stories under it.
   const {pngFromTiles,printPDF,zipFiles,instagramGrid,instagramTile}=await import('./map-export.mjs?v=poster-2');
+  // Until the user picks, the rows follow the exported map's shape (the base net, after resetDance).
+  if(grid&&!gridChosen&&!initialDownload?.rows)$('export-grid').value=String(gridRowsFor(crop.width,crop.height));
   const wall=grid?{columns:3,rows:Number($('export-grid').value)||2,tile:instagramTile}:null;
   const posterData=poster?preparePoster(crop,isPDF,grid?null:1118/664,wall):grid?prepareTitledWall(crop,wall):null;
   if(posterData)Object.assign(crop,{x:posterData.layout.left,y:posterData.layout.top,width:posterData.layout.width,height:posterData.layout.height,topInset:0});
@@ -1119,7 +1124,10 @@ $('export').onclick=()=>exportMap();
   $('export-links-poster').hidden=!posters;
   if(posters)render($('export-links-poster'),[{...posterFiles.find(f=>f.format==='poster-pdf'&&f.text===text),name:'Poster PDF'},{...posterFiles.find(f=>f.format==='poster-png'&&f.text===text),name:'Poster PNG'},{...posterFiles.find(f=>f.format==='poster-instagram'&&f.text===text&&f.rows===rows),name:`Poster Instagram 3 × ${rows}`}]);
  };
- const open=()=>{const posters=historyOn&&!!historyPeriod;$('export-poster-formats').hidden=!posters;$('export-poster-note').hidden=posters;links();more.showModal();};
+ // The grid's rows default to the shape of the map's base net (a wide net fills a 3 × 1 wall, a square one 3 × 2) until the user picks.
+ $('export-grid').addEventListener('change',()=>{gridChosen=true;});
+ const fitRows=()=>{if(gridChosen||!ready)return;const base=danceBase?net.map(t=>({...t,...danceBase.find(b=>b.id===t.id)})):net;const all=base.flatMap(t=>(t.polygon||hex).map(p=>{const v=rotateScreen(canvasWorld(p,t));return [v[0],-v[1]];}));const w=Math.max(...all.map(p=>p[0]))-Math.min(...all.map(p=>p[0])),h=Math.max(...all.map(p=>p[1]))-Math.min(...all.map(p=>p[1]));$('export-grid').value=String(gridRowsFor(w,h));};
+ const open=()=>{const posters=historyOn&&!!historyPeriod;$('export-poster-formats').hidden=!posters;$('export-poster-note').hidden=posters;fitRows();links();more.showModal();};
  for(const id of ['export-grid','export-poster-text'])$(id).addEventListener('change',links);
  select.addEventListener('change',()=>{if(select.value==='more'){select.value=choice;open();}else choice=select.value;});
  $('export-more-close').onclick=()=>more.close();

@@ -184,7 +184,8 @@ export function posterLayout({map,spots,labels=[],scale=1,measure,heading=null,c
   return polygon.length>2;
  };
  const wallLayout=wall=>{
-  const W=wall.columns*wall.tile.width,H=wall.rows*wall.tile.height,padW=wall.tile.width*.05,mapHeight=map.bottom-map.top;
+  // A wall without stories keeps only a slim margin, so the map takes as much of the posts as it can.
+  const W=wall.columns*wall.tile.width,H=wall.rows*wall.tile.height,padW=wall.tile.width*(spots.length?.05:.02),mapHeight=map.bottom-map.top;
   const obstaclesOf=pieces.length?pieces:[[[map.left,map.top],[map.right,map.top],[map.right,map.bottom],[map.left,map.bottom]]];
   // The map fills the wall's width, or its height when the map is the taller shape (a turned net, a 3 × 1 wall).
   let s=Math.min((W-2*padW)/mapWidth,(H-2*padW)/mapHeight),last=null;
@@ -293,13 +294,13 @@ export function drawPoster(ctx,layout,{routes=[],labels=[],clip=[],ink=posterInk
   if(route.points.length<2)continue;
   ctx.globalAlpha=(route.alpha??1)*.45;ctx.strokeStyle='#213e46';ctx.lineWidth=route.width+1.4*k;
   ctx.beginPath();route.points.forEach((p,i)=>i?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1]));ctx.stroke();
-  if(route.arrow){ctx.fillStyle='#213e46';arrowhead(ctx,route.points,route.width*3+4*k);}
+  if(route.arrow){ctx.fillStyle='#213e46';arrowhead(ctx,route.points,route.width*1.5+2*k);}
  }
  for(const route of routes){
   if(route.points.length<2)continue;
   ctx.globalAlpha=route.alpha??1;ctx.strokeStyle=route.color;ctx.lineWidth=route.width;
   ctx.beginPath();route.points.forEach((p,i)=>i?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1]));ctx.stroke();
-  if(route.arrow){ctx.fillStyle=route.color;arrowhead(ctx,route.points,route.width*3+3*k);}
+  if(route.arrow){ctx.fillStyle=route.color;arrowhead(ctx,route.points,route.width*1.5+1.5*k);}
  }
  ctx.globalAlpha=1;if(clip.length)ctx.restore();
  // Site and area labels as on screen: outlined text at half-transparent white.

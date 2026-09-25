@@ -519,7 +519,9 @@ Filenames include the site, author, selected map format, and style.
 whole map into a wall of 1080 × 1440 portrait posts (3:4, the tallest post
 Instagram keeps at full size and the shape of the profile grid's thumbnails, so
 the wall assembles without a crop, with the site's title, subtitle and credit
-in free corners of the posts), three columns wide and one
+in free corners of the posts and only a slim 2% margin so the map takes the
+posts; the rows default to the map's shape, a wide net to 3 × 1, a squarer one
+to 3 × 2, until the user picks), three columns wide and one
 to three rows tall, centred with a 7% margin, and downloads a stored zip of PNGs
 plus a note: the tiles are numbered in posting order (the bottom-right tile is
 posted first because the profile grid shows the newest post first). With the
