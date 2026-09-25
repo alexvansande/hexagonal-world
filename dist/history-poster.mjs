@@ -248,11 +248,17 @@ export function posterLayout({map,spots,labels=[],scale=1,measure,heading=null,c
    };
    const commit=(index,best)=>{const b=boxes[index];Object.assign(b,{lines:best.variant.lines,height:best.variant.height,width:best.variant.width,x:best.r[0],y:best.r[1],cell:best.cell},best.o);taken.push(best.r);blocks.push(best.r);leaders.push(best.o.leader);};
    const unplaced=new Set(boxes.keys());
-   // With at least as many stories as cells, every cell gets one: each cell in turn takes the
-   // unplaced story that reaches it with the shortest leader (a cell the map fills is skipped).
-   if(boxes.length>=cells.length)for(const [cellIndex,cell] of cells.entries()){
-    let pick=null;for(const index of unplaced){const best=place(index,[[cellIndex,cell]]);if(best&&(!pick||best.cost<pick.best.cost))pick={index,best};}
-    if(pick){commit(pick.index,pick.best);unplaced.delete(pick.index);}
+   // With at least as many stories as cells, every cell gets one. Every story is tried in every
+   // cell on the empty wall, then the cheapest story-to-cell pairs are taken first, so the total
+   // length of the leaders stays short rather than the first cell grabbing the nearest story.
+   if(boxes.length>=cells.length){
+    const pairs=[];for(const index of boxes.keys())for(const [cellIndex,cell] of cells.entries()){const best=place(index,[[cellIndex,cell]]);if(best)pairs.push({index,cellIndex,cost:best.cost});}
+    pairs.sort((a,b)=>a.cost-b.cost);const filled=new Set();
+    for(const pair of pairs){
+     if(filled.has(pair.cellIndex)||!unplaced.has(pair.index))continue;
+     const best=place(pair.index,[[pair.cellIndex,cells[pair.cellIndex]]]);if(!best)continue;
+     commit(pair.index,best);unplaced.delete(pair.index);filled.add(pair.cellIndex);
+    }
    }
    // The rest, tallest first, wherever they fit best.
    for(const index of [...unplaced].sort((a,b)=>boxes[b].height-boxes[a].height)){const best=place(index,[...cells.entries()]);if(!best){failed=true;continue;}commit(index,best);}

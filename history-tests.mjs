@@ -11,9 +11,9 @@ import {historyPath,readHistoryPath,historyPages,readHashShare} from './dist/his
 const fnv=text=>{let h=2166136261;for(const ch of text)h=Math.imul(h^ch.charCodeAt(0),16777619)>>>0;return h.toString(16);};
 const waves=JSON.parse(await readFile('dist/history/waves.json','utf8')),relax=JSON.parse(await readFile('dist/history/relax.json','utf8'));
 const storyIds=new Set(tourLocations.map(l=>l.id));
-assert.equal(periods.length,9);assert.equal(new Set(periods.map(p=>p.id)).size,9);
+assert.equal(periods.length,8);assert.equal(new Set(periods.map(p=>p.id)).size,8);
 for(let i=1;i<periods.length;i++)assert(periods[i].year>periods[i-1].year,'periods are ordered in time');
-assert.deepEqual(periods.map(p=>p.tick),['2M ya','50k ya','10k ya','3k ya','200 CE','1000 CE','1400 CE','1600 CE','1800 CE'],'approximate dates tick the scrubber');
+assert.deepEqual(periods.map(p=>p.tick),['2M ya','50k ya','3k ya','200 CE','1000 CE','1400 CE','1600 CE','1800 CE'],'approximate dates tick the scrubber');
 assert.equal(period('nonsense').id,defaultPeriod);assert.equal(period('1000-ce').label,'Middle Ages');
 assert(Object.isFrozen(periods)&&periods.every(p=>Object.isFrozen(p)&&p.stories.length>=0));
 for(const [id,w] of Object.entries(waves))assert(/^#[0-9a-f]{6}$/.test(w.color)&&w.label,`wave ${id} has a colour and a label`);

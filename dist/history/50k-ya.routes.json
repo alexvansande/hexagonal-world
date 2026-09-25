@@ -1,30 +1,1848 @@
 [
-{"id":"migration-neanderthal-west","story":"neanderthals","wave":"neanderthal","title":"Neanderthal Europe","coordinates":[[36.1,-5.3],[40,-3],[43,-1],[44.95,0.94],[47,5],[48,10],[46.2,15.9]],"lane":3,"uncertain":true,"geodesic":true,"twoWay":true,"period":"Neanderthals: about 400,000–40,000 years ago","sources":["neanderthals"],"uncertainty":"Schematic range or contact link; the exact paths and timing are uncertain."},
-{"id":"migration-neanderthal-east","story":"neanderthals","wave":"neanderthal","title":"Balkans to the Levant","coordinates":[[46.2,15.9],[44,22],[41,28],[38,33],[36,36],[32.6,35]],"lane":3,"uncertain":true,"geodesic":true,"twoWay":true,"period":"Neanderthals: about 400,000–40,000 years ago","sources":["neanderthals"],"uncertainty":"Schematic range or contact link; the exact paths and timing are uncertain."},
-{"id":"migration-neanderthal-caucasus","story":"neanderthals","wave":"neanderthal","title":"Levant, Caucasus and Central Asia","coordinates":[[32.6,35],[36,40],[40,43],[44.2,40],[44,50],[42,60],[38,67],[43,72],[48,80],[51.4,84.7]],"lane":3,"uncertain":true,"geodesic":true,"twoWay":true,"period":"Neanderthals reached the Altai by about 120,000 years ago","sources":["neanderthals","denisova"],"uncertainty":"Schematic range or contact link; the exact paths and timing are uncertain."},
-{"id":"migration-denisovan-tibet","story":"denisovans","wave":"denisovan","title":"Altai to the Tibetan Plateau","coordinates":[[51.4,84.7],[47,90],[42,96],[38,100],[35.4,102.6]],"lane":3,"uncertain":true,"geodesic":true,"twoWay":true,"period":"Xiahe mandible: about 160,000 years ago","sources":["denisova","xiahe"],"uncertainty":"Schematic range or contact link; the exact paths and timing are uncertain."},
-{"id":"migration-denisovan-southeast","story":"denisovans","wave":"denisovan","title":"Toward Southeast Asia","coordinates":[[35.4,102.6],[28,104],[20.2,104.3],[10,104],[2,110]],"lane":3,"uncertain":true,"geodesic":true,"twoWay":true,"period":"Laos molar: about 164,000–131,000 years ago","sources":["laos","papuans"],"uncertainty":"Schematic range or contact link; the exact paths and timing are uncertain."},
-{"id":"migration-sapiens-africa-north","story":"origin-of-mankind","wave":"sapiens-africa","title":"Connected African populations: north","coordinates":[[3.5,36],[10,30],[18,20],[25,10],[30,0],[31.9,-8.9]],"lane":3,"uncertain":true,"geodesic":true,"twoWay":true,"period":"Jebel Irhoud: about 300,000 years ago","sources":["irhoud","origins"],"uncertainty":"Schematic range or contact link; the exact paths and timing are uncertain."},
-{"id":"migration-sapiens-africa-south","story":"origin-of-mankind","wave":"sapiens-africa","title":"Connected African populations: south","coordinates":[[3.5,36],[-5,35],[-15,32],[-22,28],[-28.8,26.1]],"lane":3,"uncertain":true,"geodesic":true,"twoWay":true,"period":"Florisbad: about 260,000 years ago","sources":["origins"],"uncertainty":"Schematic range or contact link; the exact paths and timing are uncertain."},
-{"id":"migration-early-levant","story":"origin-of-mankind","wave":"early","title":"Early departures through northeast Africa","coordinates":[[3.5,36],[10,32],[20,31],[28,31],[31,34],[32.7,35]],"geodesic":true,"period":"Levant: about 194,000–90,000 years ago","sources":["misliya","levant"],"uncertainty":"The corridor is schematic; its exact path and timing are uncertain."},
-{"id":"migration-early-arabia","story":"origin-of-mankind","wave":"early","title":"Earlier occupation of Arabia","coordinates":[[32.7,35],[30,37],[28,40],[27.5,41]],"geodesic":true,"period":"Arabia: at least 85,000 years ago","sources":["arabia","levant"],"uncertainty":"The corridor is schematic; its exact path and timing are uncertain."},
-{"id":"migration-northern-exit","story":"origin-of-mankind","wave":"expansion","title":"Nile–Sinai corridor to southwest Asia","coordinates":[[3.5,36],[10,37],[20,34],[27,33],[30,34],[33,37],[34,43],[29,52]],"geodesic":true,"period":"Main expansion broadly 70,000–50,000 years ago","sources":["levant","expansion","hub"],"uncertainty":"Northern and southern exits are alternatives or complementary corridors, not two proven, separately dated migrations."},
-{"id":"migration-southern-exit","story":"origin-of-mankind","wave":"expansion","title":"Possible southern exit through Arabia","coordinates":[[3.5,36],[8,40],[11.5,43],[12.7,43.5],[14,47],[18,52],[23,56],[29,52]],"geodesic":true,"period":"Main expansion broadly 70,000–50,000 years ago","sources":["sahul","expansion"],"uncertainty":"The Bab el-Mandeb crossing and southern corridor remain debated; shown as a proposed route."},
-{"id":"migration-south-asia","story":"origin-of-mankind","wave":"expansion","title":"Across southern Asia","coordinates":[[29,52],[26,57],[25,63],[24,68],[22,73],[21,79],[22,84],[23,89]],"geodesic":true,"period":"Late Pleistocene; regional chronologies differ","sources":["sahul","hub"],"uncertainty":"The corridor is schematic; its exact path and timing are uncertain."},
-{"id":"migration-southeast-asia","story":"origin-of-mankind","wave":"expansion","title":"Mainland Southeast Asia to Sunda","coordinates":[[23,89],[22,94],[18,97],[13,100],[8,100],[4,103]],"geodesic":true,"period":"Before the peopling of Sahul; chronology debated","sources":["sahul"],"uncertainty":"The corridor is schematic; its exact path and timing are uncertain."},
-{"id":"migration-east-asia","story":"origin-of-mankind","wave":"expansion","title":"East Asian expansion","coordinates":[[23,89],[25,96],[26,102],[29,107],[34,110],[40,116]],"geodesic":true,"period":"Broadly 50,000–40,000 years ago; earlier evidence debated","sources":["north","hub"],"uncertainty":"The corridor is schematic; its exact path and timing are uncertain."},
-{"id":"migration-japan","story":"origin-of-mankind","wave":"expansion","title":"Toward Korea and Japan","coordinates":[[34,110],[38,118],[40,124],[36,128],[34,131],[36,139]],"geodesic":true,"period":"Late Pleistocene","sources":["north"],"uncertainty":"The corridor is schematic; its exact path and timing are uncertain."},
-{"id":"migration-central-asia","story":"origin-of-mankind","wave":"expansion","title":"Central Asia and the Altai","coordinates":[[29,52],[36,55],[40,62],[43,70],[46,78],[49,87]],"geodesic":true,"period":"By about 45,000 years ago","sources":["north","europe","hub"],"uncertainty":"The corridor is schematic; its exact path and timing are uncertain."},
-{"id":"migration-europe","story":"origin-of-mankind","wave":"expansion","title":"Southwest Asia into Europe","coordinates":[[29,52],[35,44],[38,39],[39,33],[41,28],[44,24],[47,19],[49,12],[47,6],[45,1],[40,-4]],"geodesic":true,"period":"Europe: more than 45,000 years ago","sources":["europe","hub"],"uncertainty":"The corridor is schematic; its exact path and timing are uncertain."},
-{"id":"migration-sahul-north","story":"origin-of-mankind","wave":"expansion","title":"Northern sea crossings into Sahul","coordinates":[[4,103],[3,112],[2,119],[0,123],[1,128],[-1,132],[-5,139]],"geodesic":true,"period":"Around 60,000 years ago in a 2025 genetic model; timing debated","sources":["sahul"],"uncertainty":"The corridor is schematic; its exact path and timing are uncertain."},
-{"id":"migration-sahul-south","story":"origin-of-mankind","wave":"expansion","title":"Southern sea crossings into Sahul","coordinates":[[4,103],[-3,105],[-7,110],[-8,118],[-9,125],[-13,131]],"geodesic":true,"period":"Around 60,000 years ago in a 2025 genetic model; timing debated","sources":["sahul"],"uncertainty":"The corridor is schematic; its exact path and timing are uncertain."},
-{"id":"migration-sahul-east","story":"origin-of-mankind","wave":"expansion","title":"Eastern Sahul","coordinates":[[-5,139],[-10,142],[-17,145],[-25,148],[-34,147]],"geodesic":true,"period":"Southern Australia reached by about 49,000–45,000 years ago","sources":["australia","sahul"],"uncertainty":"The corridor is schematic; its exact path and timing are uncertain."},
-{"id":"migration-sahul-west","story":"origin-of-mankind","wave":"expansion","title":"Western and southern Sahul","coordinates":[[-13,131],[-18,124],[-25,116],[-32,117],[-34,128],[-35,139]],"geodesic":true,"period":"Southern Australia reached by about 49,000–45,000 years ago","sources":["australia","sahul"],"uncertainty":"The corridor is schematic; its exact path and timing are uncertain."},
-{"id":"migration-admixture-near-east","story":"origin-of-mankind","wave":"admixture","title":"Neanderthal contact in southwest Asia","coordinates":[[32.7,35],[34,39],[36.8,44.2]],"lane":3,"uncertain":true,"geodesic":true,"twoWay":true,"period":"Shared admixture: about 50,000–45,000 years ago","sources":["europe","admixture"],"uncertainty":"Schematic range or contact link; the exact paths and timing are uncertain."},
-{"id":"migration-admixture-wallacea","story":"origin-of-mankind","wave":"admixture","title":"Denisovan contact toward Sahul","coordinates":[[2,110],[0,123],[-1,132],[-5,139]],"lane":3,"uncertain":true,"geodesic":true,"twoWay":true,"period":"Before the settlement of Sahul","sources":["papuans"],"uncertainty":"Schematic range or contact link; the exact paths and timing are uncertain."},
-{"id":"polynesia-near-sahul","story":"french-polynesia","wave":"settlement","title":"Wallacea to New Guinea","coordinates":[[2,110],[0,123],[-1,132],[-5,139]],"uncertain":true,"geodesic":true,"period":"Sahul: about 65,000–50,000 years ago"},
-{"id":"polynesia-near-bismarck","story":"french-polynesia","wave":"settlement","title":"New Guinea to the Bismarck Archipelago","coordinates":[[-5,139],[-5.5,145],[-5.3,150.1],[-4,151],[-3.2,151.9]],"geodesic":true,"period":"Bismarcks: about 40,000 years ago"},
-{"id":"polynesia-near-manus","story":"french-polynesia","wave":"settlement","title":"Crossing to Manus","coordinates":[[-3.2,151.9],[-2.5,149.5],[-2,147]],"uncertain":true,"geodesic":true,"period":"Manus: about 13,000 years ago or earlier"},
-{"id":"polynesia-near-solomons","story":"french-polynesia","wave":"settlement","title":"Into the Solomon Islands","coordinates":[[-3.2,151.9],[-4.5,153.5],[-5.4,154.7],[-8,158],[-9.6,160]],"geodesic":true,"period":"Buka: about 29,000 years ago"},
-{"id":"polynesia-near-obsidian","story":"french-polynesia","wave":"voyaging","title":"New Britain obsidian to New Ireland","coordinates":[[-5.3,150.1],[-4.5,151],[-3.2,151.9]],"lane":3,"geodesic":true,"frequency":1.5,"twoWay":true,"period":"Obsidian exchange from about 20,000 years ago"}
+ {
+  "id": "migration-neanderthal-west",
+  "story": "neanderthals",
+  "wave": "neanderthal",
+  "title": "Neanderthal Europe",
+  "coordinates": [
+   [
+    36.1,
+    -5.3
+   ],
+   [
+    40,
+    -3
+   ],
+   [
+    43,
+    -1
+   ],
+   [
+    44.95,
+    0.94
+   ],
+   [
+    47,
+    5
+   ],
+   [
+    48,
+    10
+   ],
+   [
+    46.2,
+    15.9
+   ]
+  ],
+  "lane": 3,
+  "uncertain": true,
+  "geodesic": true,
+  "twoWay": true,
+  "period": "Neanderthals: about 400,000–40,000 years ago",
+  "sources": [
+   "neanderthals"
+  ],
+  "uncertainty": "Schematic range or contact link; the exact paths and timing are uncertain."
+ },
+ {
+  "id": "migration-neanderthal-east",
+  "story": "neanderthals",
+  "wave": "neanderthal",
+  "title": "Balkans to the Levant",
+  "coordinates": [
+   [
+    46.2,
+    15.9
+   ],
+   [
+    44,
+    22
+   ],
+   [
+    41,
+    28
+   ],
+   [
+    38,
+    33
+   ],
+   [
+    36,
+    36
+   ],
+   [
+    32.6,
+    35
+   ]
+  ],
+  "lane": 3,
+  "uncertain": true,
+  "geodesic": true,
+  "twoWay": true,
+  "period": "Neanderthals: about 400,000–40,000 years ago",
+  "sources": [
+   "neanderthals"
+  ],
+  "uncertainty": "Schematic range or contact link; the exact paths and timing are uncertain."
+ },
+ {
+  "id": "migration-neanderthal-caucasus",
+  "story": "neanderthals",
+  "wave": "neanderthal",
+  "title": "Levant, Caucasus and Central Asia",
+  "coordinates": [
+   [
+    32.6,
+    35
+   ],
+   [
+    36,
+    40
+   ],
+   [
+    40,
+    43
+   ],
+   [
+    44.2,
+    40
+   ],
+   [
+    44,
+    50
+   ],
+   [
+    42,
+    60
+   ],
+   [
+    38,
+    67
+   ],
+   [
+    43,
+    72
+   ],
+   [
+    48,
+    80
+   ],
+   [
+    51.4,
+    84.7
+   ]
+  ],
+  "lane": 3,
+  "uncertain": true,
+  "geodesic": true,
+  "twoWay": true,
+  "period": "Neanderthals reached the Altai by about 120,000 years ago",
+  "sources": [
+   "neanderthals",
+   "denisova"
+  ],
+  "uncertainty": "Schematic range or contact link; the exact paths and timing are uncertain."
+ },
+ {
+  "id": "migration-denisovan-tibet",
+  "story": "denisovans",
+  "wave": "denisovan",
+  "title": "Altai to the Tibetan Plateau",
+  "coordinates": [
+   [
+    51.4,
+    84.7
+   ],
+   [
+    47,
+    90
+   ],
+   [
+    42,
+    96
+   ],
+   [
+    38,
+    100
+   ],
+   [
+    35.4,
+    102.6
+   ]
+  ],
+  "lane": 3,
+  "uncertain": true,
+  "geodesic": true,
+  "twoWay": true,
+  "period": "Xiahe mandible: about 160,000 years ago",
+  "sources": [
+   "denisova",
+   "xiahe"
+  ],
+  "uncertainty": "Schematic range or contact link; the exact paths and timing are uncertain."
+ },
+ {
+  "id": "migration-denisovan-southeast",
+  "story": "denisovans",
+  "wave": "denisovan",
+  "title": "Toward Southeast Asia",
+  "coordinates": [
+   [
+    35.4,
+    102.6
+   ],
+   [
+    28,
+    104
+   ],
+   [
+    20.2,
+    104.3
+   ],
+   [
+    10,
+    104
+   ],
+   [
+    2,
+    110
+   ]
+  ],
+  "lane": 3,
+  "uncertain": true,
+  "geodesic": true,
+  "twoWay": true,
+  "period": "Laos molar: about 164,000–131,000 years ago",
+  "sources": [
+   "laos",
+   "papuans"
+  ],
+  "uncertainty": "Schematic range or contact link; the exact paths and timing are uncertain."
+ },
+ {
+  "id": "migration-sapiens-africa-north",
+  "story": "origin-of-mankind",
+  "wave": "sapiens-africa",
+  "title": "Connected African populations: north",
+  "coordinates": [
+   [
+    3.5,
+    36
+   ],
+   [
+    10,
+    30
+   ],
+   [
+    18,
+    20
+   ],
+   [
+    25,
+    10
+   ],
+   [
+    30,
+    0
+   ],
+   [
+    31.9,
+    -8.9
+   ]
+  ],
+  "lane": 3,
+  "uncertain": true,
+  "geodesic": true,
+  "twoWay": true,
+  "period": "Jebel Irhoud: about 300,000 years ago",
+  "sources": [
+   "irhoud",
+   "origins"
+  ],
+  "uncertainty": "Schematic range or contact link; the exact paths and timing are uncertain."
+ },
+ {
+  "id": "migration-sapiens-africa-south",
+  "story": "origin-of-mankind",
+  "wave": "sapiens-africa",
+  "title": "Connected African populations: south",
+  "coordinates": [
+   [
+    3.5,
+    36
+   ],
+   [
+    -5,
+    35
+   ],
+   [
+    -15,
+    32
+   ],
+   [
+    -22,
+    28
+   ],
+   [
+    -28.8,
+    26.1
+   ]
+  ],
+  "lane": 3,
+  "uncertain": true,
+  "geodesic": true,
+  "twoWay": true,
+  "period": "Florisbad: about 260,000 years ago",
+  "sources": [
+   "origins"
+  ],
+  "uncertainty": "Schematic range or contact link; the exact paths and timing are uncertain."
+ },
+ {
+  "id": "migration-early-levant",
+  "story": "origin-of-mankind",
+  "wave": "early",
+  "title": "Early departures through northeast Africa",
+  "coordinates": [
+   [
+    3.5,
+    36
+   ],
+   [
+    10,
+    32
+   ],
+   [
+    20,
+    31
+   ],
+   [
+    28,
+    31
+   ],
+   [
+    31,
+    34
+   ],
+   [
+    32.7,
+    35
+   ]
+  ],
+  "geodesic": true,
+  "period": "Levant: about 194,000–90,000 years ago",
+  "sources": [
+   "misliya",
+   "levant"
+  ],
+  "uncertainty": "The corridor is schematic; its exact path and timing are uncertain."
+ },
+ {
+  "id": "migration-early-arabia",
+  "story": "origin-of-mankind",
+  "wave": "early",
+  "title": "Earlier occupation of Arabia",
+  "coordinates": [
+   [
+    32.7,
+    35
+   ],
+   [
+    30,
+    37
+   ],
+   [
+    28,
+    40
+   ],
+   [
+    27.5,
+    41
+   ]
+  ],
+  "geodesic": true,
+  "period": "Arabia: at least 85,000 years ago",
+  "sources": [
+   "arabia",
+   "levant"
+  ],
+  "uncertainty": "The corridor is schematic; its exact path and timing are uncertain."
+ },
+ {
+  "id": "migration-northern-exit",
+  "story": "origin-of-mankind",
+  "wave": "expansion",
+  "title": "Nile–Sinai corridor to southwest Asia",
+  "coordinates": [
+   [
+    3.5,
+    36
+   ],
+   [
+    10,
+    37
+   ],
+   [
+    20,
+    34
+   ],
+   [
+    27,
+    33
+   ],
+   [
+    30,
+    34
+   ],
+   [
+    33,
+    37
+   ],
+   [
+    34,
+    43
+   ],
+   [
+    29,
+    52
+   ]
+  ],
+  "geodesic": true,
+  "period": "Main expansion broadly 70,000–50,000 years ago",
+  "sources": [
+   "levant",
+   "expansion",
+   "hub"
+  ],
+  "uncertainty": "Northern and southern exits are alternatives or complementary corridors, not two proven, separately dated migrations."
+ },
+ {
+  "id": "migration-southern-exit",
+  "story": "origin-of-mankind",
+  "wave": "expansion",
+  "title": "Possible southern exit through Arabia",
+  "coordinates": [
+   [
+    3.5,
+    36
+   ],
+   [
+    8,
+    40
+   ],
+   [
+    11.5,
+    43
+   ],
+   [
+    12.7,
+    43.5
+   ],
+   [
+    14,
+    47
+   ],
+   [
+    18,
+    52
+   ],
+   [
+    23,
+    56
+   ],
+   [
+    29,
+    52
+   ]
+  ],
+  "geodesic": true,
+  "period": "Main expansion broadly 70,000–50,000 years ago",
+  "sources": [
+   "sahul",
+   "expansion"
+  ],
+  "uncertainty": "The Bab el-Mandeb crossing and southern corridor remain debated; shown as a proposed route."
+ },
+ {
+  "id": "migration-south-asia",
+  "story": "origin-of-mankind",
+  "wave": "expansion",
+  "title": "Across southern Asia",
+  "coordinates": [
+   [
+    29,
+    52
+   ],
+   [
+    26,
+    57
+   ],
+   [
+    25,
+    63
+   ],
+   [
+    24,
+    68
+   ],
+   [
+    22,
+    73
+   ],
+   [
+    21,
+    79
+   ],
+   [
+    22,
+    84
+   ],
+   [
+    23,
+    89
+   ]
+  ],
+  "geodesic": true,
+  "period": "Late Pleistocene; regional chronologies differ",
+  "sources": [
+   "sahul",
+   "hub"
+  ],
+  "uncertainty": "The corridor is schematic; its exact path and timing are uncertain."
+ },
+ {
+  "id": "migration-southeast-asia",
+  "story": "origin-of-mankind",
+  "wave": "expansion",
+  "title": "Mainland Southeast Asia to Sunda",
+  "coordinates": [
+   [
+    23,
+    89
+   ],
+   [
+    22,
+    94
+   ],
+   [
+    18,
+    97
+   ],
+   [
+    13,
+    100
+   ],
+   [
+    8,
+    100
+   ],
+   [
+    4,
+    103
+   ]
+  ],
+  "geodesic": true,
+  "period": "Before the peopling of Sahul; chronology debated",
+  "sources": [
+   "sahul"
+  ],
+  "uncertainty": "The corridor is schematic; its exact path and timing are uncertain."
+ },
+ {
+  "id": "migration-east-asia",
+  "story": "origin-of-mankind",
+  "wave": "expansion",
+  "title": "East Asian expansion",
+  "coordinates": [
+   [
+    23,
+    89
+   ],
+   [
+    25,
+    96
+   ],
+   [
+    26,
+    102
+   ],
+   [
+    29,
+    107
+   ],
+   [
+    34,
+    110
+   ],
+   [
+    40,
+    116
+   ]
+  ],
+  "geodesic": true,
+  "period": "Broadly 50,000–40,000 years ago; earlier evidence debated",
+  "sources": [
+   "north",
+   "hub"
+  ],
+  "uncertainty": "The corridor is schematic; its exact path and timing are uncertain."
+ },
+ {
+  "id": "migration-japan",
+  "story": "origin-of-mankind",
+  "wave": "expansion",
+  "title": "Toward Korea and Japan",
+  "coordinates": [
+   [
+    34,
+    110
+   ],
+   [
+    38,
+    118
+   ],
+   [
+    40,
+    124
+   ],
+   [
+    36,
+    128
+   ],
+   [
+    34,
+    131
+   ],
+   [
+    36,
+    139
+   ]
+  ],
+  "geodesic": true,
+  "period": "Late Pleistocene",
+  "sources": [
+   "north"
+  ],
+  "uncertainty": "The corridor is schematic; its exact path and timing are uncertain."
+ },
+ {
+  "id": "migration-central-asia",
+  "story": "origin-of-mankind",
+  "wave": "expansion",
+  "title": "Central Asia and the Altai",
+  "coordinates": [
+   [
+    29,
+    52
+   ],
+   [
+    36,
+    55
+   ],
+   [
+    40,
+    62
+   ],
+   [
+    43,
+    70
+   ],
+   [
+    46,
+    78
+   ],
+   [
+    49,
+    87
+   ]
+  ],
+  "geodesic": true,
+  "period": "By about 45,000 years ago",
+  "sources": [
+   "north",
+   "europe",
+   "hub"
+  ],
+  "uncertainty": "The corridor is schematic; its exact path and timing are uncertain."
+ },
+ {
+  "id": "migration-europe",
+  "story": "origin-of-mankind",
+  "wave": "expansion",
+  "title": "Southwest Asia into Europe",
+  "coordinates": [
+   [
+    29,
+    52
+   ],
+   [
+    35,
+    44
+   ],
+   [
+    38,
+    39
+   ],
+   [
+    39,
+    33
+   ],
+   [
+    41,
+    28
+   ],
+   [
+    44,
+    24
+   ],
+   [
+    47,
+    19
+   ],
+   [
+    49,
+    12
+   ],
+   [
+    47,
+    6
+   ],
+   [
+    45,
+    1
+   ],
+   [
+    40,
+    -4
+   ]
+  ],
+  "geodesic": true,
+  "period": "Europe: more than 45,000 years ago",
+  "sources": [
+   "europe",
+   "hub"
+  ],
+  "uncertainty": "The corridor is schematic; its exact path and timing are uncertain."
+ },
+ {
+  "id": "migration-sahul-north",
+  "story": "origin-of-mankind",
+  "wave": "expansion",
+  "title": "Northern sea crossings into Sahul",
+  "coordinates": [
+   [
+    4,
+    103
+   ],
+   [
+    3,
+    112
+   ],
+   [
+    2,
+    119
+   ],
+   [
+    0,
+    123
+   ],
+   [
+    1,
+    128
+   ],
+   [
+    -1,
+    132
+   ],
+   [
+    -5,
+    139
+   ]
+  ],
+  "geodesic": true,
+  "period": "Around 60,000 years ago in a 2025 genetic model; timing debated",
+  "sources": [
+   "sahul"
+  ],
+  "uncertainty": "The corridor is schematic; its exact path and timing are uncertain."
+ },
+ {
+  "id": "migration-sahul-south",
+  "story": "origin-of-mankind",
+  "wave": "expansion",
+  "title": "Southern sea crossings into Sahul",
+  "coordinates": [
+   [
+    4,
+    103
+   ],
+   [
+    -3,
+    105
+   ],
+   [
+    -7,
+    110
+   ],
+   [
+    -8,
+    118
+   ],
+   [
+    -9,
+    125
+   ],
+   [
+    -13,
+    131
+   ]
+  ],
+  "geodesic": true,
+  "period": "Around 60,000 years ago in a 2025 genetic model; timing debated",
+  "sources": [
+   "sahul"
+  ],
+  "uncertainty": "The corridor is schematic; its exact path and timing are uncertain."
+ },
+ {
+  "id": "migration-sahul-east",
+  "story": "origin-of-mankind",
+  "wave": "expansion",
+  "title": "Eastern Sahul",
+  "coordinates": [
+   [
+    -5,
+    139
+   ],
+   [
+    -10,
+    142
+   ],
+   [
+    -17,
+    145
+   ],
+   [
+    -25,
+    148
+   ],
+   [
+    -34,
+    147
+   ]
+  ],
+  "geodesic": true,
+  "period": "Southern Australia reached by about 49,000–45,000 years ago",
+  "sources": [
+   "australia",
+   "sahul"
+  ],
+  "uncertainty": "The corridor is schematic; its exact path and timing are uncertain."
+ },
+ {
+  "id": "migration-sahul-west",
+  "story": "origin-of-mankind",
+  "wave": "expansion",
+  "title": "Western and southern Sahul",
+  "coordinates": [
+   [
+    -13,
+    131
+   ],
+   [
+    -18,
+    124
+   ],
+   [
+    -25,
+    116
+   ],
+   [
+    -32,
+    117
+   ],
+   [
+    -34,
+    128
+   ],
+   [
+    -35,
+    139
+   ]
+  ],
+  "geodesic": true,
+  "period": "Southern Australia reached by about 49,000–45,000 years ago",
+  "sources": [
+   "australia",
+   "sahul"
+  ],
+  "uncertainty": "The corridor is schematic; its exact path and timing are uncertain."
+ },
+ {
+  "id": "migration-admixture-near-east",
+  "story": "origin-of-mankind",
+  "wave": "admixture",
+  "title": "Neanderthal contact in southwest Asia",
+  "coordinates": [
+   [
+    32.7,
+    35
+   ],
+   [
+    34,
+    39
+   ],
+   [
+    36.8,
+    44.2
+   ]
+  ],
+  "lane": 3,
+  "uncertain": true,
+  "geodesic": true,
+  "twoWay": true,
+  "period": "Shared admixture: about 50,000–45,000 years ago",
+  "sources": [
+   "europe",
+   "admixture"
+  ],
+  "uncertainty": "Schematic range or contact link; the exact paths and timing are uncertain."
+ },
+ {
+  "id": "migration-admixture-wallacea",
+  "story": "origin-of-mankind",
+  "wave": "admixture",
+  "title": "Denisovan contact toward Sahul",
+  "coordinates": [
+   [
+    2,
+    110
+   ],
+   [
+    0,
+    123
+   ],
+   [
+    -1,
+    132
+   ],
+   [
+    -5,
+    139
+   ]
+  ],
+  "lane": 3,
+  "uncertain": true,
+  "geodesic": true,
+  "twoWay": true,
+  "period": "Before the settlement of Sahul",
+  "sources": [
+   "papuans"
+  ],
+  "uncertainty": "Schematic range or contact link; the exact paths and timing are uncertain."
+ },
+ {
+  "id": "polynesia-near-sahul",
+  "story": "french-polynesia",
+  "wave": "settlement",
+  "title": "Wallacea to New Guinea",
+  "coordinates": [
+   [
+    2,
+    110
+   ],
+   [
+    0,
+    123
+   ],
+   [
+    -1,
+    132
+   ],
+   [
+    -5,
+    139
+   ]
+  ],
+  "uncertain": true,
+  "geodesic": true,
+  "period": "Sahul: about 65,000–50,000 years ago"
+ },
+ {
+  "id": "polynesia-near-bismarck",
+  "story": "french-polynesia",
+  "wave": "settlement",
+  "title": "New Guinea to the Bismarck Archipelago",
+  "coordinates": [
+   [
+    -5,
+    139
+   ],
+   [
+    -5.5,
+    145
+   ],
+   [
+    -5.3,
+    150.1
+   ],
+   [
+    -4,
+    151
+   ],
+   [
+    -3.2,
+    151.9
+   ]
+  ],
+  "geodesic": true,
+  "period": "Bismarcks: about 40,000 years ago"
+ },
+ {
+  "id": "polynesia-near-manus",
+  "story": "french-polynesia",
+  "wave": "settlement",
+  "title": "Crossing to Manus",
+  "coordinates": [
+   [
+    -3.2,
+    151.9
+   ],
+   [
+    -2.5,
+    149.5
+   ],
+   [
+    -2,
+    147
+   ]
+  ],
+  "uncertain": true,
+  "geodesic": true,
+  "period": "Manus: about 13,000 years ago or earlier"
+ },
+ {
+  "id": "polynesia-near-solomons",
+  "story": "french-polynesia",
+  "wave": "settlement",
+  "title": "Into the Solomon Islands",
+  "coordinates": [
+   [
+    -3.2,
+    151.9
+   ],
+   [
+    -4.5,
+    153.5
+   ],
+   [
+    -5.4,
+    154.7
+   ],
+   [
+    -8,
+    158
+   ],
+   [
+    -9.6,
+    160
+   ]
+  ],
+  "geodesic": true,
+  "period": "Buka: about 29,000 years ago"
+ },
+ {
+  "id": "polynesia-near-obsidian",
+  "story": "french-polynesia",
+  "wave": "voyaging",
+  "title": "New Britain obsidian to New Ireland",
+  "coordinates": [
+   [
+    -5.3,
+    150.1
+   ],
+   [
+    -4.5,
+    151
+   ],
+   [
+    -3.2,
+    151.9
+   ]
+  ],
+  "lane": 3,
+  "geodesic": true,
+  "frequency": 1.5,
+  "twoWay": true,
+  "period": "Obsidian exchange from about 20,000 years ago"
+ },
+ {
+  "id": "migration-siberia",
+  "story": "origin-of-mankind",
+  "wave": "later",
+  "title": "Across Siberia",
+  "coordinates": [
+   [
+    49,
+    87
+   ],
+   [
+    58,
+    84
+   ],
+   [
+    57,
+    104
+   ],
+   [
+    63,
+    123
+   ],
+   [
+    68,
+    135
+   ]
+  ],
+  "geodesic": true,
+  "period": "Northern expansion during the later Ice Age",
+  "sources": [
+   "north",
+   "americas"
+  ],
+  "uncertainty": "The corridor is schematic; its exact path and timing are uncertain."
+ },
+ {
+  "id": "migration-beringia",
+  "story": "origin-of-mankind",
+  "wave": "later",
+  "title": "Northeast Asia and Beringia",
+  "coordinates": [
+   [
+    68,
+    135
+   ],
+   [
+    66,
+    154
+   ],
+   [
+    65,
+    174
+   ],
+   [
+    65,
+    -174
+   ],
+   [
+    65,
+    -160
+   ]
+  ],
+  "geodesic": true,
+  "period": "Ancestral population formation around 25,000 years ago; entry timing debated",
+  "sources": [
+   "americas",
+   "southAmerica",
+   "footprints"
+  ],
+  "uncertainty": "The corridor is schematic; its exact path and timing are uncertain."
+ },
+ {
+  "id": "migration-pacific-coast",
+  "story": "origin-of-mankind",
+  "wave": "later",
+  "title": "Proposed Pacific coastal dispersal",
+  "coordinates": [
+   [
+    65,
+    -160
+   ],
+   [
+    60,
+    -148
+   ],
+   [
+    57,
+    -136
+   ],
+   [
+    52,
+    -129
+   ],
+   [
+    46,
+    -124
+   ],
+   [
+    40,
+    -124
+   ],
+   [
+    35,
+    -120
+   ]
+  ],
+  "geodesic": true,
+  "period": "Americas: evidence by 23,000–21,000 years ago; route debated",
+  "sources": [
+   "americas",
+   "footprints"
+  ],
+  "uncertainty": "The corridor is schematic; its exact path and timing are uncertain."
+ },
+ {
+  "id": "migration-white-sands",
+  "story": "origin-of-mankind",
+  "wave": "later",
+  "title": "Interior North America",
+  "coordinates": [
+   [
+    35,
+    -120
+   ],
+   [
+    34,
+    -114
+   ],
+   [
+    32.8,
+    -106.3
+   ]
+  ],
+  "geodesic": true,
+  "period": "White Sands: about 23,000–21,000 years ago",
+  "sources": [
+   "footprints"
+  ],
+  "uncertainty": "The footprints date human presence, not this illustrated connection or a proven coastal itinerary."
+ },
+ {
+  "id": "migration-interior",
+  "story": "origin-of-mankind",
+  "wave": "later",
+  "title": "Later movement through the continental interior",
+  "coordinates": [
+   [
+    65,
+    -160
+   ],
+   [
+    63,
+    -143
+   ],
+   [
+    59,
+    -132
+   ],
+   [
+    54,
+    -120
+   ],
+   [
+    46,
+    -110
+   ]
+  ],
+  "geodesic": true,
+  "period": "Later than the earliest southern presence; roughly 14,000 years ago onward",
+  "sources": [
+   "americas"
+  ],
+  "uncertainty": "The later ice-free corridor does not explain the older White Sands footprints."
+ },
+ {
+  "id": "migration-north-america-east",
+  "story": "origin-of-mankind",
+  "wave": "later",
+  "title": "Expansion across North America",
+  "coordinates": [
+   [
+    46,
+    -110
+   ],
+   [
+    43,
+    -100
+   ],
+   [
+    42,
+    -89
+   ],
+   [
+    39,
+    -80
+   ]
+  ],
+  "geodesic": true,
+  "period": "Late Ice Age and subsequent dispersals",
+  "sources": [
+   "americas"
+  ],
+  "uncertainty": "The corridor is schematic; its exact path and timing are uncertain."
+ },
+ {
+  "id": "migration-mexico",
+  "story": "origin-of-mankind",
+  "wave": "later",
+  "title": "South into Mexico",
+  "coordinates": [
+   [
+    35,
+    -120
+   ],
+   [
+    29,
+    -112
+   ],
+   [
+    24,
+    -105
+   ],
+   [
+    20,
+    -100
+   ]
+  ],
+  "geodesic": true,
+  "period": "Late Ice Age",
+  "sources": [
+   "americas"
+  ],
+  "uncertainty": "The corridor is schematic; its exact path and timing are uncertain."
+ },
+ {
+  "id": "migration-central-america",
+  "story": "origin-of-mankind",
+  "wave": "later",
+  "title": "Through Central America",
+  "coordinates": [
+   [
+    20,
+    -100
+   ],
+   [
+    17,
+    -96
+   ],
+   [
+    15,
+    -90
+   ],
+   [
+    12,
+    -85
+   ],
+   [
+    8.5,
+    -80
+   ],
+   [
+    5,
+    -74
+   ]
+  ],
+  "geodesic": true,
+  "period": "Late Ice Age",
+  "sources": [
+   "americas",
+   "southAmerica"
+  ],
+  "uncertainty": "The corridor is schematic; its exact path and timing are uncertain."
+ },
+ {
+  "id": "migration-andes",
+  "story": "origin-of-mankind",
+  "wave": "later",
+  "title": "Along the Andes",
+  "coordinates": [
+   [
+    5,
+    -74
+   ],
+   [
+    0,
+    -78
+   ],
+   [
+    -5,
+    -78
+   ],
+   [
+    -12,
+    -75
+   ],
+   [
+    -20,
+    -70
+   ],
+   [
+    -30,
+    -71
+   ],
+   [
+    -40,
+    -73
+   ],
+   [
+    -48,
+    -73
+   ],
+   [
+    -53,
+    -70
+   ]
+  ],
+  "geodesic": true,
+  "period": "Late Ice Age; southern South America occupied by about 14,500 years ago",
+  "sources": [
+   "andes",
+   "americas"
+  ],
+  "uncertainty": "The corridor is schematic; its exact path and timing are uncertain."
+ },
+ {
+  "id": "migration-south-america-east",
+  "story": "origin-of-mankind",
+  "wave": "later",
+  "title": "Toward eastern South America",
+  "coordinates": [
+   [
+    -12,
+    -75
+   ],
+   [
+    -15,
+    -67
+   ],
+   [
+    -20,
+    -60
+   ],
+   [
+    -23,
+    -49
+   ],
+   [
+    -18,
+    -43
+   ]
+  ],
+  "geodesic": true,
+  "period": "Late Ice Age and early Holocene",
+  "sources": [
+   "andes",
+   "southAmerica"
+  ],
+  "uncertainty": "The corridor is schematic; its exact path and timing are uncertain."
+ },
+ {
+  "id": "migration-amazon",
+  "story": "origin-of-mankind",
+  "wave": "later",
+  "title": "Northern South America and Amazonia",
+  "coordinates": [
+   [
+    5,
+    -74
+   ],
+   [
+    1,
+    -68
+   ],
+   [
+    -3,
+    -62
+   ],
+   [
+    -2,
+    -55
+   ],
+   [
+    0,
+    -50
+   ]
+  ],
+  "geodesic": true,
+  "period": "Late Ice Age and subsequent regional dispersals",
+  "sources": [
+   "southAmerica"
+  ],
+  "uncertainty": "The corridor is schematic; its exact path and timing are uncertain."
+ },
+ {
+  "id": "migration-later-south-america",
+  "story": "origin-of-mankind",
+  "wave": "later",
+  "title": "Subsequent dispersals into South America",
+  "coordinates": [
+   [
+    8.5,
+    -80
+   ],
+   [
+    9,
+    -75
+   ],
+   [
+    8,
+    -68
+   ],
+   [
+    3,
+    -62
+   ],
+   [
+    -3,
+    -60
+   ],
+   [
+    -10,
+    -55
+   ]
+  ],
+  "geodesic": true,
+  "period": "Population turnover from about 9,000 years ago; further later movements",
+  "sources": [
+   "southAmerica"
+  ],
+  "uncertainty": "Represents repeated dispersals. The 2026 genomic model identifies at least three principal movements, not three geographically resolved tracks."
+ },
+ {
+  "id": "migration-holocene-farmers",
+  "story": "origin-of-mankind",
+  "wave": "holocene",
+  "title": "Anatolian farmers into Europe",
+  "coordinates": [
+   [
+    38,
+    33
+   ],
+   [
+    41,
+    28
+   ],
+   [
+    44,
+    24
+   ],
+   [
+    47,
+    19
+   ],
+   [
+    49,
+    12
+   ],
+   [
+    47,
+    6
+   ],
+   [
+    45,
+    1
+   ]
+  ],
+  "uncertain": true,
+  "geodesic": true,
+  "period": "From about 8,500 years ago",
+  "sources": [
+   "farmers"
+  ],
+  "uncertainty": "Schematic range or contact link; the exact paths and timing are uncertain."
+ },
+ {
+  "id": "migration-holocene-steppe",
+  "story": "origin-of-mankind",
+  "wave": "holocene",
+  "title": "Steppe ancestry into Europe",
+  "coordinates": [
+   [
+    48,
+    40
+   ],
+   [
+    50,
+    30
+   ],
+   [
+    52,
+    20
+   ],
+   [
+    52,
+    10
+   ]
+  ],
+  "uncertain": true,
+  "geodesic": true,
+  "period": "About 5,000 years ago",
+  "sources": [
+   "steppe"
+  ],
+  "uncertainty": "Schematic range or contact link; the exact paths and timing are uncertain."
+ },
+ {
+  "id": "migration-holocene-backflow",
+  "story": "origin-of-mankind",
+  "wave": "holocene",
+  "title": "Eurasian ancestry back into Africa",
+  "coordinates": [
+   [
+    32.7,
+    35
+   ],
+   [
+    30,
+    33
+   ],
+   [
+    24,
+    35
+   ],
+   [
+    15,
+    39
+   ],
+   [
+    9,
+    40
+   ]
+  ],
+  "uncertain": true,
+  "geodesic": true,
+  "period": "Repeated; strongly by about 3,000 years ago",
+  "sources": [
+   "backflow"
+  ],
+  "uncertainty": "Schematic range or contact link; the exact paths and timing are uncertain."
+ },
+ {
+  "id": "migration-holocene-bantu",
+  "story": "origin-of-mankind",
+  "wave": "holocene",
+  "title": "Bantu-speaking expansions",
+  "coordinates": [
+   [
+    6,
+    10
+   ],
+   [
+    0,
+    18
+   ],
+   [
+    -2,
+    33
+   ],
+   [
+    -12,
+    32
+   ],
+   [
+    -23,
+    30
+   ]
+  ],
+  "uncertain": true,
+  "geodesic": true,
+  "period": "About 5,000–1,500 years ago",
+  "sources": [
+   "bantu"
+  ],
+  "uncertainty": "Schematic range or contact link; the exact paths and timing are uncertain."
+ },
+ {
+  "id": "migration-holocene-bantu-west",
+  "story": "origin-of-mankind",
+  "wave": "holocene",
+  "title": "Western Bantu stream",
+  "coordinates": [
+   [
+    6,
+    10
+   ],
+   [
+    -2,
+    11
+   ],
+   [
+    -8,
+    14
+   ],
+   [
+    -14,
+    15
+   ]
+  ],
+  "uncertain": true,
+  "geodesic": true,
+  "period": "About 5,000–1,500 years ago",
+  "sources": [
+   "bantu"
+  ],
+  "uncertainty": "Schematic range or contact link; the exact paths and timing are uncertain."
+ },
+ {
+  "id": "migration-holocene-arctic",
+  "story": "origin-of-mankind",
+  "wave": "holocene",
+  "title": "Paleo-Inuit and Thule across the Arctic",
+  "coordinates": [
+   [
+    65,
+    -160
+   ],
+   [
+    70,
+    -150
+   ],
+   [
+    70,
+    -130
+   ],
+   [
+    70,
+    -110
+   ],
+   [
+    73,
+    -95
+   ],
+   [
+    75,
+    -80
+   ],
+   [
+    76.5,
+    -68.7
+   ],
+   [
+    72,
+    -55
+   ]
+  ],
+  "uncertain": true,
+  "geodesic": true,
+  "period": "About 5,000 years ago, then about 1,000 years ago",
+  "sources": [
+   "arctic"
+  ],
+  "uncertainty": "Schematic range or contact link; the exact paths and timing are uncertain."
+ },
+ {
+  "id": "towns-obsidian-levant",
+  "story": "first-towns",
+  "wave": "obsidian",
+  "title": "Cappadocian obsidian to the Levant",
+  "coordinates": [
+   [
+    38.25,
+    34.5
+   ],
+   [
+    37.0,
+    35.3
+   ],
+   [
+    34.9,
+    35.9
+   ],
+   [
+    32.0,
+    35.95
+   ],
+   [
+    31.87,
+    35.44
+   ]
+  ],
+  "period": "Pre-Pottery Neolithic, c. 8500–7000 BCE",
+  "sources": [
+   "Renfrew, Dixon & Cann 1966"
+  ]
+ },
+ {
+  "id": "towns-obsidian-catalhoyuk",
+  "story": "first-towns",
+  "wave": "obsidian",
+  "title": "Cappadocian obsidian to Çatalhöyük",
+  "coordinates": [
+   [
+    38.25,
+    34.5
+   ],
+   [
+    37.67,
+    32.83
+   ]
+  ],
+  "period": "c. 7100–5700 BCE"
+ },
+ {
+  "id": "towns-obsidian-zagros",
+  "story": "first-towns",
+  "wave": "obsidian",
+  "title": "Eastern Anatolian obsidian to the Zagros",
+  "coordinates": [
+   [
+    38.6,
+    42.2
+   ],
+   [
+    38.2,
+    39.7
+   ],
+   [
+    36.3,
+    43.2
+   ],
+   [
+    35.55,
+    44.95
+   ]
+  ],
+  "period": "c. 8500–7000 BCE"
+ },
+ {
+  "id": "towns-farming-anatolia",
+  "story": "first-towns",
+  "wave": "crops",
+  "title": "Farming spreads west across Anatolia",
+  "coordinates": [
+   [
+    37.22,
+    38.92
+   ],
+   [
+    37.4,
+    36.3
+   ],
+   [
+    37.67,
+    32.83
+   ]
+  ],
+  "period": "c. 8500–7000 BCE"
+ },
+ {
+  "id": "towns-farming-cyprus",
+  "story": "first-towns",
+  "wave": "crops",
+  "title": "Farmers and their animals by boat to Cyprus",
+  "coordinates": [
+   [
+    35.6,
+    35.78
+   ],
+   [
+    34.77,
+    33.02
+   ]
+  ],
+  "uncertain": true,
+  "period": "c. 8800–8400 BCE",
+  "sources": [
+   "Vigne et al. 2012, PNAS"
+  ]
+ }
 ]

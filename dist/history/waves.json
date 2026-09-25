@@ -182,5 +182,21 @@
  "removal": {
   "label": "Forced removals",
   "color": "#ff9b00"
+ },
+ "paranthropus": {
+  "label": "Paranthropus",
+  "color": "#9d6bff"
+ },
+ "handaxes": {
+  "label": "Handaxes",
+  "color": "#ff6a3d"
+ },
+ "north-bound": {
+  "label": "Northbound",
+  "color": "#3ecbff"
+ },
+ "south-bound": {
+  "label": "Southbound",
+  "color": "#7dff3d"
  }
 }

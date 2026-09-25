@@ -504,9 +504,9 @@ $('stage').addEventListener('tourselect',event=>{
  if(historyOn)focusHistoryStory(event.detail.id);
  else{historyPeriodId=firstPeriodFor(event.detail.id)||historyPeriodId;historyFocus=event.detail.id;historyFocusPending=true;enableHistory(true);}
 });
-// Scrubber: nine approximate dates; the age name sits in the panel heading.
+// Scrubber: eight approximate dates; the age name sits in the panel heading.
 const historyToggle=$('show-history'),historyTools=document.querySelector('.history-tools'),historyLabel=historyToggle.querySelector('.history-label'),historySlider=$('history-stop'),historyDate=$('history-date'),historyLabels=document.querySelector('.history-stop-labels'),historyNote=$('history-note');
-function readHistoryParam(value){if(!value)return null;return periods.find(p=>p.id===value||p.stop===value)?.id||null;}
+function readHistoryParam(value){if(!value)return null;return periods.find(p=>p.id===value||p.stop===value||p.aliases?.includes(value))?.id||null;}
 historyPeriodId=readHistoryParam(new URLSearchParams(location.search).get('history'))||initialHistory?.period||initialDownload?.period||(initialTour?firstPeriodFor(initialTour.id):null);
 function currentPeriod(){return periodInfo(historyPeriodId);}
 historySlider.max=String(periods.length-1);historyLabels.style.setProperty('--stop-count',String(periods.length));

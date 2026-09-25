@@ -44,7 +44,7 @@ try{
  for(let i=0;i<3;i++)d.querySelector('#zoom-out').click();await until(()=>visible().length===overview,'overview routes');await pause(300);
  check(visible().length===overview,'Detail routes hide again when zoomed out');
  const counts=[];
- for(const p of full?periods:periods.filter(p=>['2m-ya','10k-ya','1000-ce','1800-ce'].includes(p.id))){
+ for(const p of full?periods:periods.filter(p=>['2m-ya','50k-ya','1000-ce','1800-ce'].includes(p.id))){
   await scrub(p.id);counts.push(visible().length);
   await until(()=>w.location.pathname.startsWith('/history/'+p.id+'/'),'address for '+p.id);check(true,'Address follows '+p.id);
   check(d.querySelector('#history-date').textContent===`${p.label} · ${p.date}`&&d.querySelector(`.history-stop-labels button[data-stop="${p.id}"]`).textContent===p.tick,'Date and tick for '+p.id);

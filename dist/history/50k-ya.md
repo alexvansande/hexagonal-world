@@ -1,31 +1,39 @@
-# Out of Africa · c. 50,000 years ago
+# Peopling the world · c. 50,000–10,000 years ago
 
-Around 50,000 years ago: Homo sapiens across the world, Neanderthals, Denisovans, the island hominins of Flores and Luzon, and Near Oceania. Drag the timeline to move through time; click a dot to read that story here.
+Between 50,000 and 10,000 years ago: Homo sapiens across the world and into the Ice Age Americas, Neanderthals and Denisovans, the island hominins of Flores and Luzon, Near Oceania, and the first towns of the Fertile Crescent. Drag the timeline to move through time; click a dot to read that story here.
 
 ## origin-of-mankind
-### Homo sapiens across the world
+### Homo sapiens across the world · 70,000 years ago onward
 spot: 29, 52
 view: fit
 site: Jebel Irhoud · 31.9, -8.9
 area: Arabia · 24, 45
 area: Sahul · -22, 134
-area: Sunda · 1, 106
+area: Beringia · 65, -172
+site: White Sands · 32.8, -106.3
+site: Monte Verde · -41.5, -73.2
 
 The main expansion of **Homo sapiens** spread from Africa through southwest Asia into Europe, southern and eastern Asia, and by sea into Sahul, broadly 70,000–40,000 years ago.
 
 Along the way, people met and had children with Neanderthals and Denisovans. Neanderthals contribute about one to two percent of the ancestry of people outside Africa; Denisovan ancestry is highest in New Guinea and Australia. The lineages themselves later disappeared.
 
+During the last Ice Age, people crossed **Beringia** and spread through the Americas, with early presence in the south by about 23,000–21,000 years ago (the **White Sands** footprints and **Monte Verde**) and several later dispersals into South America. They met mammoths, mastodons, ground sloths, horses and camels; most of the continent's large mammals were gone by about 11,000 years ago, in the same centuries as Clovis hunting and the Younger Dryas cold snap.
+
+In the Holocene, farming spread from Anatolia into Europe, steppe herders followed, Eurasian ancestry flowed back into Africa, Bantu-speaking communities expanded across the continent, and Paleo-Inuit and Thule peoples crossed the Arctic.
+
 - sapiens-africa: **Homo sapiens in Africa** · connected populations
 - early: **Early departures** · Levant and Arabia before 70,000 years ago
 - expansion: **Expansion** · Homo sapiens dispersals
 - admixture: **Admixture** · contact zones with archaic humans
+- later: **Ice Age Americas** · Beringia and the Americas, from about 25,000 years ago
+- holocene: **Holocene movements** · selected later dispersals
 
-> Northern and southern exits are alternatives or complementary corridors. Admixture zones are approximate; interbreeding happened more than once and in more than one place.
+> Northern and southern exits are alternatives or complementary corridors. Admixture zones are approximate; interbreeding happened more than once and in more than one place. Later movements are selected examples with broad dates; Polynesian voyages have their own story, and lines do not imply wholesale replacement of earlier populations.
 
 [Sources and route notes ↗](./human-migrations-sources.md)
 
 ## neanderthals
-### Neanderthals
+### Neanderthals · 400,000 to 40,000 years ago
 spot: 46.2, 15.9
 view: fit
 site: Neander Valley · 51.23, 6.95
@@ -44,7 +52,7 @@ Homo sapiens overlapped with them in Europe for a few thousand years before the 
 [Sources and route notes ↗](./human-migrations-sources.md)
 
 ## denisovans
-### Denisovans
+### Denisovans · 200,000 to 50,000 years ago
 spot: 51.4, 84.7
 view: fit
 site: Denisova Cave · 51.4, 84.7
@@ -63,7 +71,7 @@ Their ancestry survives at a few percent in the people of New Guinea and Austral
 [Sources and route notes ↗](./human-migrations-sources.md)
 
 ## island-hominins
-### Homo floresiensis and Homo luzonensis
+### Homo floresiensis and Homo luzonensis · 100,000 to 50,000 years ago
 spot: -8.53, 120.45
 view: -11, 115 → 19, 125
 site: Liang Bua · -8.53, 120.45
@@ -79,7 +87,7 @@ Both probably descend from hominins that crossed sea gaps long before and then c
 [Sources and route notes ↗](./human-migrations-sources.md)
 
 ## french-polynesia
-### Near Oceania
+### Near Oceania · 50,000 to 20,000 years ago
 spot: -5, 150
 view: fit
 site: Buka · -5.4, 154.6
@@ -98,3 +106,24 @@ Sahul had giants of its own: **Diprotodon**, the marsupial lion, kangaroos twice
 > The Sahul crossing is shared with the human migrations story and drawn fainter here. Routes between cave sites are inferred.
 
 [Sources and voyage notes ↗](./polynesia-sources.md)
+
+## first-towns
+### The first towns · 11,500 to 9,000 years ago
+spot: 37.67, 32.83
+view: fit
+site: Göbekli Tepe · 37.22, 38.92
+site: Çatalhöyük · 37.67, 32.83
+site: Jericho · 31.87, 35.44
+area: Fertile Crescent · 35.5, 40
+area: Zagros Mountains · 34, 47.5
+
+Long before cities, people in the Fertile Crescent settled down. At **Göbekli Tepe** hunter-gatherers raised carved stone enclosures around 9500 BCE; **Jericho** had a wall and tower by about 8000 BCE; and **Çatalhöyük** on the Konya plain housed thousands of people around 7000 BCE in packed mud-brick houses entered from the roof. Wheat, barley, sheep and goats were domesticated in the same region.
+
+These settlements were linked: **obsidian** from Cappadocia and eastern Anatolia travelled hundreds of kilometres to the Levant and the Zagros, and farmers carried crops and animals by boat to Cyprus around 8500 BCE. Their descendants later took farming into Europe (see Later movements).
+
+- obsidian: **Obsidian** · volcanic glass from Anatolian sources
+- crops: **Crops** · farming and herding spread from the Fertile Crescent
+
+> Towns, not cities: the first cities with writing and states came about 4,000 years later in Mesopotamia. Routes are schematic corridors between sites.
+
+[Sources and notes ↗](./first-towns-sources.md)

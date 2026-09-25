@@ -1,6 +1,6 @@
 # Megafauna extinctions: sources and notes
 
-Research checked September 23, 2026. Story copy sits in the period Markdown (`history/50k-ya.md`, `10k-ya.md`, `3k-ya.md`, `1000-ce.md`, `1400-ce.md`, `1600-ce.md`, `1800-ce.md`).
+Research checked September 23, 2026. Story copy sits in the period Markdown (`history/50k-ya.md`, `3k-ya.md`, `1000-ce.md`, `1400-ce.md`, `1600-ce.md`, `1800-ce.md`).
 
 ## Sahul
 - Roberts et al. 2001, *Science* 292: continent-wide extinction of Australian megafauna around 46,000 years ago.

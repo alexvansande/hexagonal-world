@@ -1,11 +1,701 @@
 [
-{"id":"migration-early-homo-south","story":"origin-of-mankind","wave":"early-homo","title":"Early Homo across eastern and southern Africa","coordinates":[[3.5,36],[-5,35],[-15,33],[-20,29],[-26,27.7]],"uncertain":true,"geodesic":true,"period":"Early Homo: more than 2 million years ago","sources":["erectus"],"uncertainty":"Schematic range or contact link; the exact paths and timing are uncertain."},
-{"id":"migration-early-homo-north","story":"origin-of-mankind","wave":"early-homo","title":"Early Homo toward North Africa","coordinates":[[3.5,36],[10,32],[20,25],[28,15],[33,8],[36.3,5.4]],"uncertain":true,"geodesic":true,"period":"Early Homo: about 2.4–1.8 million years ago","sources":["erectus"],"uncertainty":"Schematic range or contact link; the exact paths and timing are uncertain."},
-{"id":"migration-early-homo-west","story":"origin-of-mankind","wave":"early-homo","title":"Early Homo toward the Sahel and West Africa","coordinates":[[3.5,36],[8,30],[10,22],[12,14],[13,6]],"uncertain":true,"geodesic":true,"period":"Early Homo: about 2 million years ago; sparse evidence","sources":["erectus"],"uncertainty":"Schematic range or contact link; the exact paths and timing are uncertain."},
-{"id":"migration-erectus-levant","story":"homo-erectus","wave":"erectus","title":"Out of Africa into the Caucasus","coordinates":[[3.5,36],[10,37],[20,34],[27,33],[30,34],[32.7,35],[36,37],[39,41],[41.7,44.3]],"uncertain":true,"geodesic":true,"period":"Dmanisi: about 1.8 million years ago","sources":["dmanisi","erectus"],"uncertainty":"Schematic range or contact link; the exact paths and timing are uncertain."},
-{"id":"migration-erectus-asia","story":"homo-erectus","wave":"erectus","title":"Southern Asia toward Java","coordinates":[[32.7,35],[33,42],[33,48],[30,60],[27,68],[22,76],[20,84],[23,89],[18,97],[13,100],[8,100],[2,104],[-4,106],[-7.4,110.8]],"uncertain":true,"geodesic":true,"period":"Sangiran: about 1.3 million years ago","sources":["sangiran","erectus"],"uncertainty":"Schematic range or contact link; the exact paths and timing are uncertain."},
-{"id":"migration-erectus-china","story":"homo-erectus","wave":"erectus","title":"Into East Asia","coordinates":[[23,89],[25,96],[26,102],[29,107],[34.2,110],[38,113],[40,116]],"uncertain":true,"geodesic":true,"period":"Shangchen tools: about 2.1 million years ago; Zhoukoudian later","sources":["shangchen","erectus"],"uncertainty":"Schematic range or contact link; the exact paths and timing are uncertain."},
-{"id":"migration-erectus-flores","story":"homo-erectus","wave":"erectus","title":"Sea gaps to Flores and Luzon","coordinates":[[-7.4,110.8],[-8,116],[-8.6,121],[-5,124],[2,124],[10,123],[17.5,121.5]],"uncertain":true,"geodesic":true,"period":"Flores: by about 1 million years ago; Luzon: about 700,000 years ago","sources":["flores","luzon"],"uncertainty":"Schematic range or contact link; the exact paths and timing are uncertain."},
-{"id":"migration-erectus-europe","story":"homo-erectus","wave":"erectus","title":"Into Europe","coordinates":[[32.7,35],[37,34],[40,29],[43,24],[45,15],[43,8],[41,2],[37.7,-2.4],[40,-3],[42.35,-3.5]],"uncertain":true,"geodesic":true,"period":"Southern Spain: about 1.4 million years ago; Atapuerca: about 1.2 million","sources":["atapuerca","happisburgh"],"uncertainty":"Schematic range or contact link; the exact paths and timing are uncertain."},
-{"id":"migration-erectus-britain","story":"homo-erectus","wave":"erectus","title":"Northern Europe in warm phases","coordinates":[[43,8],[46,4],[49,2],[52.8,1.5]],"uncertain":true,"geodesic":true,"period":"Happisburgh: about 900,000 years ago","sources":["happisburgh"],"uncertainty":"Schematic range or contact link; the exact paths and timing are uncertain."}
+ {
+  "id": "migration-early-homo-south",
+  "story": "origin-of-mankind",
+  "wave": "early-homo",
+  "title": "Early Homo across eastern and southern Africa",
+  "coordinates": [
+   [
+    3.5,
+    36
+   ],
+   [
+    -5,
+    35
+   ],
+   [
+    -15,
+    33
+   ],
+   [
+    -20,
+    29
+   ],
+   [
+    -26,
+    27.7
+   ]
+  ],
+  "uncertain": true,
+  "geodesic": true,
+  "period": "Early Homo: more than 2 million years ago",
+  "sources": [
+   "erectus"
+  ],
+  "uncertainty": "Schematic range or contact link; the exact paths and timing are uncertain."
+ },
+ {
+  "id": "migration-early-homo-north",
+  "story": "origin-of-mankind",
+  "wave": "early-homo",
+  "title": "Early Homo toward North Africa",
+  "coordinates": [
+   [
+    3.5,
+    36
+   ],
+   [
+    10,
+    32
+   ],
+   [
+    20,
+    25
+   ],
+   [
+    28,
+    15
+   ],
+   [
+    33,
+    8
+   ],
+   [
+    36.3,
+    5.4
+   ]
+  ],
+  "uncertain": true,
+  "geodesic": true,
+  "period": "Early Homo: about 2.4–1.8 million years ago",
+  "sources": [
+   "erectus"
+  ],
+  "uncertainty": "Schematic range or contact link; the exact paths and timing are uncertain."
+ },
+ {
+  "id": "migration-early-homo-west",
+  "story": "origin-of-mankind",
+  "wave": "early-homo",
+  "title": "Early Homo toward the Sahel and West Africa",
+  "coordinates": [
+   [
+    3.5,
+    36
+   ],
+   [
+    8,
+    30
+   ],
+   [
+    10,
+    22
+   ],
+   [
+    12,
+    14
+   ],
+   [
+    13,
+    6
+   ]
+  ],
+  "uncertain": true,
+  "geodesic": true,
+  "period": "Early Homo: about 2 million years ago; sparse evidence",
+  "sources": [
+   "erectus"
+  ],
+  "uncertainty": "Schematic range or contact link; the exact paths and timing are uncertain."
+ },
+ {
+  "id": "migration-erectus-levant",
+  "story": "homo-erectus",
+  "wave": "erectus",
+  "title": "Out of Africa into the Caucasus",
+  "coordinates": [
+   [
+    3.5,
+    36
+   ],
+   [
+    10,
+    37
+   ],
+   [
+    20,
+    34
+   ],
+   [
+    27,
+    33
+   ],
+   [
+    30,
+    34
+   ],
+   [
+    32.7,
+    35
+   ],
+   [
+    36,
+    37
+   ],
+   [
+    39,
+    41
+   ],
+   [
+    41.7,
+    44.3
+   ]
+  ],
+  "uncertain": true,
+  "geodesic": true,
+  "period": "Dmanisi: about 1.8 million years ago",
+  "sources": [
+   "dmanisi",
+   "erectus"
+  ],
+  "uncertainty": "Schematic range or contact link; the exact paths and timing are uncertain."
+ },
+ {
+  "id": "migration-erectus-asia",
+  "story": "homo-erectus",
+  "wave": "erectus",
+  "title": "Southern Asia toward Java",
+  "coordinates": [
+   [
+    32.7,
+    35
+   ],
+   [
+    33,
+    42
+   ],
+   [
+    33,
+    48
+   ],
+   [
+    30,
+    60
+   ],
+   [
+    27,
+    68
+   ],
+   [
+    22,
+    76
+   ],
+   [
+    20,
+    84
+   ],
+   [
+    23,
+    89
+   ],
+   [
+    18,
+    97
+   ],
+   [
+    13,
+    100
+   ],
+   [
+    8,
+    100
+   ],
+   [
+    2,
+    104
+   ],
+   [
+    -4,
+    106
+   ],
+   [
+    -7.4,
+    110.8
+   ]
+  ],
+  "uncertain": true,
+  "geodesic": true,
+  "period": "Sangiran: about 1.3 million years ago",
+  "sources": [
+   "sangiran",
+   "erectus"
+  ],
+  "uncertainty": "Schematic range or contact link; the exact paths and timing are uncertain."
+ },
+ {
+  "id": "migration-erectus-china",
+  "story": "homo-erectus",
+  "wave": "erectus",
+  "title": "Into East Asia",
+  "coordinates": [
+   [
+    23,
+    89
+   ],
+   [
+    25,
+    96
+   ],
+   [
+    26,
+    102
+   ],
+   [
+    29,
+    107
+   ],
+   [
+    34.2,
+    110
+   ],
+   [
+    38,
+    113
+   ],
+   [
+    40,
+    116
+   ]
+  ],
+  "uncertain": true,
+  "geodesic": true,
+  "period": "Shangchen tools: about 2.1 million years ago; Zhoukoudian later",
+  "sources": [
+   "shangchen",
+   "erectus"
+  ],
+  "uncertainty": "Schematic range or contact link; the exact paths and timing are uncertain."
+ },
+ {
+  "id": "migration-erectus-flores",
+  "story": "homo-erectus",
+  "wave": "erectus",
+  "title": "Sea gaps to Flores and Luzon",
+  "coordinates": [
+   [
+    -7.4,
+    110.8
+   ],
+   [
+    -8,
+    116
+   ],
+   [
+    -8.6,
+    121
+   ],
+   [
+    -5,
+    124
+   ],
+   [
+    2,
+    124
+   ],
+   [
+    10,
+    123
+   ],
+   [
+    17.5,
+    121.5
+   ]
+  ],
+  "uncertain": true,
+  "geodesic": true,
+  "period": "Flores: by about 1 million years ago; Luzon: about 700,000 years ago",
+  "sources": [
+   "flores",
+   "luzon"
+  ],
+  "uncertainty": "Schematic range or contact link; the exact paths and timing are uncertain."
+ },
+ {
+  "id": "migration-erectus-europe",
+  "story": "homo-erectus",
+  "wave": "erectus",
+  "title": "Into Europe",
+  "coordinates": [
+   [
+    32.7,
+    35
+   ],
+   [
+    37,
+    34
+   ],
+   [
+    40,
+    29
+   ],
+   [
+    43,
+    24
+   ],
+   [
+    45,
+    15
+   ],
+   [
+    43,
+    8
+   ],
+   [
+    41,
+    2
+   ],
+   [
+    37.7,
+    -2.4
+   ],
+   [
+    40,
+    -3
+   ],
+   [
+    42.35,
+    -3.5
+   ]
+  ],
+  "uncertain": true,
+  "geodesic": true,
+  "period": "Southern Spain: about 1.4 million years ago; Atapuerca: about 1.2 million",
+  "sources": [
+   "atapuerca",
+   "happisburgh"
+  ],
+  "uncertainty": "Schematic range or contact link; the exact paths and timing are uncertain."
+ },
+ {
+  "id": "migration-erectus-britain",
+  "story": "homo-erectus",
+  "wave": "erectus",
+  "title": "Northern Europe in warm phases",
+  "coordinates": [
+   [
+    43,
+    8
+   ],
+   [
+    46,
+    4
+   ],
+   [
+    49,
+    2
+   ],
+   [
+    52.8,
+    1.5
+   ]
+  ],
+  "uncertain": true,
+  "geodesic": true,
+  "period": "Happisburgh: about 900,000 years ago",
+  "sources": [
+   "happisburgh"
+  ],
+  "uncertainty": "Schematic range or contact link; the exact paths and timing are uncertain."
+ },
+ {
+  "id": "paranthropus-range",
+  "story": "paranthropus",
+  "wave": "paranthropus",
+  "title": "Paranthropus from the Turkana Basin to the Cradle",
+  "coordinates": [
+   [
+    3.95,
+    36.3
+   ],
+   [
+    -2.3,
+    36
+   ],
+   [
+    -10,
+    34
+   ],
+   [
+    -18,
+    31
+   ],
+   [
+    -26,
+    27.7
+   ]
+  ],
+  "uncertain": true,
+  "geodesic": true,
+  "twoWay": true,
+  "period": "Paranthropus: about 2.7–1 million years ago",
+  "sources": [
+   "paranthropus"
+  ],
+  "uncertainty": "Schematic range or contact link; the exact paths and timing are uncertain."
+ },
+ {
+  "id": "handaxes-levant",
+  "story": "fire-and-handaxes",
+  "wave": "handaxes",
+  "title": "Handaxes north to the Levant",
+  "coordinates": [
+   [
+    5.3,
+    37.4
+   ],
+   [
+    12,
+    40
+   ],
+   [
+    20,
+    38
+   ],
+   [
+    27,
+    34
+   ],
+   [
+    32.7,
+    35.55
+   ]
+  ],
+  "uncertain": true,
+  "geodesic": true,
+  "period": "Ubeidiya: about 1.5 million years ago",
+  "sources": [
+   "acheulean"
+  ],
+  "uncertainty": "Schematic range or contact link; the exact paths and timing are uncertain."
+ },
+ {
+  "id": "handaxes-india",
+  "story": "fire-and-handaxes",
+  "wave": "handaxes",
+  "title": "Along the Indian Ocean rim to India",
+  "coordinates": [
+   [
+    32.7,
+    35.55
+   ],
+   [
+    30,
+    44
+   ],
+   [
+    26,
+    52
+   ],
+   [
+    24,
+    60
+   ],
+   [
+    22,
+    70
+   ],
+   [
+    18,
+    76
+   ],
+   [
+    13.2,
+    80
+   ]
+  ],
+  "uncertain": true,
+  "geodesic": true,
+  "period": "Attirampakkam: about 1.5 million years ago",
+  "sources": [
+   "acheulean"
+  ],
+  "uncertainty": "Schematic range or contact link; the exact paths and timing are uncertain."
+ },
+ {
+  "id": "handaxes-south",
+  "story": "fire-and-handaxes",
+  "wave": "handaxes",
+  "title": "Handaxes south to the edge of the Kalahari",
+  "coordinates": [
+   [
+    5.3,
+    37.4
+   ],
+   [
+    -3,
+    35.3
+   ],
+   [
+    -12,
+    33
+   ],
+   [
+    -20,
+    30
+   ],
+   [
+    -27.85,
+    23.55
+   ]
+  ],
+  "uncertain": true,
+  "geodesic": true,
+  "period": "Wonderwerk Cave: about 1 million years ago",
+  "sources": [
+   "acheulean",
+   "fire"
+  ],
+  "uncertainty": "Schematic range or contact link; the exact paths and timing are uncertain."
+ },
+ {
+  "id": "handaxes-maghreb",
+  "story": "fire-and-handaxes",
+  "wave": "handaxes",
+  "title": "West along the Sahara's rim to Casablanca",
+  "coordinates": [
+   [
+    5.3,
+    37.4
+   ],
+   [
+    12,
+    34
+   ],
+   [
+    20,
+    28
+   ],
+   [
+    28,
+    15
+   ],
+   [
+    32,
+    3
+   ],
+   [
+    33.6,
+    -7.6
+   ]
+  ],
+  "uncertain": true,
+  "geodesic": true,
+  "period": "Casablanca: about 1.3 million years ago",
+  "sources": [
+   "acheulean"
+  ],
+  "uncertainty": "Schematic range or contact link; the exact paths and timing are uncertain."
+ },
+ {
+  "id": "interchange-north",
+  "story": "american-interchange",
+  "wave": "north-bound",
+  "title": "Sloths, armadillos and opossums move north",
+  "coordinates": [
+   [
+    -34,
+    -62
+   ],
+   [
+    -22,
+    -58
+   ],
+   [
+    -10,
+    -63
+   ],
+   [
+    0,
+    -72
+   ],
+   [
+    8.5,
+    -80
+   ],
+   [
+    16,
+    -92
+   ],
+   [
+    24,
+    -100
+   ],
+   [
+    31,
+    -98
+   ]
+  ],
+  "uncertain": true,
+  "geodesic": true,
+  "period": "Main pulses: about 2.7–1.8 million years ago",
+  "sources": [
+   "interchange"
+  ],
+  "uncertainty": "A schematic corridor across the land bridge, not the path of any one species."
+ },
+ {
+  "id": "interchange-south",
+  "story": "american-interchange",
+  "wave": "south-bound",
+  "title": "Horses, camels, cats and the elephants' kin move south",
+  "coordinates": [
+   [
+    40,
+    -100
+   ],
+   [
+    30,
+    -100
+   ],
+   [
+    20,
+    -100
+   ],
+   [
+    14,
+    -90
+   ],
+   [
+    8.5,
+    -80
+   ],
+   [
+    3,
+    -76
+   ],
+   [
+    -8,
+    -76
+   ],
+   [
+    -16,
+    -70
+   ],
+   [
+    -24,
+    -66
+   ],
+   [
+    -34,
+    -62
+   ]
+  ],
+  "uncertain": true,
+  "geodesic": true,
+  "period": "Main pulses: about 2.7–1.5 million years ago",
+  "sources": [
+   "interchange"
+  ],
+  "uncertainty": "A schematic corridor across the land bridge, not the path of any one species."
+ }
 ]

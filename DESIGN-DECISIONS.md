@@ -975,6 +975,21 @@ free corners of the corner cells first; then each cell takes the unplaced story
 that reaches it with the shortest leader, and the rest place freely. The PDF
 keeps its vector title band and credit, so it takes no raster credit block.
 
+*Review round: eight periods, a fuller first one.* Reviewing the epoch
+posters the user found the first three thin and asked to merge Ice Age to
+farming into Out of Africa with dates in the stories, and to give Early
+hominins more of what was happening then. Decision: Peopling the world
+(c. 50,000–10,000 years ago) keeps the id `50k-ya` and the stop
+`out-of-africa`, with `10k-ya` and `ice-age-to-farming` as aliases so old
+links resolve; the Ice Age Americas and Holocene routes join the Homo sapiens
+story (they share the `origin-of-mankind` id, which the Beringia land-bridge
+rule requires), the first towns come across as their own story, and every
+story title carries its dates. Early hominins gains the first toolmakers
+(Lomekwi, Gona, Ain Boucherit; no routes), Paranthropus (a range line), fire
+and handaxes (four Acheulean corridors), the Great American Biotic Interchange
+(two corridors across Panama) and a cooling world (the start of the ice ages;
+no routes), seven stories in all, so a 3 × 2 wall fills every post.
+
 **Dance anchored on the centre (September 22).** The user saw a small drag down,
 made only to see an arrangement better, re-form the group and move the pieces in
 front of them away. Decision: a band switch needs a deliberate pan (40% of the

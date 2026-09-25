@@ -74,7 +74,7 @@ it focuses that story.
 History data lives in **`dist/history/`**, one period at a time, and is the only
 source of story content:
 
-- `index.mjs` lists the nine periods in order (`id`, old `stop` name, scrubber
+- `index.mjs` lists the eight periods in order (`id`, old `stop` name, scrubber
   `tick`, `label`, `date`, `year`, and the `stories` present: its spots, in
   order of importance). A spot is usually one of the seven entry stories, but a
   period may add highlight spots of its own (`homo-erectus`, `neanderthals`,
@@ -119,10 +119,10 @@ with the local save server running) and a sitemap entry.
 
 History timeline: a “History” button sits in the collapsed sidebar between
 the style strip and More options (it reads “Close history” while on). Switching it on replaces the pan/reposition
-toolbox with one scrubber over the nine periods (Early hominins, Out of Africa,
-Ice Age to farming, Bronze Age, Antiquity, Middle Ages, High Middle Ages,
-Globalization, Plantations & empires), ticked with approximate dates (2M ya,
-50k ya, 10k ya, 3k ya, 200 CE, 1000 CE, 1400 CE, 1600 CE, 1800 CE) while the
+toolbox with one scrubber over the eight periods (Early hominins, Peopling the
+world, Bronze Age, Antiquity, Middle Ages, High Middle Ages, Globalization,
+Plantations & empires), ticked with approximate dates (2M ya, 50k ya, 3k ya,
+200 CE, 1000 CE, 1400 CE, 1600 CE, 1800 CE) while the
 panel heading names the age. Every story of the period is drawn at once; the
 scrubber is the only slider. Choosing a date activates the period's headline
 spot, the first `##` section of its Markdown (so order the sections by
