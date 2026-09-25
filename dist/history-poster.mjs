@@ -3,7 +3,7 @@
 // with a straight-then-diagonal leader to the spot. Boxes have no background,
 // only a rule on the side the leader leaves from. Sizes are pixels for a map
 // 800 px wide and scale with the map, so posters look alike at any zoom.
-export const posterType=Object.freeze({body:8,title:13.5,legend:7.4,note:7.2,heading:26,date:9,site:9.5,area:19,lineHeight:1.35});
+export const posterType=Object.freeze({body:8,title:13.5,legend:7.4,note:7.2,heading:26,date:9,appTitle:34,subtitle:8.2,credit:9.5,url:8,site:9.5,area:19,lineHeight:1.35});
 export const posterFonts=Object.freeze({
  serif:'Baskerville,"Libre Baskerville","Baskerville Old Face",Georgia,"Times New Roman",serif',
  sans:'Gotham,"Gotham SSm",Montserrat,"Proxima Nova","Avenir Next",Avenir,"Helvetica Neue",Arial,sans-serif',
@@ -94,7 +94,7 @@ export function briefText(text,limit=160){
  for(const sentence of sentences(text)){if(out&&(out+sentence).trim().length>limit)break;out+=sentence;}
  return out.trim()||text;
 }
-export function posterLayout({map,spots,labels=[],scale=1,measure,heading=null,reservedRight=0,labelScale=1,aspect=null,bandColumns=3,text='full',wall=null,pieces=[]}){
+export function posterLayout({map,spots,labels=[],scale=1,measure,heading=null,credit=null,reservedRight=0,labelScale=1,aspect=null,text='full',wall=null,pieces=[]}){
  const k=scale,T=posterType,mapWidth=map.right-map.left;
  const gap=mapWidth*.05,margin=mapWidth*.04,lead=T.lineHeight;
  const headBand=heading?T.heading*k*1.15+T.date*k*1.6+margin:margin;
@@ -121,7 +121,7 @@ export function posterLayout({map,spots,labels=[],scale=1,measure,heading=null,r
  });
  const top=map.top-headBand;
  const anchorDots=spots.map(s=>[s.x-5*k,s.y-5*k,s.x+5*k,s.y+5*k]);
- const finish=(boxes,left,right,bottom,posterTop=top,pad=margin,avoid={xs:[],ys:[]},headingAt=null)=>({left,top:posterTop,right,bottom,width:right-left,height:bottom-posterTop,map,scale:k,labels:placeLabels(labels,{scale:k,labelScale,measure,avoid,obstacles:anchorDots}),heading:heading?{x:headingAt?headingAt[0]:left+pad,y:(headingAt?headingAt[1]:posterTop+pad)+T.heading*k,label:heading.label,date:heading.date}:null,boxes,labelScale});
+ const finish=(boxes,left,right,bottom,posterTop=top,pad=margin,avoid={xs:[],ys:[]},headingAt=null,creditAt=null)=>({left,top:posterTop,right,bottom,width:right-left,height:bottom-posterTop,map,scale:k,labels:placeLabels(labels,{scale:k,labelScale,measure,avoid,obstacles:anchorDots}),heading:heading?{x:headingAt?headingAt[0]:left+pad,y:(headingAt?headingAt[1]:posterTop+pad)+(heading.title?T.appTitle:T.heading)*k,label:heading.label,date:heading.date,title:!!heading.title}:null,credit:credit&&creditAt?{x:creditAt[0],y:creditAt[1]+T.credit*k,name:credit.name,url:credit.url}:null,boxes,labelScale});
  // Side layout: two columns beside the map, each box on the side of its spot.
  const side=()=>{
   const column=mapWidth*.3,boxes=build(column,false),bottom=map.bottom+margin;
@@ -193,29 +193,34 @@ export function posterLayout({map,spots,labels=[],scale=1,measure,heading=null,r
    if(Hc<mapHeight+2*pad)continue;
    const originX=map.left-(Wc-mapWidth)/2,originY=map.top-(Hc-mapHeight)/2;
    const cells=[];for(let r=0;r<wall.rows;r++)for(let c=0;c<wall.columns;c++)cells.push([originX+c*tw+pad,originY+r*th+pad,originX+(c+1)*tw-pad,originY+(r+1)*th-pad]);
-   const avoid={xs:Array.from({length:wall.columns-1},(_,i)=>originX+(i+1)*tw),ys:Array.from({length:wall.rows-1},(_,i)=>originY+(i+1)*th)};
+   // On a wall the gutters between posts are lines nothing may cross; a page has none.
+   const avoid=wall.page?{xs:[],ys:[]}:{xs:Array.from({length:wall.columns-1},(_,i)=>originX+(i+1)*tw),ys:Array.from({length:wall.rows-1},(_,i)=>originY+(i+1)*th)};
    const clearOfMap=r=>!obstaclesOf.some(poly=>polygonHitsRect(poly,[r[0]-pad*.4,r[1]-pad*.4,r[2]+pad*.4,r[3]+pad*.4]));
-   // `taken` keeps boxes off everything; `blocks` (the heading and the boxes) is what a leader may not cross.
+   // `taken` keeps boxes off everything; `blocks` (the fixed blocks and the boxes) is what a leader may not cross.
    const taken=[],blocks=[];
-   // The heading takes the first free corner of the wall.
-   let headingAt=null;
+   // Fixed blocks take a free corner of a corner cell: the heading from the top left, the credit from the bottom right.
+   const corner=(cell,w,h,at)=>at==='tl'?[cell[0],cell[1],cell[0]+w,cell[1]+h]:at==='tr'?[cell[2]-w,cell[1],cell[2],cell[1]+h]:at==='bl'?[cell[0],cell[3]-h,cell[0]+w,cell[3]]:[cell[2]-w,cell[3]-h,cell[2],cell[3]];
+   const cornerCells={tl:cells[0],tr:cells[wall.columns-1],bl:cells[cells.length-wall.columns],br:cells[cells.length-1]};
+   const placeBlock=(w,h,order)=>{
+    for(const at of order){const cell=cornerCells[at];for(const where of [at,...order.filter(o=>o!==at)]){const r=corner(cell,w,h,where);if(r[0]>=cell[0]-1e-6&&r[2]<=cell[2]+1e-6&&clearOfMap(r)&&!taken.some(t=>rectHit(r,t))){taken.push(r);blocks.push(r);return r;}}}
+    const r=corner(cornerCells[order[0]],w,h,order[0]);taken.push(r);blocks.push(r);return r;
+   };
+   let headingRect=null,creditRect=null;
    if(heading){
-    const hw=Math.max(measure(heading.label,`${(T.heading*k).toFixed(2)}px ${posterFonts.serif}`),measure(heading.date.toUpperCase(),`700 ${(T.date*k).toFixed(2)}px ${posterFonts.sans}`)*1.2),hh=T.heading*k*1.15+T.date*k*1.6;
-    for(const cell of [cells[0],cells[wall.columns-1],cells[cells.length-wall.columns],cells[cells.length-1]]){
-     for(const r of [[cell[0],cell[1],cell[0]+hw,cell[1]+hh],[cell[2]-hw,cell[1],cell[2],cell[1]+hh],[cell[0],cell[3]-hh,cell[0]+hw,cell[3]],[cell[2]-hw,cell[3]-hh,cell[2],cell[3]]]){
-      if(r[0]>=cell[0]&&r[2]<=cell[2]&&clearOfMap(r)){headingAt=[r[0],r[1]];taken.push(r);blocks.push(r);break;}
-     }
-     if(headingAt)break;
-    }
-    if(!headingAt){headingAt=[cells[0][0],cells[0][1]];const r=[cells[0][0],cells[0][1],cells[0][0]+hw,cells[0][1]+hh];taken.push(r);blocks.push(r);}
+    const hw=heading.title?Math.max(measure(heading.label,`${(T.appTitle*k).toFixed(2)}px ${posterFonts.serif}`),measure(heading.date.toUpperCase(),`700 ${(T.subtitle*k).toFixed(2)}px ${posterFonts.sans}`)*1.2):Math.max(measure(heading.label,`${(T.heading*k).toFixed(2)}px ${posterFonts.serif}`),measure(heading.date.toUpperCase(),`700 ${(T.date*k).toFixed(2)}px ${posterFonts.sans}`)*1.2);
+    const hh=heading.title?T.appTitle*k*1.1+T.subtitle*k*1.8:T.heading*k*1.15+T.date*k*1.6;
+    headingRect=placeBlock(hw,hh,['tl','tr','bl','br']);
    }
-   // Place names first, so boxes stay off them.
+   if(credit){
+    const cw=Math.max(measure(credit.name,`italic ${(T.credit*k).toFixed(2)}px ${posterFonts.serif}`),measure(credit.url.toUpperCase(),`700 ${(T.url*k).toFixed(2)}px ${posterFonts.sans}`)*1.2),ch=T.credit*k*1.2+T.url*k*1.6;
+    creditRect=placeBlock(cw,ch,['br','bl','tr','tl']);
+   }
+   // Place names next, so boxes stay off them.
    const names=placeLabels(labels,{scale:k,labelScale,measure,avoid,obstacles:anchorDots});
    for(const l of names){const ls=labelScale;if(l.kind==='site'){taken.push([l.x-7*k*ls,l.y-7*k*ls,l.x+7*k*ls,l.y+7*k*ls]);if(l.tx!==null){const w=measure(l.text,`700 ${(T.site*k*ls).toFixed(2)}px ${posterFonts.sans}`)*1.1;taken.push(l.align==='left'?[l.tx,l.ty-7*k*ls,l.tx+w,l.ty+7*k*ls]:[l.tx-w,l.ty-7*k*ls,l.tx,l.ty+7*k*ls]);}}
     else{const w=measure(l.text,`italic 500 ${(T.area*k*ls).toFixed(2)}px ${posterFonts.serif}`);taken.push([l.tx-w/2,l.ty-T.area*k*ls*.55,l.tx+w/2,l.ty+T.area*k*ls*.55]);}}
-   // A post's width on the wall; on a page the columns of the side layout, so text stays a readable measure.
-   const boxWidth=wall.page?Math.min(tw-2*pad,mapWidth*.3):tw-2*pad,ystep=wall.page?th/40:th/24;
-   const wide=build(boxWidth,'wall'),narrow=build(boxWidth*.62,'wall'),boxes=wide,leaders=[];let failed=false;
+   // Each story at two widths: the cell's width, or a narrower box that fits a corner or a notch.
+   const wide=build(tw-2*pad,'wall'),narrow=build((tw-2*pad)*.62,'wall'),boxes=wide,leaders=[];let failed=false;
    // The box's rule faces its spot: on a side when the spot is beside it, along the top or bottom when above or below.
    const orient=(b,r)=>{
     const [x0,y0,x1,y1]=r,cx=(x0+x1)/2,ax=b.anchor[0],ay=b.anchor[1];
@@ -226,24 +231,33 @@ export function posterLayout({map,spots,labels=[],scale=1,measure,heading=null,r
    };
    const leaderClear=path=>{for(let i=1;i<path.length;i++)for(const r of blocks)if(segmentHitsRect(path[i-1],path[i],r))return false;return true;};
    const leaderLength=path=>path.slice(1).reduce((sum,p,i)=>sum+Math.hypot(p[0]-path[i][0],p[1]-path[i][1]),0);
-   for(const [index,b] of [...boxes.entries()].sort((a,b)=>b[1].height-a[1].height)){
-    let best=null;
-    // Each story at two widths: the post's width, or a narrower box that fits a corner or a notch.
-    for(const variant of [b,narrow[index]])for(const cell of cells){
+   // The best free place for a story inside the given cells: nearest its spot, wide before narrow.
+   const place=(index,cellList)=>{
+    const b=boxes[index];let best=null;
+    for(const variant of [b,narrow[index]])for(const [cellIndex,cell] of cellList){
      const w=variant.width;if(cell[2]-cell[0]<w-1e-6)continue;
-     const xs=wall.page?[0,.25,.5,.75,1].map(f=>cell[0]+f*(cell[2]-cell[0]-w)):[cell[0],cell[2]-w,(cell[0]+cell[2]-w)/2];
-     for(const x of xs)for(let y=cell[1];y+variant.height<=cell[3]+1e-6;y+=ystep){
+     for(const x of [cell[0],cell[2]-w,(cell[0]+cell[2]-w)/2])for(let y=cell[1];y+variant.height<=cell[3]+1e-6;y+=th/24){
       const r=[x,y,x+w,y+variant.height];
       if(taken.some(t=>rectHit(r,t))||!clearOfMap(r))continue;
       const o=orient(variant,r);if(!leaderClear(o.leader))continue;
       if(leaders.some(path=>path.slice(1).some((p,i)=>segmentHitsRect(path[i],p,r))))continue;
-      const cost=leaderLength(o.leader)+(variant===b?0:variant.height*.5);if(!best||cost<best.cost)best={cost,r,o,variant};
+      const cost=leaderLength(o.leader)+(variant===b?0:variant.height*.5);if(!best||cost<best.cost)best={cost,r,o,variant,cell:cellIndex};
      }
     }
-    if(!best){failed=true;continue;}
-    Object.assign(b,{lines:best.variant.lines,height:best.variant.height,width:best.variant.width,x:best.r[0],y:best.r[1]},best.o);taken.push(best.r);blocks.push(best.r);leaders.push(best.o.leader);
+    return best;
+   };
+   const commit=(index,best)=>{const b=boxes[index];Object.assign(b,{lines:best.variant.lines,height:best.variant.height,width:best.variant.width,x:best.r[0],y:best.r[1],cell:best.cell},best.o);taken.push(best.r);blocks.push(best.r);leaders.push(best.o.leader);};
+   const unplaced=new Set(boxes.keys());
+   // With at least as many stories as cells, every cell gets one: each cell in turn takes the
+   // unplaced story that reaches it with the shortest leader (a cell the map fills is skipped).
+   if(boxes.length>=cells.length)for(const [cellIndex,cell] of cells.entries()){
+    let pick=null;for(const index of unplaced){const best=place(index,[[cellIndex,cell]]);if(best&&(!pick||best.cost<pick.best.cost))pick={index,best};}
+    if(pick){commit(pick.index,pick.best);unplaced.delete(pick.index);}
    }
-   const result=finish(boxes,originX,originX+Wc,originY+Hc,originY,pad,avoid,headingAt);
+   // The rest, tallest first, wherever they fit best.
+   for(const index of [...unplaced].sort((a,b)=>boxes[b].height-boxes[a].height)){const best=place(index,[...cells.entries()]);if(!best){failed=true;continue;}commit(index,best);}
+   const result=finish(boxes,originX,originX+Wc,originY+Hc,originY,pad,avoid,headingRect&&[headingRect[0],headingRect[1]],creditRect&&[creditRect[0],creditRect[1]]);
+   result.cells=cells.map((cell,i)=>({rect:cell,boxes:boxes.filter(b=>b.cell===i).map(b=>b.id)}));
    if(!failed)return result;last=result;
   }
   // No attempt found room for every story: keep the boxes that found a place and name the rest,
@@ -251,11 +265,12 @@ export function posterLayout({map,spots,labels=[],scale=1,measure,heading=null,r
   if(last){last.dropped=last.boxes.filter(b=>b.x===undefined).map(b=>b.id);last.boxes=last.boxes.filter(b=>b.x!==undefined);}
   return last;
  };
- if(wall&&spots.length)return wallLayout(wall);
+ if(wall)return wallLayout(wall);
  if(!aspect||!spots.length)return side();
- // A page of a known shape (PDF, PNG) places the boxes freely around the net, like the wall, so the text
- // is spread across the space instead of stacked in two side columns.
- return wallLayout({columns:1,rows:1,tile:{width:aspect*1000,height:1000},page:true})||side();
+ // A page of a known shape (PDF, PNG) is laid out as a wall of three by two cells without gutters: the
+ // same rule as the Instagram grid, so the text is spread across the space, one story per cell when
+ // there are enough.
+ return wallLayout({columns:3,rows:2,tile:{width:aspect*1000/3,height:500},page:true})||side();
 }
 // An arrowhead at the end of a one-way route: a filled triangle along the last segment.
 const arrowhead=(ctx,points,size)=>{
@@ -298,8 +313,15 @@ export function drawPoster(ctx,layout,{routes=[],labels=[],clip=[],ink=posterInk
  }
  if(layout.heading){
   ctx.fillStyle=ink;ctx.textAlign='left';ctx.textBaseline='alphabetic';
-  ctx.font=`${(T.heading*k).toFixed(2)}px ${posterFonts.serif}`;ctx.letterSpacing=`${(-.04*T.heading*k).toFixed(2)}px`;ctx.fillText(layout.heading.label,layout.heading.x,layout.heading.y);
-  ctx.font=`700 ${(T.date*k).toFixed(2)}px ${posterFonts.sans}`;ctx.letterSpacing=`${(.16*T.date*k).toFixed(2)}px`;ctx.fillText(layout.heading.date.toUpperCase(),layout.heading.x,layout.heading.y+T.date*k*1.7);ctx.letterSpacing='0px';
+  const big=layout.heading.title,size=big?T.appTitle:T.heading,sub=big?T.subtitle:T.date;
+  ctx.font=`${(size*k).toFixed(2)}px ${posterFonts.serif}`;ctx.letterSpacing=`${(-.04*size*k).toFixed(2)}px`;ctx.fillText(layout.heading.label,layout.heading.x,layout.heading.y);
+  ctx.font=`700 ${(sub*k).toFixed(2)}px ${posterFonts.sans}`;ctx.letterSpacing=`${(.16*sub*k).toFixed(2)}px`;ctx.fillText(layout.heading.date.toUpperCase(),layout.heading.x,layout.heading.y+sub*k*(big?2:1.7));ctx.letterSpacing='0px';
+ }
+ if(layout.credit){
+  // The signature and the address, as on the site's title band.
+  ctx.fillStyle=ink;ctx.textAlign='left';ctx.textBaseline='alphabetic';
+  ctx.font=`italic ${(T.credit*k).toFixed(2)}px ${posterFonts.serif}`;ctx.letterSpacing='0px';ctx.fillText(layout.credit.name,layout.credit.x,layout.credit.y);
+  ctx.font=`700 ${(T.url*k).toFixed(2)}px ${posterFonts.sans}`;ctx.letterSpacing=`${(.16*T.url*k).toFixed(2)}px`;ctx.fillText(layout.credit.url.toUpperCase(),layout.credit.x,layout.credit.y+T.url*k*1.6);ctx.letterSpacing='0px';
  }
  for(const box of layout.boxes){
   // Leader with a pale halo where it crosses the map, then the anchor dot.

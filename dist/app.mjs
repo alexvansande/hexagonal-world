@@ -4,7 +4,7 @@ import {historyPath,readHistoryPath,readHashShare} from './history-routes.mjs?v=
 import {readDownloadPath,downloadPath,mapFiles,posterFiles} from './download-routes.mjs?v=download-1';
 import {createTourMarkers,createTourLabels,projectTourLocations,tourEnabled,tourLocations} from './tour-markers.mjs?v=history-4';
 import {createTourRoutes,projectTourRoutes,routeFragments,lineCourses,straightenPoints} from './tour-route-renderer.mjs?v=comet-6';
-import {posterLayout,drawPoster} from './history-poster.mjs?v=poster-2';
+import {posterLayout,drawPoster} from './history-poster.mjs?v=poster-3';
 import {loadPeriod} from './history-loader.mjs?v=comet-2';
 import {pacificTourNet} from './tour-layout.mjs?v=dancing-2';
 import pacificLighting from './maps/pacific-manifest.mjs?v=pacific-light-1';
@@ -1006,8 +1006,19 @@ function preparePoster(crop,forPDF,aspect=null,wall=null){
  // On a Lifezones PDF the vector legend at the page's top right may reach a little below the title band.
  let reservedRight=0;
  if(forPDF&&displayedSource==='ecology'){const legend=lifezoneLegendLayout(classCount('land-classes'),classCount('ocean-classes')),intrusion=Math.max(0,18+legend.height*.8-124);reservedRight=intrusion*crop.width*1.78/1118;}
- const layout=posterLayout({map:{left:crop.x,top:crop.y,right:crop.x+crop.width,bottom:crop.y+crop.height},spots,labels,scale:k,measure,heading:{label:period.period.label,date:period.period.date},labelScale:state.labelScale/100,reservedRight,aspect,wall,pieces:clip,text:$('export-poster-text').value});
+ // The PDF carries its own vector title band and credit; the raster formats get the signature and the address as a block.
+ const layout=posterLayout({map:{left:crop.x,top:crop.y,right:crop.x+crop.width,bottom:crop.y+crop.height},spots,labels,scale:k,measure,heading:{label:period.period.label,date:period.period.date},credit:forPDF?null:posterCredit,labelScale:state.labelScale/100,reservedRight,aspect,wall,pieces:clip,text:$('export-poster-text').value});
  return {layout,routes,labels,clip};
+}
+const posterCredit=Object.freeze({name:'Alex Van de Sande',url:'hexagonal.earth'});
+// A plain map on an Instagram wall: no stories, but the site's title, subtitle and credit take free
+// corners of the posts, by the same rule as a poster's blocks.
+function prepareTitledWall(crop,wall){
+ const b=bounds(),unit=scale*state.zoom,k=(b[2]-b[0])*unit/800;
+ const clip=net.map(t=>(t.polygon||hex).map(p=>point(p,t)));
+ const scratch=document.createElement('canvas').getContext('2d'),measure=(text,font)=>{scratch.font=font;return scratch.measureText(text).width;};
+ const layout=posterLayout({map:{left:crop.x,top:crop.y,right:crop.x+crop.width,bottom:crop.y+crop.height},spots:[],labels:[],scale:k,measure,heading:{label:'Hexagonal Earth',date:'A collection of hexagon-based maps',title:true},credit:posterCredit,wall,pieces:clip});
+ return {layout,routes:[],labels:[],clip:[]};
 }
 const posterFormats=['poster-pdf','poster-png','poster-instagram'];
 async function exportMap(format=$('export-scale').value){
@@ -1041,7 +1052,8 @@ async function exportMap(format=$('export-scale').value){
   // The poster grows the crop around the map: a heading above, story columns at both sides.
   // The poster takes the shape of its page: story columns beside the map, or a band of stories under it.
   const {pngFromTiles,printPDF,zipFiles,instagramGrid,instagramTile}=await import('./map-export.mjs?v=poster-2');
-  const posterData=poster?preparePoster(crop,isPDF,grid?null:1118/664,grid?{columns:3,rows:Number($('export-grid').value)||2,tile:instagramTile}:null):null;
+  const wall=grid?{columns:3,rows:Number($('export-grid').value)||2,tile:instagramTile}:null;
+  const posterData=poster?preparePoster(crop,isPDF,grid?null:1118/664,wall):grid?prepareTitledWall(crop,wall):null;
   if(posterData)Object.assign(crop,{x:posterData.layout.left,y:posterData.layout.top,width:posterData.layout.width,height:posterData.layout.height,topInset:0});
   const renderTile=async(x,y,width,height,ratio=factor)=>{
    control.signal.throwIfAborted();
@@ -1075,7 +1087,7 @@ async function exportMap(format=$('export-scale').value){
   if(grid){
    // A wall of portrait posts: each tile is its own PNG, zipped with the posting order.
    // A poster is laid out on the wall itself, so it fills it exactly.
-   const plan=instagramGrid({width:crop.width,height:crop.height,rows:Number($('export-grid').value)||2,margin:poster?0:.04}),files=[];
+   const plan=instagramGrid({width:crop.width,height:crop.height,rows:Number($('export-grid').value)||2,margin:posterData?0:.04}),files=[];
    for(const [index,tile] of plan.tiles.entries()){
     const png=await pngFromTiles({attribution,width:tile.width,height:tile.height,signal:control.signal,onProgress:value=>onProgress((index+value)/plan.tiles.length),renderTile:(x,y,width,height)=>renderTile(x+tile.x-plan.offset[0],y+tile.y-plan.offset[1],width,height,plan.scale)});
     files.push({name:`post-${String(tile.post).padStart(2,'0')} - row ${tile.row+1} column ${tile.column+1}.png`,data:new Uint8Array(await png.arrayBuffer())});

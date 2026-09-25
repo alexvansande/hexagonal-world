@@ -180,6 +180,15 @@ console.log('PDF 2x and 10x: exact map raster scale, bounded tiles, complete pix
  const crowded3x1=posterLayout({map,spots:Array.from({length:24},(_,i)=>({...story(i),x:60+(i%8)*95,y:60+Math.floor(i/8)*150,paragraphs:[story(i).paragraphs[0].repeat(3)]})),scale:1,measure,heading:{label:'X',date:'Y'},wall:{columns:3,rows:1,tile:instagramTile},text:'full'});
  assert(crowded3x1.dropped.length>0&&crowded3x1.boxes.length+crowded3x1.dropped.length===24,'stories without room are dropped, not drawn without a place');
  assert(crowded3x1.boxes.every(b=>b.leader&&b.x!==undefined)&&crowded3x1.boxes.length>0,'the stories that fit are kept');
+ // Six stories on six posts: every post gets one (a cell the map fills is skipped), and the credit block stands in a free corner.
+ const sixUp=posterLayout({map,spots:[0,1,2,3,4,5].map(story),scale:1,measure,heading:{label:'Middle Ages',date:'c. 1000 CE'},credit:{name:'Alex Van de Sande',url:'hexagonal.earth'},wall:wallSpec,pieces:hexes,text:'titles'});
+ assert.equal(sixUp.cells.length,6);assert(sixUp.cells.filter(c=>c.boxes.length).length>=5,'with six stories at least five of the six posts carry one: '+sixUp.cells.map(c=>c.boxes.length).join());
+ assert(sixUp.credit&&sixUp.credit.x>=sixUp.left&&sixUp.credit.y<=sixUp.bottom,'the credit block is on the wall');
+ for(const box of sixUp.boxes)assert(!(box.x<sixUp.credit.x+200&&sixUp.credit.x<box.x+box.width&&box.y<sixUp.credit.y+1e-6&&sixUp.credit.y-20<box.y+box.height),`box ${box.id} keeps off the credit`);
+ // A plain map on the wall: no stories, the site's title and the credit in free corners, the map at full width.
+ const titled=posterLayout({map,spots:[],scale:1,measure,heading:{label:'Hexagonal Earth',date:'A collection of hexagon-based maps',title:true},credit:{name:'Alex Van de Sande',url:'hexagonal.earth'},wall:wallSpec,pieces:hexes});
+ assert(titled&&titled.boxes.length===0&&titled.heading.title&&titled.credit,'a titled wall has its blocks and no boxes');
+ assert(Math.abs((map.right-map.left)-(titled.width-2*titled.width*.05/3))<1e-6,'a wall without stories keeps the map at its full width inside the post margins');
  // Place names keep off the gutters of the wall.
  const {placeLabels:placeNames}=await import('./dist/history-poster.mjs');
  const gutterX=onWall.left+instagramTile.width/s,near=placeNames([{kind:'site',text:'Kilwa',x:gutterX-8,y:200},{kind:'area',text:'Indian Ocean',x:gutterX+3,y:300}],{scale:1,labelScale:1,measure,avoid:{xs:[gutterX],ys:[]}});

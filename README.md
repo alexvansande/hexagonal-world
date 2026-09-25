@@ -518,7 +518,8 @@ Filenames include the site, author, selected map format, and style.
 (`dist/map-export.mjs`, `dist/history-poster.mjs`). *Instagram grid* cuts the
 whole map into a wall of 1080 × 1440 portrait posts (3:4, the tallest post
 Instagram keeps at full size and the shape of the profile grid's thumbnails, so
-the wall assembles without a crop), three columns wide and one
+the wall assembles without a crop, with the site's title, subtitle and credit
+in free corners of the posts), three columns wide and one
 to three rows tall, centred with a 7% margin, and downloads a stored zip of PNGs
 plus a note: the tiles are numbered in posting order (the bottom-right tile is
 posted first because the profile grid shows the newest post first). With the
@@ -530,13 +531,16 @@ area labels on the map, the age's name and date above, and one text box per stor
 beside the map, with a rule on its inner side and a leader that leaves the rule
 horizontally and bends once at 45° (or leaves at 45° and finishes vertically) to a
 dot on the spot. Boxes have no background. A one-way route ends in an
-arrowhead along its last segment; two-way routes have none. On a page (PDF and
-PNG, both the A3 shape) and on an Instagram wall alike the boxes are placed
-freely around the net, each nearest its spot, so the text is spread across the
-space rather than stacked in columns: on the page the boxes are 30% of the map's
-width (or narrower to fit a notch) at five columns of candidate positions; on
-the wall the poster is the wall itself, the map spans its width, centred, and
-every story box takes a free place inside one post, clear of the map pieces, the heading, the place
+arrowhead along its last segment; two-way routes have none. The Instagram wall
+is the master layout and a page (PDF and PNG, both the A3 shape) is laid out as
+a wall of three by two cells without gutters, so every arrangement gets the same
+rule: the map spans the wall's width (or its height when the map is the taller
+shape), centred; fixed blocks take free corners of the corner cells first, the
+heading (the age's name and date, or on a plain map the site's title and
+subtitle) from the top left and the credit (the signature and the address) from
+the bottom right; then, with at least as many stories as cells, every cell takes
+the story that reaches it with the shortest leader, and the rest go wherever
+they fit best. Every story box takes a free place inside one cell, clear of the map pieces, the heading, the place
 names, the other boxes and their leaders, nearest its spot, at the post's width
 or a narrower one that fits a corner or a notch between pieces; its rule faces
 the spot (a side, or the top or bottom edge). Place names keep off the gutters

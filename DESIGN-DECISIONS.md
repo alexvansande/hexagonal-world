@@ -965,6 +965,16 @@ layouts are gone (the side layout remains only as the shape-free fallback). One-
 way routes drawn as lines end in an arrowhead so the direction reads without
 the comets; two-way routes have none.
 
+*Review round: the grid as the master layout.* The user found the Instagram
+wall the best design because the cells force the text all around the map, and
+asked for it as the general rule for every arrangement and format, with one
+story per cell when there are at least six, and for the plain Instagram grid to
+carry the site's title, subtitle and credit like the PDF. Decision: a page is a
+wall of three by two cells without gutters; fixed blocks (heading, credit) take
+free corners of the corner cells first; then each cell takes the unplaced story
+that reaches it with the shortest leader, and the rest place freely. The PDF
+keeps its vector title band and credit, so it takes no raster credit block.
+
 **Dance anchored on the centre (September 22).** The user saw a small drag down,
 made only to see an arrangement better, re-form the group and move the pieces in
 front of them away. Decision: a band switch needs a deliberate pan (40% of the
