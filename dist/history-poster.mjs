@@ -9,6 +9,21 @@ export const posterFonts=Object.freeze({
  sans:'Gotham,"Gotham SSm",Montserrat,"Proxima Nova","Avenir Next",Avenir,"Helvetica Neue",Arial,sans-serif',
 });
 export const posterInk='#193c49';
+// An arrowhead at the end of a one-way route: a filled triangle in the route's colour, pointing
+// along the last stretch of the course, with the same dark halo as the line.
+export function arrowhead(points,size){
+ if(points.length<2)return null;const end=points.at(-1);let i=points.length-2;
+ while(i>0&&Math.hypot(end[0]-points[i][0],end[1]-points[i][1])<size*.6)i--;
+ const from=points[i],dx=end[0]-from[0],dy=end[1]-from[1],len=Math.hypot(dx,dy);if(!len)return null;
+ const ux=dx/len,uy=dy/len,tip=[end[0]+ux*size*.5,end[1]+uy*size*.5],base=[end[0]-ux*size*.7,end[1]-uy*size*.7];
+ return [tip,[base[0]-uy*size*.55,base[1]+ux*size*.55],[base[0]+uy*size*.55,base[1]-ux*size*.55]];
+}
+export function drawArrowhead(ctx,triangle,color,alpha=1){
+ if(!triangle)return;ctx.save();ctx.lineJoin='round';
+ ctx.beginPath();triangle.forEach((p,i)=>i?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1]));ctx.closePath();
+ ctx.globalAlpha=alpha*.45;ctx.strokeStyle='#213e46';ctx.lineWidth=Math.hypot(triangle[1][0]-triangle[2][0],triangle[1][1]-triangle[2][1])*.35;ctx.stroke();
+ ctx.globalAlpha=alpha;ctx.fillStyle=color;ctx.fill();ctx.restore();
+}
 const fontFor=(style,k)=>`${style.italic?'italic ':''}${style.bold?'700 ':''}${(style.size*k).toFixed(2)}px ${posterFonts[style.face]}`;
 // The limited Markdown of the period texts as styled runs; links keep their text.
 export function markdownRuns(text){
@@ -94,7 +109,7 @@ export function briefText(text,limit=160){
  for(const sentence of sentences(text)){if(out&&(out+sentence).trim().length>limit)break;out+=sentence;}
  return out.trim()||text;
 }
-export function posterLayout({map,spots,labels=[],scale=1,measure,heading=null,reservedRight=0,labelScale=1,aspect=null,bandColumns=3,text='full',wall=null,pieces=[]}){
+export function posterLayout({map,spots,labels=[],scale=1,measure,heading=null,reservedRight=0,labelScale=1,aspect=null,bandColumns=3,text='full',wall=null,pieces=[],blocked=[]}){
  const k=scale,T=posterType,mapWidth=map.right-map.left;
  const gap=mapWidth*.05,margin=mapWidth*.04,lead=T.lineHeight;
  const headBand=heading?T.heading*k*1.15+T.date*k*1.6+margin:margin;
@@ -209,10 +224,14 @@ export function posterLayout({map,spots,labels=[],scale=1,measure,heading=null,r
    if(Hc<mapHeight+2*pad)continue;
    const originX=map.left-(Wc-mapWidth)/2,originY=map.top-(Hc-mapHeight)/2;
    const cells=[];for(let r=0;r<wall.rows;r++)for(let c=0;c<wall.columns;c++)cells.push([originX+c*tw+pad,originY+r*th+pad,originX+(c+1)*tw-pad,originY+(r+1)*th-pad]);
+   // A single-cell page (the PDF or PNG poster) keeps boxes to about a third of the map's width.
+   const column=Math.min(tw-2*pad,mapWidth*.3);
    const avoid={xs:Array.from({length:wall.columns-1},(_,i)=>originX+(i+1)*tw),ys:Array.from({length:wall.rows-1},(_,i)=>originY+(i+1)*th)};
    const clearOfMap=r=>!obstaclesOf.some(poly=>polygonHitsRect(poly,[r[0]-pad*.4,r[1]-pad*.4,r[2]+pad*.4,r[3]+pad*.4]));
    // `taken` keeps boxes off everything; `blocks` (the heading and the boxes) is what a leader may not cross.
    const taken=[],blocks=[];
+   // Parts of the page taken by something else (the PDF's vector legend), in the wall's units.
+   for(const r of blocked){const rect=[originX+r[0]/s,originY+r[1]/s,originX+r[2]/s,originY+r[3]/s];taken.push(rect);blocks.push(rect);}
    // The heading takes the first free corner of the wall.
    let headingAt=null;
    if(heading){
@@ -229,7 +248,7 @@ export function posterLayout({map,spots,labels=[],scale=1,measure,heading=null,r
    const names=placeLabels(labels,{scale:k,labelScale,measure,avoid,obstacles:anchorDots});
    for(const l of names){const ls=labelScale;if(l.kind==='site'){taken.push([l.x-7*k*ls,l.y-7*k*ls,l.x+7*k*ls,l.y+7*k*ls]);if(l.tx!==null){const w=measure(l.text,`700 ${(T.site*k*ls).toFixed(2)}px ${posterFonts.sans}`)*1.1;taken.push(l.align==='left'?[l.tx,l.ty-7*k*ls,l.tx+w,l.ty+7*k*ls]:[l.tx-w,l.ty-7*k*ls,l.tx,l.ty+7*k*ls]);}}
     else{const w=measure(l.text,`italic 500 ${(T.area*k*ls).toFixed(2)}px ${posterFonts.serif}`);taken.push([l.tx-w/2,l.ty-T.area*k*ls*.55,l.tx+w/2,l.ty+T.area*k*ls*.55]);}}
-   const wide=build(tw-2*pad,'wall'),narrow=build((tw-2*pad)*.62,'wall'),boxes=wide,leaders=[];let failed=false;
+   const wide=build(column,'wall'),narrow=build(column*.62,'wall'),boxes=wide,leaders=[];let failed=false;
    // The box's rule faces its spot: on a side when the spot is beside it, along the top or bottom when above or below.
    const orient=(b,r)=>{
     const [x0,y0,x1,y1]=r,cx=(x0+x1)/2,ax=b.anchor[0],ay=b.anchor[1];
@@ -294,6 +313,7 @@ export function drawPoster(ctx,layout,{routes=[],labels=[],clip=[],ink=posterInk
   if(route.points.length<2)continue;
   ctx.globalAlpha=route.alpha??1;ctx.strokeStyle=route.color;ctx.lineWidth=route.width;
   ctx.beginPath();route.points.forEach((p,i)=>i?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1]));ctx.stroke();
+  if(route.arrow)drawArrowhead(ctx,arrowhead(route.points,Math.max(4*k,route.width*3.2)),route.color,route.alpha??1);
  }
  ctx.globalAlpha=1;if(clip.length)ctx.restore();
  // Site and area labels as on screen: outlined text at half-transparent white.

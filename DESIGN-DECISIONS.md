@@ -913,6 +913,11 @@ the space above and beside the net to be used and for place names off the
 grid lines: boxes now take any free place on the wall nearest their spot (the
 corners and the notches between pieces first, by nearness), leaders may cross
 place names but never a box, and names avoid the gutters and the story dots.
+Comparing the PDF with the wall, the user preferred the wall's text spread
+around the map to the PDF's side columns: the PDF and PNG posters now use the
+same free-space placement on their page. They also asked for arrowheads on
+solid lines where a route has a direction: one-way routes end in an arrowhead
+on their first strand; two-way lanes and return partners carry none.
 Seeing the map large enough, the user judged two or three lines of description
 would fit under each title (the brief form now takes whole sentences up to
 about 160 characters) and asked for hard, deterministic download links so a

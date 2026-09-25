@@ -523,7 +523,9 @@ posted first because the profile grid shows the newest post first). With the
 History timeline open the dialog adds the *History poster* in PDF (A3 at 4×, about 340 dpi), PNG
 (5×) and Instagram grid form: the age's routes drawn as still lines (one course per
 route: the first strand, without a two-way route's return leg, since the strands'
-jiggle only thickens a still line; with a dark halo; parallel lanes clipped to the pieces), every spot's site and
+jiggle only thickens a still line; with a dark halo; parallel lanes clipped to the
+pieces; a one-way course ends in an arrowhead, on the poster and in the live Lines
+style, while two-way routes carry none), every spot's site and
 area labels on the map, the age's name and date above, and one text box per story
 beside the map, with a rule on its inner side and a leader that leaves the rule
 horizontally and bends once at 45° (or leaves at 45° and finishes vertically) to a
@@ -535,7 +537,10 @@ Instagram wall, or an A3 page when that fits better) the boxes form a band under
 the map in three balanced columns, each with a rule along its top; a lower box's
 leader leaves the end of its rule at 45° into the gutter beside it, climbs past
 the boxes above and continues to its spot, so no leader crosses a box. The layout
-whose shape is nearer the page's is chosen. On an Instagram wall the poster is
+whose shape is nearer the page's is chosen. The PDF and PNG posters are laid out on
+their page (the A3 map area, with the Lifezones legend's corner blocked) by the
+same free-space placement as the Instagram wall, so the stories spread around
+the map instead of standing in columns. On an Instagram wall the poster is
 the wall itself: the map spans its width, centred, and every story box takes a
 free place inside one post, clear of the map pieces, the heading, the place
 names, the other boxes and their leaders, nearest its spot, at the post's width

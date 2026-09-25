@@ -1,5 +1,6 @@
 import {projectTourLocations} from './tour-markers.mjs?v=history-4';
 import {hex} from './geometry.mjs';
+import {arrowhead,drawArrowhead} from './history-poster.mjs?v=poster-1';
 
 export function sampleRoute(route,step=.18){
  const points=[];
@@ -112,6 +113,7 @@ export function createTourRoutes(stage){
     // The whole course as a still line: a dark halo under the wave colour keeps every hue readable.
     for(const pass of [0,1]){ctx.globalAlpha=pass?alpha:alpha*.45;ctx.strokeStyle=pass?color:'#213e46';ctx.lineWidth=pass?options.lineWidth:options.lineWidth+1.4;
      for(const part of fragments){if(part.points.length<4)continue;ctx.beginPath();ctx.moveTo(part.points[0],part.points[1]);for(let i=2;i<part.points.length;i+=2)ctx.lineTo(part.points[i],part.points[i+1]);ctx.stroke();}}
+    if(item.arrow){const last=[...fragments].reverse().find(part=>part.points.length>=4);if(last){const pts=[];for(let i=0;i<last.points.length;i+=2)pts.push([last.points[i],last.points[i+1]]);drawArrowhead(ctx,arrowhead(pts,Math.max(6,options.lineWidth*3.2)),color,alpha);}}
     item.dots=0;ctx.restore();continue;
    }
    const offsets=corridor?[0]:trafficDots(traffic),loop=corridor?8:traffic.length,shift=corridor?0:((traffic.speed*t-traffic.phase)%loop+loop)%loop,tail=corridor?[]:tailSteps;
@@ -182,7 +184,8 @@ export function createTourRoutes(stage){
     const strands=route.strandAnchors||[route.anchors],traffic=route.traffic;
     return strands.map((anchors,s)=>{const t=Array.isArray(traffic)?traffic[s]:traffic;if(!t||!anchors.length)return null;
      const ends=[anchors[0],anchors.at(-1)].flatMap(anchor=>point(anchor.local,anchor.tile,anchor.offset));
-     return {id:route.id,color:route.color||'#fff3c9',uncertain:!!route.uncertain,lane:route.lane,traffic:t,ends,course:s===0&&!route.returnOf,fragments:routeFragments(anchors,point,route.lane)};}).filter(Boolean);
+     // One course per route as a line; a one-way course ends in an arrowhead (a two-way route flows both ways).
+     return {id:route.id,color:route.color||'#fff3c9',uncertain:!!route.uncertain,lane:route.lane,traffic:t,ends,course:s===0&&!route.returnOf,arrow:s===0&&!route.returnOf&&!route.twoWay,fragments:routeFragments(anchors,point,route.lane)};}).filter(Boolean);
    }).flat();
    if(routes.length){cancelAnimationFrame(frame);frame=0;render();}else{cancelAnimationFrame(frame);frame=0;canvas.dataset.dots='0';}
   } };

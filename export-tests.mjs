@@ -172,6 +172,14 @@ console.log('PDF 2x and 10x: exact map raster scale, bounded tiles, complete pix
   assert(['left','right','above','below'].includes(box.side)&&box.leader.at(-1)===box.anchor||box.leader.at(-1)[0]===box.anchor[0],'rule faces the spot');
   for(const other of onWall.boxes)if(other!==box){assert(!overlaps(box,other));for(let i=1;i<box.leader.length;i++)for(let t=0;t<=1;t+=.05){const x=box.leader[i-1][0]+(box.leader[i][0]-box.leader[i-1][0])*t,y=box.leader[i-1][1]+(box.leader[i][1]-box.leader[i-1][1])*t;assert(!(x>other.x+1e-6&&x<other.x+other.width-1e-6&&y>other.y+1e-6&&y<other.y+other.height-1e-6),`leader of ${box.id} crosses ${other.id}`);}}
  }
+ // A one-cell page (the PDF's map area): boxes stay a third of the map wide and off a blocked corner.
+ const onPage=posterLayout({map,spots:[0,1,2,3].map(story),scale:1,measure,heading:{label:'Middle Ages',date:'c. 1000 CE'},wall:{columns:1,rows:1,tile:{width:1118.551,height:663.89}},pieces:hexes,text:'brief',blocked:[[766,0,1118.551,60]]});
+ assert(onPage.boxes.every(b=>b.width<=map.right*.3+1e-6),'page boxes are at most a third of the map wide');
+ const ps=1118.551/onPage.width;for(const box of onPage.boxes){const r=[(box.x-onPage.left)*ps,(box.y-onPage.top)*ps,(box.x+box.width-onPage.left)*ps,(box.y+box.height-onPage.top)*ps];assert(!(r[0]<1118.551&&766<r[2]&&r[1]<60&&0<r[3]),`box ${box.id} keeps off the legend`);assert(!hexes.some(h=>hit(h,[box.x,box.y,box.x+box.width,box.y+box.height])));}
+ // Arrowheads point along the last stretch of a course.
+ const {arrowhead}=await import('./dist/history-poster.mjs');
+ const tri=arrowhead([[0,0],[10,0],[20,0]],10);assert(tri[0][0]>20&&Math.abs(tri[0][1])<1e-9,'the tip lies beyond the end, on the line');assert(Math.abs(tri[1][0]-tri[2][0])<1e-9&&Math.abs(tri[1][1]+tri[2][1])<1e-9,'the base is square to the course');
+ assert.equal(arrowhead([[0,0]],10),null);assert.equal(arrowhead([[3,3],[3,3]],10),null);
  // Place names keep off the gutters of the wall.
  const {placeLabels:placeNames}=await import('./dist/history-poster.mjs');
  const gutterX=onWall.left+1080/s,near=placeNames([{kind:'site',text:'Kilwa',x:gutterX-8,y:200},{kind:'area',text:'Indian Ocean',x:gutterX+3,y:300}],{scale:1,labelScale:1,measure,avoid:{xs:[gutterX],ys:[]}});

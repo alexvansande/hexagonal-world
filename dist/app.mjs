@@ -996,7 +996,8 @@ function preparePoster(crop,forPDF,aspect=null,wall=null){
  const period=historyPeriod,b=bounds(),unit=scale*state.zoom,k=(b[2]-b[0])*unit/800;
  const pairs=flat=>{const out=[];for(let i=0;i<flat.length;i+=2)out.push([flat[i],flat[i+1]]);return out;};
  // One course per route (see lineCourses): parallel strands and return legs would only thicken a still line.
- const routes=lineCourses(projectTourRoutes(tiles,net,state,period.routes)).flatMap(route=>routeFragments(route.anchors,point,route.lane).filter(part=>part.points.length>=4).map(part=>({points:pairs(part.points),color:route.color||'#fff3c9',alpha:route.uncertain?.65:1,width:state.routeLineWidth*k})));
+ // A one-way course ends in an arrowhead on its last fragment.
+ const routes=lineCourses(projectTourRoutes(tiles,net,state,period.routes)).flatMap(route=>{const parts=routeFragments(route.anchors,point,route.lane).filter(part=>part.points.length>=4);return parts.map((part,i)=>({points:pairs(part.points),color:route.color||'#fff3c9',alpha:route.uncertain?.65:1,width:state.routeLineWidth*k,arrow:i===parts.length-1&&!route.twoWay}));});
  const clip=net.map(t=>(t.polygon||hex).map(p=>point(p,t)));
  const seen=new Set(),wanted=[];
  for(const spot of Object.values(period.text.spots))for(const label of spot.labels){const key=label.kind+'|'+label.text;if(!seen.has(key)){seen.add(key);wanted.push(label);}}
@@ -1004,9 +1005,11 @@ function preparePoster(crop,forPDF,aspect=null,wall=null){
  const spots=projectTourLocations(tiles,net,state,period.spots).map(({location,local,tile,offset})=>{const [x,y]=point(local,tile,offset),text=period.text.spots[location.id];return {id:location.id,x,y,title:text.title,paragraphs:text.paragraphs,legend:text.legend.map((line,i)=>({text:line,color:period.waves[text.waves[i]]?.color||'#fff3c9'})),note:text.note};});
  const scratch=document.createElement('canvas').getContext('2d'),measure=(text,font)=>{scratch.font=font;return scratch.measureText(text).width;};
  // On a Lifezones PDF the vector legend at the page's top right may reach a little below the title band.
- let reservedRight=0;
- if(forPDF&&displayedSource==='ecology'){const legend=lifezoneLegendLayout(classCount('land-classes'),classCount('ocean-classes')),intrusion=Math.max(0,18+legend.height*.8-124);reservedRight=intrusion*crop.width*1.78/1118;}
- const layout=posterLayout({map:{left:crop.x,top:crop.y,right:crop.x+crop.width,bottom:crop.y+crop.height},spots,labels,scale:k,measure,heading:{label:period.period.label,date:period.period.date},labelScale:state.labelScale/100,reservedRight,aspect,wall,pieces:clip,text:$('export-poster-text').value});
+ let reservedRight=0;const blocked=[];
+ if(forPDF&&displayedSource==='ecology'){const legend=lifezoneLegendLayout(classCount('land-classes'),classCount('ocean-classes')),intrusion=Math.max(0,18+legend.height*.8-124);reservedRight=intrusion*crop.width*1.78/1118;
+  // The page's own legend at the top right: the part of it that reaches into the map area, in page points.
+  if(intrusion>0)blocked.push([1190.551-388-36,0,1118.551,intrusion]);}
+ const layout=posterLayout({map:{left:crop.x,top:crop.y,right:crop.x+crop.width,bottom:crop.y+crop.height},spots,labels,scale:k,measure,heading:{label:period.period.label,date:period.period.date},labelScale:state.labelScale/100,reservedRight,aspect,wall,pieces:clip,blocked,text:$('export-poster-text').value});
  return {layout,routes,labels,clip};
 }
 const posterFormats=['poster-pdf','poster-png','poster-instagram'];
@@ -1038,7 +1041,8 @@ async function exportMap(format=$('export-scale').value){
   if(!wholeMap){const right=Math.min(saved.w,crop.x+crop.width),bottom=Math.min(saved.h,crop.y+crop.height);crop.x=Math.max(0,crop.x);crop.y=Math.max(0,crop.y);crop.width=right-crop.x;crop.height=bottom-crop.y;if(crop.width<=0||crop.height<=0)Object.assign(crop,{x:0,y:0,width:saved.w,height:saved.h});}
   // The poster grows the crop around the map: a heading above, story columns at both sides.
   // The poster takes the shape of its page: story columns beside the map, or a band of stories under it.
-  const posterData=poster?preparePoster(crop,isPDF,isPDF?1118/664:null,grid?{columns:3,rows:Number($('export-grid').value)||2,tile:{width:1080,height:1350}}:null):null;
+  // Posters are laid out on their page: the wall of posts, or the A3 map area for the PDF and PNG.
+  const posterData=poster?preparePoster(crop,isPDF,null,grid?{columns:3,rows:Number($('export-grid').value)||2,tile:{width:1080,height:1350}}:{columns:1,rows:1,tile:{width:1118.551,height:663.89}}):null;
   if(posterData)Object.assign(crop,{x:posterData.layout.left,y:posterData.layout.top,width:posterData.layout.width,height:posterData.layout.height,topInset:0});
   const renderTile=async(x,y,width,height,ratio=factor)=>{
    control.signal.throwIfAborted();
