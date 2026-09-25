@@ -56,7 +56,8 @@ let tourAnimation=0;
 // History timeline: one period at a time from dist/history (see history-loader.mjs).
 let historyOn=false,historyPeriodId=null,historyPeriod=null,historyLoad=0,historyProjection=null,historyProjectionKey='';
 // The map of the period's time, when the timeline is on and the style has one: drawn on the live path.
-function eraSource(type=$('map-source').value){return (historyOn&&historyPeriodId?eraMap(historyPeriodId,type):null)||modernMaps[type]||null;}
+function eraSourceFor(on,period,type=$('map-source').value){return (on&&period?eraMap(period,type):null)||modernMaps[type]||null;}
+function eraSource(type=$('map-source').value){return eraSourceFor(historyOn,historyPeriodId,type);}
 let historyFocus=initialTour?.id||initialHistory?.spot||null,historyFocusView=null,historyFocusPending=!!(initialTour||initialHistory?.spot);
 const coordinateReadout=document.createElement('div');
 coordinateReadout.id='map-coordinates';coordinateReadout.hidden=true;
@@ -529,9 +530,10 @@ function syncHistoryTools(){
 // Choosing a date activates the period's headline spot (the first section of its
 // Markdown) unless the focused story continues there, in which case it re-reads.
 let historyAutoFocus=false;
-// Dragging the slider across periods whose maps differ: the frame before the change stays on a veil
-// over the map until the new map is drawn (or 2.5 s pass), then dissolves.
-let veilTimer=0,veilArmed=false;
+// Moving between periods (or styles) whose maps differ: the frame before the change is drawn again and
+// kept on a veil over the map while the new map and its tiles load (8 s at most); once they are drawn
+// the veil dissolves slowly. Call it before the change, so the veil holds the old map.
+let veilTimer=0,veilPoll=0,veilArmed=false;
 function crossFade(){
  $('stage').dataset.fade=String((+$('stage').dataset.fade||0)+1);
  if(!ready||!gl||reducedMotion())return;
@@ -539,13 +541,17 @@ function crossFade(){
  let veil=$('map-veil');if(!veil){veil=document.createElement('canvas');veil.id='map-veil';veil.className='map-veil';veil.setAttribute('aria-hidden','true');$('stage').append(veil);}
  veil.width=canvas.width;veil.height=canvas.height;veil.getContext('2d').drawImage(canvas,0,0);
  veil.style.transition='none';veil.style.opacity='1';veilArmed=true;
- clearTimeout(veilTimer);veilTimer=setTimeout(releaseVeil,2500);
+ clearTimeout(veilTimer);clearInterval(veilPoll);const started=performance.now();
+ veilPoll=setInterval(()=>{
+  const d=canvas.dataset,loaded=!$('map-loading').textContent&&(d.layerPending??'0')==='0'&&(d.surfacePending??'0')==='0'&&!relief?.loading;
+  if(loaded||performance.now()-started>8000){clearInterval(veilPoll);veilPoll=0;requestAnimationFrame(()=>requestAnimationFrame(releaseVeil));}
+ },120);
 }
 function releaseVeil(){
- if(!veilArmed)return;veilArmed=false;const veil=$('map-veil');if(!veil)return;
- clearTimeout(veilTimer);requestAnimationFrame(()=>{veil.style.transition='opacity .6s ease';veil.style.opacity='0';veilTimer=setTimeout(()=>veil.remove(),700);});
+ if(!veilArmed)return;veilArmed=false;clearInterval(veilPoll);veilPoll=0;const veil=$('map-veil');if(!veil)return;
+ veil.style.transition='opacity 2.4s ease-in-out';veil.style.opacity='0';veilTimer=setTimeout(()=>veil.remove(),2500);
 }
-function selectHistoryPeriod(id,writeURL=true){const before=eraSource();historyPeriodId=periodInfo(id).id;if(eraSource()!==before)crossFade();historyProjection=null;historyAutoFocus=true;syncHistoryTools();if(writeURL)updateMapUrl();loadHistoryPeriod();draw();}
+function selectHistoryPeriod(id,writeURL=true){const next=periodInfo(id).id;if(eraSourceFor(historyOn,next)!==eraSource())crossFade();historyPeriodId=next;historyProjection=null;historyAutoFocus=true;syncHistoryTools();if(writeURL)updateMapUrl();loadHistoryPeriod();draw();}
 async function loadHistoryPeriod(){
  const token=++historyLoad,id=currentPeriod().id;
  try{const data=await loadPeriod(id);if(token!==historyLoad||!historyOn)return;historyPeriod=data;historyProjection=null;
@@ -556,9 +562,10 @@ async function loadHistoryPeriod(){
   syncHistoryTools();draw();}
  catch{if(token===historyLoad){historyNote.textContent='Could not load this period. Try again.';historyNote.hidden=false;}}
 }
-async function enableHistory(on){const before=eraSource();
+async function enableHistory(on){
  if(historyOn===on){syncHistoryTools();return;}
- historyOn=on;if(eraSource()!==before)crossFade();
+ if(eraSourceFor(on,historyPeriodId)!==eraSource())crossFade();
+ historyOn=on;
  // Judge eligibility from the current settings, not from a renderer that may not be ready yet.
  // A period with a map of its own for the current style (the political map of an age) is eligible even where the style alone is not.
  if(on&&!tourEnabled(renderDefault||activeDefault(true))&&!eraMap(historyPeriodId,$('map-source').value)){const pair=sharePair('lifezones','dymaxion');applyMapOption(pair.layout,'layout');applyMapOption(pair.style,'style');}
@@ -1319,11 +1326,11 @@ async function updateMapSource(){
   gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,texture);const filter=['ecology','continents','countries'].includes(type)?gl.NEAREST:gl.LINEAR;gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,filter);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,filter);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,source);
   liveSourceKey=sourceKey(type);displayedSource=type;$('map-loading').textContent='';$('source-name').textContent=referenceSources[type]?.name||{continents:'continents.png',marble:'Blue Marble · bluemarble-high.jpg',countries:'Natural Earth · 1:50m · de facto country boundaries.',terrain:'Shaded topographic map',ivory:'Ivory · sculpted paper',elevation:'Elevation · earth & sea',ecology:'Holdridge + marine zones'}[type];$('source-detail').textContent=type==='ecology'?'0.5° land · 1° ocean temperature · 0.8° wave exposure':['ivory','elevation'].includes(type)?'Derived from supplied heightfield':`${originalWidth.toLocaleString()} × ${originalHeight.toLocaleString()} · equirectangular`;
   const credit=eraCredit(era);if(credit){$('source-name').textContent=credit.name;$('source-detail').textContent=credit.detail;}
-  draw();releaseVeil();
+  draw();
  }catch(error){if(request!==mapRequest)return;$('map-source').value=displayedSource;updateMapUI();updateRelief();$('map-loading').textContent='Map could not load. Previous layer retained; select again to retry.';scheduleSave();}
 }
 for(const id of ['background-color','border-color','hex-grid-color','puzzle-color','graticule-color','river-color'])$(id).addEventListener('input',draw);
-$('map-source').addEventListener('change',()=>{updateMapSource();updateRelief();});
+$('map-source').addEventListener('change',()=>{crossFade();updateMapSource();updateRelief();});
 for(const id of ['land-classes','ocean-classes'])$(id).addEventListener('input',()=>{syncClassControl(id,classCount(id));updateMapSource();});
 updateMapUI();
 

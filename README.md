@@ -591,8 +591,9 @@ They draw on the live path with the period's own texture, so the tour stays
 eligible, the credit in Sources and info names the data, and a download carries
 it in its attribution. The present political map is drawn the same way, so the
 timeline fades from one age's borders to the next and to today's; when a period's
-map differs from the last, the previous frame stays on a veil over the map until
-the new one is drawn (2.5 s at most) and then dissolves (`crossFade` in
+map differs from the last (or the style changes), the frame before the change is
+drawn again and kept on a veil over the map while the new map and its tiles load
+(8 s at most); once they are drawn the veil dissolves over 2.4 s (`crossFade` in
 `app.mjs`; off with reduced motion or the Animation pane's switch).
 
 - `scripts/build-era-lifezones.py` classifies Holdridge life zones from
