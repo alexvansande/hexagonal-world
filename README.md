@@ -74,7 +74,7 @@ it focuses that story.
 History data lives in **`dist/history/`**, one period at a time, and is the only
 source of story content:
 
-- `index.mjs` lists the nine periods in order (`id`, old `stop` name, scrubber
+- `index.mjs` lists the eight periods in order (`id`, old `stop` name, scrubber
   `tick`, `label`, `date`, `year`, and the `stories` present: its spots, in
   order of importance). A spot is usually one of the seven entry stories, but a
   period may add highlight spots of its own (`homo-erectus`, `neanderthals`,
@@ -119,10 +119,10 @@ with the local save server running) and a sitemap entry.
 
 History timeline: a “History” button sits in the collapsed sidebar between
 the style strip and More options (it reads “Close history” while on). Switching it on replaces the pan/reposition
-toolbox with one scrubber over the nine periods (Early hominins, Out of Africa,
-Ice Age to farming, Bronze Age, Antiquity, Middle Ages, High Middle Ages,
-Globalization, Plantations & empires), ticked with approximate dates (2M ya,
-50k ya, 10k ya, 3k ya, 200 CE, 1000 CE, 1400 CE, 1600 CE, 1800 CE) while the
+toolbox with one scrubber over the eight periods (Early hominins, Peopling the
+world, Bronze Age, Antiquity, Middle Ages, High Middle Ages, Globalization,
+Plantations & empires), ticked with approximate dates (2M ya, 50k ya, 3k ya,
+200 CE, 1000 CE, 1400 CE, 1600 CE, 1800 CE) while the
 panel heading names the age. Every story of the period is drawn at once; the
 scrubber is the only slider. Choosing a date activates the period's headline
 spot, the first `##` section of its Markdown (so order the sections by
@@ -516,7 +516,12 @@ Filenames include the site, author, selected map format, and style.
 
 **More formats…** in the file-format menu opens the extra formats
 (`dist/map-export.mjs`, `dist/history-poster.mjs`). *Instagram grid* cuts the
-whole map into a wall of 1080 × 1350 portrait posts, three columns wide and one
+whole map into a wall of 1080 × 1440 portrait posts (3:4, the tallest post
+Instagram keeps at full size and the shape of the profile grid's thumbnails, so
+the wall assembles without a crop, with the site's title, subtitle and credit
+in free corners of the posts and only a slim 2% margin so the map takes the
+posts; the rows default to the map's shape, a wide net to 3 × 1, a squarer one
+to 3 × 2, until the user picks), three columns wide and one
 to three rows tall, centred with a 7% margin, and downloads a stored zip of PNGs
 plus a note: the tiles are numbered in posting order (the bottom-right tile is
 posted first because the profile grid shows the newest post first). With the
@@ -527,17 +532,18 @@ jiggle only thickens a still line; with a dark halo; parallel lanes clipped to t
 area labels on the map, the age's name and date above, and one text box per story
 beside the map, with a rule on its inner side and a leader that leaves the rule
 horizontally and bends once at 45° (or leaves at 45° and finishes vertically) to a
-dot on the spot. Boxes have no background. On a wide page they stand in two columns, 30% of
-the map's width each, on the side of their spot; a crowded column hands its box
-nearest the middle to the other side, columns taller than the map lengthen the
-poster, and a side without stories keeps only its margin. On a squarer page (an
-Instagram wall, or an A3 page when that fits better) the boxes form a band under
-the map in three balanced columns, each with a rule along its top; a lower box's
-leader leaves the end of its rule at 45° into the gutter beside it, climbs past
-the boxes above and continues to its spot, so no leader crosses a box. The layout
-whose shape is nearer the page's is chosen. On an Instagram wall the poster is
-the wall itself: the map spans its width, centred, and every story box takes a
-free place inside one post, clear of the map pieces, the heading, the place
+dot on the spot. Boxes have no background. A one-way route ends in an
+arrowhead along its last segment; two-way routes have none. The Instagram wall
+is the master layout and a page (PDF and PNG, both the A3 shape) is laid out as
+a wall of three by two cells without gutters, so every arrangement gets the same
+rule: the map (the pieces' own bounding box, since the crop's outline can be
+wider than the net as placed) spans the wall's width (or its height when the
+map is the taller shape), centred; fixed blocks take free corners of the corner cells first, the
+heading (the age's name and date, or on a plain map the site's title and
+subtitle) from the top left and the credit (the signature and the address) from
+the bottom right; then, with at least as many stories as cells, every cell takes
+the story that reaches it with the shortest leader, and the rest go wherever
+they fit best. Every story box takes a free place inside one cell, clear of the map pieces, the heading, the place
 names, the other boxes and their leaders, nearest its spot, at the post's width
 or a narrower one that fits a corner or a notch between pieces; its rule faces
 the spot (a side, or the top or bottom edge). Place names keep off the gutters
@@ -570,8 +576,53 @@ links are stable whether or not a cache exists. `npm start` now runs
 so the links also work locally. The PNG links are whole-map exports, unlike
 the viewport PNG of the Download button. Whole-map files (PDF, Instagram grids,
 posters and the map PNGs of the links) lay the map out 1200 units wide at zoom 1
-whatever the window, so a link renders the same file on every screen, and a
-download address skips the portrait turn of Spaceship Earth.
+whatever the window, so a link renders the same file on every screen; the portrait turn of Spaceship
+Earth (a screen convenience) is undone for them, and a download address never
+applies it. On an Instagram wall the map is fitted by width or by height,
+whichever binds; stories that find no free post are left out and named in the
+zip's note rather than drawn without a place.
+
+## Maps of their time
+
+`dist/history/era-maps.mjs` names, per period and style, a raster that replaces
+the base map while the timeline is on: the last glacial life zones for Peopling
+the world, and a political map for every stop (an all-grey one before states).
+They draw on the live path with the period's own texture, so the tour stays
+eligible, the credit in Sources and info names the data, and a download carries
+it in its attribution. The present political map is drawn the same way, so the
+timeline fades from one age's borders to the next and to today's; when a period's
+map differs from the last, the old map stays on while the camera flies to the new
+story and the pieces re-form; once settled, that frame is kept on a veil between
+the map canvas and the routes and labels, the new map loads beneath it (8 s at
+most), and the veil dissolves over 2.4 s, so only the terrain changes before the
+eye. On Spaceship Earth the pieces glide home to the base net during the hold,
+since the live path's lighting is baked for the net at rest and cannot follow
+moving pieces; they re-form again once the veil is gone. Any pan, zoom or turn
+while the veil is up drops it at once, as the veil is a still picture. A style
+change fades from the current frame without the hold (`crossFade` in `app.mjs`; off with reduced motion or the Animation
+pane's switch).
+
+- `scripts/build-era-lifezones.py` classifies Holdridge life zones from
+  CHELSA-TraCE21k (CC0) centennial bioclim at 21,000 years ago (bio01, bio05,
+  bio06 and bio12 for a sinusoidal-year biotemperature and the PET ratio) in
+  the site's 38 classes; ice sheets are where the surface altitude of the time
+  stands more than 250 m above the present, exposed shelf where it is above the
+  sea level of the time. Oceans keep the present exposure and temperature. Only
+  where the change is drastic: 2 million years ago and the Holocene stops keep
+  the present map, since their shift would not move a class.
+- `scripts/build-era-political.py` rasterises aourednik/historical-basemaps
+  (GPL-3.0, a work in progress) for 1000 BCE, 200, 1000, 1400, 1600 and 1800 CE
+  and Natural Earth for the present, in one style: land without a state is grey
+  (cultural regions of hunters, herders and peoples too, and Australia's named
+  nations), the twelve largest polities by true area get bold colours (a
+  territory whose overlord is one takes a lighter tint), the rest a patchwork of
+  pastels chosen so neighbours differ; no border pixels. `countries.png` is
+  rebuilt in the same style.
+
+The rasters live under `dist/maps/eras/` (and `mobile/`), are gitignored like
+every map image and ship with the asset release. Both scripts need a virtualenv
+with numpy, Pillow, rasterio, shapely and pyshp; the climate layers download
+once (about 1.7 GB) into `data/chelsa-trace/`.
 
 ## Animation pane
 
@@ -584,7 +635,9 @@ rule off, returning the pieces to the base net; the option is shown only on
 Spaceship Earth. The history routes can be drawn as comets (moving or still, with
 dot size and tail length sliders; the tail keeps its three steps of falling
 opacity, each a third of the chosen length) or as lines of a chosen width, one
-course per route (`lineCourses`: the first strand, no return legs). *Label
+course per route (`lineCourses`: the first strand, no return legs) drawn through
+one point in four of the relaxed course (`straightenPoints`), so the jiggle made
+for the comets does not wobble the line. *Label
 size* scales the site and area labels through a `--label-scale` custom property
 on the stage, and *Ripples around the spots* hides the marker ripples. The
 settings live in the positional map-state lists (four state keys and five

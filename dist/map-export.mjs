@@ -78,11 +78,12 @@ export function zipFiles(files,date=new Date()){
  return new Blob([...parts,...central,end],{type:'application/zip'});
 }
 
-// Instagram grid: the whole map centred on a wall of portrait posts (1080 × 1350,
-// the largest post Instagram keeps), three columns wide. The profile grid shows
+// Instagram grid: the whole map centred on a wall of portrait posts (1080 × 1440,
+// the 3:4 post that Instagram keeps at full size and the shape of the profile
+// grid's thumbnails, so the wall assembles without a crop), three columns wide. The profile grid shows
 // the newest post first, so the tiles are numbered in posting order: the
 // bottom-right tile is posted first and the top-left last.
-export const instagramTile=Object.freeze({width:1080,height:1350});
+export const instagramTile=Object.freeze({width:1080,height:1440});
 export function instagramGrid({width,height,columns=3,rows=2,tile=instagramTile,margin=.04}){
  const gridWidth=columns*tile.width,gridHeight=rows*tile.height;
  const scale=Math.min(gridWidth*(1-2*margin)/width,gridHeight*(1-2*margin)/height);

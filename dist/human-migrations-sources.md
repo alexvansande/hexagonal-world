@@ -21,6 +21,27 @@ Present-day coastlines are retained. Ice-age Beringia, Sunda and Sahul included 
 - [Carbonell et al., Nature (2008): The first hominin of Europe](https://www.nature.com/articles/nature06815) and [Parfitt et al., Nature (2010): Early Pleistocene human occupation at the edge of the boreal zone in northwest Europe](https://www.nature.com/articles/nature09117). Atapuerca (about 1.2 million years ago) and Happisburgh (about 0.9 million) date early European presence; the southern Spanish sites at Orce are slightly older. Whether Europe was reached via Anatolia, the Levant or another way is unresolved.
 - [Smithsonian: Homo erectus](https://humanorigins.si.edu/evidence/human-fossils/species/homo-erectus). General species context. Early Homo within Africa (Kenya, Ethiopia, South Africa, Algeria) is drawn as two-way links because these are ranges, not journeys.
 
+## Tools, Paranthropus, fire and handaxes, Panama and the ice ages (chapter 1, added September 24, 2026)
+
+- [Harmand et al., Nature (2015): 3.3-million-year-old stone tools from Lomekwi 3, West Turkana, Kenya](https://www.nature.com/articles/nature14464). The oldest known tools, before Homo.
+- [Villmoare et al., Science (2015): Early Homo at 2.8 Ma from Ledi-Geraru, Afar, Ethiopia](https://www.science.org/doi/10.1126/science.aaa1343). The oldest fossil placed in our genus.
+- [Semaw et al., Nature (1997): 2.5-million-year-old stone tools from Gona, Ethiopia](https://www.nature.com/articles/385333a0). The earliest Oldowan.
+- [Sahnouni et al., Science (2018): 1.9-million- and 2.4-million-year-old artifacts and stone tool-cutmarked bones from Ain Boucherit, Algeria](https://www.science.org/doi/10.1126/science.aau0008). Oldowan in North Africa.
+- [Wood and Constantino, Yearbook of Physical Anthropology (2007): Paranthropus boisei: fifty years of evidence and analysis](https://onlinelibrary.wiley.com/doi/10.1002/ajpa.20732). Range and dates of the robust hominins; Cerling et al., PNAS (2011) for the grass diet from tooth isotopes.
+- [Beyene et al., PNAS (2013): The characteristics and chronology of the earliest Acheulean at Konso, Ethiopia](https://www.pnas.org/doi/10.1073/pnas.1221285110) and [Lepre et al., Nature (2011): An earlier origin for the Acheulian](https://www.nature.com/articles/nature10372). Handaxes from about 1.76 million years ago.
+- [Pappu et al., Science (2011): Early Pleistocene presence of Acheulian hominins in South India](https://www.science.org/doi/10.1126/science.1200183). Attirampakkam about 1.5 million years ago.
+- [Berna et al., PNAS (2012): Microstratigraphic evidence of in situ fire in the Acheulean strata of Wonderwerk Cave](https://www.pnas.org/doi/10.1073/pnas.1117620109) and [Goren-Inbar et al., Science (2004): Evidence of hominin control of fire at Gesher Benot Ya'aqov, Israel](https://www.science.org/doi/10.1126/science.1095443). Fire about 1 million and 790,000 years ago.
+- [O'Dea et al., Science Advances (2016): Formation of the Isthmus of Panama](https://www.science.org/doi/10.1126/sciadv.1600883) and [Woodburne, Journal of Mammalian Evolution (2010): The Great American Biotic Interchange](https://link.springer.com/article/10.1007/s10914-010-9144-8). Closing of the isthmus and the pulses of animals in both directions.
+- [Maslin et al., Quaternary Science Reviews (2014): East African climate pulses and early human evolution](https://www.sciencedirect.com/science/article/pii/S0277379114002480). Rift lakes, the green Sahara and the pulses of change; [Pimiento and Clements, PLoS ONE (2014)](https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0111086) for Megalodon's extinction about 3.6 million years ago.
+
+## Drowned lands: Doggerland, the Gulf Oasis and the flood stories (added September 25, 2026)
+
+- [Gaffney, Fitch and Smith, Europe's Lost World: the rediscovery of Doggerland (CBA, 2009)](https://archaeologydataservice.ac.uk/library/browse/issue.xhtml?recordId=1146530) and [Walker et al., Antiquity (2020): A great wave: the Storegga tsunami and the end of Doggerland?](https://www.cambridge.org/core/journals/antiquity/article/great-wave-the-storegga-tsunami-and-the-end-of-doggerland/) Doggerland's drowning and the tsunami of about 8,150 years ago.
+- [Lambeck, Earth and Planetary Science Letters (1996): Shoreline reconstructions for the Persian Gulf since the last glacial maximum](https://www.sciencedirect.com/science/article/pii/0012821X96001102). The dry Gulf floor and its flooding from about 14,000 years ago.
+- [Rose, Current Anthropology (2010): New light on human prehistory in the Arabo-Persian Gulf Oasis](https://www.journals.uchicago.edu/doi/10.1086/657397). The Gulf Oasis refugium and the proposal that its flooding seeded the Ubaid.
+- [Ryan et al., Marine Geology (1997): An abrupt drowning of the Black Sea shelf](https://www.sciencedirect.com/science/article/pii/S0025322797000075). The contested Bosporus flood of about 7,600 years ago.
+- [Paul Cooper, Fall of Civilizations: the Sumerians](https://fallofcivilizationspodcast.com/). The telling of the Gulf flood, the forced mixing on the plain and the deluge stories that the story follows; the link is a popular narrative, not a peer-reviewed source.
+
 ## Neanderthals and Denisovans (chapter 2)
 
 - [Smithsonian: Homo neanderthalensis](https://humanorigins.si.edu/evidence/human-fossils/species/homo-neanderthalensis). Neanderthals evolved in Europe and western Asia and ranged from Iberia to the Altai. The three two-way links summarize this range; they are not migration routes.

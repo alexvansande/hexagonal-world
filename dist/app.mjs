@@ -3,9 +3,11 @@ import {readTourPath} from './tour-pages.mjs?v=history-2';
 import {historyPath,readHistoryPath,readHashShare} from './history-routes.mjs?v=history-1';
 import {readDownloadPath,downloadPath,mapFiles,posterFiles} from './download-routes.mjs?v=download-1';
 import {createTourMarkers,createTourLabels,projectTourLocations,tourEnabled,tourLocations} from './tour-markers.mjs?v=history-4';
-import {createTourRoutes,projectTourRoutes,routeFragments,lineCourses} from './tour-route-renderer.mjs?v=comet-4';
-import {posterLayout,drawPoster} from './history-poster.mjs?v=poster-1';
+import {createTourRoutes,projectTourRoutes,routeFragments,lineCourses,straightenPoints} from './tour-route-renderer.mjs?v=comet-7';
+import {posterLayout,drawPoster} from './history-poster.mjs?v=poster-5';
+import {instagramTile} from './map-export.mjs?v=poster-2';
 import {loadPeriod} from './history-loader.mjs?v=comet-2';
+import {eraMap,eraCredit,modernMaps} from './history/era-maps.mjs?v=eras-1';
 import {pacificTourNet} from './tour-layout.mjs?v=dancing-2';
 import pacificLighting from './maps/pacific-manifest.mjs?v=pacific-light-1';
 import {createTourStory} from './tour-story.mjs?v=history-5';
@@ -34,7 +36,7 @@ import {gosperScale,rotateLocal,subgridLevels,subgridArea,dotGridArea} from './s
 import {decodeMapState,encodeMapState,distortionEnabled,restorePanelStates} from './map-state.mjs?v=focus-3';
 import {sphereAt,followPoint,geographicPoint} from './globe-drag.mjs?v=tetra-area-2';
 import {makeArrangement,arrangementNames} from './arrangements.mjs?v=gosper-1';
-import {experimentPaletteRevision,mapSource,landLegends,oceanLegend,missing,riverMask,riverTextureData,releaseRiverMask,releaseLiveMapData} from './map-layers.mjs?v=cloud-assets-1';
+import {experimentPaletteRevision,mapSource,landLegends,oceanLegend,missing,riverMask,riverTextureData,releaseRiverMask,releaseLiveMapData} from './map-layers.mjs?v=eras-1';
 import {searchPresets} from './search-presets.mjs?v=rus-search-1';
 import {visibleTiles} from './tiling.mjs';
 import {makeGeometry,layouts,matching,canvasWorld,hex,world} from './geometry.mjs?v=tetra-area-2';
@@ -53,6 +55,10 @@ const initialDownload=readDownloadPath(location.pathname);
 let tourAnimation=0;
 // History timeline: one period at a time from dist/history (see history-loader.mjs).
 let historyOn=false,historyPeriodId=null,historyPeriod=null,historyLoad=0,historyProjection=null,historyProjectionKey='';
+// The map of the period's time, when the timeline is on and the style has one: drawn on the live path.
+function eraSourceFor(on,period,type=$('map-source').value){return (on&&period?eraMap(period,type):null)||modernMaps[type]||null;}
+let eraHold=null;
+function eraSource(type=$('map-source').value){if(eraHold&&eraHold.type===type)return eraHold.path;return eraSourceFor(historyOn,historyPeriodId,type);}
 let historyFocus=initialTour?.id||initialHistory?.spot||null,historyFocusView=null,historyFocusPending=!!(initialTour||initialHistory?.spot);
 const coordinateReadout=document.createElement('div');
 coordinateReadout.id='map-coordinates';coordinateReadout.hidden=true;
@@ -66,7 +72,7 @@ const state={routeDotSize:3.2,routeTail:24,routeLineWidth:2,labelScale:100,metho
 let mobileRepositioning=false;
 // Every scripted move honours the system setting and the Animation pane's switch.
 const reducedMotion=()=>matchMedia("(prefers-reduced-motion: reduce)").matches||!$('motion').checked;
-let exporting=false;
+let exporting=false,gridChosen=false;
 let shareSelection=initialDownload?sharePair(initialDownload.style,initialDownload.layout):initialTour||initialHistory?readSharePath(readHashShare(location.hash)||'')||sharePair('lifezones','dymaxion'):readSharePath(location.pathname)||inferSharePair(readMapStateFromUrl());
 let urlDefaults=null,defaultView=null;
 let persistenceReady=false,saveTimer=null,restoredView=null,headingBounds=null;
@@ -105,7 +111,8 @@ let mergedPreview=null;
 if(['127.0.0.1','localhost','[::1]'].includes(location.hostname)&&new URLSearchParams(location.search).has('merged-preview'))import('./merged-preview.mjs').then(async module=>{mergedPreview=await module.createMergedPreview(draw);draw();}).catch(console.error);
 let defaultLayers=null,renderDefault=null,mergedMaps=null,renderMerged=null;
 const separateComparison=['127.0.0.1','localhost','[::1]'].includes(location.hostname)&&['merged-preview','separate-layers'].some(key=>new URLSearchParams(location.search).has(key));
-function activeDefault(){if(offlineBake||new URLSearchParams(location.search).has('palette-lab')||new URLSearchParams(location.search).get('surface')==='live')return null;
+// `ignoreEra`: the entry the settings would use without the period's map, which still decides whether the tour is eligible.
+function activeDefault(ignoreEra=false){if(offlineBake||(!ignoreEra&&eraSource())||new URLSearchParams(location.search).has('palette-lab')||new URLSearchParams(location.search).get('surface')==='live')return null;
  // Spaceship Earth draws the unlit per-piece base, which does not depend on the map's turn: match its preset at any dial angle.
  const probe=state.arrangement==='dymaxion'?{...state,gridRotation:layoutOptions.find(l=>l.arrangement==='dymaxion')?.state.gridRotation??state.gridRotation}:state,controls=captureSettings().controls;
  let entry=defaultLayerPreset(probe,controls);
@@ -378,7 +385,7 @@ function danceStep(now){
  if(!danceActive())return false;
  // Not before the first fit (the camera is nowhere yet) nor while a story flight is in the air (the
  // centre is not where the user looks yet; the frame already placed the pieces).
- if(persistenceReady&&!tourAnimation)danceFill();
+ if(persistenceReady&&!tourAnimation){if(danceHome&&danceBase)danceTargets=new Map(danceBase.map(t=>[t.id,{x:t.x,y:t.y,r:t.r}]));else danceFill();}
  const instant=reducedMotion(),duration=380;let moving=false;
  for(const t of net){
   const {x:tx,y:ty,r:tr}=danceTargets.get(t.id);
@@ -504,9 +511,9 @@ $('stage').addEventListener('tourselect',event=>{
  if(historyOn)focusHistoryStory(event.detail.id);
  else{historyPeriodId=firstPeriodFor(event.detail.id)||historyPeriodId;historyFocus=event.detail.id;historyFocusPending=true;enableHistory(true);}
 });
-// Scrubber: nine approximate dates; the age name sits in the panel heading.
+// Scrubber: eight approximate dates; the age name sits in the panel heading.
 const historyToggle=$('show-history'),historyTools=document.querySelector('.history-tools'),historyLabel=historyToggle.querySelector('.history-label'),historySlider=$('history-stop'),historyDate=$('history-date'),historyLabels=document.querySelector('.history-stop-labels'),historyNote=$('history-note');
-function readHistoryParam(value){if(!value)return null;return periods.find(p=>p.id===value||p.stop===value)?.id||null;}
+function readHistoryParam(value){if(!value)return null;return periods.find(p=>p.id===value||p.stop===value||p.aliases?.includes(value))?.id||null;}
 historyPeriodId=readHistoryParam(new URLSearchParams(location.search).get('history'))||initialHistory?.period||initialDownload?.period||(initialTour?firstPeriodFor(initialTour.id):null);
 function currentPeriod(){return periodInfo(historyPeriodId);}
 historySlider.max=String(periods.length-1);historyLabels.style.setProperty('--stop-count',String(periods.length));
@@ -524,7 +531,41 @@ function syncHistoryTools(){
 // Choosing a date activates the period's headline spot (the first section of its
 // Markdown) unless the focused story continues there, in which case it re-reads.
 let historyAutoFocus=false;
-function selectHistoryPeriod(id,writeURL=true){historyPeriodId=periodInfo(id).id;historyProjection=null;historyAutoFocus=true;syncHistoryTools();if(writeURL)updateMapUrl();loadHistoryPeriod();draw();}
+// Moving between periods whose maps differ: the old map stays on while the camera flies to the new
+// story and the pieces re-form; once settled, that frame is kept on a veil under the routes and labels,
+// the new map loads beneath it, and the veil dissolves slowly, so only the terrain changes before the
+// eye. A style change skips the hold (the whole map changes) and fades from the current frame.
+let veilTimer=0,veilPoll=0,veilArmed=false,veilView='',danceHome=false;
+const viewSignature=()=>[state.panX.toFixed(1),state.panY.toFixed(1),state.zoom.toFixed(4),state.gridRotation.toFixed(1),w,h].join();
+// The veil is a still picture: any pan, zoom or turn (or pieces moving beneath it) drops it at once.
+function dropVeil(){veilArmed=false;clearInterval(veilPoll);veilPoll=0;clearTimeout(veilTimer);$('map-veil')?.remove();veilView='';danceHome=false;if(eraHold){eraHold=null;meshSignature=null;updateMapSource();}}
+const stageSettled=()=>{const d=canvas.dataset;return !tourAnimation&&d.danceMoving!=='true'&&!$('map-loading').textContent&&(d.layerPending??'0')==='0'&&(d.surfacePending??'0')==='0'&&!relief?.loading;};
+const mapLoaded=()=>{const d=canvas.dataset;return !$('map-loading').textContent&&(d.layerPending??'0')==='0'&&(d.surfacePending??'0')==='0'&&!relief?.loading&&(!!activeDefault()||liveSourceKey===sourceKey(displayedSource));};
+function crossFade(type,oldPath,hold=true){
+ $('stage').dataset.fade=String((+$('stage').dataset.fade||0)+1);
+ if(!ready||!gl||reducedMotion()){eraHold=null;return;}
+ clearInterval(veilPoll);clearTimeout(veilTimer);
+ if(!hold){veilSnapshot();return;}
+ eraHold={type,path:oldPath};danceHome=true;
+ const started=performance.now();
+ veilPoll=setInterval(()=>{if(performance.now()-started>300&&(stageSettled()||performance.now()-started>8000)){clearInterval(veilPoll);veilPoll=0;veilSnapshot();}},120);
+}
+// Keep the current frame (drawn again now) on the veil, let the map beneath change, dissolve once it is drawn.
+function veilSnapshot(){
+ try{render(true);}catch(error){$('stage').dataset.fadeError=String(error);}
+ let veil=$('map-veil');if(!veil){veil=document.createElement('canvas');veil.id='map-veil';veil.className='map-veil';veil.setAttribute('aria-hidden','true');canvas.insertAdjacentElement('afterend',veil);}
+ veil.width=canvas.width;veil.height=canvas.height;veil.getContext('2d').drawImage(canvas,0,0);
+ veil.style.transition='none';veil.style.opacity='1';veilArmed=true;veilView=viewSignature();
+ if(eraHold){eraHold=null;meshSignature=null;updateMapSource();}
+ draw();
+ const started=performance.now();
+ veilPoll=setInterval(()=>{if(performance.now()-started>250&&(mapLoaded()||performance.now()-started>8000)){clearInterval(veilPoll);veilPoll=0;requestAnimationFrame(()=>requestAnimationFrame(releaseVeil));}},120);
+}
+function releaseVeil(){
+ if(!veilArmed)return;veilArmed=false;clearInterval(veilPoll);veilPoll=0;const veil=$('map-veil');if(!veil)return;
+ veil.style.transition='opacity 2.4s ease-in-out';veil.style.opacity='0';veilTimer=setTimeout(()=>{veil.remove();veilView='';danceHome=false;},2500);
+}
+function selectHistoryPeriod(id,writeURL=true){const next=periodInfo(id).id,type=$('map-source').value,oldPath=eraSource(type);if(eraSourceFor(historyOn,next,type)!==oldPath)crossFade(type,oldPath);historyPeriodId=next;historyProjection=null;historyAutoFocus=true;syncHistoryTools();if(writeURL)updateMapUrl();loadHistoryPeriod();draw();}
 async function loadHistoryPeriod(){
  const token=++historyLoad,id=currentPeriod().id;
  try{const data=await loadPeriod(id);if(token!==historyLoad||!historyOn)return;historyPeriod=data;historyProjection=null;
@@ -537,9 +578,11 @@ async function loadHistoryPeriod(){
 }
 async function enableHistory(on){
  if(historyOn===on){syncHistoryTools();return;}
+ {const type=$('map-source').value,oldPath=eraSource(type);if(eraSourceFor(on,historyPeriodId,type)!==oldPath)crossFade(type,oldPath);}
  historyOn=on;
  // Judge eligibility from the current settings, not from a renderer that may not be ready yet.
- if(on&&!tourEnabled(renderDefault||activeDefault())){const pair=sharePair('lifezones','dymaxion');applyMapOption(pair.layout,'layout');applyMapOption(pair.style,'style');}
+ // A period with a map of its own for the current style (the political map of an age) is eligible even where the style alone is not.
+ if(on&&!tourEnabled(renderDefault||activeDefault(true))&&!eraMap(historyPeriodId,$('map-source').value)){const pair=sharePair('lifezones','dymaxion');applyMapOption(pair.layout,'layout');applyMapOption(pair.style,'style');}
  if(!on){++historyLoad;historyPeriod=null;historyProjection=null;closeHistoryFocus(false);syncHistoryTools();updateMapUrl();draw();return;}
  syncHistoryTools();updateMapUrl();loadHistoryPeriod();draw();
 }
@@ -688,7 +731,7 @@ function drawIndicatrixes(){
 function materialMode(){return displayedSource==='ivory'?'ivory':displayedSource==='elevation'?'elevation':'source';}
 let surfaceCache=null,liveSourceKey=null;
 const surfaceMeshes=new Map();
-function sourceKey(type){return [experimentPaletteRevision,type,classCount('land-classes'),classCount('ocean-classes')].join('/');}
+function sourceKey(type){return [experimentPaletteRevision,type,classCount('land-classes'),classCount('ocean-classes'),eraSource(type)||''].join('/');}
 function selectedSurface(){if(new URLSearchParams(location.search).has('palette-lab'))return null;return surfacePreset(state,displayedSource,classCount('land-classes'),classCount('ocean-classes'),+$('interpolation').value,hexBridgesEnabled);}
 function visibleSurfaceTiles(level){
  const n=2**level,result=[];
@@ -701,7 +744,7 @@ function visibleSurfaceTiles(level){
  return result;
 }
 function drawPrecomputedSurface(){
- if($('puzzlegrid').checked){canvas.dataset.surface='live';return false;}
+ if($('puzzlegrid').checked||eraSource()){canvas.dataset.surface='live';return false;}
  const entry=renderDefault?{...renderDefault,path:renderDefault.basePath||renderDefault.path+'/base'}:selectedSurface();if(!entry||(new URLSearchParams(location.search).has('bake-surfaces')||new URLSearchParams(location.search).get('surface')==='live')){canvas.dataset.surface='live';return false;}
  if(renderDefault)surfaceCache=defaultLayers.base;else if(!surfaceCache||surfaceCache===defaultLayers?.base)surfaceCache=new PrecomputedSurfaces(gl,draw);
  const plan=surfacePlan(surfaceLevel(scale*state.zoom*dpr,entry.maxLevel),entry.regions,visibleSurfaceTiles);
@@ -760,7 +803,7 @@ function syncAnimationSettings(){
 $('dance').addEventListener('change',()=>{if(!$('dance').checked)resetDance();draw();});
 for(const id of ['motion','route-style','route-motion','marker-ripples'])$(id).addEventListener('change',()=>{syncAnimationSettings();draw();});
 document.addEventListener('change',syncSettingsVisibility);
-function render(refined=false,exportMode=false){if(exporting&&!exportMode)return;queued=false;document.documentElement.style.setProperty('--map-background',$('background-color').value);const background=$('background-color').value,brightness=[1,3,5].reduce((sum,i,k)=>sum+parseInt(background.slice(i,i+2),16)*[.299,.587,.114][k],0);document.documentElement.style.setProperty('--heading-ink',brightness>145?'#193c49':'#f6f4ed');for(const id of ['background-color','border-color','hex-grid-color','puzzle-color','graticule-color','river-color','backdrop-color'])$(id+'-value').value=$(id).value;syncOptionCards();syncSettingsVisibility();updateDistortionLegend();$('zoom-value').textContent=Math.round(state.zoom*100)+'%';if(!ready||!gl)return;const currentDefault=activeDefault();const previousPath=!!renderDefault;selectRenderPath(currentDefault);initializeProgram(!!renderDefault);if(previousPath&&!renderDefault&&($('relief-enabled').checked||['ivory','elevation'].includes(displayedSource)))ensureRelief();if(!program)return;if(renderDefault&&!defaultLayers)defaultLayers=new DefaultLayers(gl,draw);if(renderDefault)defaultLayers.prepare(renderDefault);const wasMerged=!!renderMerged;renderMerged=!separateComparison&&!spaceshipUnlit()?mergedEntry(renderDefault):null;if(renderMerged&&!wasMerged){if(surfaceCache===defaultLayers.base)surfaceCache=null;defaultLayers.dispose();defaultLayers=new DefaultLayers(gl,draw);defaultLayers.prepare(renderDefault);}if(!renderMerged&&mergedMaps){if(surfaceCache===mergedMaps.cache)surfaceCache=null;mergedMaps.dispose();mergedMaps=null;}const lighting=renderMerged||spaceshipUnlit()?(defaultLayers?.detail.setRequired(new Set()),null):renderDefault?defaultLayers.lighting(renderDefault,scale*state.zoom,dpr,w,h,state.panX,state.panY,{capToBase:$('lighting-resolution-test').value==='map',compareHighest:$('lighting-resolution-test').value!=='auto'}):$('relief-enabled').checked&&relief?.ready?cachedLighting():null;canvas.dataset.renderPath=renderDefault?'images':'live';if(!renderDefault&&$('rivers-visible').checked&&uploadedRiverKey!==state.riverLevels+'/field'&&!offlineBake)updateRiverLayer();if(danceActive()&&danceStep(performance.now()))requestAnimationFrame(draw);updateVisibleMesh();if(!exportMode)updateHeadingVisibility();gl.bindFramebuffer(gl.FRAMEBUFFER,null);gl.viewport(0,0,canvas.width,canvas.height);gl.clearColor(...[1,3,5].map(i=>parseInt(background.slice(i,i+2),16)/255),1);gl.clear(gl.COLOR_BUFFER_BIT);gl.useProgram(program);gl.uniform1f(uniforms.gridRotation,state.gridRotation*Math.PI/180);gl.uniform2f(uniforms.size,w,h);gl.uniform3f(uniforms.view,scale*state.zoom,state.panX,state.panY);gl.uniform3f(uniforms.angles,state.lon*Math.PI/180,state.lat*Math.PI/180,state.roll*Math.PI/180);gl.uniform1f(uniforms.bias,state.bias);gl.uniform1f(uniforms.blend,+$('interpolation').value);gl.uniform1f(uniforms.grid,$('graticule').checked?state.grid*Math.PI/180:0);gl.uniform1f(uniforms.gridWidth,.6*state.graticuleWidth/(scale*state.zoom));gl.uniform3fv(uniforms.gridColor,[1,3,5].map(i=>parseInt($('graticule-color').value.slice(i,i+2),16)/255));gl.uniform1i(uniforms.palette,displayedSource==='continents'?['atlas','original','night'].indexOf($('palette').value):1);gl.uniform1i(uniforms.distortion,derivativeSupport?($('distortion').checked?3:0):0);gl.uniform1f(uniforms.distortionOpacity,state.distortionOpacity);gl.uniform1f(uniforms.pixelScale,scale*state.zoom*dpr);gl.uniform1i(uniforms.map,0);gl.uniform1i(uniforms.felvClip,arrangement.clip?1:0);
+function render(refined=false,exportMode=false){if(exporting&&!exportMode)return;queued=false;document.documentElement.style.setProperty('--map-background',$('background-color').value);const background=$('background-color').value,brightness=[1,3,5].reduce((sum,i,k)=>sum+parseInt(background.slice(i,i+2),16)*[.299,.587,.114][k],0);document.documentElement.style.setProperty('--heading-ink',brightness>145?'#193c49':'#f6f4ed');for(const id of ['background-color','border-color','hex-grid-color','puzzle-color','graticule-color','river-color','backdrop-color'])$(id+'-value').value=$(id).value;syncOptionCards();syncSettingsVisibility();updateDistortionLegend();$('zoom-value').textContent=Math.round(state.zoom*100)+'%';if(!ready||!gl)return;const currentDefault=activeDefault();const previousPath=!!renderDefault;selectRenderPath(currentDefault);initializeProgram(!!renderDefault);if(previousPath&&!renderDefault&&($('relief-enabled').checked||['ivory','elevation'].includes(displayedSource)))ensureRelief();if(!program)return;if(renderDefault&&!defaultLayers)defaultLayers=new DefaultLayers(gl,draw);if(renderDefault)defaultLayers.prepare(renderDefault);const wasMerged=!!renderMerged;renderMerged=!separateComparison&&!spaceshipUnlit()&&!eraSource()?mergedEntry(renderDefault):null;if(renderMerged&&!wasMerged){if(surfaceCache===defaultLayers.base)surfaceCache=null;defaultLayers.dispose();defaultLayers=new DefaultLayers(gl,draw);defaultLayers.prepare(renderDefault);}if(!renderMerged&&mergedMaps){if(surfaceCache===mergedMaps.cache)surfaceCache=null;mergedMaps.dispose();mergedMaps=null;}const lighting=renderMerged||spaceshipUnlit()?(defaultLayers?.detail.setRequired(new Set()),null):renderDefault?defaultLayers.lighting(renderDefault,scale*state.zoom,dpr,w,h,state.panX,state.panY,{capToBase:$('lighting-resolution-test').value==='map',compareHighest:$('lighting-resolution-test').value!=='auto'}):$('relief-enabled').checked&&relief?.ready?cachedLighting():null;canvas.dataset.renderPath=renderDefault?'images':'live';if(!renderDefault&&$('rivers-visible').checked&&uploadedRiverKey!==state.riverLevels+'/field'&&!offlineBake)updateRiverLayer();if(danceActive()&&danceStep(performance.now()))requestAnimationFrame(draw);updateVisibleMesh();if(!exportMode)updateHeadingVisibility();gl.bindFramebuffer(gl.FRAMEBUFFER,null);gl.viewport(0,0,canvas.width,canvas.height);gl.clearColor(...[1,3,5].map(i=>parseInt(background.slice(i,i+2),16)/255),1);gl.clear(gl.COLOR_BUFFER_BIT);gl.useProgram(program);gl.uniform1f(uniforms.gridRotation,state.gridRotation*Math.PI/180);gl.uniform2f(uniforms.size,w,h);gl.uniform3f(uniforms.view,scale*state.zoom,state.panX,state.panY);gl.uniform3f(uniforms.angles,state.lon*Math.PI/180,state.lat*Math.PI/180,state.roll*Math.PI/180);gl.uniform1f(uniforms.bias,state.bias);gl.uniform1f(uniforms.blend,+$('interpolation').value);gl.uniform1f(uniforms.grid,$('graticule').checked?state.grid*Math.PI/180:0);gl.uniform1f(uniforms.gridWidth,.6*state.graticuleWidth/(scale*state.zoom));gl.uniform3fv(uniforms.gridColor,[1,3,5].map(i=>parseInt($('graticule-color').value.slice(i,i+2),16)/255));gl.uniform1i(uniforms.palette,displayedSource==='continents'?['atlas','original','night'].indexOf($('palette').value):1);gl.uniform1i(uniforms.distortion,derivativeSupport?($('distortion').checked?3:0):0);gl.uniform1f(uniforms.distortionOpacity,state.distortionOpacity);gl.uniform1f(uniforms.pixelScale,scale*state.zoom*dpr);gl.uniform1i(uniforms.map,0);gl.uniform1i(uniforms.felvClip,arrangement.clip?1:0);
  const drawColor=(width=w,height=h,baseOnly=false,overlayOnly=false)=>{gl.useProgram(program);gl.uniform1i(uniforms.overlayOnly,overlayOnly?1:0);gl.uniform1f(uniforms.grid,!baseOnly&&$('graticule').checked?state.grid*Math.PI/180:0);gl.uniform1i(uniforms.distortion,!baseOnly&&derivativeSupport?($('distortion').checked?3:0):0);gl.uniform2f(uniforms.size,width,height);if(!renderDefault){bindMaterialUniforms();bindRiverUniforms();}gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,texture);if(!overlayOnly&&drawPrecomputedSurface())return;gl.uniform1i(uniforms.bakedOn,0);if(!overlayOnly&&liveSourceKey!==sourceKey(displayedSource)){if(!$('map-loading').textContent)updateMapSource();return;}drawGeometry(program);};
  if(renderMerged){
   if(!mergedMaps)mergedMaps=new MergedMaps(gl,draw);
@@ -780,7 +823,8 @@ function render(refined=false,exportMode=false){if(exporting&&!exportMode)return
  updateLoadingStatus();
  if(!exportMode){
   syncAnimationSettings();
-  const enabled=tourEnabled(renderDefault)&&!isAboutPath(location.pathname);
+  if(veilView&&$('map-veil')&&(veilView!==viewSignature()||canvas.dataset.danceMoving==='true'))dropVeil();
+  const enabled=(tourEnabled(renderDefault||(eraSource()&&activeDefault(true)))||!!eraSource())&&!isAboutPath(location.pathname);
   if(historyOn&&!enabled)enableHistory(false);
   // Off the timeline the seven entry dots invite a click; on it each period places its own spots.
   tourMarkers.update(enabled?projectTourLocations(tiles,net,state,historyOn?historySpots():tourLocations):[],point,w,h);
@@ -996,7 +1040,7 @@ function preparePoster(crop,forPDF,aspect=null,wall=null){
  const period=historyPeriod,b=bounds(),unit=scale*state.zoom,k=(b[2]-b[0])*unit/800;
  const pairs=flat=>{const out=[];for(let i=0;i<flat.length;i+=2)out.push([flat[i],flat[i+1]]);return out;};
  // One course per route (see lineCourses): parallel strands and return legs would only thicken a still line.
- const routes=lineCourses(projectTourRoutes(tiles,net,state,period.routes)).flatMap(route=>routeFragments(route.anchors,point,route.lane).filter(part=>part.points.length>=4).map(part=>({points:pairs(part.points),color:route.color||'#fff3c9',alpha:route.uncertain?.65:1,width:state.routeLineWidth*k})));
+ const routes=lineCourses(projectTourRoutes(tiles,net,state,period.routes)).flatMap(route=>routeFragments(route.anchors,point,route.lane).filter(part=>part.points.length>=4).map((part,i,parts)=>({points:pairs(straightenPoints(part.points)),arrow:!route.twoWay&&i===parts.length-1,color:route.color||'#fff3c9',alpha:route.uncertain?.65:1,width:state.routeLineWidth*k})));
  const clip=net.map(t=>(t.polygon||hex).map(p=>point(p,t)));
  const seen=new Set(),wanted=[];
  for(const spot of Object.values(period.text.spots))for(const label of spot.labels){const key=label.kind+'|'+label.text;if(!seen.has(key)){seen.add(key);wanted.push(label);}}
@@ -1006,8 +1050,21 @@ function preparePoster(crop,forPDF,aspect=null,wall=null){
  // On a Lifezones PDF the vector legend at the page's top right may reach a little below the title band.
  let reservedRight=0;
  if(forPDF&&displayedSource==='ecology'){const legend=lifezoneLegendLayout(classCount('land-classes'),classCount('ocean-classes')),intrusion=Math.max(0,18+legend.height*.8-124);reservedRight=intrusion*crop.width*1.78/1118;}
- const layout=posterLayout({map:{left:crop.x,top:crop.y,right:crop.x+crop.width,bottom:crop.y+crop.height},spots,labels,scale:k,measure,heading:{label:period.period.label,date:period.period.date},labelScale:state.labelScale/100,reservedRight,aspect,wall,pieces:clip,text:$('export-poster-text').value});
+ // The PDF carries its own vector title band and credit; the raster formats get the signature and the address as a block.
+ const layout=posterLayout({map:{left:crop.x,top:crop.y,right:crop.x+crop.width,bottom:crop.y+crop.height},spots,labels,scale:k,measure,heading:{label:period.period.label,date:period.period.date},credit:forPDF?null:posterCredit,labelScale:state.labelScale/100,reservedRight,aspect,wall,pieces:clip,text:$('export-poster-text').value});
  return {layout,routes,labels,clip};
+}
+const posterCredit=Object.freeze({name:'Alex Van de Sande',url:'hexagonal.earth'});
+// Rows of a three-column wall whose shape is nearest the map's: 3 × 1 for a wide net, 3 × 2 for a squarer one.
+const gridRowsFor=(width,height)=>Math.max(1,Math.min(3,Math.round(height/width*3*instagramTile.width/instagramTile.height)));
+// A plain map on an Instagram wall: no stories, but the site's title, subtitle and credit take free
+// corners of the posts, by the same rule as a poster's blocks.
+function prepareTitledWall(crop,wall){
+ const b=bounds(),unit=scale*state.zoom,k=(b[2]-b[0])*unit/800;
+ const clip=net.map(t=>(t.polygon||hex).map(p=>point(p,t)));
+ const scratch=document.createElement('canvas').getContext('2d'),measure=(text,font)=>{scratch.font=font;return scratch.measureText(text).width;};
+ const layout=posterLayout({map:{left:crop.x,top:crop.y,right:crop.x+crop.width,bottom:crop.y+crop.height},spots:[],labels:[],scale:k,measure,heading:{label:'Hexagonal Earth',date:'A collection of hexagon-based maps',title:true},credit:posterCredit,wall,pieces:clip});
+ return {layout,routes:[],labels:[],clip:[]};
 }
 const posterFormats=['poster-pdf','poster-png','poster-instagram'];
 async function exportMap(format=$('export-scale').value){
@@ -1017,7 +1074,7 @@ async function exportMap(format=$('export-scale').value){
  // Posters are wider than the map: 4× is about 340 dpi on A3, 5× a print-size PNG.
  const factor=format==='poster-pdf'?4:format==='poster-png'?5:format.startsWith('pdf-')?Number(format.slice(4)):format.startsWith('map-')?Number(format.slice(4)):/^\d+$/.test(format)?Number(format):10,wholeMap=isPDF||poster||grid||format.startsWith('map-');
  const label=grid?(poster?'Instagram poster':'Instagram grid'):poster?(isPDF?'PDF poster':'PNG poster'):`${isPDF?'PDF':'PNG'} ${factor===2?'Medium':'High'}`;
- const button=$('export'),saved={w,h,dpr,scale,zoom:state.zoom,panX:state.panX,panY:state.panY};
+ const button=$('export'),saved={w,h,dpr,scale,zoom:state.zoom,gridRotation:state.gridRotation,panX:state.panX,panY:state.panY};
  const crop={x:0,y:0,width:saved.w,height:saved.h};
  const control=new AbortController(),dialog=$('export-progress'),progress=$('export-progress-text'),main=document.querySelector('main');
  const out=document.createElement('canvas'),context=out.getContext('2d',{willReadFrequently:true});
@@ -1033,12 +1090,18 @@ async function exportMap(format=$('export-scale').value){
   while($('map-loading').textContent==='Loading map…'||($('relief-enabled').checked&&relief?.loading)||$('indicatrix-status').textContent==='Preparing circles…'){control.signal.throwIfAborted();if(performance.now()>deadline)throw Error('Map assets are still loading; please retry when they finish');await new Promise(resolve=>setTimeout(resolve,100));}
  // A whole-map file does not depend on the window: the map is laid out 1200 units wide whatever the
   // screen or zoom, so a download link renders the same file everywhere. Current-view files keep the view.
+  // The portrait turn is a screen convenience: a whole-map file keeps the map's own orientation unless the user turned it further.
+  if(wholeMap&&portraitTurn&&Math.abs(state.gridRotation-portraitTurn.to)<1e-6){state.gridRotation=portraitTurn.from;meshSignature=null;}
   if(wholeMap&&!tiling){const b=bounds();state.zoom=1;scale=1200/(b[2]-b[0]);}
   if(!tiling){const b=bounds(),unit=scale*state.zoom,pad=($('relief-enabled').checked&&(activeDefault()?.lighting||relief?.ready)?ReliefRenderer.prototype.padding(appliedLighting(),unit):0)+12;crop.x=saved.w/2+saved.panX+b[0]*unit-pad;crop.y=saved.h/2+saved.panY-b[3]*unit-pad;crop.topInset=pad;crop.width=(b[2]-b[0])*unit+2*pad;crop.height=(b[3]-b[1])*unit+2*pad;}
   if(!wholeMap){const right=Math.min(saved.w,crop.x+crop.width),bottom=Math.min(saved.h,crop.y+crop.height);crop.x=Math.max(0,crop.x);crop.y=Math.max(0,crop.y);crop.width=right-crop.x;crop.height=bottom-crop.y;if(crop.width<=0||crop.height<=0)Object.assign(crop,{x:0,y:0,width:saved.w,height:saved.h});}
   // The poster grows the crop around the map: a heading above, story columns at both sides.
   // The poster takes the shape of its page: story columns beside the map, or a band of stories under it.
-  const posterData=poster?preparePoster(crop,isPDF,isPDF?1118/664:null,grid?{columns:3,rows:Number($('export-grid').value)||2,tile:{width:1080,height:1350}}:null):null;
+  const {pngFromTiles,printPDF,zipFiles,instagramGrid,instagramTile}=await import('./map-export.mjs?v=poster-2');
+  // Until the user picks, the rows follow the exported map's shape (the base net, after resetDance).
+  if(grid&&!gridChosen&&!initialDownload?.rows){const pts=net.flatMap(t=>(t.polygon||hex).map(p=>point(p,t)));const xs=pts.map(p=>p[0]),ys=pts.map(p=>p[1]);$('export-grid').value=String(gridRowsFor(Math.max(...xs)-Math.min(...xs),Math.max(...ys)-Math.min(...ys)));}
+  const wall=grid?{columns:3,rows:Number($('export-grid').value)||2,tile:instagramTile}:null;
+  const posterData=poster?preparePoster(crop,isPDF,grid?null:1118/664,wall):grid?prepareTitledWall(crop,wall):null;
   if(posterData)Object.assign(crop,{x:posterData.layout.left,y:posterData.layout.top,width:posterData.layout.width,height:posterData.layout.height,topInset:0});
   const renderTile=async(x,y,width,height,ratio=factor)=>{
    control.signal.throwIfAborted();
@@ -1066,20 +1129,19 @@ async function exportMap(format=$('export-scale').value){
   };
   const onProgress=value=>progress.textContent=`Rendering ${label} · ${Math.round(value*100)}%`;
   const license=mapLicense(displayedSource);
-  const attribution=[`Hexagonal Earth by Alex Van de Sande - ${license.name} (${license.url}). Third-party source credits and terms also apply.`,sourceAttribution(displayedSource),!$('height-credit').hidden?'Height imagery: NASA Earth Observatory / Jesse Allen, using GEBCO data from the British Oceanographic Data Centre. Height composite by Alex Van de Sande. '+'https://science.nasa.gov/earth/earth-observatory/blue-marble-next-generation/topography-bathymetry-maps/':''].filter(Boolean).join(' ');
+  const attribution=[`Hexagonal Earth by Alex Van de Sande - ${license.name} (${license.url}). Third-party source credits and terms also apply.`,sourceAttribution(displayedSource),eraCredit(eraSource())?.name||'',!$('height-credit').hidden?'Height imagery: NASA Earth Observatory / Jesse Allen, using GEBCO data from the British Oceanographic Data Centre. Height composite by Alex Van de Sande. '+'https://science.nasa.gov/earth/earth-observatory/blue-marble-next-generation/topography-bathymetry-maps/':''].filter(Boolean).join(' ');
   const exportOptions={attribution,rasterScale:factor,width:crop.width,height:crop.height,mapInsetTop:crop.topInset||0,renderTile,signal:control.signal,onProgress,background:$('background-color').value};
-  const {pngFromTiles,printPDF,zipFiles,instagramGrid}=await import('./map-export.mjs?v=poster-1');
   let blob,extension;
   if(grid){
    // A wall of portrait posts: each tile is its own PNG, zipped with the posting order.
    // A poster is laid out on the wall itself, so it fills it exactly.
-   const plan=instagramGrid({width:crop.width,height:crop.height,rows:Number($('export-grid').value)||2,margin:poster?0:.04}),files=[];
+   const plan=instagramGrid({width:crop.width,height:crop.height,rows:Number($('export-grid').value)||2,margin:posterData?0:.04}),files=[];
    for(const [index,tile] of plan.tiles.entries()){
     const png=await pngFromTiles({attribution,width:tile.width,height:tile.height,signal:control.signal,onProgress:value=>onProgress((index+value)/plan.tiles.length),renderTile:(x,y,width,height)=>renderTile(x+tile.x-plan.offset[0],y+tile.y-plan.offset[1],width,height,plan.scale)});
     files.push({name:`post-${String(tile.post).padStart(2,'0')} - row ${tile.row+1} column ${tile.column+1}.png`,data:new Uint8Array(await png.arrayBuffer())});
    }
    files.sort((a,b)=>a.name.localeCompare(b.name));
-   files.push({name:'READ ME - posting order.txt',data:new TextEncoder().encode(`Instagram grid: ${plan.columns} × ${plan.rows} posts of ${plan.tile.width} × ${plan.tile.height} pixels.\n\nPost the files in their numbered order, post-01 first: it is the bottom-right tile, and the profile grid shows the newest post first, so the picture assembles from the bottom up. Row and column count from the top left.\n\n${attribution}\n`)});
+   files.push({name:'READ ME - posting order.txt',data:new TextEncoder().encode(`Instagram grid: ${plan.columns} × ${plan.rows} posts of ${plan.tile.width} × ${plan.tile.height} pixels.\n\nPost the files in their numbered order, post-01 first: it is the bottom-right tile, and the profile grid shows the newest post first, so the picture assembles from the bottom up. Row and column count from the top left.\n${posterData?.layout.dropped?.length?`\nStories without room on the wall were left out: ${posterData.layout.dropped.join(', ')}.\n`:''}\n${attribution}\n`)});
    blob=zipFiles(files);extension='zip';
   }else if(isPDF){blob=await printPDF({...exportOptions,lifezones:displayedSource==='ecology'?{colorFade:legendFade(),landCount:classCount('land-classes'),oceanCount:classCount('ocean-classes')}:null});extension='pdf';}
   else{blob=await pngFromTiles({attribution,width:Math.max(1,Math.round(crop.width*factor)),height:Math.max(1,Math.round(crop.height*factor)),renderTile,signal:control.signal,onProgress});extension='png';}
@@ -1087,7 +1149,7 @@ async function exportMap(format=$('export-scale').value){
   const name=poster?`Hexagonal Earth by Alex Van de Sande - ${historyPeriod.period.label} ${historyPeriod.period.date} - ${shareSelection.style.name}${grid?' - Instagram grid':' poster'}`:`Hexagonal Earth by Alex Van de Sande - ${shareSelection.layout.name} - ${shareSelection.style.name}${grid?' - Instagram grid':''}`;
   const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=`${name}.${extension}`;a.click();trackEvent('download',poster||grid?format:factor+'x-'+(isPDF?'pdf':'png'));setTimeout(()=>URL.revokeObjectURL(url),60000);
  }catch(error){if(error.name!=='AbortError'){console.warn('Map export:',error);$('relief-status').textContent='Export failed: '+error.message;}}
- finally{w=saved.w;h=saved.h;dpr=saved.dpr;scale=saved.scale;state.zoom=saved.zoom;state.panX=saved.panX;state.panY=saved.panY;out.width=out.height=1;relief?.releaseDetail();exporting=false;main.inert=false;dialog.close();button.disabled=false;meshSignature=null;resize();}
+ finally{w=saved.w;h=saved.h;dpr=saved.dpr;scale=saved.scale;state.zoom=saved.zoom;state.gridRotation=saved.gridRotation;state.panX=saved.panX;state.panY=saved.panY;out.width=out.height=1;relief?.releaseDetail();exporting=false;main.inert=false;dialog.close();button.disabled=false;meshSignature=null;resize();}
 }
 $('export').onclick=()=>exportMap();
 // "More formats…" in the file-format menu opens the extra formats; the menu keeps its previous choice.
@@ -1105,7 +1167,10 @@ $('export').onclick=()=>exportMap();
   $('export-links-poster').hidden=!posters;
   if(posters)render($('export-links-poster'),[{...posterFiles.find(f=>f.format==='poster-pdf'&&f.text===text),name:'Poster PDF'},{...posterFiles.find(f=>f.format==='poster-png'&&f.text===text),name:'Poster PNG'},{...posterFiles.find(f=>f.format==='poster-instagram'&&f.text===text&&f.rows===rows),name:`Poster Instagram 3 × ${rows}`}]);
  };
- const open=()=>{const posters=historyOn&&!!historyPeriod;$('export-poster-formats').hidden=!posters;$('export-poster-note').hidden=posters;links();more.showModal();};
+ // The grid's rows default to the shape of the map's base net (a wide net fills a 3 × 1 wall, a square one 3 × 2) until the user picks.
+ $('export-grid').addEventListener('change',()=>{gridChosen=true;});
+ const fitRows=()=>{if(gridChosen||!ready)return;const base=danceBase?net.map(t=>({...t,...danceBase.find(b=>b.id===t.id)})):net;const all=base.flatMap(t=>(t.polygon||hex).map(p=>{const v=rotateScreen(canvasWorld(p,t));return [v[0],-v[1]];}));const w=Math.max(...all.map(p=>p[0]))-Math.min(...all.map(p=>p[0])),h=Math.max(...all.map(p=>p[1]))-Math.min(...all.map(p=>p[1]));$('export-grid').value=String(gridRowsFor(w,h));};
+ const open=()=>{const posters=historyOn&&!!historyPeriod;$('export-poster-formats').hidden=!posters;$('export-poster-note').hidden=posters;fitRows();links();more.showModal();};
  for(const id of ['export-grid','export-poster-text'])$(id).addEventListener('change',links);
  select.addEventListener('change',()=>{if(select.value==='more'){select.value=choice;open();}else choice=select.value;});
  $('export-more-close').onclick=()=>more.close();
@@ -1267,18 +1332,20 @@ async function updateMapSource(){
  const request=++mapRequest,type=$('map-source').value;
  const imageEntry=activeDefault();if(imageEntry){displayedSource=type;$('map-loading').textContent='';$('source-name').textContent=styleOptions.find(s=>s.source===type)?.name||type;$('source-detail').textContent='';draw();return;}
  const baked=surfacePreset(state,type,classCount('land-classes'),classCount('ocean-classes'),+$('interpolation').value,hexBridgesEnabled);
- if(baked&&!new URLSearchParams(location.search).has('palette-lab')&&!$('puzzlegrid').checked&&!new URLSearchParams(location.search).has('bake-surfaces')&&new URLSearchParams(location.search).get('surface')!=='live'){displayedSource=type;$('map-loading').textContent='';$('source-name').textContent=styleOptions.find(s=>s.source===type)?.name||type;$('source-detail').textContent='';draw();return;}
+ if(baked&&!eraSource(type)&&!new URLSearchParams(location.search).has('palette-lab')&&!$('puzzlegrid').checked&&!new URLSearchParams(location.search).has('bake-surfaces')&&new URLSearchParams(location.search).get('surface')!=='live'){displayedSource=type;$('map-loading').textContent='';$('source-name').textContent=styleOptions.find(s=>s.source===type)?.name||type;$('source-detail').textContent='';draw();return;}
  $('map-loading').textContent='Loading map…';
- try{let source=await mapSource(type,classCount('land-classes'),classCount('ocean-classes'));if(request!==mapRequest)return;
+ const era=eraSource(type);
+ try{let source=await mapSource(type,classCount('land-classes'),classCount('ocean-classes'),era);if(request!==mapRequest)return;
   const originalWidth=source.width,originalHeight=source.height,max=gl.getParameter(gl.MAX_TEXTURE_SIZE);
   if(source.width>max){const resized=document.createElement('canvas');resized.width=max;resized.height=Math.round(source.height*max/source.width);const c=resized.getContext('2d');c.imageSmoothingEnabled=!['ecology','continents','countries'].includes(type);c.drawImage(source,0,0,resized.width,resized.height);source=resized;}
   gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,texture);const filter=['ecology','continents','countries'].includes(type)?gl.NEAREST:gl.LINEAR;gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,filter);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,filter);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,source);
   liveSourceKey=sourceKey(type);displayedSource=type;$('map-loading').textContent='';$('source-name').textContent=referenceSources[type]?.name||{continents:'continents.png',marble:'Blue Marble · bluemarble-high.jpg',countries:'Natural Earth · 1:50m · de facto country boundaries.',terrain:'Shaded topographic map',ivory:'Ivory · sculpted paper',elevation:'Elevation · earth & sea',ecology:'Holdridge + marine zones'}[type];$('source-detail').textContent=type==='ecology'?'0.5° land · 1° ocean temperature · 0.8° wave exposure':['ivory','elevation'].includes(type)?'Derived from supplied heightfield':`${originalWidth.toLocaleString()} × ${originalHeight.toLocaleString()} · equirectangular`;
+  const credit=eraCredit(era);if(credit){$('source-name').textContent=credit.name;$('source-detail').textContent=credit.detail;}
   draw();
  }catch(error){if(request!==mapRequest)return;$('map-source').value=displayedSource;updateMapUI();updateRelief();$('map-loading').textContent='Map could not load. Previous layer retained; select again to retry.';scheduleSave();}
 }
 for(const id of ['background-color','border-color','hex-grid-color','puzzle-color','graticule-color','river-color'])$(id).addEventListener('input',draw);
-$('map-source').addEventListener('change',()=>{updateMapSource();updateRelief();});
+$('map-source').addEventListener('change',()=>{crossFade($('map-source').value,null,false);updateMapSource();updateRelief();});
 for(const id of ['land-classes','ocean-classes'])$(id).addEventListener('input',()=>{syncClassControl(id,classCount(id));updateMapSource();});
 updateMapUI();
 
@@ -1336,7 +1403,9 @@ restoreSettings(presetSettings(shareSelection));
 // A story URL keeps the preset camera: the timeline frames the story once its period loads.
 if(!initialTour)restoreSettings(readMapStateFromUrl());
 // A tall screen starts Spaceship Earth a quarter turn round, so the net stands upright.
-if(!readMapStateFromUrl()&&!initialDownload&&state.arrangement==='dymaxion'&&matchMedia('(orientation: portrait)').matches){state.gridRotation=((state.gridRotation+90+180)%360+360)%360-180;$('gridRotation').value=state.gridRotation;$('gridRotation-value').value=state.gridRotation+'°';}
+// A portrait screen turns Spaceship Earth upright; whole-map files undo that turn (see exportMap).
+let portraitTurn=null;
+if(!readMapStateFromUrl()&&!initialDownload&&state.arrangement==='dymaxion'&&matchMedia('(orientation: portrait)').matches){const from=state.gridRotation;state.gridRotation=((state.gridRotation+90+180)%360+360)%360-180;portraitTurn={from,to:state.gridRotation};$('gridRotation').value=state.gridRotation;$('gridRotation-value').value=state.gridRotation+'°';}
 initAnalytics(initialTour?.path||shareSelection.path);setSidebarExpanded(state.sidebarExpanded,false);rebuild(false);initializeMapTexture();
 if(historyPeriodId)enableHistory(true);
 // Rotation dial beside Fit: dragging around it turns the whole map in 30° steps

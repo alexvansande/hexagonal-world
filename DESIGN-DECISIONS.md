@@ -945,6 +945,65 @@ the portrait turn. The brief story text also lost everything before a decimal
 number ("about 2.8 million" became "8 million"); sentence ends now need a space
 after the stop and skip abbreviations such as c. 1400.
 
+*Review round after shipping.* Instagram's help page keeps photos at full size
+between 1.91:1 and 3:4 (1080 × 1440), and the profile grid shows 3:4
+thumbnails, so a 4:5 post loses a sliver at every column seam of an assembled
+wall; the tile is now 1080 × 1440. Still lines looked wiggly because the relaxed
+strands carry noise for the comets: a still line keeps one point in four. The
+wall layout crashed on a map taller than the wall (a turned net or a 3 × 1 wall)
+and drew boxes that had found no place; it now fits the map by width or height
+and leaves out the stories that never fit, naming them in the zip's note. The
+portrait turn of Spaceship Earth is undone for whole-map files from the dialog
+as well as for download addresses.
+
+*Review round: the page like the wall, and arrowheads.* Comparing the PDF with
+the Instagram wall, the user preferred the wall because its text is spread
+across the space rather than stacked on the sides. Decision: PDF and PNG posters
+use the same free placement as the wall, on one page-shaped cell with five
+columns of candidate positions and side-column box widths; the side and band
+layouts are gone (the side layout remains only as the shape-free fallback). One-
+way routes drawn as lines end in an arrowhead so the direction reads without
+the comets; two-way routes have none.
+
+*Review round: the grid as the master layout.* The user found the Instagram
+wall the best design because the cells force the text all around the map, and
+asked for it as the general rule for every arrangement and format, with one
+story per cell when there are at least six, and for the plain Instagram grid to
+carry the site's title, subtitle and credit like the PDF. Decision: a page is a
+wall of three by two cells without gutters; fixed blocks (heading, credit) take
+free corners of the corner cells first; then each cell takes the unplaced story
+that reaches it with the shortest leader, and the rest place freely. The PDF
+keeps its vector title band and credit, so it takes no raster credit block.
+
+*Review round: eight periods, a fuller first one.* Reviewing the epoch
+posters the user found the first three thin and asked to merge Ice Age to
+farming into Out of Africa with dates in the stories, and to give Early
+hominins more of what was happening then. Decision: Peopling the world
+(c. 50,000–10,000 years ago) keeps the id `50k-ya` and the stop
+`out-of-africa`, with `10k-ya` and `ice-age-to-farming` as aliases so old
+links resolve; the Ice Age Americas and Holocene routes join the Homo sapiens
+story (they share the `origin-of-mankind` id, which the Beringia land-bridge
+rule requires), the first towns come across as their own story, and every
+story title carries its dates. Early hominins gains the first toolmakers
+(Lomekwi, Gona, Ain Boucherit; no routes), Paranthropus (a range line), fire
+and handaxes (four Acheulean corridors), the Great American Biotic Interchange
+(two corridors across Panama) and a cooling world (the start of the ice ages;
+no routes), seven stories in all, so a 3 × 2 wall fills every post.
+
+*Review round: maps of their time.* The user asked for life zones that follow
+the era where the change is drastic (Beringia, walking to Britain), a political
+map across the ages (grey where no state, bold empires, a patchwork of small
+kingdoms), the present political map recreated in that style, and a fade
+between maps when the slider moves. Decisions: one glacial life-zone raster
+for Peopling the world, classified from CHELSA-TraCE21k at 21,000 years ago
+(the movements ran through and after the maximum, so it is a composite and
+says so); no era map for 2 million years ago or the Holocene stops, where a
+half-degree shift would not move a class. Political maps from
+aourednik/historical-basemaps, GPL-3.0 and a work in progress, credited in
+Sources and info and in every download; the present map drawn the same way on
+the live path so the fade is continuous, which leaves the baked political tiles
+unused. A veil holding the last frame dissolves once the new map is drawn.
+
 **Dance anchored on the centre (September 22).** The user saw a small drag down,
 made only to see an arrangement better, re-form the group and move the pieces in
 front of them away. Decision: a band switch needs a deliberate pan (40% of the

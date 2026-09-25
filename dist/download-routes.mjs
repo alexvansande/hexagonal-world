@@ -23,6 +23,6 @@ export function readDownloadPath(path){
  const [,periodId,styleId,layoutSlug,file]=m;
  const style=styleOptions.find(s=>s.id===styleId),layout=Object.keys(formatSlugs).find(key=>formatSlugs[key]===layoutSlug);
  if(!style||!layout)return null;
- if(periodId){const period=periods.find(p=>p.id===periodId||p.stop===periodId),entry=posterFiles.find(f=>f.file===file);return period&&entry?{style:style.id,layout,period:period.id,...entry}:null;}
+ if(periodId){const period=periods.find(p=>p.id===periodId||p.stop===periodId||p.aliases?.includes(periodId)),entry=posterFiles.find(f=>f.file===file);return period&&entry?{style:style.id,layout,period:period.id,...entry}:null;}
  const entry=mapFiles.find(f=>f.file===file);return entry?{style:style.id,layout,period:null,...entry}:null;
 }

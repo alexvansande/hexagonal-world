@@ -11,9 +11,9 @@ import {historyPath,readHistoryPath,historyPages,readHashShare} from './dist/his
 const fnv=text=>{let h=2166136261;for(const ch of text)h=Math.imul(h^ch.charCodeAt(0),16777619)>>>0;return h.toString(16);};
 const waves=JSON.parse(await readFile('dist/history/waves.json','utf8')),relax=JSON.parse(await readFile('dist/history/relax.json','utf8'));
 const storyIds=new Set(tourLocations.map(l=>l.id));
-assert.equal(periods.length,9);assert.equal(new Set(periods.map(p=>p.id)).size,9);
+assert.equal(periods.length,8);assert.equal(new Set(periods.map(p=>p.id)).size,8);
 for(let i=1;i<periods.length;i++)assert(periods[i].year>periods[i-1].year,'periods are ordered in time');
-assert.deepEqual(periods.map(p=>p.tick),['2M ya','50k ya','10k ya','3k ya','200 CE','1000 CE','1400 CE','1600 CE','1800 CE'],'approximate dates tick the scrubber');
+assert.deepEqual(periods.map(p=>p.tick),['2M ya','50k ya','3k ya','200 CE','1000 CE','1400 CE','1600 CE','1800 CE'],'approximate dates tick the scrubber');
 assert.equal(period('nonsense').id,defaultPeriod);assert.equal(period('1000-ce').label,'Middle Ages');
 assert(Object.isFrozen(periods)&&periods.every(p=>Object.isFrozen(p)&&p.stories.length>=0));
 for(const [id,w] of Object.entries(waves))assert(/^#[0-9a-f]{6}$/.test(w.color)&&w.label,`wave ${id} has a colour and a label`);
@@ -52,7 +52,7 @@ for(const info of periods){
   assert(r.frequency===undefined||r.frequency>0);assert(r.lane===undefined||Number.isInteger(r.lane));
   const strands=sidecar.strands[r.id];assert(strands&&strands.length>=1,`${info.id}: no strands for ${r.id}`);
   for(const s of strands){assert(s.length>=2);assert.deepEqual(s[0],r.coordinates[0],`${r.id}: strand starts at the first stop`);assert.deepEqual(s.at(-1),r.coordinates.at(-1),`${r.id}: strand ends at the last stop`);}
-  if(relax.landBridge.includes(r.id))assert(r.story==='origin-of-mankind');
+  if(relax.landBridge.includes(r.id))assert(['origin-of-mankind','drowned-lands'].includes(r.story),`${r.id}: land bridges belong to the migration or the drowned-lands story`);
   if(typeof relax.places[r.story]==='string')assert(relax.places[relax.places[r.story]],`${r.story} places alias resolves`);
  }
  const routes=assembleRoutes(authored,sidecar.strands);
@@ -78,6 +78,24 @@ assert.equal(readHistoryPath('/history/never/'),null);assert.equal(readHistoryPa
 assert.equal(historyPages.length,periods.length+spots,'one page per age plus one per pane');
 assert.equal(new Set(historyPages.map(p=>p.path)).size,historyPages.length);
 assert.equal(readHashShare('#m=abc&s=lifezones/spaceship-earth'),'/lifezones/spaceship-earth/');assert.equal(readHashShare('#m=abc'),null);
+// Maps of their time: every era map names a period and a style, its file exists in the ecology or the
+// political encoding, and the present political map is drawn the same way.
+{
+ const {eraMaps,eraMap,modernMaps,eraCredit}=await import('./dist/history/era-maps.mjs');
+ const size=async path=>{const b=await readFile('dist/'+path);return [b.readUInt32BE(16),b.readUInt32BE(20)];};
+ for(const [period,maps] of Object.entries(eraMaps)){
+  assert(periods.some(p=>p.id===period),`era map for an unknown period ${period}`);
+  for(const [type,path] of Object.entries(maps)){
+   assert(['ecology','countries'].includes(type),`${period}: era map style ${type}`);
+   assert.deepEqual(await size(path),type==='ecology'?[1440,720]:[4320,2160],`${period}/${type}: ${path} has the raster's size`);
+   if(type==='countries')assert.deepEqual(await size(path.replace('maps/eras/','maps/eras/mobile/')),[1920,960],`${period}: mobile political map`);
+   assert(eraCredit(path),`${period}/${type}: credited`);
+  }
+ }
+ assert.equal(eraMap('50k-ya','ecology'),'maps/eras/ecology-50k-ya.png');assert.equal(eraMap('1400-ce','ecology'),null,'life zones change only where drastic');
+ for(const p of periods)assert(eraMap(p.id,'countries'),`${p.id}: a political map of its time (or the grey one before states)`);
+ assert.equal(modernMaps.countries,'maps/countries.png');assert.deepEqual(await size('maps/countries.png'),[4320,2160]);assert.equal(eraCredit('maps/countries.png'),null,'the present keeps its own credit');
+}
 // Startup never pays for history: the app imports the loader, not the data.
 const app=await readFile('dist/app.mjs','utf8');
 assert(app.includes("from './history-loader.mjs")&&!/\.routes\.json|\.strands\.json|tour-stories\.md/.test(app));

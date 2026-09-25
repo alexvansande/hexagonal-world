@@ -1,4 +1,4 @@
-import {landLegends,oceanLegend,setExperimentPalette} from './map-layers.mjs?v=cloud-assets-1';
+import {landLegends,oceanLegend,setExperimentPalette} from './map-layers.mjs?v=eras-1';
 
 export function validatePalette(value){
  if(!value||typeof value!=='object')throw Error('Paste a palette object with land and ocean lists.');

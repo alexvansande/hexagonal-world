@@ -1,6 +1,6 @@
 # The first towns: sources and notes
 
-Research checked September 22, 2026. Story copy is in `history/10k-ya.md`; this file records the evidence behind the spot and its routes.
+Research checked September 22, 2026. Story copy is in `history/50k-ya.md` (the Peopling the world period); this file records the evidence behind the spot and its routes.
 
 ## Sites
 
