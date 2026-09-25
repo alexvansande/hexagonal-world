@@ -198,5 +198,9 @@
  "south-bound": {
   "label": "Southbound",
   "color": "#7dff3d"
+ },
+ "refuge": {
+  "label": "Retreat from the flood",
+  "color": "#ffe1a8"
  }
 }

@@ -35,7 +35,7 @@ try{
   await until(()=>d.querySelector('.history-tools')&&!d.querySelector('.history-tools').hidden&&+d.querySelector('.tour-routes')?.dataset.routeCount>0,'routes');
   if(page.spot)await until(()=>d.querySelector('#tour-story')?.hidden===false,'story');
   await pause(2200);
-  await until(()=>map.dataset.surfacePreview==='false'&&map.dataset.surfacePending==='0'&&map.dataset.danceMoving==='false','map images');
+  await until(()=>(map.dataset.surface==='live'?!map.ownerDocument.getElementById('map-loading').textContent:(map.dataset.surfacePreview==='false'&&map.dataset.surfacePending==='0'))&&map.dataset.danceMoving!=='true','map images');
   await pause(300);
   const canvas=document.createElement('canvas');canvas.width=1200;canvas.height=630;const ctx=canvas.getContext('2d');
   ctx.fillStyle=d.querySelector('#background-color').value;ctx.fillRect(0,0,1200,630);

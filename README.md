@@ -591,10 +591,14 @@ They draw on the live path with the period's own texture, so the tour stays
 eligible, the credit in Sources and info names the data, and a download carries
 it in its attribution. The present political map is drawn the same way, so the
 timeline fades from one age's borders to the next and to today's; when a period's
-map differs from the last (or the style changes), the frame before the change is
-drawn again and kept on a veil over the map while the new map and its tiles load
-(8 s at most); once they are drawn the veil dissolves over 2.4 s (`crossFade` in
-`app.mjs`; off with reduced motion or the Animation pane's switch).
+map differs from the last, the old map stays on while the camera flies to the new
+story and the pieces re-form; once settled, that frame is kept on a veil between
+the map canvas and the routes and labels, the new map loads beneath it (8 s at
+most), and the veil dissolves over 2.4 s, so only the terrain changes before the
+eye. On Spaceship Earth the dance runs on the live path of a map of its time too,
+so the switch does not jump. A style change fades from the current frame without
+the hold (`crossFade` in `app.mjs`; off with reduced motion or the Animation
+pane's switch).
 
 - `scripts/build-era-lifezones.py` classifies Holdridge life zones from
   CHELSA-TraCE21k (CC0) centennial bioclim at 21,000 years ago (bio01, bio05,

@@ -52,7 +52,7 @@ for(const info of periods){
   assert(r.frequency===undefined||r.frequency>0);assert(r.lane===undefined||Number.isInteger(r.lane));
   const strands=sidecar.strands[r.id];assert(strands&&strands.length>=1,`${info.id}: no strands for ${r.id}`);
   for(const s of strands){assert(s.length>=2);assert.deepEqual(s[0],r.coordinates[0],`${r.id}: strand starts at the first stop`);assert.deepEqual(s.at(-1),r.coordinates.at(-1),`${r.id}: strand ends at the last stop`);}
-  if(relax.landBridge.includes(r.id))assert(r.story==='origin-of-mankind');
+  if(relax.landBridge.includes(r.id))assert(['origin-of-mankind','drowned-lands'].includes(r.story),`${r.id}: land bridges belong to the migration or the drowned-lands story`);
   if(typeof relax.places[r.story]==='string')assert(relax.places[relax.places[r.story]],`${r.story} places alias resolves`);
  }
  const routes=assembleRoutes(authored,sidecar.strands);

@@ -57,7 +57,8 @@ let tourAnimation=0;
 let historyOn=false,historyPeriodId=null,historyPeriod=null,historyLoad=0,historyProjection=null,historyProjectionKey='';
 // The map of the period's time, when the timeline is on and the style has one: drawn on the live path.
 function eraSourceFor(on,period,type=$('map-source').value){return (on&&period?eraMap(period,type):null)||modernMaps[type]||null;}
-function eraSource(type=$('map-source').value){return eraSourceFor(historyOn,historyPeriodId,type);}
+let eraHold=null;
+function eraSource(type=$('map-source').value){if(eraHold&&eraHold.type===type)return eraHold.path;return eraSourceFor(historyOn,historyPeriodId,type);}
 let historyFocus=initialTour?.id||initialHistory?.spot||null,historyFocusView=null,historyFocusPending=!!(initialTour||initialHistory?.spot);
 const coordinateReadout=document.createElement('div');
 coordinateReadout.id='map-coordinates';coordinateReadout.hidden=true;
@@ -287,7 +288,8 @@ function danceGrid(){
  }
  return danceBase;
 }
-function danceActive(){return spaceshipUnlit()&&!exporting&&!!danceGrid()&&$('dance').checked;}
+const spaceshipLive=()=>!renderDefault&&state.arrangement==='dymaxion'&&!!eraSource();
+function danceActive(){return (spaceshipUnlit()||spaceshipLive())&&!exporting&&!!danceGrid()&&$('dance').checked;}
 function danceSettled(){return danceActive()&&danceTweens.size===0;}
 function resetDance(){if(!danceBase)return;for(const t of net){const b=danceBase.find(a=>a.id===t.id);if(b&&(t.x!==b.x||t.y!==b.y||t.r!==b.r)){t.x=b.x;t.y=b.y;t.r=b.r;meshSignature=null;}}danceTargets=new Map(danceBase.map(t=>[t.id,{x:t.x,y:t.y,r:t.r}]));danceTweens.clear();danceVertex=null;}
 // The piece that joins edge `e` of a placed piece: which one, turned how, where.
@@ -530,28 +532,38 @@ function syncHistoryTools(){
 // Choosing a date activates the period's headline spot (the first section of its
 // Markdown) unless the focused story continues there, in which case it re-reads.
 let historyAutoFocus=false;
-// Moving between periods (or styles) whose maps differ: the frame before the change is drawn again and
-// kept on a veil over the map while the new map and its tiles load (8 s at most); once they are drawn
-// the veil dissolves slowly. Call it before the change, so the veil holds the old map.
+// Moving between periods whose maps differ: the old map stays on while the camera flies to the new
+// story and the pieces re-form; once settled, that frame is kept on a veil under the routes and labels,
+// the new map loads beneath it, and the veil dissolves slowly, so only the terrain changes before the
+// eye. A style change skips the hold (the whole map changes) and fades from the current frame.
 let veilTimer=0,veilPoll=0,veilArmed=false;
-function crossFade(){
+const stageSettled=()=>{const d=canvas.dataset;return !tourAnimation&&d.danceMoving!=='true'&&!$('map-loading').textContent&&(d.layerPending??'0')==='0'&&(d.surfacePending??'0')==='0'&&!relief?.loading;};
+const mapLoaded=()=>{const d=canvas.dataset;return !$('map-loading').textContent&&(d.layerPending??'0')==='0'&&(d.surfacePending??'0')==='0'&&!relief?.loading&&(!!activeDefault()||liveSourceKey===sourceKey(displayedSource));};
+function crossFade(type,oldPath,hold=true){
  $('stage').dataset.fade=String((+$('stage').dataset.fade||0)+1);
- if(!ready||!gl||reducedMotion())return;
- try{render(true);}catch(error){$('stage').dataset.fadeError=String(error);return;}
- let veil=$('map-veil');if(!veil){veil=document.createElement('canvas');veil.id='map-veil';veil.className='map-veil';veil.setAttribute('aria-hidden','true');$('stage').append(veil);}
+ if(!ready||!gl||reducedMotion()){eraHold=null;return;}
+ clearInterval(veilPoll);clearTimeout(veilTimer);
+ if(!hold){veilSnapshot();return;}
+ eraHold={type,path:oldPath};
+ const started=performance.now();
+ veilPoll=setInterval(()=>{if(performance.now()-started>300&&(stageSettled()||performance.now()-started>8000)){clearInterval(veilPoll);veilPoll=0;veilSnapshot();}},120);
+}
+// Keep the current frame (drawn again now) on the veil, let the map beneath change, dissolve once it is drawn.
+function veilSnapshot(){
+ try{render(true);}catch(error){$('stage').dataset.fadeError=String(error);}
+ let veil=$('map-veil');if(!veil){veil=document.createElement('canvas');veil.id='map-veil';veil.className='map-veil';veil.setAttribute('aria-hidden','true');canvas.insertAdjacentElement('afterend',veil);}
  veil.width=canvas.width;veil.height=canvas.height;veil.getContext('2d').drawImage(canvas,0,0);
  veil.style.transition='none';veil.style.opacity='1';veilArmed=true;
- clearTimeout(veilTimer);clearInterval(veilPoll);const started=performance.now();
- veilPoll=setInterval(()=>{
-  const d=canvas.dataset,loaded=!$('map-loading').textContent&&(d.layerPending??'0')==='0'&&(d.surfacePending??'0')==='0'&&!relief?.loading;
-  if(loaded||performance.now()-started>8000){clearInterval(veilPoll);veilPoll=0;requestAnimationFrame(()=>requestAnimationFrame(releaseVeil));}
- },120);
+ if(eraHold){eraHold=null;meshSignature=null;updateMapSource();}
+ draw();
+ const started=performance.now();
+ veilPoll=setInterval(()=>{if(performance.now()-started>250&&(mapLoaded()||performance.now()-started>8000)){clearInterval(veilPoll);veilPoll=0;requestAnimationFrame(()=>requestAnimationFrame(releaseVeil));}},120);
 }
 function releaseVeil(){
  if(!veilArmed)return;veilArmed=false;clearInterval(veilPoll);veilPoll=0;const veil=$('map-veil');if(!veil)return;
  veil.style.transition='opacity 2.4s ease-in-out';veil.style.opacity='0';veilTimer=setTimeout(()=>veil.remove(),2500);
 }
-function selectHistoryPeriod(id,writeURL=true){const next=periodInfo(id).id;if(eraSourceFor(historyOn,next)!==eraSource())crossFade();historyPeriodId=next;historyProjection=null;historyAutoFocus=true;syncHistoryTools();if(writeURL)updateMapUrl();loadHistoryPeriod();draw();}
+function selectHistoryPeriod(id,writeURL=true){const next=periodInfo(id).id,type=$('map-source').value,oldPath=eraSource(type);if(eraSourceFor(historyOn,next,type)!==oldPath)crossFade(type,oldPath);historyPeriodId=next;historyProjection=null;historyAutoFocus=true;syncHistoryTools();if(writeURL)updateMapUrl();loadHistoryPeriod();draw();}
 async function loadHistoryPeriod(){
  const token=++historyLoad,id=currentPeriod().id;
  try{const data=await loadPeriod(id);if(token!==historyLoad||!historyOn)return;historyPeriod=data;historyProjection=null;
@@ -564,7 +576,7 @@ async function loadHistoryPeriod(){
 }
 async function enableHistory(on){
  if(historyOn===on){syncHistoryTools();return;}
- if(eraSourceFor(on,historyPeriodId)!==eraSource())crossFade();
+ {const type=$('map-source').value,oldPath=eraSource(type);if(eraSourceFor(on,historyPeriodId,type)!==oldPath)crossFade(type,oldPath);}
  historyOn=on;
  // Judge eligibility from the current settings, not from a renderer that may not be ready yet.
  // A period with a map of its own for the current style (the political map of an age) is eligible even where the style alone is not.
@@ -1330,7 +1342,7 @@ async function updateMapSource(){
  }catch(error){if(request!==mapRequest)return;$('map-source').value=displayedSource;updateMapUI();updateRelief();$('map-loading').textContent='Map could not load. Previous layer retained; select again to retry.';scheduleSave();}
 }
 for(const id of ['background-color','border-color','hex-grid-color','puzzle-color','graticule-color','river-color'])$(id).addEventListener('input',draw);
-$('map-source').addEventListener('change',()=>{crossFade();updateMapSource();updateRelief();});
+$('map-source').addEventListener('change',()=>{crossFade($('map-source').value,null,false);updateMapSource();updateRelief();});
 for(const id of ['land-classes','ocean-classes'])$(id).addEventListener('input',()=>{syncClassControl(id,classCount(id));updateMapSource();});
 updateMapUI();
 

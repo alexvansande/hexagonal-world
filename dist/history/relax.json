@@ -60,10 +60,18 @@
    "strands": 2,
    "sea": "coastal",
    "noise": 0.3
+  },
+  "drowned-lands": {
+   "strands": 3,
+   "sea": "coastal",
+   "noise": 0.3
   }
  },
  "landBridge": [
-  "migration-beringia"
+  "migration-beringia",
+  "drowned-gulf-refuge",
+  "drowned-doggerland-west",
+  "drowned-doggerland-east"
  ],
  "places": {
   "silk-road": {
@@ -1837,6 +1845,7 @@
   },
   "paranthropus": "origin-of-mankind",
   "fire-and-handaxes": "origin-of-mankind",
-  "american-interchange": "americas-exchange"
+  "american-interchange": "americas-exchange",
+  "drowned-lands": "origin-of-mankind"
  }
 }

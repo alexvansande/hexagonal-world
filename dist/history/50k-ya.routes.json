@@ -1844,5 +1844,90 @@
   "sources": [
    "Vigne et al. 2012, PNAS"
   ]
+ },
+ {
+  "id": "drowned-gulf-refuge",
+  "story": "drowned-lands",
+  "wave": "refuge",
+  "title": "Up the flooding Gulf to the Mesopotamian plain",
+  "coordinates": [
+   [
+    26.5,
+    52
+   ],
+   [
+    28.3,
+    50
+   ],
+   [
+    29.6,
+    48.3
+   ],
+   [
+    30.82,
+    45.99
+   ]
+  ],
+  "uncertain": true,
+  "geodesic": true,
+  "period": "The Gulf floods: about 14,000–6,000 years ago; Ubaid from about 6500 BCE",
+  "sources": [
+   "gulfOasis"
+  ],
+  "uncertainty": "A schematic corridor out of a drowning lowland; the paths and timing are uncertain."
+ },
+ {
+  "id": "drowned-doggerland-west",
+  "story": "drowned-lands",
+  "wave": "refuge",
+  "title": "Off Doggerland to Britain",
+  "coordinates": [
+   [
+    55,
+    2.5
+   ],
+   [
+    53.8,
+    1.2
+   ],
+   [
+    52.6,
+    1.3
+   ]
+  ],
+  "uncertain": true,
+  "geodesic": true,
+  "period": "Doggerland drowns: about 8,500–6,500 years ago",
+  "sources": [
+   "doggerland"
+  ],
+  "uncertainty": "A schematic corridor out of a drowning lowland; the paths and timing are uncertain."
+ },
+ {
+  "id": "drowned-doggerland-east",
+  "story": "drowned-lands",
+  "wave": "refuge",
+  "title": "Off Doggerland to Jutland",
+  "coordinates": [
+   [
+    55,
+    2.5
+   ],
+   [
+    55.6,
+    6
+   ],
+   [
+    56.2,
+    9
+   ]
+  ],
+  "uncertain": true,
+  "geodesic": true,
+  "period": "Doggerland drowns: about 8,500–6,500 years ago",
+  "sources": [
+   "doggerland"
+  ],
+  "uncertainty": "A schematic corridor out of a drowning lowland; the paths and timing are uncertain."
  }
 ]

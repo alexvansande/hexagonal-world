@@ -33,6 +33,7 @@ export const periods=Object.freeze([
    "denisovans",
    "island-hominins",
    "french-polynesia",
+   "drowned-lands",
    "first-towns"
   ],
   "aliases": [

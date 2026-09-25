@@ -1,6 +1,6 @@
 # Peopling the world · c. 50,000–10,000 years ago
 
-Between 50,000 and 10,000 years ago: Homo sapiens across the world and into the Ice Age Americas, Neanderthals and Denisovans, the island hominins of Flores and Luzon, Near Oceania, and the first towns of the Fertile Crescent. Drag the timeline to move through time; click a dot to read that story here.
+Between 50,000 and 10,000 years ago: Homo sapiens across the world and into the Ice Age Americas, Neanderthals and Denisovans, the island hominins of Flores and Luzon, Near Oceania, the lands drowned by the rising sea, and the first towns of the Fertile Crescent. Drag the timeline to move through time; click a dot to read that story here.
 
 ## origin-of-mankind
 ### Homo sapiens across the world · 70,000 years ago onward
@@ -106,6 +106,27 @@ Sahul had giants of its own: **Diprotodon**, the marsupial lion, kangaroos twice
 > The Sahul crossing is shared with the human migrations story and drawn fainter here. Routes between cave sites are inferred.
 
 [Sources and voyage notes ↗](./polynesia-sources.md)
+
+## drowned-lands
+### Drowned lands · 14,000 to 6,000 years ago
+spot: 55, 3
+view: fit
+area: Doggerland · 55.5, 2.5
+area: Gulf Oasis · 26.5, 51.5
+site: Eridu · 30.82, 45.99
+area: Black Sea · 43.5, 34
+
+As the ice melted the sea rose more than a hundred metres, and the lowlands where people had lived through the glacial went under. **Doggerland**, the plain that joined Britain to the continent, shrank to islands and was gone by about 6,500 years ago; the Storegga slide off Norway sent a tsunami across what was left around 8,150 years ago. The Adriatic, the Gulf of Lion and the Sunda shelf drowned the same way, and around 7,600 years ago the Mediterranean may have burst through the Bosporus into the lake that became the Black Sea.
+
+The floor of the Persian Gulf was a river valley fed by the joined Tigris, Euphrates and Karun and by springs, a refuge through the dry glacial that the archaeologist Jeffrey Rose calls the **Gulf Oasis**. From about 14,000 years ago the sea advanced up the valley, reaching today's shore about 6,000 years ago and for a time well beyond it: **Eridu** and Ur stood near the water.
+
+Rose's proposal, taken up by the historian Paul Cooper, is that the people of the drowning oasis moved up onto the Mesopotamian plain and had to live beside those already there, that this forced mixing is the sudden start of the Ubaid culture from which Sumer grew, and that the memory of the rising water is the deluge of Ziusudra, Atrahasis and the tale Utnapishtim tells Gilgamesh.
+
+- refuge: **Retreat from the flood** · people leaving the drowning lowlands
+
+> The rising sea is measured; the Gulf Oasis and the Black Sea flood are hypotheses, and the Sumerian flood stories were written down thousands of years after. Corridors are schematic.
+
+[Sources and route notes ↗](./human-migrations-sources.md)
 
 ## first-towns
 ### The first towns · 11,500 to 9,000 years ago
