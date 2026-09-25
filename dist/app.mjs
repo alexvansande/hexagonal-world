@@ -4,7 +4,7 @@ import {historyPath,readHistoryPath,readHashShare} from './history-routes.mjs?v=
 import {readDownloadPath,downloadPath,mapFiles,posterFiles} from './download-routes.mjs?v=download-1';
 import {createTourMarkers,createTourLabels,projectTourLocations,tourEnabled,tourLocations} from './tour-markers.mjs?v=history-4';
 import {createTourRoutes,projectTourRoutes,routeFragments,lineCourses,straightenPoints} from './tour-route-renderer.mjs?v=comet-7';
-import {posterLayout,drawPoster} from './history-poster.mjs?v=poster-4';
+import {posterLayout,drawPoster} from './history-poster.mjs?v=poster-5';
 import {instagramTile} from './map-export.mjs?v=poster-2';
 import {loadPeriod} from './history-loader.mjs?v=comet-2';
 import {pacificTourNet} from './tour-layout.mjs?v=dancing-2';
@@ -1056,7 +1056,7 @@ async function exportMap(format=$('export-scale').value){
   // The poster takes the shape of its page: story columns beside the map, or a band of stories under it.
   const {pngFromTiles,printPDF,zipFiles,instagramGrid,instagramTile}=await import('./map-export.mjs?v=poster-2');
   // Until the user picks, the rows follow the exported map's shape (the base net, after resetDance).
-  if(grid&&!gridChosen&&!initialDownload?.rows)$('export-grid').value=String(gridRowsFor(crop.width,crop.height));
+  if(grid&&!gridChosen&&!initialDownload?.rows){const pts=net.flatMap(t=>(t.polygon||hex).map(p=>point(p,t)));const xs=pts.map(p=>p[0]),ys=pts.map(p=>p[1]);$('export-grid').value=String(gridRowsFor(Math.max(...xs)-Math.min(...xs),Math.max(...ys)-Math.min(...ys)));}
   const wall=grid?{columns:3,rows:Number($('export-grid').value)||2,tile:instagramTile}:null;
   const posterData=poster?preparePoster(crop,isPDF,grid?null:1118/664,wall):grid?prepareTitledWall(crop,wall):null;
   if(posterData)Object.assign(crop,{x:posterData.layout.left,y:posterData.layout.top,width:posterData.layout.width,height:posterData.layout.height,topInset:0});

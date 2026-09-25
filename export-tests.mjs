@@ -188,7 +188,7 @@ console.log('PDF 2x and 10x: exact map raster scale, bounded tiles, complete pix
  // A plain map on the wall: no stories, the site's title and the credit in free corners, the map at full width.
  const titled=posterLayout({map,spots:[],scale:1,measure,heading:{label:'Hexagonal Earth',date:'A collection of hexagon-based maps',title:true},credit:{name:'Alex Van de Sande',url:'hexagonal.earth'},wall:wallSpec,pieces:hexes});
  assert(titled&&titled.boxes.length===0&&titled.heading.title&&titled.credit,'a titled wall has its blocks and no boxes');
- assert(Math.abs((map.right-map.left)-(titled.width-2*titled.width*.02/3))<1e-6,'a wall without stories keeps the map at its full width inside slim margins');
+ assert(Math.abs(800*1.03-(titled.width-2*titled.width*.02/3))<1e-6,'a wall without stories keeps the pieces (plus a 1.5% margin each side) at the full width inside slim margins');
  // Place names keep off the gutters of the wall.
  const {placeLabels:placeNames}=await import('./dist/history-poster.mjs');
  const gutterX=onWall.left+instagramTile.width/s,near=placeNames([{kind:'site',text:'Kilwa',x:gutterX-8,y:200},{kind:'area',text:'Indian Ocean',x:gutterX+3,y:300}],{scale:1,labelScale:1,measure,avoid:{xs:[gutterX],ys:[]}});

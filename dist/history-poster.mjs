@@ -95,6 +95,8 @@ export function briefText(text,limit=160){
  return out.trim()||text;
 }
 export function posterLayout({map,spots,labels=[],scale=1,measure,heading=null,credit=null,reservedRight=0,labelScale=1,aspect=null,text='full',wall=null,pieces=[]}){
+ // The map's rectangle is the pieces' own bounding box when they are given: the crop's outline can be wider than the net as placed.
+ if(pieces.length){const xs=pieces.flat().map(p=>p[0]),ys=pieces.flat().map(p=>p[1]),m=(Math.max(...xs)-Math.min(...xs))*.015;map={left:Math.min(...xs)-m,top:Math.min(...ys)-m,right:Math.max(...xs)+m,bottom:Math.max(...ys)+m};}
  const k=scale,T=posterType,mapWidth=map.right-map.left;
  const gap=mapWidth*.05,margin=mapWidth*.04,lead=T.lineHeight;
  const headBand=heading?T.heading*k*1.15+T.date*k*1.6+margin:margin;

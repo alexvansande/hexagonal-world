@@ -536,8 +536,9 @@ dot on the spot. Boxes have no background. A one-way route ends in an
 arrowhead along its last segment; two-way routes have none. The Instagram wall
 is the master layout and a page (PDF and PNG, both the A3 shape) is laid out as
 a wall of three by two cells without gutters, so every arrangement gets the same
-rule: the map spans the wall's width (or its height when the map is the taller
-shape), centred; fixed blocks take free corners of the corner cells first, the
+rule: the map (the pieces' own bounding box, since the crop's outline can be
+wider than the net as placed) spans the wall's width (or its height when the
+map is the taller shape), centred; fixed blocks take free corners of the corner cells first, the
 heading (the age's name and date, or on a plain map the site's title and
 subtitle) from the top left and the credit (the signature and the address) from
 the bottom right; then, with at least as many stories as cells, every cell takes
