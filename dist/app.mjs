@@ -288,8 +288,7 @@ function danceGrid(){
  }
  return danceBase;
 }
-const spaceshipLive=()=>!renderDefault&&state.arrangement==='dymaxion'&&!!eraSource();
-function danceActive(){return (spaceshipUnlit()||spaceshipLive())&&!exporting&&!!danceGrid()&&$('dance').checked;}
+function danceActive(){return spaceshipUnlit()&&!exporting&&!!danceGrid()&&$('dance').checked;}
 function danceSettled(){return danceActive()&&danceTweens.size===0;}
 function resetDance(){if(!danceBase)return;for(const t of net){const b=danceBase.find(a=>a.id===t.id);if(b&&(t.x!==b.x||t.y!==b.y||t.r!==b.r)){t.x=b.x;t.y=b.y;t.r=b.r;meshSignature=null;}}danceTargets=new Map(danceBase.map(t=>[t.id,{x:t.x,y:t.y,r:t.r}]));danceTweens.clear();danceVertex=null;}
 // The piece that joins edge `e` of a placed piece: which one, turned how, where.
@@ -386,7 +385,7 @@ function danceStep(now){
  if(!danceActive())return false;
  // Not before the first fit (the camera is nowhere yet) nor while a story flight is in the air (the
  // centre is not where the user looks yet; the frame already placed the pieces).
- if(persistenceReady&&!tourAnimation)danceFill();
+ if(persistenceReady&&!tourAnimation){if(danceHome&&danceBase)danceTargets=new Map(danceBase.map(t=>[t.id,{x:t.x,y:t.y,r:t.r}]));else danceFill();}
  const instant=reducedMotion(),duration=380;let moving=false;
  for(const t of net){
   const {x:tx,y:ty,r:tr}=danceTargets.get(t.id);
@@ -536,7 +535,10 @@ let historyAutoFocus=false;
 // story and the pieces re-form; once settled, that frame is kept on a veil under the routes and labels,
 // the new map loads beneath it, and the veil dissolves slowly, so only the terrain changes before the
 // eye. A style change skips the hold (the whole map changes) and fades from the current frame.
-let veilTimer=0,veilPoll=0,veilArmed=false;
+let veilTimer=0,veilPoll=0,veilArmed=false,veilView='',danceHome=false;
+const viewSignature=()=>[state.panX.toFixed(1),state.panY.toFixed(1),state.zoom.toFixed(4),state.gridRotation.toFixed(1),w,h].join();
+// The veil is a still picture: any pan, zoom or turn (or pieces moving beneath it) drops it at once.
+function dropVeil(){veilArmed=false;clearInterval(veilPoll);veilPoll=0;clearTimeout(veilTimer);$('map-veil')?.remove();veilView='';danceHome=false;if(eraHold){eraHold=null;meshSignature=null;updateMapSource();}}
 const stageSettled=()=>{const d=canvas.dataset;return !tourAnimation&&d.danceMoving!=='true'&&!$('map-loading').textContent&&(d.layerPending??'0')==='0'&&(d.surfacePending??'0')==='0'&&!relief?.loading;};
 const mapLoaded=()=>{const d=canvas.dataset;return !$('map-loading').textContent&&(d.layerPending??'0')==='0'&&(d.surfacePending??'0')==='0'&&!relief?.loading&&(!!activeDefault()||liveSourceKey===sourceKey(displayedSource));};
 function crossFade(type,oldPath,hold=true){
@@ -544,7 +546,7 @@ function crossFade(type,oldPath,hold=true){
  if(!ready||!gl||reducedMotion()){eraHold=null;return;}
  clearInterval(veilPoll);clearTimeout(veilTimer);
  if(!hold){veilSnapshot();return;}
- eraHold={type,path:oldPath};
+ eraHold={type,path:oldPath};danceHome=true;
  const started=performance.now();
  veilPoll=setInterval(()=>{if(performance.now()-started>300&&(stageSettled()||performance.now()-started>8000)){clearInterval(veilPoll);veilPoll=0;veilSnapshot();}},120);
 }
@@ -553,7 +555,7 @@ function veilSnapshot(){
  try{render(true);}catch(error){$('stage').dataset.fadeError=String(error);}
  let veil=$('map-veil');if(!veil){veil=document.createElement('canvas');veil.id='map-veil';veil.className='map-veil';veil.setAttribute('aria-hidden','true');canvas.insertAdjacentElement('afterend',veil);}
  veil.width=canvas.width;veil.height=canvas.height;veil.getContext('2d').drawImage(canvas,0,0);
- veil.style.transition='none';veil.style.opacity='1';veilArmed=true;
+ veil.style.transition='none';veil.style.opacity='1';veilArmed=true;veilView=viewSignature();
  if(eraHold){eraHold=null;meshSignature=null;updateMapSource();}
  draw();
  const started=performance.now();
@@ -561,7 +563,7 @@ function veilSnapshot(){
 }
 function releaseVeil(){
  if(!veilArmed)return;veilArmed=false;clearInterval(veilPoll);veilPoll=0;const veil=$('map-veil');if(!veil)return;
- veil.style.transition='opacity 2.4s ease-in-out';veil.style.opacity='0';veilTimer=setTimeout(()=>veil.remove(),2500);
+ veil.style.transition='opacity 2.4s ease-in-out';veil.style.opacity='0';veilTimer=setTimeout(()=>{veil.remove();veilView='';danceHome=false;},2500);
 }
 function selectHistoryPeriod(id,writeURL=true){const next=periodInfo(id).id,type=$('map-source').value,oldPath=eraSource(type);if(eraSourceFor(historyOn,next,type)!==oldPath)crossFade(type,oldPath);historyPeriodId=next;historyProjection=null;historyAutoFocus=true;syncHistoryTools();if(writeURL)updateMapUrl();loadHistoryPeriod();draw();}
 async function loadHistoryPeriod(){
@@ -821,6 +823,7 @@ function render(refined=false,exportMode=false){if(exporting&&!exportMode)return
  updateLoadingStatus();
  if(!exportMode){
   syncAnimationSettings();
+  if(veilView&&$('map-veil')&&(veilView!==viewSignature()||canvas.dataset.danceMoving==='true'))dropVeil();
   const enabled=(tourEnabled(renderDefault||(eraSource()&&activeDefault(true)))||!!eraSource())&&!isAboutPath(location.pathname);
   if(historyOn&&!enabled)enableHistory(false);
   // Off the timeline the seven entry dots invite a click; on it each period places its own spots.

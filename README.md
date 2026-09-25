@@ -595,9 +595,11 @@ map differs from the last, the old map stays on while the camera flies to the ne
 story and the pieces re-form; once settled, that frame is kept on a veil between
 the map canvas and the routes and labels, the new map loads beneath it (8 s at
 most), and the veil dissolves over 2.4 s, so only the terrain changes before the
-eye. On Spaceship Earth the dance runs on the live path of a map of its time too,
-so the switch does not jump. A style change fades from the current frame without
-the hold (`crossFade` in `app.mjs`; off with reduced motion or the Animation
+eye. On Spaceship Earth the pieces glide home to the base net during the hold,
+since the live path's lighting is baked for the net at rest and cannot follow
+moving pieces; they re-form again once the veil is gone. Any pan, zoom or turn
+while the veil is up drops it at once, as the veil is a still picture. A style
+change fades from the current frame without the hold (`crossFade` in `app.mjs`; off with reduced motion or the Animation
 pane's switch).
 
 - `scripts/build-era-lifezones.py` classifies Holdridge life zones from
