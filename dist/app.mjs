@@ -16,7 +16,8 @@ import {DefaultLayers,defaultLayerPreset,imageVertex,imageFragment,graticuleFrag
 import {puzzleRegion,puzzleArtwork} from './puzzle-grid.mjs?v=unique-3';
 import {initSourcePicker} from './source-picker.mjs';
 import {isAboutPath} from './about-route.mjs?v=about-shapes-1';
-import {initAboutWidget} from './about-widget.mjs?v=cloud-assets-1';
+import {isPresentationPath} from './presentation-route.mjs?v=presentation-1';
+import {initAboutWidget} from './about-widget.mjs?v=presentation-1';
 import {referenceSources,sourceAttribution,mapLicense} from './reference-sources.mjs?v=licenses-1';
 import {PrecomputedSurfaces,surfacePreset,surfaceLevel,surfacePlan,surfaceTileRect,clipSurfaceTriangle} from './precomputed-surfaces.mjs?v=turn-30';
 import {renderLifezonesLegend,lifezoneLegendLayout} from './lifezones-legend.mjs?v=lifezones-shadows-3';
@@ -50,6 +51,8 @@ const tourStory=createTourStory($('controls'),()=>closeHistoryFocus(true));
 const initialTour=readTourPath(location.pathname),initialHistory=readHistoryPath(location.pathname);
 // A download address renders its file in the browser once the map is ready, then becomes the map's page.
 const initialDownload=readDownloadPath(location.pathname);
+// The presentation drives the default map from its own module and keeps its address.
+const presenting=isPresentationPath(location.pathname);let presentationFrame=null;
 let tourAnimation=0;
 // History timeline: one period at a time from dist/history (see history-loader.mjs).
 let historyOn=false,historyPeriodId=null,historyPeriod=null,historyLoad=0,historyProjection=null,historyProjectionKey='';
@@ -67,7 +70,7 @@ let mobileRepositioning=false;
 // Every scripted move honours the system setting and the Animation pane's switch.
 const reducedMotion=()=>matchMedia("(prefers-reduced-motion: reduce)").matches||!$('motion').checked;
 let exporting=false;
-let shareSelection=initialDownload?sharePair(initialDownload.style,initialDownload.layout):initialTour||initialHistory?readSharePath(readHashShare(location.hash)||'')||sharePair('lifezones','dymaxion'):readSharePath(location.pathname)||inferSharePair(readMapStateFromUrl());
+let shareSelection=presenting?sharePair('lifezones','dymaxion'):initialDownload?sharePair(initialDownload.style,initialDownload.layout):initialTour||initialHistory?readSharePath(readHashShare(location.hash)||'')||sharePair('lifezones','dymaxion'):readSharePath(location.pathname)||inferSharePair(readMapStateFromUrl());
 let urlDefaults=null,defaultView=null;
 let persistenceReady=false,saveTimer=null,restoredView=null,headingBounds=null;
 let displayedSource='continents',mapRequest=0;
@@ -234,6 +237,7 @@ function drawGeometry(p){
 function bounds(){const all=arrangement.outline?arrangement.outline.flat().map(([x,y])=>{const v=rotateScreen([x,-y]);return [v[0],-v[1]];}):arrangement.clip?arrangement.clip.map(([x,y])=>{const v=rotateScreen([x,-y]);return [v[0],-v[1]];}):net.flatMap(t=>($('puzzlegrid').checked?puzzleFor(t.id).outline:t.polygon||hex).map(p=>{const v=rotateScreen(canvasWorld(p,t));return [v[0],-v[1]];}));return [Math.min(...all.map(p=>p[0])),Math.min(...all.map(p=>p[1])),Math.max(...all.map(p=>p[0])),Math.max(...all.map(p=>p[1]))];}
 // The part of the screen the map can use: beside the sidebar on wide screens, between the heading and the sidebar on phones.
 function freeRect(){
+ if(presentationFrame)return {...presentationFrame};
  const panel=document.querySelector('aside').getBoundingClientRect();
  const wide=w>700||w>h;
  let left=wide?Math.min(w-100,panel.right+28):24;
@@ -272,7 +276,7 @@ const spaceshipLit=()=>spaceshipUnlit()&&!!renderDefault.lit&&$('relief-enabled'
 // in 30° steps, so the light always comes from the same side of the browser.
 const forcedLitSet=['localhost','127.0.0.1','[::1]'].includes(location.hostname)?new URLSearchParams(location.search).get('lit-set'):null;
 function litPathFor(t){if(!spaceshipLit()||!danceBase)return null;const r=danceTargets.get(t.id)?.r??t.r,turn=litRotationHold??state.gridRotation,k=forcedLitSet!==null?+forcedLitSet:((Math.round((turn-60*Math.round(r))/30)%renderDefault.lit)+renderDefault.lit)%renderDefault.lit;return `${renderDefault.path}/lit/${k}`;}
-let danceBase=null,danceKey='',danceTargets=new Map(),danceTweens=new Map(),danceCentreState='',danceVertex=null,danceEyeEmpty=false;
+let danceHold=false,danceBase=null,danceKey='',danceTargets=new Map(),danceTweens=new Map(),danceCentreState='',danceVertex=null,danceEyeEmpty=false;
 function danceGrid(){
  const key=[state.method,state.height,state.arrangement,arrangement===arrangementCache.get(state.arrangement)?'a':'b'].join('/');
  if(key!==danceKey){
@@ -378,7 +382,7 @@ function danceStep(now){
  if(!danceActive())return false;
  // Not before the first fit (the camera is nowhere yet) nor while a story flight is in the air (the
  // centre is not where the user looks yet; the frame already placed the pieces).
- if(persistenceReady&&!tourAnimation)danceFill();
+ if(persistenceReady&&!tourAnimation&&!danceHold)danceFill();
  const instant=reducedMotion(),duration=380;let moving=false;
  for(const t of net){
   const {x:tx,y:ty,r:tr}=danceTargets.get(t.id);
@@ -452,7 +456,8 @@ function focusView(points){
  const panel=$('controls').getBoundingClientRect(),portrait=w<=700&&h>w;
  const legend=$('floating-legend').getBoundingClientRect();
  const artwork=['localhost','127.0.0.1','[::1]'].includes(location.hostname)&&new URLSearchParams(location.search).has('tour-artwork');
- const left=artwork?48:portrait?28:panel.right+32,right=w-(artwork?48:32),top=artwork?166:portrait?145:Math.max(72,legend.height?legend.bottom+24:72),bottom=artwork?h-38:portrait?panel.top-28:h-100;
+ let left=artwork?48:portrait?28:panel.right+32,right=w-(artwork?48:32),top=artwork?166:portrait?145:Math.max(72,legend.height?legend.bottom+24:72),bottom=artwork?h-38:portrait?panel.top-28:h-100;
+ if(presentationFrame)({left,right,top,bottom}=presentationFrame);
  const unit=.82*Math.min(Math.max(100,right-left)/(bounds[2]-bounds[0]),Math.max(100,bottom-top)/(bounds[3]-bounds[1]));
  const zoom=Math.min(maximumZoom(scale),Math.max(.25,unit/scale));
  return {zoom,panX:(left+right-w)/2-(bounds[0]+bounds[2])/2*scale*zoom,panY:(top+bottom-h)/2-(bounds[1]+bounds[3])/2*scale*zoom};
@@ -1200,7 +1205,7 @@ function captureSettings(){
  return {version:1,state:{...state,...applied},controls,view:{scale,zoom:state.zoom,panX:state.panX,panY:state.panY},details:Object.fromEntries([...document.querySelectorAll('aside > details')].map(el=>[el.id,el.open]))};
 }
 function readMapStateFromUrl(){const m=location.hash.match(/^#([mp])=([^&]*)/);if(!m)return null;try{return decodeMapState(m[2]);}catch{return null;}}
-function updateMapUrl(){if(!persistenceReady||exporting||isAboutPath(location.pathname))return;clearTimeout(saveTimer);try{const url=new URL(location.href);if(!location.pathname.startsWith('/tests/'))url.pathname=historyOn?historyPath(currentPeriod().id,historyFocus):shareSelection.path;const preset=presetSettings(shareSelection),defaults={state:{...urlDefaults.state,...preset.state},controls:{...urlDefaults.controls,...preset.controls},details:urlDefaults.details,view:defaultView};const encoded=encodeMapState(captureSettings(),defaults);url.hash=historyOn?`m=${encoded}&s=${shareSelection.path.slice(1,-1)}`:encoded?'m='+encoded:'';url.searchParams.delete('history');history.replaceState(null,'',url);}catch{}}
+function updateMapUrl(){if(!persistenceReady||exporting||presenting||isAboutPath(location.pathname))return;clearTimeout(saveTimer);try{const url=new URL(location.href);if(!location.pathname.startsWith('/tests/'))url.pathname=historyOn?historyPath(currentPeriod().id,historyFocus):shareSelection.path;const preset=presetSettings(shareSelection),defaults={state:{...urlDefaults.state,...preset.state},controls:{...urlDefaults.controls,...preset.controls},details:urlDefaults.details,view:defaultView};const encoded=encodeMapState(captureSettings(),defaults);url.hash=historyOn?`m=${encoded}&s=${shareSelection.path.slice(1,-1)}`:encoded?'m='+encoded:'';url.searchParams.delete('history');history.replaceState(null,'',url);}catch{}}
 function scheduleSave(){if(!persistenceReady)return;clearTimeout(saveTimer);saveTimer=setTimeout(updateMapUrl,180);}
 document.addEventListener('input',scheduleSave);document.addEventListener('change',scheduleSave);
 
@@ -1456,6 +1461,32 @@ if(['127.0.0.1','localhost'].includes(location.hostname)&&new URLSearchParams(lo
 
 syncSettingsVisibility();
 initAboutWidget();
+
+// Presentation mode (/lifezone-presentation/): the slides reuse the camera, the dance and the
+// history timeline through this small surface; the map itself is the ordinary default map.
+if(presenting)import('./presentation.mjs?v=presentation-1').then(({startPresentation})=>startPresentation({
+ ready:()=>ready&&persistenceReady,
+ view:()=>({scale,zoom:state.zoom,panX:state.panX,panY:state.panY,w,h,gridRotation:state.gridRotation}),
+ setView(v){cancelTourAnimation();state.zoom=v.zoom;state.panX=v.panX;state.panY=v.panY;draw();},
+ animateView:animateTourView,
+ setFrame(rect){presentationFrame=rect;},
+ fit(){cancelTourAnimation();fitView();return {zoom:state.zoom,panX:state.panX,panY:state.panY};},
+ net:()=>net.map(t=>{const target=danceTargets.get(t.id);return {id:t.id,x:t.x,y:t.y,r:t.r,target:target?{...target}:null};}),
+ dance:()=>({active:danceActive(),moving:danceTweens.size>0}),
+ resetDance(){resetDance();meshSignature=null;draw();},
+ // Hold the vertex rule and send the pieces to given cells; releasing lets the rule resume.
+ formDance(targets){danceHold=true;for(const t of targets)danceTargets.set(t.id,{x:t.x,y:t.y,r:t.r});draw();},
+ releaseDance(){danceHold=false;danceVertex=null;draw();},
+ async showPeriod(id){
+  historyAutoFocus=false;historyFocusPending=false;if(historyFocus)closeHistoryFocus(false);
+  historyPeriodId=periodInfo(id).id;historyProjection=null;
+  if(!historyOn)enableHistory(true);else syncHistoryTools();
+  await loadHistoryPeriod();draw();return historyPeriod;
+ },
+ hideHistory(){enableHistory(false);},
+ focusSpot(id){focusHistoryStory(id);},
+ unfocusSpot(){closeHistoryFocus(false);},
+}));
 
 // Opt-in temporary editor; normal routes never load its UI or custom palette.
 if(new URLSearchParams(location.search).has('palette-lab')){

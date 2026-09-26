@@ -590,6 +590,39 @@ on the stage, and *Ripples around the spots* hides the marker ripples. The
 settings live in the positional map-state lists (four state keys and five
 control keys appended after the backdrop grid) so they ride in shared links.
 
+## Lifezones presentation
+
+`/lifezone-presentation/` is the app itself with a slide layer on top
+(`dist/presentation.mjs`, loaded only at that address; the route test lives in
+`dist/presentation-route.mjs`). Arrow keys, Page Up/Down, Enter and the space bar
+step (Shift+Space goes back), Home and End jump, `f` toggles full screen, and
+the address keeps the slide number (`#12`) so a reload or link reopens it. Each
+slide describes a whole state, so stepping backwards or opening a slide directly
+restores it. The app's sidebar, toolbars, scrubber, story card and floating
+legend are hidden; the map still pans and zooms by hand.
+
+The opening reuses the About construction through `dist/about-scene.mjs`, the
+renderer the About widget now shares: Sphere, Project, Unfold and Adjust are the
+About poses, framed under the title. Its geography follows the Spaceship Earth
+preset rather than the About page's polar-face orientation, and Rearrange moves
+the four whole hexagons one after another from the About framing to the place
+and turn each has on the live map (read from the dance's targets), so the
+continents image crossfades into Lifezones without a shift. Recentre pans the
+map left by one period of the net (three cells, straight across the screen at
+the 30° turn); the vertex rule re-forms the pieces on the way, and at the end
+the pieces are sent to the opening arrangement one period along, which is the
+opening view, before the map quietly returns home. `formDance`/`releaseDance`
+hold the rule while they do. The Lifezones legend is drawn large with names in
+the hexagons, land first, then the ocean, then shrinks into the top-right
+corner without names. History takes every age of `dist/history/index.mjs` in
+order: the age zoomed out (routes fading in), then each spot of its Markdown,
+framed by the timeline's own `focusHistoryStory`, with its route key. Slide
+lines are whole sentences up to about 140 characters; a longer first sentence
+stops at a clause break with an ellipsis (`slideLine`). Checks:
+`presentation-tests.mjs` and, with the server running,
+`node scripts/check-presentation.mjs` (exact Rearrange landing and geography,
+the pan round trip, stepping every slide).
+
 ## Settings organization
 
 All collapsible sections are siblings: Projection method, Layout & grids, Globe orientation, Map source & colors, Rivers, Relief & lighting, and Distortion & Tissot. Panel states are saved by stable IDs; older positional panel states are migrated on load. Flower World presets use a 60° grid rotation.

@@ -31,6 +31,9 @@ __pycache__/
 # Generated About landing page.
 /dist/about/
 
+# Generated presentation page.
+/dist/lifezone-presentation/
+
 # Generated tour landing pages.
 /dist/origin-of-mankind/
 /dist/silk-road/
