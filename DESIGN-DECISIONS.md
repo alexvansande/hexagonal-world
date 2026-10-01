@@ -1004,6 +1004,34 @@ Sources and info and in every download; the present map drawn the same way on
 the live path so the fade is continuous, which leaves the baked political tiles
 unused. A veil holding the last frame dissolves once the new map is drawn.
 
+**Lifezones presentation (September 26).** The user asked for a presentation at
+`/lifezone-presentation/`, stepped by the arrow keys or space bar, reusing code,
+with a title that follows the context, at most one or two lines of text and a
+legend box where needed, at presentation sizes. Their slide order: the About
+globe, projection onto the rhombic dodecahedron, Unfold, Adapt, Rearrange fading
+into Spaceship Earth Lifezones "matching the hexes' positions", the continents as
+one island, panning left while the hexes recentre until the default arrangement
+returns, the legend very large with names in the hexagons (humidity across,
+latitude and altitude down), then the oceans, the legend back to the corner for
+history, then every era with a zoom into each spot and a zoom out and fade
+between eras. Decisions: the presentation is the app with a slide layer, so the
+map, dance, legend colours and history framing are the ones users see; the About
+renderer moved into a shared module (About renders pixel-identical). Because the
+About page's Rearrange ends in the Felv cut, which cannot line up with the
+four Spaceship Earth hexagons, the presentation's Rearrange instead moves the four
+whole hexagons into the live map's placement, and the construction's geography
+follows the Spaceship Earth preset (the About page turns a rhombus centre to the
+pole); measured, every hexagon lands within a pixel of the map's and the
+coordinate readout agrees to 0.01° inside them. Straight-left panning under the
+vertex rule falls into a three-arrangement cycle that never returns to the
+opening net by itself, so the pan covers one period (three cells) and then sends
+the fourth piece to complete the opening arrangement. **Unresolved:** the
+brief's "50 million years ago" matches no era (the earliest is about 2 million
+years ago and the next about 50,000); the presentation shows all nine eras in
+order with their own dates. Whether Rearrange should instead play the Felv cut
+before fading is also open. Slide lines are the first sentences of the period
+Markdown, cut at a clause when longer than two lines; no new copy was written.
+
 **Dance anchored on the centre (September 22).** The user saw a small drag down,
 made only to see an arrangement better, re-form the group and move the pieces in
 front of them away. Decision: a band switch needs a deliberate pan (40% of the

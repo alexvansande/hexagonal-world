@@ -25,18 +25,23 @@ export function surfacePlan(level,regions,collect){
 // so bilinear filtering reads the adjoining tile's pixels without a seam.
 export function surfaceTileRect(level,x,y){const span=2/(2**level);return [-1+x*span,1-(y+1)*span,span,span];}
 export class PrecomputedSurfaces{
- constructor(gl,redraw,{root='maps/surfaces',extension='webp',budget=surfaceTileBudget,bitmapOptions}={}){this.bitmapOptions=bitmapOptions;this.root=root;this.extension=extension;this.budget=budget;this.controllers=new Map();this.attempts=new Map();this.retryTimers=new Map();this.disposed=false;this.gl=gl;this.redraw=redraw;this.cache=new Map();this.pending=new Set();this.queue=[];this.active=0;this.clock=0;this.requests=0;this.failures=new Set();}
- prepare(entry,tiles=[],level=0){
+ constructor(gl,redraw,{root='maps/surfaces',extension='webp',budget=surfaceTileBudget,bitmapOptions}={}){this.bitmapOptions=bitmapOptions;this.root=root;this.extension=extension;this.budget=budget;this.controllers=new Map();this.attempts=new Map();this.retryTimers=new Map();this.disposed=false;this.gl=gl;this.redraw=redraw;this.cache=new Map();this.pending=new Set();this.queue=[];this.active=0;this.clock=0;this.requests=0;this.failures=new Set();this.fade=0;this.prefetch=new Set();this.fading=false;}
+ prepare(entry,tiles=[],level=0,fallback=null){
   // Give every region a low-resolution image before spending bandwidth on detail.
   // A tile may name its own pyramid path (a lit variant of the same region).
-  const paths=new Set([entry.path,...tiles.map(tile=>tile.path).filter(Boolean)]);
-  this.required=new Set([...paths].flatMap(path=>Array.from({length:entry.regions},(_,region)=>`${path}/${region}/0/0-0`)));
+  // Its own set's preview for each region a tile draws, and every region's preview of the entry.
+  const previews=new Map([...Array.from({length:entry.regions},(_,region)=>[`${entry.path}/${region}`,[entry.path,region]]),...tiles.filter(tile=>tile.path).map(tile=>[`${tile.path}/${tile.region}`,[tile.path,tile.region]])]);
+  this.required=new Set([...previews.keys()].map(key=>`${key}/0/0-0`));
   for(const tile of tiles)this.required.add(`${tile.path||entry.path}/${tile.region}/${level}/${tile.x}-${tile.y}`);
+  // Tiles wanted soon (where a camera flight will land) load after the visible ones and stay cached.
+  for(const key of this.prefetch)this.required.add(key);
   this.setRequired(this.required);
   let ready=true;
-  for(const path of paths)for(let region=0;region<entry.regions;region++){
-   if(!this.tile({...entry,path},region,0,0,0)&&!this.failures.has(`${path}/${region}/0/0-0`))ready=false;
+  for(const [path,region] of previews.values()){
+   // A region still showing an earlier set (see layers) does not need the new set's preview yet.
+   if(!this.tile({...entry,path},region,0,0,0)&&!this.failures.has(`${path}/${region}/0/0-0`)&&!(fallback&&fallback(path,region)))ready=false;
   }
+  for(const key of this.prefetch)this.request(key);
   return ready;
  }
  setRequired(keys){
@@ -58,7 +63,7 @@ export class PrecomputedSurfaces{
    if(this.disposed||controller.signal.aborted){image.close();return;}this.failures.delete(key);this.attempts.delete(key);const g=this.gl,texture=g.createTexture();g.activeTexture(g.TEXTURE0);g.bindTexture(g.TEXTURE_2D,texture);
    for(const name of [g.TEXTURE_MIN_FILTER,g.TEXTURE_MAG_FILTER])g.texParameteri(g.TEXTURE_2D,name,g.LINEAR);
    for(const name of [g.TEXTURE_WRAP_S,g.TEXTURE_WRAP_T])g.texParameteri(g.TEXTURE_2D,name,g.CLAMP_TO_EDGE);
-   g.texImage2D(g.TEXTURE_2D,0,g.RGBA,g.RGBA,g.UNSIGNED_BYTE,image);const {width,height}=image;image.close();this.cache.set(key,{texture,width,height,used:++this.clock});
+   g.texImage2D(g.TEXTURE_2D,0,g.RGBA,g.RGBA,g.UNSIGNED_BYTE,image);const {width,height}=image;image.close();this.cache.set(key,{texture,width,height,used:++this.clock,born:performance.now()});
    // About 32 MB of decoded tile textures, independent of total pyramid size.
    while(this.cache.size>this.budget){let oldest;for(const pair of this.cache)if(!this.required?.has(pair[0])&&(!oldest||pair[1].used<oldest[1].used))oldest=pair;if(!oldest)break;g.deleteTexture(oldest[1].texture);this.cache.delete(oldest[0]);}
   }).catch(error=>{if(this.disposed||error.name==='AbortError')return;this.failures.add(key);const attempt=(this.attempts.get(key)||0)+1;this.attempts.set(key,attempt);
@@ -70,6 +75,31 @@ export class PrecomputedSurfaces{
  get(entry,region,level,x,y){const overview=this.tile(entry,region,0,0,0);const exact=this.tile(entry,region,level,x,y);if(exact)return {...exact,rect:surfaceTileRect(level,x,y)};
   for(let l=level-1;l>0;l--){const divisor=2**(level-l),px=Math.floor(x/divisor),py=Math.floor(y/divisor),key=`${entry.path}/${region}/${l}/${px}-${py}`,tile=this.cache.get(key);if(tile){tile.used=++this.clock;return {...tile,rect:surfaceTileRect(l,px,py)};}}
   return overview?{...overview,rect:[-1,-1,2,2]}:null;
+ }
+ // The finest tile of a pyramid already decoded for this cell, at `level` or coarser; never requests.
+ cached(path,region,level,x,y,below=Infinity){
+  for(let l=Math.min(level,below-1);l>=0;l--){const divisor=2**(level-l),px=Math.floor(x/divisor),py=Math.floor(y/divisor),tile=this.cache.get(`${path}/${region}/${l}/${px}-${py}`);if(tile){tile.used=++this.clock;return {...tile,rect:surfaceTileRect(l,px,py),level:l};}}
+  return null;
+ }
+ // What to draw for one cell, bottom first, each with its opacity. Without a fade this is get().
+ // With one, a newly decoded tile fades in over the coarser tile it replaces, and a region
+ // changing sets (a piece turned by the dance takes another lit set) keeps the earlier set
+ // until the new one is as sharp, then crossfades: transition {from, start} is per region.
+ layers(entry,region,level,x,y,transition=null,now=performance.now()){
+  const top=this.get(entry,region,level,x,y);
+  if(!this.fade)return top?[{...top,alpha:1}]:[];
+  const fade=t=>Math.min(1,Math.max(0,(now-t)/this.fade)),ease=a=>a*a*(3-2*a);
+  const best=top?this.cached(entry.path,region,level,x,y)||{...top,level:0}:null;
+  const from=transition?.from?this.cached(transition.from,region,level,x,y):null;
+  const exactPending=this.pending.has(`${entry.path}/${region}/${level}/${x}-${y}`)||this.queue.some(job=>job.key===`${entry.path}/${region}/${level}/${x}-${y}`);
+  if(from&&(!best||(best.level<from.level&&exactPending))){this.fading=true;return [{...from,alpha:1}];}
+  if(!best)return [];
+  if(from){transition.start??=now;}
+  const switching=from?fade(transition.start):1,arriving=best.born?fade(best.born):1;
+  const under=switching<1?from:arriving<1?this.cached(entry.path,region,level,x,y,best.level):null;
+  const alpha=Math.min(switching,arriving);
+  if(!under||alpha>=1)return [{...best,alpha:1}];
+  this.fading=true;return [{...under,alpha:1},{...best,alpha:ease(alpha)}];
  }
 }
 // Clip the existing projection triangles, interpolating every attribute. This

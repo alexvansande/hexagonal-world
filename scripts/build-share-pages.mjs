@@ -7,6 +7,7 @@ import {tourPages} from '../dist/tour-pages.mjs';
 import {parsePeriod} from '../dist/tour-content.mjs';
 import {periods} from '../dist/history/index.mjs';
 import {historyPages} from '../dist/history-routes.mjs';
+import {presentationPath} from '../dist/presentation-route.mjs';
 const root=resolve(dirname(fileURLToPath(import.meta.url)),'..');
 export async function buildSharePages(output){
  const template=await readFile(resolve(root,'dist/index.html'),'utf8');
@@ -50,6 +51,13 @@ export async function buildSharePages(output){
   for(const [key,value] of Object.entries(metadata))page=page.replace(new RegExp(`(<meta (?:name|property)="${key}" content=")[^"]*`),(_,prefix)=>prefix+escape(value));
   const destination=resolve(output,path.slice(1),'index.html');await mkdir(dirname(destination),{recursive:true});await writeFile(destination,page);
  }
+ // The Lifezones presentation: the app itself, which loads its slides at this address.
+ {
+  const title='Life zones — a Hexagonal Earth presentation',url='https://hexagonal.earth'+presentationPath,description='A presentation in the map: Earth folded into four hexagons, its life zones and its history. Arrow keys or the space bar step through it.';
+  let page=template.replace(/<title>.*?<\/title>/,`<title>${escape(title)}</title>`).replace(/(<link rel="canonical" href=")[^"]+/,`$1${url}`);
+  for(const [key,value] of Object.entries({'description':description,'og:title':title,'og:description':description,'og:url':url,'twitter:title':title,'twitter:description':description}))page=page.replace(new RegExp(`(<meta (?:name|property)="${key}" content=")[^"]*`),(_,prefix)=>prefix+escape(value));
+  const destination=resolve(output,presentationPath.slice(1),'index.html');await mkdir(dirname(destination),{recursive:true});await writeFile(destination,page);
+ }
  await writeFile(resolve(output,'sitemap.xml'),'<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'+['/','/about/',...historyPages.map(p=>p.path),...aboutShapes.map(([id])=>aboutPath(id)),...shareCombinations.map(p=>p.path),...tourPages.map(p=>p.path)].map(path=>`<url><loc>https://hexagonal.earth${path}</loc></url>`).join('\n')+'\n</urlset>\n');
 }
-if(process.argv[1]===fileURLToPath(import.meta.url)){await buildSharePages(resolve(process.argv[2]||'dist'));console.log(`Generated About, 64 map pages, ${tourPages.length} tour pages, ${historyPages.length} history pages and sitemap.`);}
+if(process.argv[1]===fileURLToPath(import.meta.url)){await buildSharePages(resolve(process.argv[2]||'dist'));console.log(`Generated About, 64 map pages, ${tourPages.length} tour pages, ${historyPages.length} history pages, the presentation and sitemap.`);}
