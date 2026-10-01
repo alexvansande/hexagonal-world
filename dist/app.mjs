@@ -10,16 +10,16 @@ import {pacificTourNet} from './tour-layout.mjs?v=dancing-2';
 import pacificLighting from './maps/pacific-manifest.mjs?v=pacific-light-1';
 import {createTourStory} from './tour-story.mjs?v=history-5';
 import {periods,period as periodInfo} from './history/index.mjs?v=history-1';
-import {MergedMaps,mergedEntry,mergedCompatible} from './merged-maps.mjs?v=turn-30';
+import {MergedMaps,mergedEntry,mergedCompatible} from './merged-maps.mjs?v=fade-1';
 import {riverFieldGLSL} from './river-layers.mjs?v=cloud-assets-1';
-import {DefaultLayers,defaultLayerPreset,imageVertex,imageFragment,graticuleFragment} from './default-layers.mjs?v=turn-30';
+import {DefaultLayers,defaultLayerPreset,imageVertex,imageFragment,graticuleFragment} from './default-layers.mjs?v=fade-1';
 import {puzzleRegion,puzzleArtwork} from './puzzle-grid.mjs?v=unique-3';
 import {initSourcePicker} from './source-picker.mjs';
 import {isAboutPath} from './about-route.mjs?v=about-shapes-1';
 import {isPresentationPath} from './presentation-route.mjs?v=presentation-1';
 import {initAboutWidget} from './about-widget.mjs?v=presentation-1';
 import {referenceSources,sourceAttribution,mapLicense} from './reference-sources.mjs?v=licenses-1';
-import {PrecomputedSurfaces,surfacePreset,surfaceLevel,surfacePlan,surfaceTileRect,clipSurfaceTriangle} from './precomputed-surfaces.mjs?v=turn-30';
+import {PrecomputedSurfaces,surfacePreset,surfaceLevel,surfacePlan,surfaceTileRect,clipSurfaceTriangle} from './precomputed-surfaces.mjs?v=fade-1';
 import {renderLifezonesLegend,lifezoneLegendLayout} from './lifezones-legend.mjs?v=lifezones-shadows-3';
 import {fadedLegendColor} from './legend-colors.mjs';
 import {ProjectedLighting,lightingSettings,lightingKey,lightingPlan,lightingCovers} from './projected-lighting.mjs?v=performance-1';
@@ -438,7 +438,7 @@ function historyRoutes(){
 function historySpots(){return historyPeriod?historyPeriod.spots:[];}
 function cancelTourAnimation(){cancelAnimationFrame(tourAnimation);tourAnimation=0;}
 function animateTourView(target){
- cancelAnimationFrame(tourAnimation);tourAnimation=0;
+ cancelAnimationFrame(tourAnimation);tourAnimation=0;flightTarget={zoom:target.zoom,panX:target.panX,panY:target.panY};
  const from={zoom:state.zoom,panX:state.panX,panY:state.panY},start=performance.now();
  const duration=reducedMotion()?0:1250;
  const step=now=>{
@@ -705,13 +705,32 @@ function visibleSurfaceTiles(level){
  }
  return result;
 }
+// Presentation recording: new tiles and turned pieces' new shadows fade in instead of popping,
+// and a camera flight loads where it will land while it is still in the air.
+const surfaceFade=presenting?450:0;let flightTarget=null;const litShown=new Map();
+function litTransition(t,path,now){
+ if(!surfaceFade||!path)return null;
+ let s=litShown.get(t.id);
+ if(!s){s={path,from:null,start:null};litShown.set(t.id,s);return s;}
+ if(s.path!==path){const settled=s.from===null||(s.start!==null&&now-s.start>=surfaceFade/2);s.from=settled?s.path:s.from;s.path=path;s.start=null;}
+ else if(s.from&&s.start!==null&&now-s.start>=surfaceFade)s.from=null;
+ return s;
+}
+function flightTiles(entry){
+ if(!surfaceFade||!flightTarget||!tourAnimation)return [];
+ const saved={zoom:state.zoom,panX:state.panX,panY:state.panY};Object.assign(state,flightTarget);
+ try{const plan=surfacePlan(surfaceLevel(scale*state.zoom*dpr,entry.maxLevel),entry.regions,visibleSurfaceTiles);return plan.tiles.map(tile=>`${litPathFor(tile.t)||entry.path}/${tile.region}/${plan.level}/${tile.x}-${tile.y}`);}
+ finally{Object.assign(state,saved);}
+}
 function drawPrecomputedSurface(){
  if($('puzzlegrid').checked){canvas.dataset.surface='live';return false;}
  const entry=renderDefault?{...renderDefault,path:renderDefault.basePath||renderDefault.path+'/base'}:selectedSurface();if(!entry||(new URLSearchParams(location.search).has('bake-surfaces')||new URLSearchParams(location.search).get('surface')==='live')){canvas.dataset.surface='live';return false;}
  if(renderDefault)surfaceCache=defaultLayers.base;else if(!surfaceCache||surfaceCache===defaultLayers?.base)surfaceCache=new PrecomputedSurfaces(gl,draw);
  const plan=surfacePlan(surfaceLevel(scale*state.zoom*dpr,entry.maxLevel),entry.regions,visibleSurfaceTiles);
  for(const tile of plan.tiles)tile.path=litPathFor(tile.t);
- const previewsReady=surfaceCache.prepare(entry,plan.tiles,plan.level);
+ const now=performance.now();
+ if(surfaceFade){surfaceCache.fade=surfaceFade;surfaceCache.budget=Math.max(surfaceCache.budget,360);surfaceCache.fading=false;surfaceCache.prefetch=new Set(flightTiles(entry));for(const t of visible)litTransition(t,litPathFor(t),now);}
+ const previewsReady=surfaceCache.prepare(entry,plan.tiles,plan.level,surfaceFade?(path,region)=>{const s=litShown.get(region);return !!(s?.from&&s.path===path&&surfaceCache.cache.has(`${s.from}/${region}/0/0-0`));}:null);
  const level=previewsReady?plan.level:0,drawTiles=previewsReady?plan.tiles:visibleSurfaceTiles(0).map(tile=>({...tile,path:litPathFor(tile.t)}));
  canvas.dataset.surfacePreview=String(!previewsReady);
  canvas.dataset.surface='precomputed';canvas.dataset.surfaceLevel=level;
@@ -731,10 +750,15 @@ function drawPrecomputedSurface(){
    surfaceMeshes.set(key,mesh);
    while(surfaceMeshes.size>192){const oldest=surfaceMeshes.keys().next().value;gl.deleteBuffer(surfaceMeshes.get(oldest).buffer);surfaceMeshes.delete(oldest);}
    if(!mesh.count)continue;
-   const tile=surfaceCache.get(path?{...entry,path}:entry,t.id,level,x,y);if(!tile)continue;
-   gl.uniform4fv(uniforms.bakedRect,tile.rect);gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,tile.texture);
-   buffer=mesh.buffer;count=mesh.count;drawGeometry(program);
+   buffer=mesh.buffer;count=mesh.count;
+   for(const tile of surfaceCache.layers(path?{...entry,path}:entry,t.id,level,x,y,litShown.get(t.id),now)){
+    gl.uniform4fv(uniforms.bakedRect,tile.rect);gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,tile.texture);
+    // A fading tile mixes over what is already drawn: colour by its opacity, the canvas alpha kept.
+    if(tile.alpha<1){gl.enable(gl.BLEND);gl.blendColor(0,0,0,tile.alpha);gl.blendFuncSeparate(gl.CONSTANT_ALPHA,gl.ONE_MINUS_CONSTANT_ALPHA,gl.ZERO,gl.ONE);}
+    drawGeometry(program);if(tile.alpha<1)gl.disable(gl.BLEND);
+   }
  }
+ if(surfaceCache.fading)requestAnimationFrame(draw);canvas.dataset.surfaceFading=String(surfaceCache.fading);
  buffer=savedBuffer;count=savedCount;gl.uniform1i(uniforms.bakedOn,0);canvas.dataset.surfacePending=surfaceCache.pending.size;canvas.dataset.surfaceTiles=surfaceCache.cache.size;canvas.dataset.surfaceFailures=surfaceCache.failures.size;return true;
 }
 function bindMaterialUniforms(){

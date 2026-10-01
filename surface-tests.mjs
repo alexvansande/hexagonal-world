@@ -76,4 +76,41 @@ try{
  assert(pinned.cache.has(protectedKey),'Current preview survives cache pressure');
  assert.equal(pinned.cache.size,surfaceTileBudget,'Protecting previews does not increase the memory limit');
  console.log('Progressive surfaces: previews first, detail fallback, deduplication and style-switch priority pass.');
+ // A piece turned by the dance takes another lit set. Only that region waits for the new set's
+ // preview, never the whole map dropping to previews, and only while it can show its earlier set.
+ const lit=new PrecomputedSurfaces(gpu,()=>{}),base={path:'base',regions:4};
+ for(let r=0;r<4;r++){lit.cache.set(`base/${r}/0/0-0`,{texture:{},used:0});lit.cache.set(`lit/${r}/${r}/0/0-0`,{texture:{},used:0});}
+ const sets=[0,1,2,3].map(r=>({region:r,x:0,y:0,path:`lit/${r}`}));
+ assert.equal(lit.prepare(base,sets,0),true,'Each region needs only its own set');
+ assert(![...lit.required].some(key=>/^lit\/0\/[123]\//.test(key)),'Other regions’ previews of a set are not fetched');
+ sets[2].path='lit/9';
+ assert.equal(lit.prepare(base,sets,0),false,'Without an earlier set a new preview is still awaited');
+ assert.equal(lit.prepare(base,sets,0,(path,region)=>path==='lit/9'&&region===2),true,'A region showing its earlier set keeps the map sharp');
+ for(const resolve of responses.splice(0))resolve();
+ await new Promise(resolve=>setImmediate(resolve));
+ // Fades: without one, layers() is get(); with one, a newly decoded tile fades in over the
+ // coarser tile it replaces, and a region changing sets crossfades from the set it showed.
+ const fading=new PrecomputedSurfaces(gpu,()=>{}),one={path:'one',regions:1},t0=1000;
+ fading.cache.set('one/0/0/0-0',{texture:'coarse',used:0,born:0});fading.cache.set('one/0/1/1-0',{texture:'fine',used:0,born:t0});
+ assert.deepEqual(fading.layers(one,0,1,1,0,null,t0).map(l=>[l.texture,l.alpha]),[['fine',1]],'No fade unless asked');
+ fading.fade=400;
+ assert.deepEqual(fading.layers(one,0,1,1,0,null,t0+100).map(l=>l.texture),['coarse','fine'],'A new tile fades in over the coarser one');
+ const half=fading.layers(one,0,1,1,0,null,t0+200)[1].alpha;assert(half>.3&&half<.7,'Halfway through the fade, half mixed');
+ assert(fading.fading);
+ assert.deepEqual(fading.layers(one,0,1,1,0,null,t0+400).map(l=>[l.texture,l.alpha]),[['fine',1]],'The fade ends on the new tile alone');
+ fading.cache.set('old/0/1/1-0',{texture:'old-fine',used:0,born:0});
+ const turn={from:'old',start:null};
+ fading.cache.set('new/0/0/0-0',{texture:'new-coarse',used:0,born:0});fading.pending.add('new/0/1/1-0');
+ assert.deepEqual(fading.layers({path:'new',regions:1},0,1,1,0,turn,t0).map(l=>l.texture),['old-fine'],'The earlier set stays until the new one is as sharp');
+ assert.equal(turn.start,null);
+ fading.pending.delete('new/0/1/1-0');fading.cache.set('new/0/1/1-0',{texture:'new-fine',used:0,born:0});
+ const mixed=fading.layers({path:'new',regions:1},0,1,1,0,turn,t0+50);
+ assert.deepEqual(mixed.map(l=>l.texture),['old-fine','new-fine'],'Then the sets crossfade');assert.equal(turn.start,t0+50);
+ assert.deepEqual(fading.layers({path:'new',regions:1},0,1,1,0,turn,t0+50+400).map(l=>[l.texture,l.alpha]),[['new-fine',1]]);
+ // Tiles a camera flight will land on load after the visible ones and are kept.
+ const ahead=new PrecomputedSurfaces(gpu,()=>{});ahead.prefetch=new Set(['ahead/0/3/1-1']);ahead.prepare({path:'ahead',regions:1});
+ assert(ahead.required.has('ahead/0/3/1-1'));assert.equal(ahead.queue.at(-1)?.key??[...ahead.pending].at(-1),'ahead/0/3/1-1','Prefetch queues behind the previews');
+ for(const resolve of responses.splice(0))resolve();
+ await new Promise(resolve=>setImmediate(resolve));
+ console.log('Presentation surfaces: per-region lit previews, tile and set crossfades, flight prefetch pass.');
 }finally{globalThis.fetch=originalFetch;globalThis.createImageBitmap=originalBitmap;}
