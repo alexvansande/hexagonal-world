@@ -18,6 +18,16 @@ construction in `dist/subgrid.mjs`. Each generation scales by `1/√7` and alter
 `±atan(√3/5)` (about 19.1°). Two generations produce 49 children aligned with their
 large parent; next-generation centers give 343 dots per large region.
 
+**Terminology (October 6).** The user named the generations "levels": level 0 is
+the large hexagons (4 on four-region maps), level 1 divides each into 7 (28),
+level 2 divides again (196). Level *n* is `subgridLevels[n]`; the README table
+under **Hexagon levels** lists the counts. The user described level 1 as the hex
+grid and level 2 as the dot grid; in the implementation the Hex subgrid draws
+level 1 faintly and level 2 prominently, and the Dot grid marks level-3 centers.
+Whether the user means those UI grids or the generation counts is unresolved;
+the counts (28 and 196 pieces) match what the user used in the rearrangement
+experiment.
+
 **Reason.** The rotations, centers and relationship between levels are part of
 the visual design. The reference image, `hex grid.png`, was supplied in the
 September 9 discussion and again during the puzzle correction. This is not an
