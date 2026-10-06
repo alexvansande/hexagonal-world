@@ -443,6 +443,20 @@ The optional 49× density overlay uses two generations of the Gosper seven-hex s
 
 The independent Dot grid option draws seven white dots at the centers of the next-generation children inside each of the 49 small hexagons, at 20% opacity. This gives 343 dots per large hexagon. Dots follow pan, zoom and grid rotation, can be displayed without subgrid lines, and are included in PNG exports.
 
+### Hexagon levels
+
+"Level *n*" names generation *n* of this hierarchy, `subgridLevels[n]` in `dist/subgrid.mjs`. Each level divides every hexagon of the previous level into seven whole hexagons (center plus six), scaled by `1/sqrt(7)` and turned by the alternating ±`atan(sqrt(3)/5)` (about 19.1°). Odd levels are therefore turned about 19.1° from the large hexagons; even levels return to their orientation. Counts are per large hexagon, then for the four-region nets (Spaceship Earth, Felv, Flower World):
+
+| Level | Per large hexagon | Four-region map | Circumradius | Where it appears |
+|---|---|---|---|---|
+| 0 | 1 | 4 | 1 | The large hexagons (regions) of the format |
+| 1 | 7 | 28 | 1/√7 | Faint lines of the Hex subgrid; 28-piece puzzle |
+| 2 | 49 | 196 | 1/7 | Main lines of the Hex subgrid; 196-piece puzzle |
+| 3 | 343 | 1,372 | 1/(7√7) | Centers marked by the Dot grid |
+| 6 | 117,649 | 470,596 | 1/343 | Lifezones color sampling cells |
+
+Higher levels are whole hexagons, so their union bulges past the straight edge of the parent (the Gosper outline); they still tile the sphere exactly with the neighbouring regions' cells. The nominal areas in `subgridArea` and `dotGridArea` are the level-2 and level-3 cell areas.
+
 ## Gosper Fractal
 
 The eighth format cuts the repeating map to a seven-region fractal made from
