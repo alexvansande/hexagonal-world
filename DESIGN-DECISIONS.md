@@ -945,6 +945,28 @@ the portrait turn. The brief story text also lost everything before a decimal
 number ("about 2.8 million" became "8 million"); sentence ends now need a space
 after the stop and skip abbreviations such as c. 1400.
 
+**Dancing smaller hexagons (October 6).** The user asked for an option, on the
+options panel, to make the dance work on the smaller levels of hexagons: as the
+map moves, every hexagon that falls outside the view moves to whichever free
+place is nearest the centre of the screen. Asked where such a piece may go, the
+user chose valid joins only, levels 1 and 2, and a control on the panel rather
+than a URL flag. Decision: Animation → Dance pieces offers Large hexagons (the
+existing rule, the default), Level 1 (28 pieces) and Level 2 (196 pieces). A
+small piece is a whole cell of the shared hierarchy; its artwork is clipped
+from its parent and the correctly turned neighbours it bulges into, like a
+puzzle piece. A piece that leaves the view goes to the free on-screen cell
+nearest the eye where it is the true spherical neighbour of a piece already
+there, at the turn that oriented join demands; pieces in view never move, and
+the large pieces keep their base net meanwhile. Rejected alternative: placing
+pieces in any free cell, which scrambles neighbours (the first rearranged
+puzzles of the same day showed 531 of 538 joins wrong). Known effect, not yet
+judged by the user: a cell the eye rests on can stay empty when the piece that
+would join there is still on screen elsewhere; around the cone points the
+holes are larger. Stories are framed where the small pieces stand rather than
+regrouping them. Checks: `small-dance-tests.mjs` (one partner per edge,
+symmetric joins, full artwork coverage, base-net contacts, fill rule); a
+headless drag at 246% moved 25 of 28 and 163 of 196 pieces without errors.
+
 **Dance anchored on the centre (September 22).** The user saw a small drag down,
 made only to see an arrangement better, re-form the group and move the pieces in
 front of them away. Decision: a band switch needs a deliberate pan (40% of the

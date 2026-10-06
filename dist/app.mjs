@@ -14,6 +14,7 @@ import {MergedMaps,mergedEntry,mergedCompatible} from './merged-maps.mjs?v=turn-
 import {riverFieldGLSL} from './river-layers.mjs?v=cloud-assets-1';
 import {DefaultLayers,defaultLayerPreset,imageVertex,imageFragment,graticuleFragment} from './default-layers.mjs?v=turn-30';
 import {puzzleRegion,puzzleArtwork} from './puzzle-grid.mjs?v=unique-3';
+import {smallPieces,smallFill,smallParts,placeParts,smallTiles,pieceCentre} from './small-dance.mjs?v=dance-levels-1';
 import {initSourcePicker} from './source-picker.mjs';
 import {isAboutPath} from './about-route.mjs?v=about-shapes-1';
 import {initAboutWidget} from './about-widget.mjs?v=cloud-assets-1';
@@ -31,7 +32,7 @@ import {circularMode} from './circular-projections.mjs';
 import {polygonOverlapsRect} from './interface-layout.mjs';
 import {ecologyGridGLSL,ecologyBridgeGLSL} from './ecology-grid.mjs?v=performance-1';
 import {gosperScale,rotateLocal,subgridLevels,subgridArea,dotGridArea} from './subgrid.mjs?v=dot-area-1';
-import {decodeMapState,encodeMapState,distortionEnabled,restorePanelStates} from './map-state.mjs?v=focus-3';
+import {decodeMapState,encodeMapState,distortionEnabled,restorePanelStates} from './map-state.mjs?v=dance-levels-1';
 import {sphereAt,followPoint,geographicPoint} from './globe-drag.mjs?v=tetra-area-2';
 import {makeArrangement,arrangementNames} from './arrangements.mjs?v=gosper-1';
 import {experimentPaletteRevision,mapSource,landLegends,oceanLegend,missing,riverMask,riverTextureData,releaseRiverMask,releaseLiveMapData} from './map-layers.mjs?v=cloud-assets-1';
@@ -213,7 +214,7 @@ function puzzleFor(id){const key=id+':'+$('puzzle-count').value;if(!puzzleCache.
 function updateVisibleMesh(){
  const unit=scale*state.zoom;
  const bounds=viewBounds((activeDefault()?.lighting||relief?.ready)&&$('relief-enabled').checked?ReliefRenderer.prototype.padding(appliedLighting(),unit):0);
- const next=tiling?visibleTiles(tiling,bounds):net,signature=state.arrangement+':'+$('puzzlegrid').checked+':'+$('puzzle-count').value+next.map(t=>`${t.id},${t.r},${t.x},${t.y}`).join(';');
+ const next=tiling?visibleTiles(tiling,bounds):smallActive()?smallState().tiles:net,signature=state.arrangement+':'+$('puzzlegrid').checked+':'+$('puzzle-count').value+(smallActive()?':small'+small.key+'/'+small.version:'')+next.map(t=>`${t.id},${t.r},${t.x},${t.y}`).join(';');
  if(signature===meshSignature)return;meshSignature=signature;visible=next;
  const verts=[];for(const t of visible)for(const p of ($('puzzlegrid').checked?puzzleFor(t.id).drawPatches:t.drawPatches||tiles[t.id].patches))for(let i=0;i<3;i++)verts.push(...canvasWorld(p.xy[i],t),...(p.weights?p.weights[i]:[0,1,2].map(j=>j===i?1:0)),...p.v.flat(),t.opacity,...(p.regionXY?.[i]||p.xy[i]),p.regionId??t.id);
  count=verts.length/18;gl.bindBuffer(gl.ARRAY_BUFFER,buffer);gl.bufferData(gl.ARRAY_BUFFER,new Float32Array(verts),gl.DYNAMIC_DRAW);
@@ -271,7 +272,7 @@ const spaceshipLit=()=>spaceshipUnlit()&&!!renderDefault.lit&&$('relief-enabled'
 // A piece's lit set is chosen by how it stands on screen: the map turn minus 60° per piece rotation,
 // in 30° steps, so the light always comes from the same side of the browser.
 const forcedLitSet=['localhost','127.0.0.1','[::1]'].includes(location.hostname)?new URLSearchParams(location.search).get('lit-set'):null;
-function litPathFor(t){if(!spaceshipLit()||!danceBase)return null;const r=danceTargets.get(t.id)?.r??t.r,turn=litRotationHold??state.gridRotation,k=forcedLitSet!==null?+forcedLitSet:((Math.round((turn-60*Math.round(r))/30)%renderDefault.lit)+renderDefault.lit)%renderDefault.lit;return `${renderDefault.path}/lit/${k}`;}
+function litPathFor(t){if(!spaceshipLit()||!danceBase)return null;const r=t.small?t.r:danceTargets.get(t.id)?.r??t.r,turn=litRotationHold??state.gridRotation,k=forcedLitSet!==null?+forcedLitSet:((Math.round((turn-60*Math.round(r))/30)%renderDefault.lit)+renderDefault.lit)%renderDefault.lit;return `${renderDefault.path}/lit/${k}`;}
 let danceBase=null,danceKey='',danceTargets=new Map(),danceTweens=new Map(),danceCentreState='',danceVertex=null,danceEyeEmpty=false;
 function danceGrid(){
  const key=[state.method,state.height,state.arrangement,arrangement===arrangementCache.get(state.arrangement)?'a':'b'].join('/');
@@ -282,6 +283,49 @@ function danceGrid(){
  return danceBase;
 }
 function danceActive(){return spaceshipUnlit()&&!exporting&&!!danceGrid()&&$('dance').checked;}
+// Dancing smaller hexagons (Animation → Dance pieces): level 1 or 2 cells of the shared Gosper
+// hierarchy instead of the four large pieces. A piece that leaves the view moves to the free cell
+// nearest the eye where it is the true spherical neighbour of a piece already there, at the turn
+// that join demands; pieces in view stay. The large pieces keep their base net meanwhile.
+let small=null;
+const danceLevel=()=>+$('dance-level').value||0;
+function smallActive(){return danceActive()&&danceLevel()>0;}
+function smallState(){
+ const level=danceLevel(),key=danceKey+'/'+level;
+ if(!small||small.key!==key){
+  const pieces=smallPieces(tiles,level),base=new Map(danceGrid().map(t=>[t.id,{x:t.x,y:t.y,r:t.r}])),frames=new Map(pieces.map(p=>[p.key,{...base.get(p.id)}]));
+  small={key,pieces,targets:frames,shown:new Map([...frames].map(([k,f])=>[k,{...f}])),tweens:new Map(),parts:smallParts(pieces),version:0};
+  placeParts(small.parts,small.shown);small.tiles=smallTiles(small.parts);
+ }
+ return small;
+}
+function resetSmall(){small=null;meshSignature=null;}
+// The tiles to draw and to place stories on: the dancing small pieces, or the large net.
+const placedTiles=()=>smallActive()?smallState().parts:net;
+function smallStep(now){
+ const s=smallState();
+ if(persistenceReady&&!tourAnimation){
+  // A cell counts as in view while any of it can be on screen; the eye is the middle of the free screen.
+  const unit=scale*state.zoom,radius=gosperScale**danceLevel()*unit,{left,right,top,bottom}=freeRect(),centre=danceNetAt((left+right)/2,(top+bottom)/2);
+  const inView=c=>{const [x,y]=point(c,{x:0,y:0,r:0});return x>-radius&&x<w+radius&&y>-radius&&y<h+radius;};
+  for(const [key,frame] of smallFill(s.pieces,s.targets,inView,centre))s.targets.set(key,frame);
+ }
+ const instant=reducedMotion(),duration=380;let moving=false,changed=false;
+ for(const p of s.pieces){
+  const to=s.targets.get(p.key),from=s.shown.get(p.key);let tween=s.tweens.get(p.key);
+  if(!tween||tween.to!==to){
+   if(Math.hypot(to.x-from.x,to.y-from.y)<1e-9&&Math.abs(to.r-from.r)<1e-9){s.tweens.delete(p.key);continue;}
+   // Tween the cell's centre and turn, so a piece slides and spins about itself rather than its region's origin.
+   const turn=((((to.r-from.r)%6)+9)%6)-3;tween={to,fc:pieceCentre(p,from),tc:pieceCentre(p,to),fr:from.r,dr:turn,start:now};s.tweens.set(p.key,tween);
+  }
+  const t=instant?1:Math.min(1,(now-tween.start)/duration),e=easeOutBack(t),r=tween.fr+tween.dr*e,c=[0,1].map(i=>tween.fc[i]+(tween.tc[i]-tween.fc[i])*e);
+  const a=r*Math.PI/3,o=[p.center[0]*Math.cos(a)-p.center[1]*Math.sin(a),p.center[0]*Math.sin(a)+p.center[1]*Math.cos(a)];
+  s.shown.set(p.key,t>=1?{...to}:{x:c[0]-o[0],y:c[1]-o[1],r});changed=true;
+  if(t>=1)s.tweens.delete(p.key);else moving=true;
+ }
+ if(changed){placeParts(s.parts,s.shown);s.tiles=smallTiles(s.parts);s.version++;meshSignature=null;}
+ return moving;
+}
 function danceSettled(){return danceActive()&&danceTweens.size===0;}
 function resetDance(){if(!danceBase)return;for(const t of net){const b=danceBase.find(a=>a.id===t.id);if(b&&(t.x!==b.x||t.y!==b.y||t.r!==b.r)){t.x=b.x;t.y=b.y;t.r=b.r;meshSignature=null;}}danceTargets=new Map(danceBase.map(t=>[t.id,{x:t.x,y:t.y,r:t.r}]));danceTweens.clear();danceVertex=null;}
 // The piece that joins edge `e` of a placed piece: which one, turned how, where.
@@ -376,6 +420,7 @@ function danceFill(centre=danceCentre()){
 const easeOutBack=p=>p>=1?1:1+2*Math.pow(p-1,3)+1*Math.pow(p-1,2);
 function danceStep(now){
  if(!danceActive())return false;
+ if(smallActive()){if(danceTweens.size||dancePlaced().some(t=>{const b=danceBase.find(a=>a.id===t.id);return !sameCell(b,t)||b.r!==t.r;}))resetDance();return smallStep(now);}
  // Not before the first fit (the camera is nowhere yet) nor while a story flight is in the air (the
  // centre is not where the user looks yet; the frame already placed the pieces).
  if(persistenceReady&&!tourAnimation)danceFill();
@@ -397,7 +442,8 @@ function danceStep(now){
 // points of the story joins the placed group at the edge that keeps those points
 // closest to the anchor's, and the framing uses those settled positions.
 function danceFrame(anchors){
- if(!danceActive()||!anchors.length)return null;
+ // Small pieces are framed where they are; they don't regroup for a story.
+ if(!danceActive()||smallActive()||!anchors.length)return null;
  const byPiece=new Map();for(const a of anchors){if(!byPiece.has(a.tile.id))byPiece.set(a.tile.id,[]);byPiece.get(a.tile.id).push(a.local);}
  const order=[...byPiece.keys()].sort((a,b)=>byPiece.get(b).length-byPiece.get(a).length);
  const placed=new Map([[order[0],danceTargets.get(order[0])]]),taken=cell=>[...placed.values()].some(q=>sameCell(q,cell));
@@ -427,8 +473,8 @@ function danceFrame(anchors){
 // appear only once the camera passes their zoom level.
 function historyRoutes(){
  if(!historyOn||!historyPeriod)return [];
- const key=[historyPeriod.period.id,state.method,state.height,state.arrangement,state.lon,state.lat,state.roll].join('/');
- if(!historyProjection||key!==historyProjectionKey){historyProjection=projectTourRoutes(tiles,net,state,historyPeriod.routes);historyProjectionKey=key;}
+ const key=[historyPeriod.period.id,state.method,state.height,state.arrangement,state.lon,state.lat,state.roll,smallActive()?smallState().key:''].join('/');
+ if(!historyProjection||key!==historyProjectionKey){historyProjection=projectTourRoutes(tiles,placedTiles(),state,historyPeriod.routes);historyProjectionKey=key;}
  return historyProjection.filter(route=>!route.zoom||state.zoom>=route.zoom);
 }
 function historySpots(){return historyPeriod?historyPeriod.spots:[];}
@@ -465,8 +511,8 @@ function focusHistoryStory(id){
  historyFocus=id;setSidebarExpanded(false,false);showHistoryCard(id);
  hideCoordinateReadout();
  const box=spot.view.match(/(-?[\d.]+)\s*,\s*(-?[\d.]+)\s*(?:→|->)\s*(-?[\d.]+)\s*,\s*(-?[\d.]+)/);
- const anchors=box?projectTourLocations(tiles,net,state,[[+box[1],+box[2]],[+box[3],+box[4]],[+box[1],+box[4]],[+box[3],+box[2]]].map(([latitude,longitude])=>({latitude,longitude})))
-  :projectTourRoutes(tiles,net,state,historyPeriod.routes.filter(r=>r.story===id)).flatMap(route=>route.anchors);
+ const anchors=box?projectTourLocations(tiles,placedTiles(),state,[[+box[1],+box[2]],[+box[3],+box[4]],[+box[1],+box[4]],[+box[3],+box[2]]].map(([latitude,longitude])=>({latitude,longitude})))
+  :projectTourRoutes(tiles,placedTiles(),state,historyPeriod.routes.filter(r=>r.story===id)).flatMap(route=>route.anchors);
  let points=danceFrame(anchors);
  if(points){
   // Settle the vertex rule at the centre the camera will fly to, re-frame the
@@ -603,7 +649,7 @@ function drawBackdropGrid(){
  const xs=corners.map(c=>c[0]),ys=corners.map(c=>c[1]);
  const i0=Math.floor((Math.min(...xs)-2)/1.5),i1=Math.ceil((Math.max(...xs)+2)/1.5),j0=Math.floor((Math.min(...ys)-2)/H),j1=Math.ceil((Math.max(...ys)+2)/H);
  if((i1-i0)*(j1-j0)>4000)return;
- const occupied=(x,y)=>net.some(t=>Math.hypot(t.x-x,t.y-y)<1)||(arrangement.outline&&pointInLoops([x,y],arrangement.outline))||(arrangement.clip&&pointInLoops([x,y],[arrangement.clip]));
+ const smallOn=smallActive(),occupied=(x,y)=>!smallOn&&net.some(t=>Math.hypot(t.x-x,t.y-y)<1)||(arrangement.outline&&pointInLoops([x,y],arrangement.outline))||(arrangement.clip&&pointInLoops([x,y],[arrangement.clip]));
  ctx.save();ctx.strokeStyle=$('backdrop-color').value;ctx.globalAlpha=state.backdropOpacity/100;ctx.lineWidth=state.backdropWidth;ctx.lineCap='round';ctx.beginPath();
  const seen=new Set();
  for(let i=i0;i<=i1;i++)for(let j=j0;j<=j1;j++){
@@ -616,7 +662,10 @@ function drawBackdropGrid(){
    ctx.moveTo(...point(a,cell));ctx.lineTo(...point(b,cell));
   }
  }
- ctx.stroke();ctx.restore();canvas.dataset.backdropEdges=String(seen.size);
+ ctx.stroke();
+ // Small pieces don't fill whole large cells: erase the grid under each placed piece instead.
+ if(smallOn){ctx.globalAlpha=1;ctx.globalCompositeOperation='destination-out';ctx.beginPath();for(const p of small.pieces){const f=small.shown.get(p.key);p.polygon.forEach((v,i)=>i?ctx.lineTo(...point(v,f)):ctx.moveTo(...point(v,f)));ctx.closePath();}ctx.fill();}
+ ctx.restore();canvas.dataset.backdropEdges=String(seen.size);
 }
 function drawPuzzle(){
  if(!$('puzzlegrid').checked||state.puzzleWidth<=0)return;
@@ -630,8 +679,7 @@ function drawSubgrid(){
  if(!$('subgrid').checked&&!$('dotgrid').checked)return;
  const color=$('hex-grid-color').value,levels=subgridLevels;
  for(const t of visible){
-  const parentPolygon=t.polygon||hex;
-  ctx.save();ctx.beginPath();parentPolygon.forEach((p,i)=>{const xy=point(p,t);i?ctx.lineTo(...xy):ctx.moveTo(...xy);});ctx.closePath();ctx.clip();
+  ctx.save();ctx.beginPath();for(const outline of t.polygons||[t.polygon||hex]){outline.forEach((p,i)=>{const xy=point(p,t);i?ctx.lineTo(...xy):ctx.moveTo(...xy);});ctx.closePath();}ctx.clip();
   if($('subgrid').checked&&state.subgridWidth>0){
    for(const [index,cells] of levels.slice(1,3).entries()){
    ctx.beginPath();ctx.strokeStyle=color;ctx.globalAlpha=index===0?.14:.72;ctx.lineWidth=state.subgridWidth*(index===0?Math.max(.5,scale*state.zoom*.002):Math.max(.8,scale*state.zoom*.0038));
@@ -713,7 +761,7 @@ function drawPrecomputedSurface(){
  const savedBuffer=buffer,savedCount=count;
  gl.uniform1i(uniforms.bakedOn,1);
  for(const {t,x,y,rect,path} of drawTiles){
-   const key=[geometryKey,state.arrangement,t.id,t.x,t.y,t.r,t.opacity,level,x,y].join('/');
+   const key=[geometryKey,state.arrangement,t.id,t.x,t.y,t.r,t.opacity,level,x,y,t.members||''].join('/');
    let mesh=surfaceMeshes.get(key);
    if(!mesh){
     const vertices=[];
@@ -749,7 +797,7 @@ function syncSettingsVisibility(){
  // Settings that follow one value of a select: `data-settings-when="route-style=comets"`.
  for(const group of document.querySelectorAll('[data-settings-when]'))group.hidden=!group.dataset.settingsWhen.split(' ').some(rule=>{const [id,value]=rule.split('=');return $(id)?.value===value;});
  // The dance exists only on Spaceship Earth.
- $('dance-option').hidden=state.arrangement!=='dymaxion';if($('dance-option').hidden)$('dance-note').hidden=true;
+ $('dance-option').hidden=state.arrangement!=='dymaxion';if($('dance-option').hidden){$('dance-note').hidden=true;$('dance-level-option').hidden=true;}
 }
 // The Animation pane, applied on every draw: still markers, ripples, label size and the route look.
 function syncAnimationSettings(){
@@ -757,7 +805,8 @@ function syncAnimationSettings(){
  $('stage').style.setProperty('--label-scale',String(state.labelScale/100));
  tourRoutes.configure({style:$('route-style').value,motion:$('route-motion').checked,dotSize:state.routeDotSize,tail:state.routeTail,lineWidth:state.routeLineWidth});
 }
-$('dance').addEventListener('change',()=>{if(!$('dance').checked)resetDance();draw();});
+$('dance').addEventListener('change',()=>{if(!$('dance').checked){resetDance();resetSmall();}draw();});
+$('dance-level').addEventListener('change',()=>{resetDance();resetSmall();draw();});
 for(const id of ['motion','route-style','route-motion','marker-ripples'])$(id).addEventListener('change',()=>{syncAnimationSettings();draw();});
 document.addEventListener('change',syncSettingsVisibility);
 function render(refined=false,exportMode=false){if(exporting&&!exportMode)return;queued=false;document.documentElement.style.setProperty('--map-background',$('background-color').value);const background=$('background-color').value,brightness=[1,3,5].reduce((sum,i,k)=>sum+parseInt(background.slice(i,i+2),16)*[.299,.587,.114][k],0);document.documentElement.style.setProperty('--heading-ink',brightness>145?'#193c49':'#f6f4ed');for(const id of ['background-color','border-color','hex-grid-color','puzzle-color','graticule-color','river-color','backdrop-color'])$(id+'-value').value=$(id).value;syncOptionCards();syncSettingsVisibility();updateDistortionLegend();$('zoom-value').textContent=Math.round(state.zoom*100)+'%';if(!ready||!gl)return;const currentDefault=activeDefault();const previousPath=!!renderDefault;selectRenderPath(currentDefault);initializeProgram(!!renderDefault);if(previousPath&&!renderDefault&&($('relief-enabled').checked||['ivory','elevation'].includes(displayedSource)))ensureRelief();if(!program)return;if(renderDefault&&!defaultLayers)defaultLayers=new DefaultLayers(gl,draw);if(renderDefault)defaultLayers.prepare(renderDefault);const wasMerged=!!renderMerged;renderMerged=!separateComparison&&!spaceshipUnlit()?mergedEntry(renderDefault):null;if(renderMerged&&!wasMerged){if(surfaceCache===defaultLayers.base)surfaceCache=null;defaultLayers.dispose();defaultLayers=new DefaultLayers(gl,draw);defaultLayers.prepare(renderDefault);}if(!renderMerged&&mergedMaps){if(surfaceCache===mergedMaps.cache)surfaceCache=null;mergedMaps.dispose();mergedMaps=null;}const lighting=renderMerged||spaceshipUnlit()?(defaultLayers?.detail.setRequired(new Set()),null):renderDefault?defaultLayers.lighting(renderDefault,scale*state.zoom,dpr,w,h,state.panX,state.panY,{capToBase:$('lighting-resolution-test').value==='map',compareHighest:$('lighting-resolution-test').value!=='auto'}):$('relief-enabled').checked&&relief?.ready?cachedLighting():null;canvas.dataset.renderPath=renderDefault?'images':'live';if(!renderDefault&&$('rivers-visible').checked&&uploadedRiverKey!==state.riverLevels+'/field'&&!offlineBake)updateRiverLayer();if(danceActive()&&danceStep(performance.now()))requestAnimationFrame(draw);updateVisibleMesh();if(!exportMode)updateHeadingVisibility();gl.bindFramebuffer(gl.FRAMEBUFFER,null);gl.viewport(0,0,canvas.width,canvas.height);gl.clearColor(...[1,3,5].map(i=>parseInt(background.slice(i,i+2),16)/255),1);gl.clear(gl.COLOR_BUFFER_BIT);gl.useProgram(program);gl.uniform1f(uniforms.gridRotation,state.gridRotation*Math.PI/180);gl.uniform2f(uniforms.size,w,h);gl.uniform3f(uniforms.view,scale*state.zoom,state.panX,state.panY);gl.uniform3f(uniforms.angles,state.lon*Math.PI/180,state.lat*Math.PI/180,state.roll*Math.PI/180);gl.uniform1f(uniforms.bias,state.bias);gl.uniform1f(uniforms.blend,+$('interpolation').value);gl.uniform1f(uniforms.grid,$('graticule').checked?state.grid*Math.PI/180:0);gl.uniform1f(uniforms.gridWidth,.6*state.graticuleWidth/(scale*state.zoom));gl.uniform3fv(uniforms.gridColor,[1,3,5].map(i=>parseInt($('graticule-color').value.slice(i,i+2),16)/255));gl.uniform1i(uniforms.palette,displayedSource==='continents'?['atlas','original','night'].indexOf($('palette').value):1);gl.uniform1i(uniforms.distortion,derivativeSupport?($('distortion').checked?3:0):0);gl.uniform1f(uniforms.distortionOpacity,state.distortionOpacity);gl.uniform1f(uniforms.pixelScale,scale*state.zoom*dpr);gl.uniform1i(uniforms.map,0);gl.uniform1i(uniforms.felvClip,arrangement.clip?1:0);
@@ -768,7 +817,7 @@ function render(refined=false,exportMode=false){if(exporting&&!exportMode)return
   const plan=mergedMaps.draw(renderMerged,{width:w,height:h,unit:scale*state.zoom,dpr,panX:state.panX,panY:state.panY},null,[]);
   surfaceCache=mergedMaps.cache;canvas.dataset.surface='precomputed';canvas.dataset.surfacePreview=String(!plan.ready);canvas.dataset.surfaceLevel=String(plan.level);canvas.dataset.surfacePending=String(surfaceCache.pending.size);canvas.dataset.surfaceTiles=String(surfaceCache.cache.size);canvas.dataset.surfaceFailures=String(surfaceCache.failures.size);
  }else drawColor(w,h,!!lighting);
- canvas.dataset.merged=String(!!renderMerged);canvas.dataset.tourLayout=danceActive()?'dancing':'default';canvas.dataset.danceVertex=danceActive()?danceCentreState:'';canvas.dataset.danceEyeEmpty=String(danceActive()&&danceEyeEmpty);canvas.dataset.danceScreen=danceActive()?net.map(t=>{const c=point([0,0],t);return `${t.id}:${c[0].toFixed(0)},${c[1].toFixed(0)}`;}).join(' '):'';canvas.dataset.danceValid=String(danceActive()?danceConnected():true);canvas.dataset.tourLighting=spaceshipLit()?'lit':spaceshipUnlit()?'unlit':'default';canvas.dataset.litHold=litRotationHold===null?'':String(litRotationHold);canvas.dataset.turn=state.gridRotation.toFixed(1);canvas.dataset.danceMoving=String(danceTweens.size>0);canvas.dataset.dancePositions=net.map(t=>`${t.id}:${t.x.toFixed(2)},${t.y.toFixed(2)},${t.r.toFixed(2)}`).join(' ');
+ canvas.dataset.merged=String(!!renderMerged);canvas.dataset.danceLevel=smallActive()?String(danceLevel()):'0';canvas.dataset.danceMoved=smallActive()?String(small.pieces.filter(p=>{const f=small.targets.get(p.key),b=danceBase.find(t=>t.id===p.id);return Math.hypot(f.x-b.x,f.y-b.y)>1e-6||Math.abs(f.r-b.r)>1e-6;}).length):'';canvas.dataset.tourLayout=danceActive()?'dancing':'default';canvas.dataset.danceVertex=danceActive()?danceCentreState:'';canvas.dataset.danceEyeEmpty=String(danceActive()&&danceEyeEmpty);canvas.dataset.danceScreen=danceActive()?net.map(t=>{const c=point([0,0],t);return `${t.id}:${c[0].toFixed(0)},${c[1].toFixed(0)}`;}).join(' '):'';canvas.dataset.danceValid=String(danceActive()?danceConnected():true);canvas.dataset.tourLighting=spaceshipLit()?'lit':spaceshipUnlit()?'unlit':'default';canvas.dataset.litHold=litRotationHold===null?'':String(litRotationHold);canvas.dataset.turn=state.gridRotation.toFixed(1);canvas.dataset.danceMoving=String(danceTweens.size>0);canvas.dataset.dancePositions=net.map(t=>`${t.id}:${t.x.toFixed(2)},${t.y.toFixed(2)},${t.r.toFixed(2)}`).join(' ');
  if(lighting){(renderDefault?defaultLayers:projectedLighting).composite(lighting,w,h,scale*state.zoom,state.panX,state.panY,state.shadowOpacity,state.lightOpacity);
   if(!renderDefault&&($('graticule').checked||$('distortion').checked)){gl.enable(gl.BLEND);gl.blendFuncSeparate(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA,gl.ONE,gl.ONE_MINUS_SRC_ALPHA);drawColor(w,h,false,true);gl.disable(gl.BLEND);}
  }
@@ -783,20 +832,20 @@ function render(refined=false,exportMode=false){if(exporting&&!exportMode)return
   const enabled=tourEnabled(renderDefault)&&!isAboutPath(location.pathname);
   if(historyOn&&!enabled)enableHistory(false);
   // Off the timeline the seven entry dots invite a click; on it each period places its own spots.
-  tourMarkers.update(enabled?projectTourLocations(tiles,net,state,historyOn?historySpots():tourLocations):[],point,w,h);
+  tourMarkers.update(enabled?projectTourLocations(tiles,placedTiles(),state,historyOn?historySpots():tourLocations):[],point,w,h);
   tourRoutes.update(historyOn&&enabled?historyRoutes():[],point,w,h);
   const labels=historyOn&&enabled&&historyFocus&&historyPeriod?.text.spots[historyFocus]?.labels||[];
-  tourLabels.update(labels.length?projectTourLocations(tiles,net,state,labels):[],point,w,h);updateCoordinateReadout();
+  tourLabels.update(labels.length?projectTourLocations(tiles,placedTiles(),state,labels):[],point,w,h);updateCoordinateReadout();
  }
 
  ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,w,h);ctx.lineJoin='round';
  drawBackdropGrid();
  ctx.save();
  if(arrangement.outline){traceOutline();ctx.clip();}
- else if(!tiling){ctx.beginPath();for(const t of visible){($('puzzlegrid').checked?puzzleFor(t.id).outline:t.polygon||hex).forEach((p,i)=>i?ctx.lineTo(...point(p,t)):ctx.moveTo(...point(p,t)));ctx.closePath();}ctx.clip();}
+ else if(!tiling){ctx.beginPath();for(const t of visible)for(const outline of $('puzzlegrid').checked?[puzzleFor(t.id).outline]:t.polygons||[t.polygon||hex]){outline.forEach((p,i)=>i?ctx.lineTo(...point(p,t)):ctx.moveTo(...point(p,t)));ctx.closePath();}ctx.clip();}
  if(arrangement.clip){ctx.beginPath();arrangement.clip.forEach((p,i)=>i?ctx.lineTo(...point(p,{x:0,y:0,r:0})):ctx.moveTo(...point(p,{x:0,y:0,r:0})));ctx.closePath();ctx.clip();}
  drawSubgrid();drawFractalGrid();drawIndicatrixes();
- for(const t of visible){ctx.globalAlpha=t.opacity;ctx.beginPath();(t.polygon||hex).forEach((p,i)=>{const xy=point(p,t);i?ctx.lineTo(...xy):ctx.moveTo(...xy);});ctx.closePath();ctx.strokeStyle=$('border-color').value;if(state.line>0&&!arrangement.outline&&!$('puzzlegrid').checked){ctx.lineWidth=state.line;ctx.stroke();}
+ for(const t of visible){ctx.globalAlpha=t.opacity;ctx.beginPath();for(const outline of t.polygons||[t.polygon||hex]){outline.forEach((p,i)=>{const xy=point(p,t);i?ctx.lineTo(...xy):ctx.moveTo(...xy);});ctx.closePath();}ctx.strokeStyle=$('border-color').value;if(state.line>0&&!arrangement.outline&&!$('puzzlegrid').checked){ctx.lineWidth=state.line;ctx.stroke();}
  if($('construction').checked){ctx.strokeStyle='#cb6d3199';ctx.lineWidth=1;ctx.setLineDash([4,4]);for(const p of (t.drawPatches||tiles[t.id].patches)){ctx.beginPath();p.xy.forEach((v,i)=>i?ctx.lineTo(...point(v,t)):ctx.moveTo(...point(v,t)));ctx.closePath();ctx.stroke();}ctx.setLineDash([]);}
  if($('labels').checked){const c=point(t.polygon?t.polygon.reduce((s,p)=>s.map((v,i)=>v+p[i]/t.polygon.length),[0,0]):[0,0],t);ctx.beginPath();ctx.arc(...c,14,0,Math.PI*2);ctx.fillStyle='#f6fbfbea';ctx.fill();ctx.fillStyle='#214754';ctx.font='600 12px "DM Sans",sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText('ABCD'[t.id],...c);
  for(let e=0;e<(t.polygon?0:6);e++){const mid=hex[e].map((v,i)=>(v+hex[(e+1)%6][i])*.46);const xy=point(mid,t);ctx.font='10px "Space Grotesk",sans-serif';ctx.fillStyle='#f6fbfbde';ctx.fillRect(xy[0]-8,xy[1]-7,16,14);ctx.fillStyle='#3d6774';ctx.fillText(edgeLabels[t.id][e],...xy);}}

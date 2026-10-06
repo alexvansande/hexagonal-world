@@ -258,6 +258,19 @@ longer used by the app. Checks: `tour-endless-tests.mjs`,
 (the quick run by default; `?full=1` scrubs every period and drags in every
 direction). The browser pages are not part of `npm test`.
 
+**Dance pieces** (Animation pane, Spaceship Earth) picks what dances: the large
+hexagons (the rule above), or the level-1 or level-2 cells of the shared
+hierarchy (`dist/small-dance.mjs`). Each small piece is a whole cell whose
+artwork is clipped from its parent region and the neighbouring regions it bulges
+into, drawn through the same per-piece images. Every piece edge has exactly one
+spherical partner, found once in the planar neighbourhood of its parent. While
+the map moves, a piece whose cell can no longer be on screen moves to the free
+on-screen cell nearest the eye where it joins a placed piece along that partner
+edge, at the turn the join demands; pieces in view stay. Parts sharing a region
+and a placement merge into one drawn tile. Markers, labels and history routes
+follow the small pieces; stories are framed where they stand. Exports keep the
+base net. `data-dance-level` and `data-dance-moved` expose the state.
+
 Megafauna: the extinctions that followed people are told where the stories
 already reach (Sahul at 50k ya, the Americas and Eurasia at 10k ya, moa at 1400
 CE, the dodo at 1600 CE, Steller's sea cow and the fur hunters' route at 1800
