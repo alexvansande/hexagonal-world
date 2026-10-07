@@ -61,3 +61,34 @@ agent; full method and numbers in `REPORT-v1.md` and `REPORT-v2.md`.
   with the Americas and Eurasia both on the rim (which needs a cut at the
   Bering Strait) and **dropped the project**; this direction is unresolved.
 - `label_fish.py` labels the v1 map at known ocean points.
+
+## 4. Spilhaus layout from puzzle pieces (`spilhaus-puzzle/`)
+
+The world ocean in one piece, Spilhaus-style, built from 7,254 rigid level-4
+cells (about 115 km) of Spaceship Earth with Satellite imagery. Every join is a
+true neighbour edge; there are no overlaps and no inconsistent joins.
+
+- **Why there are gaps.** Rigid pieces can't absorb curvature. On this sphere it
+  all sits at the 6 two-piece corners (the octahedron's axis points, 120° each);
+  Euler's formula confirms exactly 6 such corners at every level. A corner on
+  the rim land (Afro-Eurasia or the Americas) is free; a corner at sea needs a
+  slit to that land.
+- **Orientation** (`outer.mjs`, `waterdist.mjs`, `orient*.py`): no rotation
+  puts all 6 corners on rim land (best 5 on any land, in 1.5–2 M samples). The
+  search minimises squared water-only slit length to the rim and picks lon
+  103.75°, lat 48.02°, roll −135.39°: one corner in Mongolia, one just off
+  Chile, four at sea (Tasman Sea, east of Madagascar, off California, off the
+  Canaries).
+- **Cuts and joins** (`edges3.mjs`, `spilhaus.mjs`): each sea corner gets the
+  cheapest water-only slit to a point at least 1° inside rim land, plus one cut
+  joining the Americas to Afro-Eurasia (Bering Strait). Pieces join only across
+  mostly-water edges whose water touches each piece's largest water patch and
+  that don't cross rim land between waters; this blocks joins across isthmuses
+  such as Tehuantepec. The Bosporus–Dardanelles, Danish straits and Kerch are
+  forced open. Ocean cut length is about 7,800 km, most of it the Tasman Sea
+  corner's slit through Australia and Indonesia to Thailand.
+- **Checks**: `where.mjs` and `wind.mjs` locate inconsistent joins and the
+  corner a leaking loop winds around (used to find the Malay-peninsula and
+  Tehuantepec leaks). Final run: 0 overlaps, 0 inconsistent joins.
+- Rendered offline from Blue Marble (no app relief lighting or rivers); scripts
+  read the orientation from the `ANGLES` environment variable.
