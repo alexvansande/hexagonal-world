@@ -84,8 +84,9 @@ true neighbour edge; there are no overlaps and no inconsistent joins.
   joining the Americas to Afro-Eurasia (Bering Strait). Pieces join only across
   mostly-water edges whose water touches each piece's largest water patch and
   that don't cross rim land between waters; this blocks joins across isthmuses
-  such as Tehuantepec. The Bosporus–Dardanelles, Danish straits and Kerch are
-  forced open. Ocean cut length is about 7,800 km, most of it the Tasman Sea
+  such as Tehuantepec. Joins along the Bosporus–Dardanelles and the Danish
+  straits are forced open; the Kerch route falls inside a single piece, so
+  nothing was forced there and the Sea of Azov was not checked. Ocean cut length is about 7,800 km, most of it the Tasman Sea
   corner's slit through Australia and Indonesia to Thailand.
 - **Checks**: `where.mjs` and `wind.mjs` locate inconsistent joins and the
   corner a leaking loop winds around (used to find the Malay-peninsula and
